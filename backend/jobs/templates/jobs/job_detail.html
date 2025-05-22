@@ -1,0 +1,1175 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}{{ job.title }} at {{ job.company }} | JobMatch{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <!-- Notification area -->
+    {% if messages %}
+    <div class="notification-area">
+        {% for message in messages %}
+        <div class="notification {% if message.tags %}{{ message.tags }}{% endif %}">
+            <i class='bx 
+                {% if message.tags == "success" %}bx-check-circle
+                {% elif message.tags == "error" %}bx-error
+                {% elif message.tags == "warning" %}bx-error-circle
+                {% else %}bx-info-circle{% endif %}'>
+            </i>
+            <span>{{ message }}</span>
+            <button class="close-btn"><i class='bx bx-x'></i></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Breadcrumb -->
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <a href="{% url 'jobs:job_listings' %}" class="breadcrumb-link">Jobs</a>
+        <span class="breadcrumb-separator"><i class='bx bx-chevron-right'></i></span>
+        <span class="breadcrumb-item active">{{ job.title }}</span>
+    </div>
+
+
+    <div class="job-detail-container">
+        <!-- Left content: Job information -->
+        <div class="job-main-content">
+            <!-- Job header -->
+            <div class="job-header-card">
+                <div class="job-header-content">
+                    {% if job.company_logo %}
+                    <div class="company-logo">
+                        <img src="{{ job.company_logo.url }}" alt="{{ job.company }} logo">
+                    </div>
+                    {% else %}
+                    <div class="company-logo company-placeholder">
+                        <i class='bx bx-building-house'></i>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="job-header-info">
+                        <h1 class="job-title">{{ job.title }}</h1>
+                        <div class="job-meta">
+                            <div class="job-meta-item">
+                                <i class='bx bx-buildings'></i>
+                                <span>{{ job.company }}</span>
+                            </div>
+                            <div class="job-meta-item">
+                                <i class='bx bx-map'></i>
+                                <span>{{ job.location }}</span>
+                            </div>
+                            <div class="job-meta-item">
+                                <i class='bx bx-time'></i>
+                                <span>{{ job.job_type }}</span>
+                            </div>
+                            {% if job.salary %}
+                            <div class="job-meta-item">
+                                <i class='bx bx-dollar-circle'></i>
+                                <span>{{ job.salary }}</span>
+                            </div>
+                            {% endif %}
+                            <div class="job-meta-item">
+                                <i class='bx bx-calendar'></i>
+                                <span>Posted: {{ job.posted_at|date:"M d, Y" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="job-actions">
+                    {% if not already_applied %}
+                    <button id="applyBtn" class="btn btn-primary btn-lg">
+                        <i class='bx bx-send'></i> Apply Now
+                    </button>
+                    {% else %}
+                    <button class="btn btn-success btn-lg" disabled>
+                        <i class='bx bx-check'></i> Applied
+                    </button>
+                    {% endif %}
+                    
+                    <button id="bookmarkBtn" class="btn btn-outline btn-lg {% if is_bookmarked %}bookmarked{% endif %}" data-job-id="{{ job.id }}">
+                        <i class='bx {% if is_bookmarked %}bxs-bookmark{% else %}bx-bookmark{% endif %}'></i>
+                        <span>{% if is_bookmarked %}Bookmarked{% else %}Bookmark{% endif %}</span>
+                    </button>
+                    
+                    <button class="btn btn-outline btn-lg share-btn">
+                        <i class='bx bx-share-alt'></i> Share
+                    </button>
+                </div>
+            </div>
+
+            <!-- Job description -->
+            <div class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title"><i class='bx bx-detail'></i> Job Description</h2>
+                </div>
+                <div class="section-content job-description">
+                    {{ job.description|linebreaks }}
+                </div>
+            </div>
+
+            <!-- Job requirements -->
+            <div class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title"><i class='bx bx-list-check'></i> Requirements</h2>
+                </div>
+                <div class="section-content">
+                    {% if job.requirements %}
+                        {{ job.requirements|linebreaks }}
+                    {% else %}
+                        <p>No specific requirements listed.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Skills required -->
+            <div class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title"><i class='bx bx-brain'></i> Skills Required</h2>
+                </div>
+                <div class="section-content">
+                    <div class="skills-container">
+                        {% for skill in job.skills %}
+                        <span class="skill-tag {% if skill in matching_skills %}skill-match{% endif %}">
+                            {% if skill in matching_skills %}<i class='bx bx-check'></i>{% endif %}
+                            {{ skill }}
+                        </span>
+                        {% empty %}
+                        <p>No specific skills listed.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- About the company -->
+            <div class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title"><i class='bx bx-building'></i> About {{ job.company }}</h2>
+                </div>
+                <div class="section-content">
+                    {% if job.company_description %}
+                        {{ job.company_description|linebreaks }}
+                    {% else %}
+                        <p>No company description available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right sidebar: Match score and similar jobs -->
+        <div class="job-sidebar">
+            <!-- Match score card -->
+            <div class="sidebar-card match-score-card">
+                <div class="card-header">
+                    <h3><i class='bx bx-analyse'></i> Match Analysis</h3>
+                </div>
+                <div class="card-body">
+                    <div class="match-score-indicator">
+                        <div class="score-circle {% if match_score >= 80 %}excellent{% elif match_score >= 60 %}good{% elif match_score >= 40 %}moderate{% else %}low{% endif %}">
+                            <span class="score-number">{{ match_score }}%</span>
+                            <span class="score-label">Match</span>
+                        </div>
+                    </div>
+                    
+                    <div class="skills-match">
+                        <h4><i class='bx bx-check-circle'></i> Your Matching Skills ({{ matching_skills|length }})</h4>
+                        <div class="skills-container">
+                            {% for skill in matching_skills %}
+                            <span class="skill-tag skill-match"><i class='bx bx-check'></i> {{ skill }}</span>
+                            {% empty %}
+                            <p>You don't have any matching skills yet.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="skills-missing">
+                        <h4><i class='bx bx-x-circle'></i> Skills to Develop ({{ missing_skills|length }})</h4>
+                        <div class="skills-container">
+                            {% for skill in missing_skills %}
+                            <span class="skill-tag skill-missing">{{ skill }}</span>
+                            {% empty %}
+                            <p>You have all the required skills!</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Similar jobs card -->
+            <div class="sidebar-card similar-jobs-card">
+                <div class="card-header">
+                    <h3><i class='bx bx-list-ul'></i> Similar Jobs</h3>
+                </div>
+                <div class="card-body">
+                    <div class="similar-jobs-list">
+                        {% for similar_job in similar_jobs %}
+                        <a href="{% url 'jobs:job_detail' similar_job.id %}" class="similar-job-item">
+                            <div class="similar-job-info">
+                                <h4>{{ similar_job.title }}</h4>
+                                <div class="job-meta">
+                                    <span><i class='bx bx-buildings'></i> {{ similar_job.company }}</span>
+                                    <span><i class='bx bx-map'></i> {{ similar_job.location }}</span>
+                                </div>
+                            </div>
+                            <i class='bx bx-right-arrow-alt'></i>
+                        </a>
+                        {% empty %}
+                        <p>No similar jobs found.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Application Modal -->
+<div id="applicationModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Apply for {{ job.title }}</h2>
+            <button class="close-modal"><i class='bx bx-x'></i></button>
+        </div>
+        <div class="modal-body">
+            <form action="{% url 'jobs:apply_for_job' job.id %}" method="post" enctype="multipart/form-data" id="applicationForm">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="cover_letter">Cover Letter</label>
+                    <textarea id="cover_letter" name="cover_letter" rows="6" placeholder="Introduce yourself and explain why you're a good fit for this position..."></textarea>
+                    <small class="form-text">Personalize your application to stand out to the employer.</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="resume">Resume</label>
+                    <div class="file-upload-container">
+                        <input type="file" id="resume" name="resume" accept=".pdf,.doc,.docx">
+                        <label for="resume" class="file-upload-label">
+                            <i class='bx bx-upload'></i>
+                            <span id="file-name">Upload Resume (PDF, DOC, DOCX)</span>
+                        </label>
+                    </div>
+                    <small class="form-text">Max file size: 5MB</small>
+                </div>
+                
+                <div class="match-summary">
+                    <h4>Application Summary</h4>
+                    <div class="summary-item">
+                        <i class='bx bx-check-circle'></i>
+                        <span>Your profile matches <strong>{{ match_score }}%</strong> of job requirements</span>
+                    </div>
+                    <div class="summary-item">
+                        <i class='bx bx-check-circle'></i>
+                        <span>You have <strong>{{ matching_skills|length }}</strong> matching skills</span>
+                    </div>
+                    <div class="summary-item">
+                        <i class='bx bx-info-circle'></i>
+                        <span>You're missing <strong>{{ missing_skills|length }}</strong> skills for this role</span>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline close-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Submit Application</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Share Modal -->
+<div id="shareModal" class="modal">
+    <div class="modal-content modal-sm">
+        <div class="modal-header">
+            <h2>Share This Job</h2>
+            <button class="close-modal"><i class='bx bx-x'></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="share-link-container">
+                <input type="text" id="shareLink" value="{{ request.build_absolute_uri }}" readonly>
+                <button id="copyShareLink" class="btn btn-outline">
+                    <i class='bx bx-copy'></i> Copy
+                </button>
+            </div>
+            
+            <div class="social-share-buttons">
+                <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.build_absolute_uri|urlencode }}" target="_blank" class="social-share-btn linkedin">
+                    <i class='bx bxl-linkedin'></i> LinkedIn
+                </a>
+                <a href="https://twitter.com/intent/tweet?text=Check%20out%20this%20job:%20{{ job.title|urlencode }}%20at%20{{ job.company|urlencode }}&url={{ request.build_absolute_uri|urlencode }}" target="_blank" class="social-share-btn twitter">
+                    <i class='bx bxl-twitter'></i> Twitter
+                </a>
+                <a href="mailto:?subject=Job%20Opportunity:%20{{ job.title|urlencode }}%20at%20{{ job.company|urlencode }}&body=I%20found%20this%20job%20that%20might%20interest%20you:%20{{ request.build_absolute_uri|urlencode }}" class="social-share-btn email">
+                    <i class='bx bx-envelope'></i> Email
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    /* Job Detail Page Specific Styles */
+    .job-detail-container {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        gap: 1.5rem;
+    }
+    
+    /* Job Header */
+    .job-header-card {
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+        margin-bottom: 1.5rem;
+    }
+    
+    .job-header-content {
+        display: flex;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .company-logo {
+        width: 80px;
+        height: 80px;
+        border-radius: 8px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--light-bg);
+        border: 1px solid var(--border-color);
+    }
+    
+    .company-logo img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+    
+    .company-placeholder {
+        background-color: var(--accent-color-light);
+        color: var(--accent-color);
+        font-size: 2rem;
+    }
+    
+    .job-header-info {
+        flex: 1;
+    }
+    
+    .job-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem;
+        color: var(--heading-color);
+    }
+    
+    .job-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .job-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+        color: var(--text-muted);
+    }
+    
+    .job-meta-item i {
+        font-size: 1.1rem;
+        color: var(--primary-color);
+    }
+    
+    .job-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border-color);
+    }
+    
+    .btn-lg {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+    }
+    
+    .bookmarked {
+        background-color: var(--accent-color-light);
+        color: var(--accent-color);
+        border-color: var(--accent-color);
+    }
+    
+    /* Content Sections */
+    .content-section {
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+    
+    .section-header {
+        padding: 1.25rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0;
+    }
+    
+    .section-title i {
+        color: var(--primary-color);
+        font-size: 1.4rem;
+    }
+    
+    .section-content {
+        padding: 1.25rem;
+    }
+    
+    .job-description {
+        line-height: 1.6;
+        color: var(--text-color);
+    }
+    
+    .job-description p {
+        margin-bottom: 1rem;
+    }
+    
+    .job-description ul {
+        padding-left: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    /* Skills */
+    .skills-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+    
+    .skill-tag {
+        display: inline-flex;
+        align-items: center;
+        background-color: var(--light-bg);
+        color: var(--text-color);
+        padding: 0.5rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        border: 1px solid var(--border-color);
+    }
+    
+    .skill-match {
+        background-color: var(--success-color-light);
+        color: var(--success-color);
+        border-color: var(--success-color-light);
+    }
+    
+    .skill-match i {
+        margin-right: 0.25rem;
+    }
+    
+    .skill-missing {
+        background-color: var(--light-bg);
+        color: var(--text-muted);
+    }
+    
+    /* Sidebar */
+    .job-sidebar {
+        position: sticky;
+        top: 6rem; /* Depends on your header height */
+        align-self: start;
+    }
+    
+    .sidebar-card {
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+    
+    .card-header {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        background-color: var(--card-header-bg);
+    }
+    
+    .card-header h3 {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+    
+    .card-header h3 i {
+        color: var(--primary-color);
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    /* Match Score */
+    .match-score-indicator {
+        display: flex;
+        justify-content: center;
+        margin: 1rem 0 1.5rem;
+    }
+    
+    .score-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--light-bg);
+        border: 8px solid var(--border-color);
+    }
+    
+    .score-circle.excellent {
+        background-color: var(--success-color-light);
+        border-color: var(--success-color);
+    }
+    
+    .score-circle.good {
+        background-color: #e9f7cf;
+        border-color: #8bc34a;
+    }
+    
+    .score-circle.moderate {
+        background-color: #fff8e1;
+        border-color: #ffc107;
+    }
+    
+    .score-circle.low {
+        background-color: #ffebee;
+        border-color: #ef5350;
+    }
+    
+    .score-number {
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+    
+    .score-label {
+        font-size: 0.9rem;
+        opacity: 0.8;
+        margin-top: 0.25rem;
+    }
+    
+    .skills-match, .skills-missing {
+        margin-top: 1.5rem;
+    }
+    
+    .skills-match h4, .skills-missing h4 {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    /* Similar Jobs */
+    .similar-jobs-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .similar-job-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem;
+        border-radius: 8px;
+        background-color: var(--light-bg);
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+    
+    .similar-job-item:hover {
+        background-color: var(--hover-bg);
+        transform: translateY(-2px);
+    }
+    
+    .similar-job-info {
+        flex: 1;
+    }
+    
+    .similar-job-info h4 {
+        margin: 0 0 0.25rem;
+        font-size: 0.95rem;
+        color: var(--heading-color);
+    }
+    
+    .similar-job-item .job-meta {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+    
+    .similar-job-item .job-meta span {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    .similar-job-item i.bx-right-arrow-alt {
+        color: var(--primary-color);
+        font-size: 1.25rem;
+        opacity: 0.7;
+    }
+    
+    .similar-job-item:hover i.bx-right-arrow-alt {
+        opacity: 1;
+        transform: translateX(3px);
+    }
+    
+    /* Application Modal */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .modal-content {
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        width: 90%;
+        max-width: 600px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        animation: modal-in 0.3s ease;
+    }
+    
+    .modal-sm {
+        max-width: 450px;
+    }
+    
+    @keyframes modal-in {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.25rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .modal-header h2 {
+        margin: 0;
+        font-size: 1.25rem;
+    }
+    
+    .close-modal {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: var(--text-muted);
+    }
+    
+    .modal-body {
+        padding: 1.25rem;
+    }
+    
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+    
+    /* Form elements in modal */
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+    
+    textarea, input[type="file"] {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background-color: var(--input-bg);
+        color: var(--text-color);
+        font-family: inherit;
+        font-size: 1rem;
+        resize: vertical;
+    }
+    
+    textarea:focus {
+        border-color: var(--primary-color);
+        outline: none;
+        box-shadow: 0 0 0 2px var(--primary-color-light);
+    }
+    
+    .form-text {
+        display: block;
+        margin-top: 0.25rem;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+    
+    .file-upload-container {
+        position: relative;
+    }
+    
+    input[type="file"] {
+        position: absolute;
+        top: 0;
+        left: 0;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+    
+    .file-upload-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        border: 1px dashed var(--border-color);
+        border-radius: 8px;
+        background-color: var(--light-bg);
+        cursor: pointer;
+        text-align: center;
+    }
+    
+    .file-upload-label:hover {
+        border-color: var(--primary-color);
+        background-color: var(--primary-color-light);
+    }
+    
+    /* Match summary in modal */
+    .match-summary {
+        background-color: var(--light-bg);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1.5rem;
+    }
+    
+    .match-summary h4 {
+        margin: 0 0 0.75rem;
+        font-size: 1rem;
+    }
+    
+    .summary-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .summary-item i {
+        color: var(--primary-color);
+    }
+    
+    /* Share modal */
+    .share-link-container {
+        display: flex;
+        margin-bottom: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .share-link-container input {
+        flex: 1;
+        padding: 0.75rem;
+        border: none;
+        background-color: var(--input-bg);
+        color: var(--text-color);
+    }
+    
+    .share-link-container .btn {
+        border-radius: 0;
+        height: auto;
+    }
+    
+    .social-share-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+    
+    .social-share-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        border-radius: 8px;
+        background-color: var(--light-bg);
+        color: var(--text-color);
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    
+    .social-share-btn.linkedin {
+        background-color: #0077b5;
+        color: white;
+    }
+    
+    .social-share-btn.twitter {
+        background-color: #1da1f2;
+        color: white;
+    }
+    
+    .social-share-btn.email {
+        grid-column: span 2;
+        background-color: var(--accent-color-light);
+        color: var(--accent-color);
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .job-detail-container {
+            grid-template-columns: 2fr 1fr;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .job-detail-container {
+            grid-template-columns: 1fr;
+        }
+        
+        .job-sidebar {
+            position: static;
+            top: auto;
+        }
+        
+        .job-header-content {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .job-meta {
+            justify-content: center;
+        }
+        
+        .job-actions {
+            justify-content: center;
+        }
+    }
+    .main-content {
+    margin-left: 133px;
+    padding: 3rem 1.5rem 2rem 32px;
+    min-height: 116vh;
+    transition: var(--transition);
+}
+    
+    @media (max-width: 480px) {
+        .job-meta {
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .social-share-buttons {
+            grid-template-columns: 1fr;
+        }
+        
+        .social-share-btn.email {
+            grid-column: span 1;
+        }
+    }
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Modal functionality
+    const applyBtn = document.getElementById('applyBtn');
+    const shareBtn = document.querySelector('.share-btn');
+    const applicationModal = document.getElementById('applicationModal');
+    const shareModal = document.getElementById('shareModal');
+    const closeModalBtns = document.querySelectorAll('.close-modal');
+    
+    // Open application modal
+    if (applyBtn) {
+        applyBtn.addEventListener('click', function() {
+            applicationModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        });
+    }
+    
+    // Open share modal
+    if (shareBtn) {
+        shareBtn.addEventListener('click', function() {
+            shareModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        });
+    }
+    
+    // Close any modal
+    closeModalBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            applicationModal.style.display = 'none';
+            shareModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        });
+    });
+    
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+        if (event.target === applicationModal) {
+            applicationModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+        if (event.target === shareModal) {
+            shareModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    });
+    
+    // File upload functionality
+    const resumeInput = document.getElementById('resume');
+    const fileNameDisplay = document.getElementById('file-name');
+    
+    if (resumeInput && fileNameDisplay) {
+        resumeInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                fileNameDisplay.textContent = this.files[0].name;
+            } else {
+                fileNameDisplay.textContent = 'Upload Resume (PDF, DOC, DOCX)';
+            }
+        });
+    }
+    
+    // Copy share link functionality
+    const copyShareLinkBtn = document.getElementById('copyShareLink');
+    const shareLinkInput = document.getElementById('shareLink');
+    
+    if (copyShareLinkBtn && shareLinkInput) {
+        copyShareLinkBtn.addEventListener('click', function() {
+            shareLinkInput.select();
+            document.execCommand('copy');
+            
+            // Change button text temporarily
+            const originalText = this.innerHTML;
+            this.innerHTML = '<i class="bx bx-check"></i> Copied!';
+            
+            setTimeout(() => {
+                this.innerHTML = originalText;
+            }, 2000);
+        });
+    }
+    
+    // Bookmark functionality
+    const bookmarkBtn = document.getElementById('bookmarkBtn');
+    
+    if (bookmarkBtn) {
+        bookmarkBtn.addEventListener('click', function() {
+            const jobId = this.getAttribute('data-job-id');
+            const isBookmarked = this.classList.contains('bookmarked');
+            
+            // Send AJAX request to bookmark/unbookmark
+            fetch(`/jobs/bookmark/${jobId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    action: isBookmarked ? 'unbookmark' : 'bookmark'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Toggle bookmark status
+                    if (isBookmarked) {
+                        bookmarkBtn.classList.remove('bookmarked');
+                        bookmarkBtn.innerHTML = '<i class="bx bx-bookmark"></i> <span>Bookmark</span>';
+                    } else {
+                        bookmarkBtn.classList.add('bookmarked');
+                        bookmarkBtn.innerHTML = '<i class="bx bxs-bookmark"></i> <span>Bookmarked</span>';
+                    }
+                    
+                    // Show notification
+                    showNotification(data.message, 'success');
+                } else {
+                    // Show error notification
+                    showNotification(data.message || 'An error occurred', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('An error occurred while processing your request', 'error');
+            });
+        });
+    }
+    
+    // Notification handling
+    function showNotification(message, type = 'info') {
+        const notificationArea = document.querySelector('.notification-area');
+        
+        if (!notificationArea) {
+            // Create notification area if it doesn't exist
+            const mainContent = document.querySelector('.main-content');
+            const newNotificationArea = document.createElement('div');
+            newNotificationArea.className = 'notification-area';
+            mainContent.insertBefore(newNotificationArea, mainContent.firstChild);
+            
+            showNotification(message, type);
+            return;
+        }
+        
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        
+        // Choose icon based on notification type
+        let iconClass = 'bx-info-circle';
+        if (type === 'success') iconClass = 'bx-check-circle';
+        else if (type === 'error') iconClass = 'bx-error';
+        else if (type === 'warning') iconClass = 'bx-error-circle';
+        
+        notification.innerHTML = `
+            <i class="bx ${iconClass}"></i>
+            <span>${message}</span>
+            <button class="close-btn"><i class="bx bx-x"></i></button>
+        `;
+        
+        notificationArea.appendChild(notification);
+        
+        // Add event listener for close button
+        const closeBtn = notification.querySelector('.close-btn');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function() {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            });
+        }
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
+                    }
+                }, 300);
+            }
+        }, 5000);
+    }
+    
+    // Get CSRF token from cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // Form validation for application submission
+    const applicationForm = document.getElementById('applicationForm');
+    
+    if (applicationForm) {
+        applicationForm.addEventListener('submit', function(event) {
+            const coverLetter = document.getElementById('cover_letter').value.trim();
+            const resume = document.getElementById('resume').files;
+            
+            let isValid = true;
+            
+            // Validate cover letter
+            if (!coverLetter) {
+                showNotification('Please provide a cover letter', 'error');
+                isValid = false;
+            }
+            
+            // Validate resume
+            if (resume.length === 0) {
+                showNotification('Please upload your resume', 'error');
+                isValid = false;
+            } else {
+                // Check file size (max 5MB)
+                const fileSize = resume[0].size / 1024 / 1024; // in MB
+                if (fileSize > 5) {
+                    showNotification('Resume file size should not exceed 5MB', 'error');
+                    isValid = false;
+                }
+                
+                // Check file type
+                const fileType = resume[0].name.split('.').pop().toLowerCase();
+                if (!['pdf', 'doc', 'docx'].includes(fileType)) {
+                    showNotification('Please upload resume in PDF, DOC, or DOCX format', 'error');
+                    isValid = false;
+                }
+            }
+            
+            if (!isValid) {
+                event.preventDefault();
+            } else {
+                // Show loading state
+                const submitBtn = applicationForm.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Submitting...';
+            }
+        });
+    }
+    
+    // Close notifications already on page
+    document.querySelectorAll('.notification .close-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const notification = this.parentNode;
+            notification.style.opacity = '0';
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        });
+    });
+});
+</script>
+{% endblock %}

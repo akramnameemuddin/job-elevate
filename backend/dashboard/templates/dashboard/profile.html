@@ -1,0 +1,2428 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">My Profile</h1>
+    <div class="breadcrumb">
+        <div class="breadcrumb-item">
+            <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
+            <i class='bx bx-chevron-right'></i>
+        </div>
+        <div class="breadcrumb-item">
+            <span>My Profile</span>
+        </div>
+    </div>
+</div>
+
+<!-- Messages for notifications -->
+{% if messages %}
+<div class="notification-container">
+    {% for message in messages %}
+    <div class="notification {{ message.tags }}">
+        <i class='bx bx-check-circle'></i>
+        <span>{{ message }}</span>
+        <button class="notification-close"><i class='bx bx-x'></i></button>
+    </div>
+    {% endfor %}
+
+</div>
+{% endif %}
+
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="profile-header-content">
+            <div class="profile-photo-wrapper">
+                <div class="profile-photo-container" id="photo-container">
+                    <img id="profile-photo-preview" class="profile-photo" 
+                        src="{% if user.profile_photo %}{{ user.profile_photo.url }}{% else %}{% static 'default_profile.png' %}{% endif %}" 
+                        alt="{{ user.full_name }}'s Profile Photo">
+                    <div class="photo-upload-overlay">
+                        <i class='bx bx-camera'></i>
+                    </div>
+                </div>
+                <span class="photo-upload-hint">Click to upload</span>
+            </div>
+            <div class="profile-header-info">
+                <h2 class="profile-name">{{ user.full_name }}</h2>
+                <p class="profile-role">{{ user.user_type|title }}</p>
+                <div class="profile-stats">
+                    <div class="profile-stat">
+                        <span class="stat-value">{{ profile_percent }}%</span>
+                        <span class="stat-label">Profile Completion</span>
+                    </div>
+                    <div class="profile-stat">
+                        <span class="stat-value">42</span>
+                        <span class="stat-label">Job Matches</span>
+                    </div>
+                    <div class="profile-stat">
+                        <span class="stat-value">7</span>
+                        <span class="stat-label">Courses</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+       </div>
+
+    <div class="profile-tabs">
+        <button class="tab-button active" data-tab="basic-info">
+            <i class='bx bx-user'></i>
+            <span>Basic Info</span>
+        </button>
+        <button class="tab-button" data-tab="education-skills">
+            <i class='bx bx-book-alt'></i>
+            <span>Education & Skills</span>
+        </button>
+        <button class="tab-button" data-tab="experience">
+            <i class='bx bx-briefcase'></i>
+            <span>Experience</span>
+        </button>
+        <button class="tab-button" data-tab="projects">
+            <i class='bx bx-code-block'></i>
+            <span>Projects</span>
+        </button>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" action="{% url 'dashboard:profile' %}" id="profile-form">
+        {% csrf_token %}
+        <input type="file" name="profile_photo" id="profile-photo-input" accept="image/*" style="display: none;">
+        
+        <!-- Tab Content: Basic Info -->
+        <div class="tab-content active" id="basic-info-content">
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class='bx bx-user-circle'></i>
+                        Personal Details
+                    </h3>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="full_name">Full Name</label>
+                        <div class="input-with-icon">
+                            <i class='bx bx-user'></i>
+                            <input type="text" name="full_name" value="{{ user.full_name|default_if_none:'' }}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <div class="input-with-icon">
+                            <i class='bx bx-envelope'></i>
+                            <input type="email" id="email" name="email" value="{{ user.email }}" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone_number">Phone Number</label>
+                        <div class="input-with-icon">
+                            <i class='bx bx-phone'></i>
+                            <input type="tel" id="phone_number" name="phone_number" value="{{ user.phone_number }}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="user_type">User Type</label>
+                        <div class="input-with-icon">
+                            <i class='bx bx-id-card'></i>
+                            <select id="user_type" name="user_type" required>
+                                <option value="student" {% if user.user_type == 'student' %}selected{% endif %}>Student</option>
+                                <option value="professional" {% if user.user_type == 'professional' %}selected{% endif %}>Professional</option>
+                                <option value="recruiter" {% if user.user_type == 'recruiter' %}selected{% endif %}>Recruiter</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class='bx bx-link-alt'></i>
+                        Social Profiles
+                    </h3>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="linkedin_profile">LinkedIn Profile</label>
+                        <div class="input-with-icon">
+                            <i class='bx bxl-linkedin'></i>
+                            <input type="url" id="linkedin_profile" name="linkedin_profile" value="{{ user.linkedin_profile|default_if_none:'' }}" placeholder="https://linkedin.com/in/yourusername">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="github_profile">GitHub Profile</label>
+                        <div class="input-with-icon">
+                            <i class='bx bxl-github'></i>
+                            <input type="url" id="github_profile" name="github_profile" value="{{ user.github_profile|default_if_none:'' }}" placeholder="https://github.com/yourusername">
+                        </div>
+                    </div>
+                    <div class="form-group span-2">
+                        <label for="portfolio_website">Portfolio Website</label>
+                        <div class="input-with-icon">
+                            <i class='bx bx-globe'></i>
+                            <input type="url" id="portfolio_website" name="portfolio_website" value="{{ user.portfolio_website|default_if_none:'' }}" placeholder="https://yourwebsite.com">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class='bx bx-target-lock'></i>
+                        Career Objective
+                    </h3>
+                </div>
+                <div class="form-group">
+                    <textarea name="objective" id="objective" placeholder="Write a brief description about your career goals...">{{ user.objective|default_if_none:'' }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Education & Skills -->
+        <div class="tab-content" id="education-skills-content">
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class='bx bx-book'></i>
+                        Education
+                    </h3>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group span-2">
+                        <label for="university">University/Institution</label>
+                        <div class="input-with-icon">
+                            <i class='bx bx-buildings'></i>
+                            <input type="text" id="university" name="university" value="{{user.university|default_if_none:'' }}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="degree">Degree</label>
+                        <div class="input-with-icon">
+                            <i class='bx bx-graduation'></i>
+                            <input type="text" id="degree" name="degree" value="{{ user.degree|default_if_none:'' }}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="graduation_year">Graduation Year</label>
+                        <div class="input-with-icon">
+                            <i class='bx bx-calendar'></i>
+                            <input type="number" id="graduation_year" name="graduation_year" value="{{ user.graduation_year }}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cgpa">CGPA / Grade</label>
+                        <div class="input-with-icon">
+                            <i class='bx bx-bar-chart-alt-2'></i>
+                            <input type="number" step="0.1" id="cgpa" name="cgpa" value="{{ user.cgpa }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class='bx bx-code-alt'></i>
+                        Technical Skills
+                    </h3>
+                </div>
+                <div class="form-group">
+                    <div class="skills-input">
+                        <textarea id="technical_skills" name="technical_skills" placeholder="Python, JavaScript, React, SQL, AWS...">{{ user.technical_skills|default_if_none:'' }}</textarea>
+                        <p class="skills-hint">Separate skills with commas</p>
+                        <div class="skills-tags" id="tech-skills-tags"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class='bx bx-conversation'></i>
+                        Soft Skills
+                    </h3>
+                </div>
+                <div class="form-group">
+                    <div class="skills-input">
+                        <textarea id="soft_skills" name="soft_skills" placeholder="Communication, Leadership, Problem Solving, Teamwork...">{{ user.soft_skills|default_if_none:'' }}</textarea>
+                        <p class="skills-hint">Separate skills with commas</p>
+                        <div class="skills-tags" id="soft-skills-tags"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Experience -->
+        <div class="tab-content" id="experience-content">
+            {% if show_experience %}
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class='bx bx-briefcase-alt-2'></i>
+                        Professional Experience
+                    </h3>
+                    <button type="button" class="btn-add" id="add-experience">
+                        <i class='bx bx-plus'></i>
+                        Add Experience
+                    </button>
+                </div>
+                
+                <!-- Professional Experience Container (Cards Display) -->
+                <div id="experience-container">
+                    {% if user.job_title and user.organization %}
+                    <div class="entry-card experience-entry">
+                        <div class="entry-header">
+                            <h4>{{ user.job_title }} at {{ user.organization }}</h4>
+                            <div class="entry-actions">
+                                <button type="button" class="btn-edit edit-experience"><i class='bx bx-edit'></i></button>
+                                <button type="button" class="btn-delete delete-experience"><i class='bx bx-trash'></i></button>
+                            </div>
+                        </div>
+                        <div class="entry-body">
+                            <p class="entry-period">{% if user.experience %}{{ user.experience }} Years{% endif %}</p>
+                            <p class="entry-location">{{ user.industry }}</p>
+                            <p class="entry-description">{{ user.work_experience_description }}</p>
+                        </div>
+                        <input type="hidden" name="job_title" value="{{ user.job_title|default_if_none:'' }}">
+                        <input type="hidden" name="organization" value="{{ user.organization|default_if_none:'' }}">
+                        <input type="hidden" name="experience" value="{{ user.experience|default_if_none:'' }}">
+                        <input type="hidden" name="industry" value="{{ user.industry|default_if_none:'' }}">
+                        <input type="hidden" name="work_experience" value="{{ user.work_experience|default_if_none:'' }}">
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Experience Form Modal -->
+                <div class="modal" id="experience-modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Professional Experience</h3>
+                            <button type="button" class="modal-close"><i class='bx bx-x'></i></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label for="modal-job-title">Job Title</label>
+                                <input type="text" id="modal-job-title" placeholder="e.g. Software Engineer">
+                            </div>
+                            <div class="form-group">
+                                <label for="modal-organization">Organization</label>
+                                <input type="text" id="modal-organization" placeholder="e.g. Google">
+                            </div>
+                            <div class="form-group">
+                                <label for="modal-experience">Experience (Years)</label>
+                                <input type="number" id="modal-experience" placeholder="e.g. 3">
+                            </div>
+                            <div class="form-group">
+                                <label for="modal-industry">Industry</label>
+                                <input type="text" id="modal-industry" placeholder="e.g. Technology">
+                            </div>
+                            <div class="form-group">
+                                <label for="modal-work-experience">Work Experience Details</label>
+                                <textarea id="modal-work-experience" name="work_experience_description" rows="4" placeholder="Describe your key responsibilities, accomplishments, and projects"></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn-cancel">Cancel</button>
+                            <button type="button" class="btn-save" id="save-experience">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Internships Section (only visible to students) -->
+            {% if show_internships %}
+            <div class="content-section" id="internships-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class='bx bx-briefcase'></i>
+                        Internships
+                    </h3>
+                    <button type="button" class="btn-add" id="add-internship">
+                        <i class='bx bx-plus'></i>
+                        Add Internship
+                    </button>
+                </div>
+                
+                <div id="internships-container">
+                    {% for intern in internships %}
+                        <div class="entry-card internship-entry">
+                            <div class="entry-header">
+                                <h4>{{ intern.title }} at {{ intern.company }}</h4>
+                                <div class="entry-actions">
+                                    <button type="button" class="btn-edit edit-internship"><i class='bx bx-edit'></i></button>
+                                    <button type="button" class="btn-delete delete-internship"><i class='bx bx-trash'></i></button>
+                                </div>
+                            </div>
+                            <div class="entry-body">
+                                <p class="entry-period">{{ intern.start_date }} - {{ intern.end_date }}</p>
+                                <p class="entry-location">{{ intern.location }}</p>
+                                <p class="entry-description">{{ intern.description }}</p>
+                                <div class="entry-skills">
+                                    {% for skill in intern.skills_list %}
+                                        <span class="skill-tag tech">{{ skill }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <input type="hidden" name="intern_title_{{ forloop.counter0 }}" value="{{ intern.title }}">
+                            <input type="hidden" name="intern_company_{{ forloop.counter0 }}" value="{{ intern.company }}">
+                            <input type="hidden" name="intern_location_{{ forloop.counter0 }}" value="{{ intern.location }}">
+                            <input type="hidden" name="intern_start_date_{{ forloop.counter0 }}" value="{{ intern.start_date }}">
+                            <input type="hidden" name="intern_end_date_{{ forloop.counter0 }}" value="{{ intern.end_date }}">
+                            <input type="hidden" name="intern_is_current_{{ forloop.counter0 }}" value="{{ intern.is_current|yesno:'on,' }}">
+                            <input type="hidden" name="intern_description_{{ forloop.counter0 }}" value="{{ intern.description }}">
+                            <input type="hidden" name="intern_skills_{{ forloop.counter0 }}" value="{{ intern.skills }}">
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <input type="hidden" id="internship_count" name="internship_count" value="{{ internships|length }}">
+                
+                <!-- Internship Form Modal -->
+                <div class="modal" id="internship-modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Add Internship</h3>
+                            <button type="button" class="modal-close"><i class='bx bx-x'></i></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label for="intern-title">Title/Position</label>
+                                <input type="text" id="intern-title" placeholder="e.g. Software Engineering Intern">
+                            </div>
+                            <div class="form-group">
+                                <label for="intern-company">Company</label>
+                                <input type="text" id="intern-company" placeholder="e.g. Google">
+                            </div>
+                            <div class="form-group">
+                                <label for="intern-location">Location</label>
+                                <input type="text" id="intern-location" placeholder="e.g. New York, NY or Remote">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group half">
+                                    <label for="intern-start-date">Start Date</label>
+                                    <input type="month" id="intern-start-date">
+                                </div>
+                                <div class="form-group half">
+                                    <label for="intern-end-date">End Date</label>
+                                    <input type="month" id="intern-end-date">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="intern-current">
+                                    <label for="intern-current">I am currently working here</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="intern-description">Description</label>
+                                <textarea id="intern-description" rows="3" placeholder="Describe your responsibilities and achievements..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="intern-skills">Skills</label>
+                                <input type="text" id="intern-skills" placeholder="e.g. Python, SQL, Data Analysis">
+                                <p class="input-hint">Separate skills with commas</p>
+                            </div>
+                            <input type="hidden" id="intern-index" value="">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn-cancel">Cancel</button>
+                            <button type="button" class="btn-save" id="save-internship">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Achievements section (visible to all users) -->
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class='bx bx-medal'></i>
+                        Achievements
+                    </h3>
+                </div>
+                <div class="form-group">
+                    <p class="input-hint">List your professional achievements, awards, and recognitions</p>
+                    <textarea id="achievements" name="achievements" rows="4">{{ user.achievements|default_if_none:'' }}</textarea>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab Content: Projects -->
+        <div class="tab-content" id="projects-content">
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class='bx bx-code-block'></i>
+                        Projects
+                    </h3>
+                    <button type="button" class="btn-add" id="add-project">
+                        <i class='bx bx-plus'></i>
+                        Add Project
+                    </button>
+                </div>
+                <!-- Projects Container (Cards Display) -->
+                <div id="projects-container">
+                    {% for project in projects %}
+                        <div class="entry-card project-entry">
+                            <div class="entry-header">
+                                <h4>{{ project.title }}</h4>
+                                <div class="entry-links">
+                                    {% if project.url %}
+                                        <a href="{{ project.url }}" target="_blank" class="btn-link">Live</a>
+                                    {% endif %}
+                                    {% if project.github_url %}
+                                        <a href="{{ project.github_url }}" target="_blank" class="btn-link">GitHub</a>
+                                    {% endif %}
+                                </div>
+                                <div class="entry-actions">
+                                    <button type="button" class="btn-edit edit-project"><i class='bx bx-edit'></i></button>
+                                    <button type="button" class="btn-delete delete-project"><i class='bx bx-trash'></i></button>
+                                </div>
+                            </div>
+
+                            <div class="entry-body">
+                                <p class="entry-period">{{ project.start_date }} - {{ project.end_date }}</p>
+                                <p class="entry-description">{{ project.description|linebreaks }}</p>
+                                <div class="entry-skills">
+                                    {% for skill in project.skills_list %}
+                                        <span class="skill-tag tech">{{ skill }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Hidden Inputs -->
+                            <input type="hidden" name="project_title_{{ forloop.counter0 }}" value="{{ project.title }}">
+                            <input type="hidden" name="project_description_{{ forloop.counter0 }}" value="{{ project.description }}">
+                            <input type="hidden" name="project_start_date_{{ forloop.counter0 }}" value="{{ project.start_date }}">
+                            <input type="hidden" name="project_end_date_{{ forloop.counter0 }}" value="{{ project.end_date }}">
+                            <input type="hidden" name="project_skills_{{ forloop.counter0 }}" value="{{ project.skills }}">
+                            <input type="hidden" name="project_url_{{ forloop.counter0 }}" value="{{ project.url }}">
+                            <input type="hidden" name="project_github_url_{{ forloop.counter0 }}" value="{{ project.github_url }}">
+                        </div>
+                    {% endfor %}
+                </div>
+                <input type="hidden" id="project-count" name="project_count" value="{{ projects|length }}">
+
+                <!-- Project Modal -->
+                <div class="modal" id="project-modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Add Project</h3>
+                            <button type="button" class="modal-close"><i class='bx bx-x'></i></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label for="project-title">Title</label>
+                                <input type="text" id="project-title">
+                            </div>
+                            <div class="form-group">
+                                <label for="project-description">Description</label>
+                                <textarea id="project-description" rows="3"></textarea>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group half">
+                                    <label for="project-start-date">Start Date</label>
+                                    <input type="month" id="project-start-date">
+                                </div>
+                                <div class="form-group half">
+                                    <label for="project-end-date">End Date</label>
+                                    <input type="month" id="project-end-date">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="project-skills">Technologies</label>
+                                <input type="text" id="project-skills" placeholder="e.g. Python, React, PostgreSQL">
+                            </div>
+                            <div class="form-group">
+                                <label for="project-url">Live URL</label>
+                                <input type="url" id="project-url">
+                            </div>
+                            <div class="form-group">
+                                <label for="project-github-url">GitHub URL</label>
+                                <input type="url" id="project-github-url">
+                            </div>
+                            <input type="hidden" id="project-index" value="">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn-cancel">Cancel</button>
+                            <button type="button" class="btn-save" id="save-project">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content-section">
+  <div class="section-header">
+    <h3 class="section-title">
+      <i class='bx bx-certification'></i>
+      Certifications
+    </h3>
+    <button type="button" class="btn-add" id="add-certification">
+      <i class='bx bx-plus'></i>
+      Add Certification
+    </button>
+  </div>
+
+  <div id="certifications-container">
+    {% for cert in certifications %}
+      <div class="entry-card certification-entry">
+        <div class="entry-header">
+          <h4>{{ cert.name }} - {{ cert.organization }}</h4>
+          <div class="entry-actions">
+            <button type="button" class="btn-edit edit-certification"><i class='bx bx-edit'></i></button>
+            <button type="button" class="btn-delete delete-certification"><i class='bx bx-trash'></i></button>
+          </div>
+        </div>
+        <div class="entry-body">
+          <p class="entry-period">{{ cert.issue_date }} - {{ cert.expiration_date }}</p>
+          <p class="entry-description">
+            {% if cert.credential_url %}<a href="{{ cert.credential_url }}" target="_blank">Credential</a><br>{% endif %}
+            {% if cert.credential_id %}Credential ID: {{ cert.credential_id }}<br>{% endif %}
+            {% if cert.media %}<a href="{{ cert.media }}" target="_blank">Media</a><br>{% endif %}
+          </p>
+          <div class="entry-skills">
+            {% for skill in cert.skills_list %}
+              <span class="skill-tag tech">{{ skill }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        <input type="hidden" name="cert_name_{{ forloop.counter0 }}" value="{{ cert.name }}">
+        <input type="hidden" name="cert_organization_{{ forloop.counter0 }}" value="{{ cert.organization }}">
+        <input type="hidden" name="cert_issue_date_{{ forloop.counter0 }}" value="{{ cert.issue_date }}">
+        <input type="hidden" name="cert_expiration_date_{{ forloop.counter0 }}" value="{{ cert.expiration_date }}">
+        <input type="hidden" name="cert_credential_id_{{ forloop.counter0 }}" value="{{ cert.credential_id }}">
+        <input type="hidden" name="cert_credential_url_{{ forloop.counter0 }}" value="{{ cert.credential_url }}">
+        <input type="hidden" name="cert_media_{{ forloop.counter0 }}" value="{{ cert.media }}">
+        <input type="hidden" name="cert_skills_{{ forloop.counter0 }}" value="{{ cert.skills }}">
+      </div>
+    {% endfor %}
+  </div>
+  <input type="hidden" id="certification-count" name="certification_count" value="{{ certifications|length }}">
+</div>
+
+<!-- CERTIFICATION MODAL -->
+<div class="modal" id="certification-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Certification</h3>
+      <button type="button" class="modal-close"><i class='bx bx-x'></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>Name</label><input type="text" id="cert-name"></div>
+      <div class="form-group"><label>Organization</label><input type="text" id="cert-org"></div>
+      <div class="form-row">
+        <div class="form-group half"><label>Issue Date</label><input type="month" id="cert-issue"></div>
+        <div class="form-group half"><label>Expiration Date</label><input type="month" id="cert-expire"></div>
+      </div>
+      <div class="form-group"><label>Credential ID</label><input type="text" id="cert-id"></div>
+      <div class="form-group"><label>Credential URL</label><input type="url" id="cert-url"></div>
+      <div class="form-group"><label>Skills</label><input type="text" id="cert-skills"></div>
+      <div class="form-group"><label>Media Link</label><input type="url" id="cert-media"></div>
+      <input type="hidden" id="cert-index">
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-cancel">Cancel</button>
+      <button type="button" class="btn-save" id="save-certification">Save</button>
+    </div>
+  </div>
+</div>
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class='bx bx-extension'></i>
+                        Extracurricular Activities
+                    </h3>
+                </div>
+                <div class="form-group">
+                    <p class="input-hint">List clubs, volunteer work, and other activities</p>
+                    <textarea id="extracurricular_activities" name="extracurricular_activities" rows="4">{{ user.extracurricular_activities|default_if_none:'' }}</textarea>
+                </div>
+            </div>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">
+                <i class='bx bx-save'></i>
+                Save Profile
+            </button>
+        </div>
+    </form>
+</div>
+<style>
+    /* Profile page specific styles */
+    .profile-container {
+        max-width: 100%;
+        margin-bottom: 2rem;
+    }
+
+    /* Notifications */
+    .notification {
+    background-color: var(--success);
+    color: white;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    animation: slideIn 0.3s forwards, fadeOut 0.5s 2.5s forwards;
+    margin-bottom: 0.5rem;
+}
+
+/* Keep other variants same */
+.notification.error {
+    background-color: var(--danger);
+}
+
+.notification.warning {
+    background-color: var(--warning);
+}
+
+.notification i {
+    font-size: 1.25rem;
+}
+
+.notification-close {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 1.25rem;
+    opacity: 0.8;
+    transition: opacity 0.3s;
+}
+
+.notification-close:hover {
+    opacity: 1;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(-10px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        height: 0;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+}
+
+    /* Profile Header */
+    .profile-header {
+        background-color: var(--card-bg);
+        border-radius: 1rem;
+        box-shadow: var(--shadow);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+    .entry-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px; /* Space between title and entry-links */
+}
+
+.entry-links {
+    display: flex;
+    gap: 4px;         /* Space between the Live and GitHub buttons */
+    margin-left: 4px; /* Reduce distance from the title */
+}
+
+.entry-links .btn-link {
+    background-color: #007bff;
+    color: white;
+    padding: 2px 6px; /* 👈 Tighter padding inside buttons */
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 0.8rem; /* slightly smaller text, optional */
+    transition: background-color 0.2s;
+}
+
+.entry-links .btn-link:hover {
+    background-color: #0056b3;
+}
+
+   .profile-header-content {
+        padding: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+    }
+
+    .profile-photo-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .profile-photo-container {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        overflow: hidden;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .profile-photo-container:hover .photo-upload-overlay {
+        opacity: 1;
+    }
+
+    .profile-photo {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border: 4px solid var(--primary-color);
+    }
+
+    .photo-upload-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: var(--transition);
+    }
+
+    .photo-upload-overlay i {
+        color: white;
+        font-size: 2rem;
+    }
+
+    .photo-upload-hint {
+        font-size: 0.75rem;
+        color: var(--text-light);
+        margin-top: 0.5rem;
+    }
+
+    .profile-header-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .profile-name {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        color: var(--text-color);
+    }
+
+    .profile-role {
+        font-size: 0.875rem;
+        color: var(--text-light);
+        margin-bottom: 1.5rem;
+    }
+
+    .profile-stats {
+        display: flex;
+        gap: 2rem;
+    }
+
+    .profile-stat {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .stat-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        color: var(--text-light);
+    }
+
+    .profile-completion-bar {
+        height: 8px;
+        background-color: var(--hover-bg);
+        overflow: hidden;
+    }
+
+    .completion-progress {
+        height: 100%;
+        background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+    }
+
+    /* Tab Navigation */
+    .profile-tabs {
+        display: flex;
+        background-color: var(--card-bg);
+        border-radius: 0.75rem;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 1.5rem;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .profile-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .tab-button {
+        padding: 1rem 1.5rem;
+        background: none;
+        border: none;
+        color: var(--text-color);
+        font-weight: 500;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        white-space: nowrap;
+        border-bottom: 3px solid transparent;
+        transition: var(--transition);
+    }
+
+    .tab-button i {
+        font-size: 1.25rem;
+    }
+
+    .tab-button:hover {
+        color: var(--primary-color);
+        background-color: var(--hover-bg);
+    }
+
+    .tab-button.active {
+        color: var(--primary-color);
+        border-bottom-color: var(--primary-color);
+    }
+
+    /* Tab Content */
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    /* Content Sections */
+    .content-section {
+        background-color: var(--card-bg);
+        border-radius: 1rem;
+        box-shadow: var(--shadow);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--text-color);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .section-title i {
+        color: var(--primary-color);
+        font-size: 1.25rem;
+    }
+
+    /* Form Elements */
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+
+    .span-2 {
+        grid-column: span 2;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: var(--text-color);
+    }
+
+    .input-hint {
+        font-size: 0.75rem;
+        color: var(--text-light);
+        margin: -0.25rem 0 0.5rem;
+    }
+
+    .input-with-icon {
+        position: relative;
+    }
+
+    .input-with-icon i {
+        position: absolute;
+        left: 0.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-light);
+        font-size: 1.25rem;
+    }
+
+    .input-with-icon input,
+    .input-with-icon select {
+        padding-left: 3rem;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="number"],
+    select,
+    textarea {
+        width: 100%;
+        padding: 0.75rem 2rem;
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--text-color);
+        background-color: var(--card-bg);
+        transition: var(--transition);
+    }
+
+    select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 1.25rem;
+        padding-right: 2.5rem;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+
+    textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    /* Skills input styling */
+    .skills-input {
+        position: relative;
+    }
+
+    .skills-hint {
+        font-size: 0.75rem;
+        color: var(--text-light);
+        margin-top: 0.25rem;
+    }
+
+    .skills-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .skill-tag {
+        background-color: var(--hover-bg);
+        border-radius: 9999px;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--text-color);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .skill-tag.tech {
+        background-color: rgba(59, 130, 246, 0.1);
+        color: var(--primary-color);
+    }
+
+    .skill-tag.soft {
+        background-color: rgba(139, 92, 246, 0.1);
+        color: var(--secondary-color);
+    }
+
+    /* Form Actions */
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 1.5rem;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: 0.5rem;
+        border: none;
+        font-weight: 500;
+        font-size: 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: var(--transition);
+        box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 8px rgba(59, 130, 246, 0.4);
+    }
+
+    /* Responsive styles */
+    @media (max-width: 768px) {
+        .profile-header-content {
+            flex-direction: column;
+            text-align: center;
+            padding: 1.5rem;
+        }
+        
+        .profile-stats {
+            justify-content: center;
+        }
+        
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .span-2 {
+            grid-column: span 1;
+        }
+        
+        .tab-button {
+            padding: 1rem;
+        }
+        
+        .tab-button span {
+            display: none;
+        }
+        
+        .profile-tabs {
+            justify-content: space-between;
+        }
+    }
+    /* Entry Cards */
+.entry-card {
+    background-color: var(--card-bg);
+    border-radius: 0.75rem;
+    border: 1px solid var(--border-color);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    transition: var(--transition);
+}
+
+.entry-card:hover {
+    box-shadow: var(--shadow);
+    border-color: var(--primary-color-light);
+}
+
+.entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+
+.entry-header h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0;
+}
+
+.entry-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-edit, .btn-delete {
+    background: none;
+    border: none;
+    font-size: 1.125rem;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    color: var(--text-light);
+    transition: var(--transition);
+}
+
+.btn-edit:hover {
+    color: var(--primary-color);
+    background-color: rgba(59, 130, 246, 0.1);
+}
+
+.btn-delete:hover {
+    color: var(--danger);
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+.entry-body {
+    color: var(--text-color);
+}
+
+.entry-period, .entry-location {
+    font-size: 0.875rem;
+    color: var(--text-light);
+    margin-bottom: 0.5rem;
+}
+
+.entry-description {
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+    white-space: pre-line;
+}
+
+.entry-skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+/* Section Headers with Add Button */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn-add {
+    background-color: var(--primary-color-light);
+    color: var(--primary-color);
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: var(--transition);
+}
+
+.btn-add:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-add i {
+    font-size: 1.25rem;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal.show {
+    display: flex;
+}
+
+.modal-content {
+    background-color: var(--card-bg);
+    border-radius: 1rem;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-light);
+    transition: var(--transition);
+}
+.modal-close:hover {
+    color: var(--danger);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.btn-cancel {
+    background-color: var(--hover-bg);
+    color: var(--text-color);
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.btn-save {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.form-row {
+    display: flex;
+    gap: 1rem;
+}
+
+.form-group.half {
+    flex: 1;
+}
+.project-entry,
+.certification-entry {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+
+.project-entry:hover,
+.certification-entry:hover {
+    box-shadow: var(--shadow);
+    border-color: var(--primary-color-light);
+}
+
+.project-entry input,
+.certification-entry input,
+.project-entry textarea,
+.certification-entry textarea {
+    display: block;
+    width: 100%;
+    margin-bottom: 0.75rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    background-color: var(--input-bg, #fff);
+    color: var(--text-color);
+}
+
+.project-entry input:focus,
+.certification-entry input:focus,
+.project-entry textarea:focus,
+.certification-entry textarea:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.project-entry button,
+.certification-entry button {
+    background-color: var(--danger);
+    color: #fff;
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.project-entry button:hover,
+.certification-entry button:hover {
+    background-color: #b91c1c;
+}
+
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: auto;
+}
+</style>
+
+<script>
+   document.addEventListener('DOMContentLoaded', function () {
+    // Tab Functionality
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tabId = button.getAttribute('data-tab');
+
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            button.classList.add('active');
+            const content = document.getElementById(`${tabId}-content`);
+            if (content) {
+                content.classList.add('active');
+            } else {
+                console.warn(`No tab content found with id: ${tabId}-content`);
+            }
+        });
+    });
+
+    // Profile Photo Upload
+    const photoContainer = document.getElementById('photo-container');
+    const photoInput = document.getElementById('profile-photo-input');
+
+    if (photoContainer && photoInput) {
+        photoContainer.addEventListener('click', () => {
+            photoInput.click();
+        });
+
+        photoInput.addEventListener('change', function(event) {
+            previewProfilePhoto(event);
+        });
+    }
+
+    // Notification Close
+    const notificationCloseButtons = document.querySelectorAll('.notification-close');
+    notificationCloseButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const notification = button.closest('.notification');
+            notification.style.opacity = '0';
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        });
+    });
+    
+
+    // Skills Tags Visualization
+    const techSkillsInput = document.getElementById('technical_skills');
+    const softSkillsInput = document.getElementById('soft_skills');
+    const techSkillsTags = document.getElementById('tech-skills-tags');
+    const softSkillsTags = document.getElementById('soft-skills-tags');
+
+    function generateSkillTags(input) {
+        if (!input) return;
+        
+        const skills = input.value.split(',').map(skill => skill.trim()).filter(skill => skill);
+        const tagsContainer = input.id === 'technical_skills' ? techSkillsTags : softSkillsTags;
+        
+        if (!tagsContainer) return;
+        
+        tagsContainer.innerHTML = '';
+        skills.forEach(skill => {
+            const tag = document.createElement('div');
+            tag.className = `skill-tag ${input.id === 'technical_skills' ? 'tech' : 'soft'}`;
+            tag.textContent = skill;
+            tagsContainer.appendChild(tag);
+        });
+    }
+
+    if (techSkillsInput) {
+        generateSkillTags(techSkillsInput); // Generate tags on page load
+        techSkillsInput.addEventListener('input', () => generateSkillTags(techSkillsInput));
+    }
+
+    if (softSkillsInput) {
+        generateSkillTags(softSkillsInput); // Generate tags on page load
+        softSkillsInput.addEventListener('input', () => generateSkillTags(softSkillsInput));
+    }
+    
+    // Close all modals function
+    function closeAllModals() {
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.classList.remove('show');
+        });
+    }
+    
+    // Add event listeners to all modal close buttons
+    document.querySelectorAll('.modal-close, .btn-cancel').forEach(btn => {
+        btn.addEventListener('click', closeAllModals);
+    });
+
+    // PROFESSIONAL EXPERIENCE FUNCTIONALITY
+    const addExperienceBtn = document.getElementById('add-experience');
+    const experienceModal = document.getElementById('experience-modal');
+    const saveExperienceBtn = document.getElementById('save-experience');
+    const experienceContainer = document.getElementById('experience-container');
+    
+    if (addExperienceBtn) {
+        addExperienceBtn.addEventListener('click', () => {
+            // Clear form fields
+            document.getElementById('modal-job-title').value = '';
+            document.getElementById('modal-organization').value = '';
+            document.getElementById('modal-experience').value = '';
+            document.getElementById('modal-industry').value = '';
+            document.getElementById('modal-work-experience').value = '';
+            
+            // Change modal title
+            experienceModal.querySelector('.modal-header h3').textContent = 'Add Professional Experience';
+            
+            // Show modal
+            experienceModal.classList.add('show');
+        });
+    }
+    
+    if (saveExperienceBtn) {
+        saveExperienceBtn.addEventListener('click', () => {
+            const jobTitle = document.getElementById('modal-job-title').value.trim();
+            const organization = document.getElementById('modal-organization').value.trim();
+            const experience = document.getElementById('modal-experience').value.trim();
+            const industry = document.getElementById('modal-industry').value.trim();
+            const workExperience = document.getElementById('modal-work-experience').value.trim();
+            
+            if (!jobTitle || !organization) {
+                alert('Job Title and Organization are required fields');
+                return;
+            }
+            
+            // Create new experience card
+            const card = document.createElement('div');
+            card.className = 'entry-card experience-entry';
+            card.innerHTML = `
+                <div class="entry-header">
+                    <h4>${jobTitle} at ${organization}</h4>
+                    <div class="entry-actions">
+                        <button type="button" class="btn-edit edit-experience"><i class='bx bx-edit'></i></button>
+                        <button type="button" class="btn-delete delete-experience"><i class='bx bx-trash'></i></button>
+                    </div>
+                </div>
+                <div class="entry-body">
+                    <p class="entry-period">${experience ? experience + ' Years' : ''}</p>
+                    <p class="entry-location">${industry}</p>
+                    <p class="entry-description">${workExperience}</p>
+                </div>
+                <input type="hidden" name="job_title" value="${jobTitle}">
+                <input type="hidden" name="organization" value="${organization}">
+                <input type="hidden" name="experience" value="${experience}">
+                <input type="hidden" name="industry" value="${industry}">
+                <input type="hidden" name="work_experience" value="${workExperience}">
+            `;
+            
+            // Remove any existing experience (since we're allowing only one for now)
+            while (experienceContainer.firstChild) {
+                experienceContainer.removeChild(experienceContainer.firstChild);
+            }
+            
+            // Add new experience card
+            experienceContainer.appendChild(card);
+            
+            // Add event listeners to new buttons
+            setupExperienceCardListeners(card);
+            
+            // Close modal
+            experienceModal.classList.remove('show');
+        });
+    }
+    
+    // Setup experience card listeners for existing cards
+    document.querySelectorAll('.experience-entry').forEach(card => {
+        setupExperienceCardListeners(card);
+    });
+    
+    function setupExperienceCardListeners(card) {
+        // Edit button
+        const editBtn = card.querySelector('.edit-experience');
+        if (editBtn) {
+            editBtn.addEventListener('click', () => {
+                // Populate form with existing values
+                document.getElementById('modal-job-title').value = card.querySelector('input[name="job_title"]').value;
+                document.getElementById('modal-organization').value = card.querySelector('input[name="organization"]').value;
+                document.getElementById('modal-experience').value = card.querySelector('input[name="experience"]').value;
+                document.getElementById('modal-industry').value = card.querySelector('input[name="industry"]').value;
+                document.getElementById('modal-work-experience').value = card.querySelector('input[name="work_experience"]').value;
+                
+                // Change modal title
+                experienceModal.querySelector('.modal-header h3').textContent = 'Edit Professional Experience';
+                
+                // Show modal
+                experienceModal.classList.add('show');
+            });
+        }
+        
+        // Delete button
+        const deleteBtn = card.querySelector('.delete-experience');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', () => {
+                if (confirm('Are you sure you want to delete this experience?')) {
+                    card.remove();
+                }
+            });
+        }
+    }
+    
+    // PROJECT FUNCTIONALITY
+    const addProjectBtn = document.getElementById('add-project');
+    const projectModal = document.getElementById('project-modal');
+    const saveProjectBtn = document.getElementById('save-project');
+    const projectsContainer = document.getElementById('projects-container');
+    const projectCountInput = document.getElementById('project-count');
+    
+    if (addProjectBtn) {
+        addProjectBtn.addEventListener('click', () => {
+            // Clear form
+            document.getElementById('project-title').value = '';
+            document.getElementById('project-description').value = '';
+            document.getElementById('project-start-date').value = '';
+            document.getElementById('project-end-date').value = '';
+            document.getElementById('project-skills').value = '';
+            document.getElementById('project-url').value = '';
+            document.getElementById('project-github-url').value = '';
+            document.getElementById('project-index').value = '';
+            
+            // Set modal title
+            projectModal.querySelector('.modal-header h3').textContent = 'Add Project';
+            
+            // Show modal
+            projectModal.classList.add('show');
+        });
+    }
+    
+    if (saveProjectBtn) {
+        saveProjectBtn.addEventListener('click', () => {
+            const title = document.getElementById('project-title').value.trim();
+            const description = document.getElementById('project-description').value.trim();
+            const startDate = document.getElementById('project-start-date').value.trim();
+            const endDate = document.getElementById('project-end-date').value.trim();
+            const skills = document.getElementById('project-skills').value.trim();
+            const url = document.getElementById('project-url').value.trim();
+            const github = document.getElementById('project-github-url').value.trim();
+            const index = document.getElementById('project-index').value;
+            const count = parseInt(projectCountInput.value || '0');
+            
+            if (!title) {
+                alert('Project title is required');
+                return;
+            }
+            
+            const newIndex = index === '' ? count : parseInt(index);
+            
+            // Create skills HTML
+            const skillsHTML = skills.split(',')
+                .map(skill => skill.trim())
+                .filter(skill => skill)
+                .map(skill => `<span class="skill-tag tech">${skill}</span>`)
+                .join('');
+            
+            // Create project card
+            const card = document.createElement('div');
+            card.className = 'entry-card project-entry';
+            card.innerHTML = `
+                <div class="entry-header">
+                    <h4>${title}</h4>
+                    <div class="entry-links">
+                        ${url ? `<a href="${url}" target="_blank" class="btn-link">Live</a>` : ''}
+                        ${github ? `<a href="${github}" target="_blank" class="btn-link">GitHub</a>` : ''}
+                    </div>
+                    <div class="entry-actions">
+                        <button type="button" class="btn-edit edit-project"><i class='bx bx-edit'></i></button>
+                        <button type="button" class="btn-delete delete-project"><i class='bx bx-trash'></i></button>
+                    </div>
+                </div>
+                <div class="entry-body">
+                    <p class="entry-period">${startDate} - ${endDate}</p>
+                    <p class="entry-description">${description}</p>
+                    <div class="entry-skills">${skillsHTML}</div>
+                </div>
+                <input type="hidden" name="project_title_${newIndex}" value="${title}">
+                <input type="hidden" name="project_description_${newIndex}" value="${description}">
+                <input type="hidden" name="project_start_date_${newIndex}" value="${startDate}">
+                <input type="hidden" name="project_end_date_${newIndex}" value="${endDate}">
+                <input type="hidden" name="project_skills_${newIndex}" value="${skills}">
+                <input type="hidden" name="project_url_${newIndex}" value="${url}">
+                <input type="hidden" name="project_github_url_${newIndex}" value="${github}">
+            `;
+            
+            if (index === '') {
+                // Add new project
+                projectsContainer.appendChild(card);
+                projectCountInput.value = count + 1;
+            } else {
+                // Update existing project
+                const existingCard = document.querySelectorAll('.project-entry')[parseInt(index)];
+                if (existingCard) {
+                    existingCard.replaceWith(card);
+                }
+            }
+            
+            // Add event listeners to buttons
+            setupProjectCardListeners(card);
+            
+            // Close modal
+            projectModal.classList.remove('show');
+        });
+    }
+    
+    // Setup project card listeners for existing cards
+    document.querySelectorAll('.project-entry').forEach((card, index) => {
+        setupProjectCardListeners(card, index);
+    });
+    
+    function setupProjectCardListeners(card, index) {
+        // Edit button
+        const editBtn = card.querySelector('.edit-project');
+        if (editBtn) {
+            editBtn.addEventListener('click', () => {
+                // Get the card's index
+                const idx = index !== undefined ? index : 
+                    Array.from(card.parentElement.children).indexOf(card);
+                
+                // Populate form with existing values
+                document.getElementById('project-title').value = card.querySelector('input[name^="project_title_"]').value;
+                document.getElementById('project-description').value = card.querySelector('input[name^="project_description_"]').value;
+                document.getElementById('project-start-date').value = card.querySelector('input[name^="project_start_date_"]').value;
+                document.getElementById('project-end-date').value = card.querySelector('input[name^="project_end_date_"]').value;
+                document.getElementById('project-skills').value = card.querySelector('input[name^="project_skills_"]').value;
+                document.getElementById('project-url').value = card.querySelector('input[name^="project_url_"]').value;
+                document.getElementById('project-github-url').value = card.querySelector('input[name^="project_github_url_"]').value;
+                document.getElementById('project-index').value = idx;
+                
+                // Change modal title
+                projectModal.querySelector('.modal-header h3').textContent = 'Edit Project';
+                
+                // Show modal
+                projectModal.classList.add('show');
+            });
+        }
+        
+        // Delete button
+        const deleteBtn = card.querySelector('.delete-project');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', () => {
+                if (confirm('Are you sure you want to delete this project?')) {
+                    card.remove();
+                    // Reindex projects
+                    reindexEntries('project-entry', 'project', projectCountInput);
+                }
+            });
+        }
+    }
+    
+    // INTERNSHIP FUNCTIONALITY
+    const addInternshipBtn = document.getElementById('add-internship');
+    const internshipModal = document.getElementById('internship-modal');
+    const saveInternshipBtn = document.getElementById('save-internship');
+    const internshipsContainer = document.getElementById('internships-container');
+    const internshipCountInput = document.getElementById('internship_count');
+    
+    if (addInternshipBtn) {
+        addInternshipBtn.addEventListener('click', () => {
+            // Clear form
+            document.getElementById('intern-title').value = '';
+            document.getElementById('intern-company').value = '';
+            document.getElementById('intern-location').value = '';
+            document.getElementById('intern-start-date').value = '';
+            document.getElementById('intern-end-date').value = '';
+            document.getElementById('intern-current').checked = false;
+            document.getElementById('intern-description').value = '';
+            document.getElementById('intern-skills').value = '';
+            document.getElementById('intern-index').value = '';
+            
+            // Enable end date input
+            document.getElementById('intern-end-date').disabled = false;
+            
+            // Set modal title
+            internshipModal.querySelector('.modal-header h3').textContent = 'Add Internship';
+            
+            // Show modal
+            internshipModal.classList.add('show');
+        });
+    }
+    
+    // Handle "currently working here" checkbox
+    const internCurrentCheckbox = document.getElementById('intern-current');
+    if (internCurrentCheckbox) {
+        internCurrentCheckbox.addEventListener('change', function() {
+            const endDateInput = document.getElementById('intern-end-date');
+            if (this.checked) {
+                endDateInput.value = '';
+                endDateInput.disabled = true;
+            } else {
+                endDateInput.disabled = false;
+            }
+        });
+    }
+    
+    if (saveInternshipBtn) {
+        saveInternshipBtn.addEventListener('click', () => {
+            const title = document.getElementById('intern-title').value.trim();
+            const company = document.getElementById('intern-company').value.trim();
+            
+            if (!title || !company) {
+                alert('Title and Company are required');
+                return;
+            }
+            
+            const location = document.getElementById('intern-location').value.trim();
+            const startDate = document.getElementById('intern-start-date').value;
+            const isCurrent = document.getElementById('intern-current').checked;
+            let endDate = document.getElementById('intern-end-date').value;
+            
+            if (isCurrent) {
+                endDate = 'Present';
+            }
+            
+            const description = document.getElementById('intern-description').value.trim();
+            const skills = document.getElementById('intern-skills').value.trim();
+            
+            // Get index (new or existing)
+            const index = document.getElementById('intern-index').value;
+            const currentCount = parseInt(internshipCountInput.value || '0');
+            const newIndex = index === '' ? currentCount : parseInt(index);
+            
+            // Create card
+            const card = createInternshipCard({
+                title,
+                company,
+                location,
+                start_date: startDate,
+                end_date: endDate,
+                is_current: isCurrent,
+                description,
+                skills
+            }, newIndex);
+            
+            if (index === '') {
+                // Add new internship
+                internshipsContainer.appendChild(card);
+                internshipCountInput.value = currentCount + 1;
+            } else {
+                // Update existing internship
+                const existingCard = document.querySelectorAll('.internship-entry')[parseInt(index)];
+                if (existingCard) {
+                    existingCard.replaceWith(card);
+                }
+            }
+            
+            // Close modal
+            internshipModal.classList.remove('show');
+        });
+    }
+    
+    // Setup internship card listeners for existing cards
+    document.querySelectorAll('.internship-entry').forEach((card, index) => {
+        setupInternshipCardListeners(card, index);
+    });
+    
+    function createInternshipCard(internship, index) {
+        const card = document.createElement('div');
+        card.className = 'entry-card internship-entry';
+        
+        // Format dates for display
+        let displayStartDate = internship.start_date;
+        if (displayStartDate && displayStartDate.includes('-')) {
+            const [year, month] = displayStartDate.split('-');
+            displayStartDate = getMonthName(month) + ' ' + year;
+        }
+        
+        let displayEndDate = internship.end_date;
+        if (displayEndDate && displayEndDate !== 'Present' && displayEndDate.includes('-')) {
+            const [year, month] = displayEndDate.split('-');
+            displayEndDate = getMonthName(month) + ' ' + year;
+        }
+        
+        // Create skills tags HTML
+        let skillsHTML = '';
+        if (internship.skills) {
+            const skillsList = internship.skills.split(',').map(skill => skill.trim()).filter(skill => skill);
+            skillsHTML = skillsList.map(skill => `<span class="skill-tag tech">${skill}</span>`).join('');
+        }
+        
+        card.innerHTML = `
+            <div class="entry-header">
+                <h4>${internship.title} at ${internship.company}</h4>
+                <div class="entry-actions">
+                    <button type="button" class="btn-edit edit-internship"><i class='bx bx-edit'></i></button>
+                    <button type="button" class="btn-delete delete-internship"><i class='bx bx-trash'></i></button>
+                </div>
+            </div>
+            <div class="entry-body">
+                <p class="entry-period">${displayStartDate} - ${displayEndDate}</p>
+                <p class="entry-location">${internship.location}</p>
+                <p class="entry-description">${internship.description}</p>
+                <div class="entry-skills">
+                    ${skillsHTML}
+                </div>
+            </div>
+            <input type="hidden" name="intern_title_${index}" value="${internship.title}">
+            <input type="hidden" name="intern_company_${index}" value="${internship.company}">
+            <input type="hidden" name="intern_location_${index}" value="${internship.location}">
+            <input type="hidden" name="intern_start_date_${index}" value="${internship.start_date}">
+            <input type="hidden" name="intern_end_date_${index}" value="${internship.end_date}">
+            <input type="hidden" name="intern_is_current_${index}" value="${internship.is_current ? 'on' : ''}">
+            <input type="hidden" name="intern_description_${index}" value="${internship.description}">
+            <input type="hidden" name="intern_skills_${index}" value="${internship.skills}">
+        `;
+        
+        // Add event listeners
+        setupInternshipCardListeners(card, index);
+        
+        return card;
+    }
+    
+    function setupInternshipCardListeners(card, index) {
+        // Edit button
+        const editBtn = card.querySelector('.edit-internship');
+        if (editBtn) {
+            editBtn.addEventListener('click', () => {
+                // Get the card's index if not provided
+                const idx = index !== undefined ? index : 
+                    Array.from(card.parentElement.children).indexOf(card);
+                
+                // Get values from hidden inputs
+                const title = card.querySelector('input[name^="intern_title_"]').value;
+                const company = card.querySelector('input[name^="intern_company_"]').value;
+                const location = card.querySelector('input[name^="intern_location_"]').value;
+                const startDate = card.querySelector('input[name^="intern_start_date_"]').value;
+                const endDate = card.querySelector('input[name^="intern_end_date_"]').value;
+                const isCurrent = card.querySelector('input[name^="intern_is_current_"]').value === 'on';
+                const description = card.querySelector('input[name^="intern_description_"]').value;
+                const skills = card.querySelector('input[name^="intern_skills_"]').value;
+                
+                // Populate form
+                document.getElementById('intern-title').value = title;
+                document.getElementById('intern-company').value = company;
+                document.getElementById('intern-location').value = location;
+                document.getElementById('intern-start-date').value = startDate;
+                document.getElementById('intern-current').checked = isCurrent;
+                document.getElementById('intern-description').value = description;
+                document.getElementById('intern-skills').value = skills;
+                document.getElementById('intern-index').value = idx;
+                
+                // Handle end date based on current status
+                const endDateInput = document.getElementById('intern-end-date');
+                if (isCurrent) {
+                    endDateInput.value = '';
+                    endDateInput.disabled = true;
+                } else {
+                    endDateInput.value = endDate !== 'Present' ? endDate : '';
+                    endDateInput.disabled = false;
+                }
+                
+                // Set modal title
+                internshipModal.querySelector('.modal-header h3').textContent = 'Edit Internship';
+                
+                // Show modal
+                internshipModal.classList.add('show');
+            });
+        }
+        
+        // Delete button
+        const deleteBtn = card.querySelector('.delete-internship');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', () => {
+                if (confirm('Are you sure you want to delete this internship?')) {
+                    card.remove();
+                    // Reindex internships
+                    reindexEntries('internship-entry', 'intern', internshipCountInput);
+                }
+            });
+        }
+    }
+    
+    // CERTIFICATION FUNCTIONALITY
+    const addCertBtn = document.getElementById('add-certification');
+    const certModal = document.getElementById('certification-modal');
+    const saveCertBtn = document.getElementById('save-certification');
+    const certCountInput = document.getElementById('certification-count');
+    const certificationsContainer = document.getElementById('certifications-container');
+    
+    if (addCertBtn) {
+        addCertBtn.addEventListener('click', () => {
+            // Clear form
+            document.getElementById('cert-name').value = '';
+            document.getElementById('cert-org').value = '';
+            document.getElementById('cert-issue').value = '';
+            document.getElementById('cert-expire').value = '';
+            document.getElementById('cert-id').value = '';
+            document.getElementById('cert-url').value = '';
+            document.getElementById('cert-skills').value = '';
+            document.getElementById('cert-media').value = '';
+            document.getElementById('cert-index').value = '';
+            
+            // Set modal title
+            certModal.querySelector('.modal-header h3').textContent = 'Add Certification';
+            
+            // Show modal
+            certModal.classList.add('show');
+        });
+    }
+    
+    if (saveCertBtn) {
+        saveCertBtn.addEventListener('click', () => {
+            const name = document.getElementById('cert-name').value.trim();
+            const org = document.getElementById('cert-org').value.trim();
+            
+            if (!name || !org) {
+                alert('Certification name and organization are required');
+                return;
+            }
+            
+            const issue = document.getElementById('cert-issue').value.trim();
+            const expire = document.getElementById('cert-expire').value.trim();
+            const id = document.getElementById('cert-id').value.trim();
+            const url = document.getElementById('cert-url').value.trim();
+            const skills = document.getElementById('cert-skills').value.trim();
+            const media = document.getElementById('cert-media').value.trim();
+            
+            // Get index (new or existing)
+            const index = document.getElementById('cert-index').value;
+            const count = parseInt(certCountInput.value || '0');
+            const newIndex = index === '' ? count : parseInt(index);
+            
+            // Create skills HTML
+            const skillsHTML = skills.split(',')
+                .map(skill => skill.trim())
+                .filter(skill => skill)
+                .map(skill => `<span class="skill-tag tech">${skill}</span>`)
+                .join('');
+            
+            // Create card
+            const card = document.createElement('div');
+            card.className = 'entry-card certification-entry';
+            card.innerHTML = `
+                <div class="entry-header">
+                    <h4>${name} - ${org}</h4>
+                    <div class="entry-actions">
+                        <button type="button" class="btn-edit edit-certification"><i class='bx bx-edit'></i></button>
+                        <button type="button" class="btn-delete delete-certification"><i class='bx bx-trash'></i></button>
+                    </div>
+                </div>
+                <div class="entry-body">
+                    <p class="entry-period">${issue} - ${expire}</p>
+                    <p class="entry-description">
+                        ${url ? `<a href="${url}" target="_blank">View Credential</a><br>` : ''}
+                        ${id ? `Credential ID: ${id}<br>` : ''}
+                        ${media ? `<a href="${media}" target="_blank">Supporting Media</a>` : ''}
+                    </p>
+                    <div class="entry-skills">${skillsHTML}</div>
+                </div>
+                <input type="hidden" name="cert_name_${newIndex}" value="${name}">
+                <input type="hidden" name="cert_organization_${newIndex}" value="${org}">
+                <input type="hidden" name="cert_issue_date_${newIndex}" value="${issue}">
+                <input type="hidden" name="cert_expiration_date_${newIndex}" value="${expire}">
+                <input type="hidden" name="cert_credential_id_${newIndex}" value="${id}">
+                <input type="hidden" name="cert_credential_url_${newIndex}" value="${url}">
+                <input type="hidden" name="cert_skills_${newIndex}" value="${skills}">
+                <input type="hidden" name="cert_media_${newIndex}" value="${media}">
+            `;
+            
+            if (index === '') {
+                // Add new certification
+                certificationsContainer.appendChild(card);
+                certCountInput.value = count + 1;
+            } else {
+                // Update existing certification
+                const existingCard = document.querySelectorAll('.certification-entry')[parseInt(index)];
+                if (existingCard) {
+                    existingCard.replaceWith(card);
+                }
+            }
+            
+            // Add event listeners
+            setupCertificationCardListeners(card);
+            
+            // Close modal
+            certModal.classList.remove('show');
+        });
+    }
+    
+    // Setup certification card listeners for existing cards
+    document.querySelectorAll('.certification-entry').forEach((card, index) => {
+        setupCertificationCardListeners(card, index);
+    });
+    
+    function setupCertificationCardListeners(card, index) {
+        // Edit button
+        const editBtn = card.querySelector('.edit-certification');
+        if (editBtn) {
+            editBtn.addEventListener('click', () => {
+                // Get the card's index if not provided
+                const idx = index !== undefined ? index : 
+                    Array.from(card.parentElement.children).indexOf(card);
+                
+                // Get values from hidden inputs
+                const name = card.querySelector('input[name^="cert_name_"]').value;
+                const org = card.querySelector('input[name^="cert_organization_"]').value;
+                const issue = card.querySelector('input[name^="cert_issue_date_"]').value;
+                const expire = card.querySelector('input[name^="cert_expiration_date_"]').value;
+                const id = card.querySelector('input[name^="cert_credential_id_"]').value;
+                const url = card.querySelector('input[name^="cert_credential_url_"]').value;
+                const skills = card.querySelector('input[name^="cert_skills_"]').value;
+                const media = card.querySelector('input[name^="cert_media_"]').value;
+                
+                // Populate form
+                document.getElementById('cert-name').value = name;
+                document.getElementById('cert-org').value = org;
+                document.getElementById('cert-issue').value = issue;
+                document.getElementById('cert-expire').value = expire;
+                document.getElementById('cert-id').value = id;
+                document.getElementById('cert-url').value = url;
+                document.getElementById('cert-skills').value = skills;
+                document.getElementById('cert-media').value = media;
+                document.getElementById('cert-index').value = idx;
+                
+                // Set modal title
+                certModal.querySelector('.modal-header h3').textContent = 'Edit Certification';
+                
+                // Show modal
+                certModal.classList.add('show');
+            });
+        }
+        
+        // Delete button
+        const deleteBtn = card.querySelector('.delete-certification');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', () => {
+                if (confirm('Are you sure you want to delete this certification?')) {
+                    card.remove();
+                    // Reindex certifications
+                    reindexEntries('certification-entry', 'cert', certCountInput);
+                }
+            });
+        }
+    }
+    
+    // EDUCATION FUNCTIONALITY
+    const addEducationBtn = document.getElementById('add-education');
+    const educationModal = document.getElementById('education-modal');
+    const saveEducationBtn = document.getElementById('save-education');
+    const educationContainer = document.getElementById('education-container');
+    const educationCountInput = document.getElementById('education-count');
+    
+    if (addEducationBtn) {
+        addEducationBtn.addEventListener('click', () => {
+            // Clear form
+            document.getElementById('edu-degree').value = '';
+            document.getElementById('edu-field').value = '';
+            document.getElementById('edu-school').value = '';
+            document.getElementById('edu-location').value = '';
+            document.getElementById('edu-start-date').value = '';
+            document.getElementById('edu-end-date').value = '';
+            document.getElementById('edu-current').checked = false;
+            document.getElementById('edu-description').value = '';
+            document.getElementById('edu-gpa').value = '';
+            document.getElementById('edu-index').value = '';
+            
+            // Enable end date input
+            document.getElementById('edu-end-date').disabled = false;
+            
+            // Set modal title
+            educationModal.querySelector('.modal-header h3').textContent = 'Add Education';
+            
+            // Show modal
+            educationModal.classList.add('show');
+        });
+    }
+    
+    // Handle "currently studying here" checkbox
+    const eduCurrentCheckbox = document.getElementById('edu-current');
+    if (eduCurrentCheckbox) {
+        eduCurrentCheckbox.addEventListener('change', function() {
+            const endDateInput = document.getElementById('edu-end-date');
+            if (this.checked) {
+                endDateInput.value = '';
+                endDateInput.disabled = true;
+            } else {
+                endDateInput.disabled = false;
+            }
+        });
+    }
+    
+    if (saveEducationBtn) {
+        saveEducationBtn.addEventListener('click', () => {
+            const degree = document.getElementById('edu-degree').value.trim();
+            const field = document.getElementById('edu-field').value.trim();
+            const school = document.getElementById('edu-school').value.trim();
+            
+            if (!degree || !school) {
+                alert('Degree and School are required');
+                return;
+            }
+            
+            const location = document.getElementById('edu-location').value.trim();
+            const startDate = document.getElementById('edu-start-date').value;
+            const isCurrent = document.getElementById('edu-current').checked;
+            let endDate = document.getElementById('edu-end-date').value;
+            
+            if (isCurrent) {
+                endDate = 'Present';
+            }
+            
+            const description = document.getElementById('edu-description').value.trim();
+            const gpa = document.getElementById('edu-gpa').value.trim();
+            
+            // Get index (new or existing)
+            const index = document.getElementById('edu-index').value;
+            const count = parseInt(educationCountInput.value || '0');
+            const newIndex = index === '' ? count : parseInt(index);
+            
+            // Create card
+            const card = document.createElement('div');
+            card.className = 'entry-card education-entry';
+            
+            // Format dates for display
+            let displayStartDate = startDate;
+            if (displayStartDate && displayStartDate.includes('-')) {
+                const [year, month] = displayStartDate.split('-');
+                displayStartDate = getMonthName(month) + ' ' + year;
+            }
+            
+            let displayEndDate = endDate;
+            if (displayEndDate && displayEndDate !== 'Present' && displayEndDate.includes('-')) {
+                const [year, month] = displayEndDate.split('-');
+                displayEndDate = getMonthName(month) + ' ' + year;
+            }
+            
+            card.innerHTML = `
+                <div class="entry-header">
+                    <h4>${degree} ${field ? 'in ' + field : ''}</h4>
+                    <div class="entry-actions">
+                        <button type="button" class="btn-edit edit-education"><i class='bx bx-edit'></i></button>
+                        <button type="button" class="btn-delete delete-education"><i class='bx bx-trash'></i></button>
+                    </div>
+                </div>
+                <div class="entry-body">
+                    <p class="entry-institution">${school}, ${location}</p>
+                    <p class="entry-period">${displayStartDate} - ${displayEndDate}</p>
+                    <p class="entry-description">${description}</p>
+                    ${gpa ? `<p class="entry-gpa">GPA: ${gpa}</p>` : ''}
+                </div>
+                <input type="hidden" name="edu_degree_${newIndex}" value="${degree}">
+                <input type="hidden" name="edu_field_${newIndex}" value="${field}">
+                <input type="hidden" name="edu_school_${newIndex}" value="${school}">
+                <input type="hidden" name="edu_location_${newIndex}" value="${location}">
+                <input type="hidden" name="edu_start_date_${newIndex}" value="${startDate}">
+                <input type="hidden" name="edu_end_date_${newIndex}" value="${endDate}">
+                <input type="hidden" name="edu_is_current_${newIndex}" value="${isCurrent ? 'on' : ''}">
+                <input type="hidden" name="edu_description_${newIndex}" value="${description}">
+                <input type="hidden" name="edu_gpa_${newIndex}" value="${gpa}">
+            `;
+            
+            if (index === '') {
+                // Add new education
+                educationContainer.appendChild(card);
+                educationCountInput.value = count + 1;
+            } else {
+                // Update existing education
+                const existingCard = document.querySelectorAll('.education-entry')[parseInt(index)];
+                if (existingCard) {
+                    existingCard.replaceWith(card);
+                }
+            }
+            
+            // Add event listeners
+            setupEducationCardListeners(card);
+            
+            // Close modal
+            educationModal.classList.remove('show');
+        });
+    }
+    
+    // Setup education card listeners for existing cards
+    document.querySelectorAll('.education-entry').forEach((card, index) => {
+        setupEducationCardListeners(card, index);
+    });
+    
+    function setupEducationCardListeners(card, index) {
+        // Edit button
+        const editBtn = card.querySelector('.edit-education');
+        if (editBtn) {
+            editBtn.addEventListener('click', () => {
+                // Get the card's index if not provided
+                const idx = index !== undefined ? index : 
+                    Array.from(card.parentElement.children).indexOf(card);
+                
+                // Get values from hidden inputs
+                const degree = card.querySelector('input[name^="edu_degree_"]').value;
+                const field = card.querySelector('input[name^="edu_field_"]').value;
+                const school = card.querySelector('input[name^="edu_school_"]').value;
+                const location = card.querySelector('input[name^="edu_location_"]').value;
+                const startDate = card.querySelector('input[name^="edu_start_date_"]').value;
+                const endDate = card.querySelector('input[name^="edu_end_date_"]').value;
+                const isCurrent = card.querySelector('input[name^="edu_is_current_"]').value === 'on';
+                const description = card.querySelector('input[name^="edu_description_"]').value;
+                const gpa = card.querySelector('input[name^="edu_gpa_"]').value;
+                
+                // Populate form
+                document.getElementById('edu-degree').value = degree;
+                document.getElementById('edu-field').value = field;
+                document.getElementById('edu-school').value = school;
+                document.getElementById('edu-location').value = location;
+                document.getElementById('edu-start-date').value = startDate;
+                document.getElementById('edu-current').checked = isCurrent;
+                document.getElementById('edu-description').value = description;
+                document.getElementById('edu-gpa').value = gpa;
+                document.getElementById('edu-index').value = idx;
+                
+                // Handle end date based on current status
+                const endDateInput = document.getElementById('edu-end-date');
+                if (isCurrent) {
+                    endDateInput.value = '';
+                    endDateInput.disabled = true;
+                } else {
+                    endDateInput.value = endDate !== 'Present' ? endDate : '';
+                    endDateInput.disabled = false;
+                }
+                
+                // Set modal title
+                educationModal.querySelector('.modal-header h3').textContent = 'Edit Education';
+                
+                // Show modal
+                educationModal.classList.add('show');
+            });
+        }
+        
+        // Delete button
+        const deleteBtn = card.querySelector('.delete-education');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', () => {
+                if (confirm('Are you sure you want to delete this education entry?')) {
+                    card.remove();
+                    // Reindex education entries
+                    reindexEntries('education-entry', 'edu', educationCountInput);
+                }
+            });
+        }
+    }
+    
+    // UTILITY FUNCTIONS
+    
+    // Function to convert month number to name
+    function getMonthName(monthNumber) {
+        const months = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ];
+        return months[parseInt(monthNumber) - 1] || '';
+    }
+    
+    // Function to reindex entries after deletion
+    function reindexEntries(entryClass, prefix, countInput) {
+        const entries = document.querySelectorAll('.' + entryClass);
+        entries.forEach((entry, idx) => {
+            entry.querySelectorAll('input[type="hidden"]').forEach(input => {
+                const name = input.getAttribute('name');
+                // Extract the field name without the index
+                const fieldName = name.substring(0, name.lastIndexOf('_'));
+                // Create new name with updated index
+                input.setAttribute('name', `${fieldName}_${idx}`);
+            });
+        });
+        
+        // Update the count input
+        if (countInput) {
+            countInput.value = entries.length;
+        }
+    }
+    
+    // Function to preview profile photo
+    function previewProfilePhoto(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgElement = photoContainer.querySelector('img') || document.createElement('img');
+                imgElement.src = e.target.result;
+                imgElement.className = 'profile-photo';
+                
+                if (!photoContainer.contains(imgElement)) {
+                    photoContainer.appendChild(imgElement);
+                }
+                
+                // Update the hidden input that will be submitted with the form
+                const photoDataInput = document.getElementById('profile-photo-data');
+                if (photoDataInput) {
+                    photoDataInput.value = e.target.result;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+    
+    // Initialize any form validation
+    const portfolioForm = document.getElementById('portfolio-form');
+    if (portfolioForm) {
+        portfolioForm.addEventListener('submit', function(event) {
+            // Basic validation
+            const requiredFields = portfolioForm.querySelectorAll('[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.classList.add('error');
+                } else {
+                    field.classList.remove('error');
+                }
+            });
+            
+            if (!isValid) {
+                event.preventDefault();
+                alert('Please fill in all required fields');
+            }
+        });
+    }
+});
+</script>
+
+{% endblock %}

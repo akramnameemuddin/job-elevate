@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobElevate</title>
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <style>
+        /* ==== CSS Variables ==== */
+        :root {
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --secondary-color: #8b5cf6;
+            --background-color: #f9fafb;
+            --card-bg: #ffffff;
+            --text-color: #1f2937;
+            --text-light: #6b7280;
+            --sidebar-bg: #ffffff;
+            --sidebar-active: #eff6ff;
+            --border-color: #e5e7eb;
+            --hover-bg: #f3f4f6;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --secondary-color: #8b5cf6;
+            --background-color: #111827;
+            --card-bg: #1f2937;
+            --text-color: #f9fafb;
+            --text-light: #d1d5db;
+            --sidebar-bg: #1f2937;
+            --sidebar-active: #2563eb;
+            --border-color: #374151;
+            --hover-bg: #374151;
+            --danger: #f87171;
+            --danger-hover: #ef4444;
+            --success: #34d399;
+            --warning: #fbbf24;
+        }
+
+        /* ==== Base Styles ==== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: var(--transition);
+            line-height: 1.5;
+        }
+
+        /* ==== Sidebar Styles ==== */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+
+        .sidebar-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .sidebar {
+            width: 280px;
+            height: 100vh;
+            background-color: var(--sidebar-bg);
+            box-shadow: var(--shadow);
+            border-right: 1px solid var(--border-color);
+            padding: 1.5rem 0;
+            transition: var(--transition);
+            overflow-y: auto;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 0 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .logo-text {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--text-color);
+            letter-spacing: -0.5px;
+        }
+
+        .nav-links {
+            list-style: none;
+            padding: 0 1rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .nav-section-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-light);
+            padding: 0 0.5rem;
+            margin: 1.5rem 0 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        .nav-item {
+            position: relative;
+            border-radius: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            color: var(--text-color);
+            text-decoration: none;
+            transition: var(--transition);
+            gap: 0.75rem;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .nav-link.active {
+            background-color: var(--sidebar-active);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .nav-link i {
+            font-size: 1.25rem;
+            min-width: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .nav-badge {
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 0.75rem;
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            margin-left: auto;
+        }
+
+        /* ==== Navbar Styles ==== */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            z-index: 990;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .mobile-menu-toggle {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: none;
+        }
+
+        .navbar-search {
+        position: absolute;
+        left: 25%;
+        transform: translateX(-50%);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.5rem 1rem 0.5rem 2.5rem;
+            border-radius: 9999px;
+            border: 1px solid var(--border-color);
+            background-color: var(--hover-bg);
+            color: var(--text-color);
+            font-size: 0.875rem;
+            transition: var(--transition);
+        }
+
+        .search-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--primary-color);
+            background-color: var(--card-bg);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 46%;
+            transform: translateY(-40%);
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .navbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .action-button {
+            background: none;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-color);
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .action-button:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .user-menu {
+            position: relative;
+        }
+
+        .user-button {
+            background: none;
+            border: none;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .user-info {
+            display: none;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--text-color);
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: var(--text-light);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            right: 0;
+            width: 200px;
+            background-color: var(--card-bg);
+            border-radius: 0.5rem;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            z-index: 100;
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: var(--transition);
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: var(--text-color);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background-color: var(--border-color);
+            margin: 0.5rem 0;
+        }
+
+        .dropdown-item.danger {
+            color: var(--danger);
+        }
+
+        .dropdown-item.danger:hover {
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+
+        /* ==== Main Content ==== */
+        .main-content {
+            margin-left: 280px;
+            padding: 6rem 1.5rem 2rem;
+            min-height: 100vh;
+            transition: var(--transition);
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-light);
+            font-size: 0.875rem;
+        }
+
+        .breadcrumb-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .breadcrumb-link {
+            color: var(--text-light);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .breadcrumb-link:hover {
+            color: var(--primary-color);
+        }
+
+        .feature-content {
+            background-color: var(--card-bg);
+            border-radius: 1rem;
+            box-shadow: var(--shadow);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .welcome-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .welcome-text h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome-text p {
+            font-size: 1rem;
+            opacity: 0.9;
+            max-width: 500px;
+        }
+
+        .welcome-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn {
+            padding: 0.625rem 1.25rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: white;
+            color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .btn-outline:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: white;
+        }
+
+        /* ==== Quick Stats ==== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background-color: var(--card-bg);
+            border-radius: 1rem;
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .stat-icon.blue {
+            background-color: #dbeafe;
+            color: #2563eb;
+        }
+
+        .stat-icon.purple {
+            background-color: #ede9fe;
+            color: #7c3aed;
+        }
+
+        .stat-icon.green {
+            background-color: #d1fae5;
+            color: #10b981;
+        }
+
+        .stat-icon.amber {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+
+        .stat-info {
+            flex: 1;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-light);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .stat-change {
+            font-size: 0.75rem;
+            color: var(--success);
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .stat-change.negative {
+            color: var(--danger);
+        }
+
+        /* ==== Features Section ==== */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .section-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .section-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .section-btn:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 1rem;
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            transition: var(--transition);
+            border: 1px solid var(--border-color);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+        }
+
+        .feature-description {
+            font-size: 0.875rem;
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .feature-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-color);
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .feature-link:hover {
+            color: var(--primary-hover);
+        }
+
+        /* ==== Responsive Design ==== */
+        @media (min-width: 1024px) {
+            .user-info {
+                display: block;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                margin-left: 0;
+                padding-top: 76px;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .navbar {
+                left: 0;
+            }
+
+            .navbar-search {
+                display: none;
+            }
+
+            .welcome-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1.5rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .navbar {
+                padding: 0 1rem;
+            }
+
+            .feature-content {
+                padding: 1.5rem;
+            }
+        }
+
+        /* ==== Modal ==== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1100;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            width: 100%;
+            max-width: 500px;
+            background-color: var(--card-bg);
+            border-radius: 1rem;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            transform: scale(0.95);
+            transition: var(--transition);
+        }
+
+        .modal-overlay.show .modal {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            color: var(--text-color);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-message {
+            margin-bottom: 1.5rem;
+            color: var(--text-color);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .modal-btn {
+            padding: 0.625rem 1.25rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+        }
+
+        .modal-btn-secondary {
+            background-color: var(--hover-bg);
+            color: var(--text-color);
+        }
+
+        .modal-btn-secondary:hover {
+            background-color: var(--border-color);
+        }
+
+        .modal-btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .modal-btn-danger:hover {
+            background-color: var(--danger-hover);
+        }
+    </style>
+</head>
+<body>
+    <!-- Modal Overlay for Delete Account -->
+    <div class="modal-overlay" id="delete-account-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Delete Account</h3>
+                <button class="modal-close" id="modal-close-btn">
+                    <i class='bx bx-x'></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-message">
+                    <p>Are you sure you want to permanently delete your account? This action cannot be undone and all your data will be lost.</p>
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-btn modal-btn-secondary" id="cancel-delete-btn">Cancel</button>
+                    <button class="modal-btn modal-btn-danger" id="confirm-delete-btn">Delete Account</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay"></div>
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class='bx bxs-briefcase-alt'></i>   
+                </div>
+                <span class="logo-text">JobElevate</span>
+            </div>
+        </div>
+        
+        <ul class="nav-links">
+            <span class="nav-section-title">Overview</span>
+            <li class="nav-item">
+            <a href="{% url 'dashboard:profile' %}" class="nav-link">
+                    <i class="bx bx-user"></i>
+                    <span class="nav-text">My Profile</span>
+                </a>
+            </li>
+            <li class="nav-item">
+            <a href="{% url 'jobs:job_listings' %}" class="nav-link">
+                    <i class="bx bx-briefcase"></i>
+                    <span class="nav-text">Job Matches</span>
+                    <span class="nav-badge">5</span>
+                </a>
+            </li>
+            
+            <span class="nav-section-title">Career Tools</span>
+            <li class="nav-item">
+                <a href="{% url 'assessments:assessment' %}" class="nav-link">
+                    <i class="bx bx-clipboard"></i>
+                    <span class="nav-text">Skills Diagnostic</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'learning:learning' %}" class="nav-link">
+                    <i class="bx bx-book"></i>
+                    <span class="nav-text">Learning Paths</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'learning:learning' %}" class="nav-link">
+                    <i class="bx bx-line-chart"></i>
+                    <span class="nav-text">Market Insights</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'resume_builder:resume_builder' %}" class="nav-link">
+                    <i class="bx bx-file"></i>
+                    <span class="nav-text">Resume Builder</span>
+                </a>
+            </li>
+            
+            <span class="nav-section-title">Community</span>
+            <li class="nav-item">
+                <a href="{% url 'community:home' %}" class="nav-link">
+                    <i class="bx bx-group"></i>
+                    <span class="nav-text">Career Network</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <button class="mobile-menu-toggle">
+                <i class="bx bx-menu"></i>
+            </button>
+        </div>
+        <div class="navbar-right">
+            <div class="navbar-actions">
+                <button class="action-button">
+                    <i class="bx bx-bell"></i>
+                </button>
+                <button class="action-button theme-toggle">
+                    <i class="bx bx-moon"></i>
+                </button>
+            </div>
+            <div class="user-menu">
+            <button class="user-button" id="user-menu-button">
+                <div class="user-avatar">
+                    {{ user_initials }}
+                </div>
+                <div class="user-info">
+                </div>
+            </button>
+                <div class="dropdown-menu" id="user-dropdown">
+                    <a href="{% url 'dashboard:profile' %}" class="dropdown-item">
+                        <i class="bx bx-user"></i>
+                        <span>My Profile</span>
+                    </a>
+                    <a href="{% url 'dashboard:home' %}" class="dropdown-item">
+                        <i class="bx bx-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="{% url 'accounts:delete_account' %}" class="dropdown-item danger" id="delete-account-link">
+                        <i class="bx bx-trash"></i>
+                        <span>Delete Account</span>
+                    </a>
+                    <a href="{% url 'accounts:logout' %}" class="dropdown-item">
+                        <i class="bx bx-log-out"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        {% block content %}
+        <div class="page-header">
+            <h1 class="page-title">Dashboard</h1>
+            <div class="breadcrumb">
+                <div class="breadcrumb-item">
+                    <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
+                    <i class='bx bx-chevron-right'></i>
+                </div>
+                <div class="breadcrumb-item">
+                    <span>Dashboard</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Welcome Card -->
+        <div class="welcome-card">
+            <div class="welcome-text">
+                <h2>Welcome back, {{ user.full_name }}!</h2>
+                <p>Your career journey is on track. You have 5 new job matches and 3 skill recommendations to explore this week.</p>
+                
+                <div class="welcome-buttons">
+                    <a href="{% url 'jobs:job_analytics' %}" class="btn btn-primary">
+                        <i class='bx bx-briefcase'></i> View Job Matches
+                    </a>
+                    <a href="{% url 'assessments:assessment' %}" class="btn btn-outline">
+                        <i class='bx bx-clipboard'></i> Take Skills Assessment
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue">
+                    <i class='bx bx-briefcase'></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-label">Job Matches</div>
+                    <div class="stat-value">42</div>
+                    <div class="stat-change">
+                        <i class='bx bx-up-arrow-alt'></i> 12% this week
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon purple">
+                    <i class='bx bx-star'></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-label">Profile Strength</div>
+                    <div class="stat-value">85%</div>
+                    <div class="stat-change">
+                        <i class='bx bx-up-arrow-alt'></i> 5% since last update
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green">
+                    <i class='bx bx-book-open'></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-label">Courses Completed</div>
+                    <div class="stat-value">7</div>
+                    <div class="stat-change">
+                        <i class='bx bx-up-arrow-alt'></i> 2 this month
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon amber">
+                    <i class='bx bx-network-chart'></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-label">Network Growth</div>
+                    <div class="stat-value">28</div>
+                    <div class="stat-change negative">
+                        <i class='bx bx-down-arrow-alt'></i> 3% this month
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="section-header">
+            <h2 class="section-title">Career Development Tools</h2>
+            <div class="section-actions">
+                <button class="section-btn">
+                    <i class='bx bx-filter'></i> Filter
+                </button>
+                <button class="section-btn">
+                    <i class='bx bx-grid'></i> View All
+                </button>
+            </div>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon" style="background-color: #3b82f6;">
+                    <i class='bx bx-user'></i>
+                </div>
+                <h3 class="feature-title">Career Profile</h3>
+                <p class="feature-description">Complete your professional profile to improve job matching and showcase your skills to employers.</p>
+                <a href="{% url 'dashboard:profile' %}" class="feature-link">
+                    Update Profile <i class='bx bx-right-arrow-alt'></i>
+                </a>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon" style="background-color: #8b5cf6;">
+                    <i class='bx bx-clipboard'></i>
+                </div>
+                <h3 class="feature-title">Skills Diagnostic</h3>
+                <p class="feature-description">Identify your strengths and skill gaps with our comprehensive assessment tool.</p>
+                <a href="{% url 'assessments:assessment' %}" class="feature-link">
+                    Take Assessment <i class='bx bx-right-arrow-alt'></i>
+                </a>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon" style="background-color: #10b981;">
+                    <i class='bx bx-book'></i>
+                </div>
+                <h3 class="feature-title">Learning Paths</h3>
+                <p class="feature-description">Discover personalized courses to enhance your skills and boost your employability.</p>
+                <a href="{% url 'learning:learning' %}" class="feature-link">
+                    Explore Courses <i class='bx bx-right-arrow-alt'></i>
+                </a>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon" style="background-color: #f59e0b;">
+                    <i class='bx bx-file'></i>
+                </div>
+                <h3 class="feature-title">Resume Builder</h3>
+                <p class="feature-description">Create professional resumes tailored to your target roles with our AI-powered builder.</p>
+                <a href="{% url 'learning:learning' %}" class="feature-link">
+                    Build Resume <i class='bx bx-right-arrow-alt'></i>
+                </a>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon" style="background-color: #ec4899;">
+                    <i class='bx bx-line-chart'></i>
+                </div>
+                <h3 class="feature-title">Market Insights</h3>
+                <p class="feature-description">Access real-time job market data to understand industry trends and salary expectations.</p>
+                <a href="{% url 'learning:learning' %}" class="feature-link">
+                    View Insights <i class='bx bx-right-arrow-alt'></i>
+                </a>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon" style="background-color: #6366f1;">
+                    <i class='bx bx-group'></i>
+                </div>
+                <h3 class="feature-title">Career Network</h3>
+                <p class="feature-description">Connect with peers and industry professionals to expand your professional network.</p>
+                <a href="{% url 'learning:learning' %}" class="feature-link">
+                    Join Community <i class='bx bx-right-arrow-alt'></i>
+                </a>
+            </div>
+        </div>
+        {% endblock %}
+    </div>
+
+    <script>
+        // Theme Management
+        const themeToggle = document.querySelector('.theme-toggle');
+        const body = document.body;
+        const savedTheme = localStorage.getItem('theme') || 'light';
+
+        const updateThemeIcon = () => {
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            themeToggle.innerHTML = isDark ? '<i class="bx bx-sun"></i>' : '<i class="bx bx-moon"></i>';
+        };
+
+        body.setAttribute('data-theme', savedTheme);
+        updateThemeIcon();
+
+        themeToggle.addEventListener('click', () => {
+            const newTheme = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon();
+        });
+
+        // Sidebar Management
+        const sidebar = document.querySelector('.sidebar');
+        const sidebarOverlay = document.querySelector('.sidebar-overlay');
+        const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+
+        mobileMenuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
+            sidebarOverlay.classList.toggle('active');
+        });
+
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('active');
+            sidebarOverlay.classList.remove('active');
+        });
+
+        // Active Link Management
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.nav-link').forEach(link => {
+            const href = link.getAttribute('href');
+            if (href && currentPath.includes(href.replace(/^\/|\/$/g, ''))) {
+                link.classList.add('active');
+            }
+        });
+
+        // User Dropdown
+        const userMenuButton = document.getElementById('user-menu-button');
+        const userDropdown = document.getElementById('user-dropdown');
+
+        userMenuButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userDropdown.classList.toggle('show');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!userMenuButton.contains(e.target) && !userDropdown.contains(e.target)) {
+                userDropdown.classList.remove('show');
+            }
+        });
+
+        // Delete Account Modal
+        const deleteAccountLink = document.getElementById('delete-account-link');
+        const deleteAccountModal = document.getElementById('delete-account-modal');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+        const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+        const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+
+        deleteAccountLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            deleteAccountModal.classList.add('show');
+        });
+
+        const closeModal = () => {
+            deleteAccountModal.classList.remove('show');
+        };
+
+        modalCloseBtn.addEventListener('click', closeModal);
+        cancelDeleteBtn.addEventListener('click', closeModal);
+
+        confirmDeleteBtn.addEventListener('click', () => {
+            // Create a form to handle POST request
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{% url 'accounts:delete_account' %}";
+            
+            // Add CSRF token
+            const csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = 'csrfmiddlewaretoken';
+            csrf.value = '{{ csrf_token }}';
+            form.appendChild(csrf);
+            
+            document.body.appendChild(form);
+            form.submit();
+        });
+    </script>
+</body>
+</html>

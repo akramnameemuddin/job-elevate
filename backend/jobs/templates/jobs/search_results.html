@@ -1,0 +1,1553 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <!-- Page Header -->
+        <div class="breadcrumb">
+            <span class="breadcrumb-item">
+                <a href="{% url 'jobs:job_listings' %}" class="breadcrumb-link">
+                    Jobs
+                </a>
+            </span>
+            <i class='bx bx-chevron-right breadcrumb-separator'></i>
+            <span class="breadcrumb-item active">Search Results</span>
+        </div>
+        <div class="page-title-section">
+            <h1 class="page-title">
+                {% if query %}
+                    <span class="query-highlight">for "{{ query }}"</span>
+                {% endif %}
+            </h1>
+    </div>
+
+    <!-- Search Form Section -->
+    <div class="search-section">
+        <div class="search-card">
+            <div class="search-header">
+                <h2 class="search-title">
+                    <i class='bx bx-filter-alt'></i>
+                    Refine Your Search
+                </h2>
+                <p class="search-subtitle">Narrow down results to find exactly what you're looking for</p>
+            </div>
+            
+            <form action="{% url 'jobs:search_jobs' %}" method="GET" class="search-form">
+                <div class="search-grid">
+                    <div class="search-input-group">
+                        <label class="input-label">Job Title or Keywords</label>
+                        <div class="input-wrapper">
+                            <i class='bx bx-search input-icon'></i>
+                            <input type="text" name="q" placeholder="e.g. Software Engineer, Marketing Manager" value="{{ query }}" class="search-input">
+                        </div>
+                    </div>
+                    
+                    <div class="search-input-group">
+                        <label class="input-label">Location</label>
+                        <div class="input-wrapper">
+                            <i class='bx bx-map input-icon'></i>
+                            <input type="text" name="location" placeholder="e.g. New York, Remote" value="{{ location }}" class="search-input">
+                        </div>
+                    </div>
+                    
+                    <div class="search-input-group">
+                        <label class="input-label">Job Type</label>
+                        <div class="input-wrapper">
+                            <i class='bx bx-briefcase input-icon'></i>
+                            <select name="job_type" class="search-select">
+                                <option value="">All Job Types</option>
+                                {% for value, label in job_types.items %}
+                                    <option value="{{ value }}" {% if job_type == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="search-button-group">
+                        <button type="submit" class="search-btn primary">
+                            <i class='bx bx-search-alt-2'></i>
+                            <span>Search Jobs</span>
+                        </button>
+                        <button type="button" class="search-btn secondary" onclick="clearForm()">
+                            <i class='bx bx-x'></i>
+                            <span>Clear</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div class="results-section">
+        <!-- Results Header -->
+        <div class="results-header">
+            <div class="results-info">
+                <h3 class="results-title">
+                    <i class='bx bx-list-ul'></i>
+                    Job Results
+                </h3>
+                <div class="results-stats">
+                    <span class="results-count">{{ jobs|length }}</span>
+                    <span class="results-text">job{{ jobs|length|pluralize }} found</span>
+                    {% if query or location or job_type %}
+                        <span class="results-filters">with current filters</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if jobs %}
+                <div class="results-actions">
+                    <button class="view-toggle-btn active" data-view="list">
+                        <i class='bx bx-list-ul'></i>
+                    </button>
+                    <button class="view-toggle-btn" data-view="grid">
+                        <i class='bx bx-grid-alt'></i>
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Job Results -->
+        {% if jobs %}
+            <div class="jobs-container" id="jobsContainer">
+                {% for job in jobs %}
+                    <div class="job-card" data-job-id="{{ job.id }}">
+                        <div class="job-card-main">
+                            <div class="job-company-section">
+                                <div class="company-logo">
+                                    {% if job.company_logo %}
+                                        <img src="{{ job.company_logo.url }}" alt="{{ job.company }}" class="logo-img">
+                                    {% else %}
+                                        <div class="logo-placeholder">
+                                            {{ job.company|slice:":1"|upper }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="company-verified" title="Verified Company">
+                                        <i class='bx bx-badge-check'></i>
+                                    </div>
+                                </div>
+                                
+                                <div class="job-details">
+                                    <div class="job-header">
+                                        <h3 class="job-title">
+                                            <a href="{% url 'jobs:job_detail' job_id=job.id %}" class="job-link">
+                                                {{ job.title }}
+                                            </a>
+                                        </h3>
+                                        <div class="job-bookmark">
+                                            {% if job.id in bookmarked_job_ids %}
+                                                <button class="bookmark-btn active" data-job-id="{{ job.id }}" title="Remove from bookmarks">
+                                                    <i class='bx bxs-heart'></i>
+                                                </button>
+                                            {% else %}
+                                                <button class="bookmark-btn" data-job-id="{{ job.id }}" title="Add to bookmarks">
+                                                    <i class='bx bx-heart'></i>
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="company-info">
+                                        <h4 class="company-name">{{ job.company }}</h4>
+                                        <div class="job-meta-badges">
+                                            <span class="meta-badge location">
+                                                <i class='bx bx-map'></i>
+                                                {{ job.location }}
+                                            </span>
+                                            <span class="meta-badge job-type">
+                                                <i class='bx bx-briefcase'></i>
+                                                {{ job.get_job_type_display }}
+                                            </span>
+                                            {% if job.salary %}
+                                                <span class="meta-badge salary">
+                                                    <i class='bx bx-dollar-circle'></i>
+                                                    {{ job.salary }}
+                                                </span>
+                                            {% endif %}
+                                            <span class="meta-badge posted-time">
+                                                <i class='bx bx-time-five'></i>
+                                                {{ job.created_at|timesince }} ago
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="job-description">
+                                <p class="description-text">
+                                    {{ job.short_description|truncatewords:25 }}
+                                </p>
+                                
+                                {% if job.skills %}
+                                    <div class="job-skills">
+                                        {% for skill in job.skills|slice:":4" %}
+                                            <span class="skill-tag">{{ skill }}</span>
+                                        {% endfor %}
+                                        {% if job.skills|length > 4 %}
+                                            <span class="skill-more">+{{ job.skills|length|add:"-4" }} more</span>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="job-card-footer">
+                            <div class="job-status">
+                                {% if job.id in applied_job_ids %}
+                                    <span class="status-applied">
+                                        <i class='bx bx-check-circle'></i>
+                                        Applied
+                                    </span>
+                                {% else %}
+                                    <span class="status-new">
+                                        <i class='bx bx-star'></i>
+                                        New
+                                    </span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="job-actions">
+                                {% if job.id not in applied_job_ids %}
+                                    <a href="{% url 'jobs:job_detail' job_id=job.id %}" class="action-btn secondary">
+                                        <i class='bx bx-show'></i>
+                                        View Details
+                                    </a>
+                                    <a href="{% url 'jobs:apply_for_job' job_id=job.id %}" class="action-btn primary">
+                                        <i class='bx bx-paper-plane'></i>
+                                        Apply Now
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'jobs:job_detail' job_id=job.id %}" class="action-btn outline">
+                                        <i class='bx bx-show'></i>
+                                        View Application
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-results">
+                <div class="no-results-content">
+                    <div class="no-results-icon">
+                        <i class='bx bx-search-alt-2'></i>
+                    </div>
+                    <h3 class="no-results-title">No matching jobs found</h3>
+                    <p class="no-results-text">We couldn't find any jobs matching your current search criteria.</p>
+                    
+                    {% if query %}
+                        <div class="search-suggestions">
+                            <h4 class="suggestions-title">Try these suggestions:</h4>
+                            <ul class="suggestions-list">
+                                <li><i class='bx bx-check'></i> Use more general keywords</li>
+                                <li><i class='bx bx-check'></i> Check your spelling</li>
+                                <li><i class='bx bx-check'></i> Remove some filters</li>
+                                <li><i class='bx bx-check'></i> Try different location terms</li>
+                            </ul>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="no-results-actions">
+                        <a href="{% url 'jobs:job_listings' %}" class="action-btn primary">
+                            <i class='bx bx-list-ul'></i>
+                            Browse All Jobs
+                        </a>
+                        <a href="{% url 'jobs:recommended_jobs' %}" class="action-btn secondary">
+                            <i class='bx bx-bulb'></i>
+                            Get Recommendations
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle bookmark toggling with enhanced UX
+        const bookmarkButtons = document.querySelectorAll('.bookmark-btn');
+        bookmarkButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const jobId = this.dataset.jobId;
+                const isActive = this.classList.contains('active');
+                
+                // Add loading state
+                this.classList.add('loading');
+                this.style.pointerEvents = 'none';
+                
+                fetch(`/jobs/job/${jobId}/bookmark/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (data.bookmarked) {
+                            this.classList.add('active');
+                            this.querySelector('i').className = 'bx bxs-heart';
+                            this.setAttribute('title', 'Remove from bookmarks');
+                            showToast('Job bookmarked successfully!', 'success');
+                        } else {
+                            this.classList.remove('active');
+                            this.querySelector('i').className = 'bx bx-heart';
+                            this.setAttribute('title', 'Add to bookmarks');
+                            showToast('Bookmark removed', 'info');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error toggling bookmark:', error);
+                    showToast('Failed to update bookmark', 'error');
+                })
+                .finally(() => {
+                    this.classList.remove('loading');
+                    this.style.pointerEvents = 'auto';
+                });
+            });
+        });
+        
+        // View toggle functionality
+        const viewToggleButtons = document.querySelectorAll('.view-toggle-btn');
+        const jobsContainer = document.getElementById('jobsContainer');
+        
+        viewToggleButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const viewType = this.dataset.view;
+                
+                // Update active button
+                viewToggleButtons.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Update container class
+                jobsContainer.className = `jobs-container ${viewType}-view`;
+            });
+        });
+        
+        // Clear form function
+        window.clearForm = function() {
+            document.querySelector('input[name="q"]').value = '';
+            document.querySelector('input[name="location"]').value = '';
+            document.querySelector('select[name="job_type"]').value = '';
+        };
+        
+        // Toast notification function
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <i class='bx ${type === 'success' ? 'bx-check-circle' : type === 'error' ? 'bx-error-circle' : 'bx-info-circle'}'></i>
+                <span>${message}</span>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 100);
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+        
+        // Helper function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        // Add smooth scroll to results when searching
+        const searchForm = document.querySelector('.search-form');
+        if (searchForm) {
+            searchForm.addEventListener('submit', function() {
+                setTimeout(() => {
+                    document.querySelector('.results-section')?.scrollIntoView({ 
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }, 100);
+            });
+        }
+    });
+</script>
+
+<style>
+    /* Job Search Results Styles - Matching job_detail.html design */
+
+    /* Main Content Layout - matching job_detail.html */
+    .main-content {
+        margin-left: 133px;
+        padding: 3rem 1.5rem 2rem 32px;
+        min-height: 116vh;
+        transition: var(--transition);
+        background-color: var(--bg-primary);
+    }
+
+    /* Page Header Styles - simplified to match job_detail */
+    .page-header {
+        margin-bottom: 1.5rem;
+        background: var(--card-bg);
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+    }
+
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    .breadcrumb-link {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+        transition: var(--transition);
+    }
+
+    .breadcrumb-link:hover {
+        color: var(--primary-hover);
+    }
+
+    .breadcrumb-separator {
+        margin: 0 0.75rem;
+        color: var(--text-muted);
+    }
+
+    .breadcrumb-item.active {
+        color: var(--text-color);
+        font-weight: 500;
+    }
+
+    .page-title-section {
+        text-align: center;
+    }
+
+    .page-title {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--heading-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .page-title i {
+        color: var(--primary-color);
+    }
+
+    .query-highlight {
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+
+    .page-subtitle {
+        color: var(--text-muted);
+        font-size: 1rem;
+        margin: 0;
+    }
+
+    /* Search Section - simplified styling */
+    .search-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .search-card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+    }
+
+    .search-header {
+        background-color: var(--card-header-bg);
+        color: var(--heading-color);
+        padding: 1.25rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .search-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .search-title i {
+        color: var(--primary-color);
+    }
+
+    .search-subtitle {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 0.95rem;
+    }
+
+    .search-form {
+        padding: 1.5rem;
+    }
+
+    .search-grid {
+        display: grid;
+        grid-template-columns: 2fr 1.5fr 1.2fr auto auto;
+        gap: 1rem;
+        align-items: end;
+    }
+
+    .search-input-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .input-label {
+        font-weight: 500;
+        color: var(--heading-color);
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 0.75rem;
+        color: var(--text-muted);
+        font-size: 1.1rem;
+        z-index: 1;
+    }
+
+    .search-input,
+    .search-select {
+        width: 100%;
+        padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 0.95rem;
+        background: var(--input-bg);
+        color: var(--text-color);
+        transition: var(--transition);
+        font-family: inherit;
+    }
+
+    .search-input:focus,
+    .search-select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px var(--primary-color-light);
+    }
+
+    .search-input::placeholder {
+        color: var(--text-muted);
+    }
+
+    .search-button-group {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .search-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 0.95rem;
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+
+    .search-btn.primary {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+    .search-btn.primary:hover {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow);
+    }
+
+    .search-btn.secondary {
+        background: var(--light-bg);
+        color: var(--text-color);
+        border-color: var(--border-color);
+    }
+
+    .search-btn.secondary:hover {
+        background: var(--hover-bg);
+        border-color: var(--text-muted);
+    }
+
+    /* Results Section - matching job_detail card structure */
+    .results-section {
+        background: var(--card-bg);
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+    }
+
+    .results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.25rem;
+        background-color: var(--card-header-bg);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .results-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .results-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--heading-color);
+        margin: 0;
+    }
+
+    .results-title i {
+        color: var(--primary-color);
+    }
+
+    .results-stats {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .results-count {
+        font-weight: 700;
+        color: var(--primary-color);
+        font-size: 1rem;
+    }
+
+    .results-text {
+        color: var(--text-muted);
+    }
+
+    .results-filters {
+        color: var(--text-muted);
+        font-style: italic;
+    }
+
+    .results-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .view-toggle-btn {
+        padding: 0.5rem;
+        border: 1px solid var(--border-color);
+        background: var(--card-bg);
+        color: var(--text-muted);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .view-toggle-btn:hover,
+    .view-toggle-btn.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+    /* Jobs Container - similar to job_detail content sections */
+    .jobs-container {
+        padding: 1.5rem;
+    }
+
+    .jobs-container.grid-view {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .jobs-container.list-view,
+    .jobs-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    /* Job Card Styles - matching job_detail card structure */
+    .job-card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow);
+        transition: var(--transition);
+        overflow: hidden;
+        position: relative;
+    }
+
+    .job-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        border-color: var(--primary-color);
+    }
+
+    .job-card-main {
+        padding: 1.25rem;
+    }
+
+    .job-company-section {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .company-logo {
+        position: relative;
+        width: 60px;
+        height: 60px;
+        min-width: 60px;
+        border-radius: 8px;
+        overflow: hidden;
+        background: var(--light-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--border-color);
+    }
+
+    .logo-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .logo-placeholder {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        background-color: var(--accent-color-light);
+    }
+
+    .company-verified {
+        position: absolute;
+        bottom: -2px;
+        right: -2px;
+        background: var(--success-color);
+        color: white;
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        border: 2px solid var(--card-bg);
+    }
+
+    .job-details {
+        flex: 1;
+    }
+
+    .job-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.5rem;
+    }
+
+    .job-title {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 600;
+        line-height: 1.3;
+    }
+
+    .job-link {
+        color: var(--heading-color);
+        text-decoration: none;
+        transition: var(--transition);
+    }
+
+    .job-link:hover {
+        color: var(--primary-color);
+    }
+
+    .job-bookmark {
+        margin-left: 1rem;
+    }
+
+    .bookmark-btn {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 50%;
+        transition: var(--transition);
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .bookmark-btn:hover {
+        background: var(--accent-color-light);
+        color: var(--accent-color);
+        transform: scale(1.1);
+    }
+
+    .bookmark-btn.active {
+        color: var(--accent-color);
+        background: var(--accent-color-light);
+    }
+
+    .bookmark-btn.loading {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    .company-info {
+        margin-bottom: 1rem;
+    }
+
+    .company-name {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin: 0 0 0.75rem 0;
+    }
+
+    .job-meta-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .meta-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.25rem 0.5rem;
+        background: var(--light-bg);
+        color: var(--text-muted);
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        border: 1px solid var(--border-color);
+    }
+
+    .meta-badge.location {
+        background: var(--accent-color-light);
+        color: var(--accent-color);
+        border-color: var(--accent-color-light);
+    }
+
+    .meta-badge.salary {
+        background: var(--success-color-light);
+        color: var(--success-color);
+        border-color: var(--success-color-light);
+    }
+
+    .meta-badge.posted-time {
+        background: #fff8e1;
+        color: #ffc107;
+        border-color: #fff8e1;
+    }
+
+    .meta-badge i {
+        font-size: 0.9rem;
+    }
+
+    .job-description {
+        margin-bottom: 1rem;
+    }
+
+    .description-text {
+        color: var(--text-muted);
+        line-height: 1.6;
+        margin-bottom: 1rem;
+        font-size: 0.95rem;
+    }
+
+    .job-skills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .skill-tag {
+        background: var(--light-bg);
+        color: var(--text-color);
+        padding: 0.25rem 0.5rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        border: 1px solid var(--border-color);
+    }
+
+    .skill-more {
+        background: var(--light-bg);
+        color: var(--text-muted);
+        padding: 0.25rem 0.5rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        border: 1px solid var(--border-color);
+    }
+    /* No Results Section - matching job_detail styling */
+    .no-results {
+        padding: 3rem 1.5rem;
+        text-align: center;
+    }
+
+    .no-results-content {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .no-results-icon {
+        font-size: 3rem;
+        color: var(--text-muted);
+        margin-bottom: 1.5rem;
+        opacity: 0.6;
+    }
+
+    .no-results-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--heading-color);
+        margin-bottom: 0.75rem;
+    }
+
+    .no-results-text {
+        color: var(--text-muted);
+        font-size: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .search-suggestions {
+        background: var(--light-bg);
+        border-radius: 8px;
+        padding: 1.25rem;
+        margin-bottom: 2rem;
+        text-align: left;
+        border: 1px solid var(--border-color);
+    }
+
+    .suggestions-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--heading-color);
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    .suggestions-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .suggestions-list li {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    .suggestions-list i {
+        color: var(--success-color);
+        font-size: 0.9rem;
+    }
+
+    .no-results-actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    /* Toast Notifications - matching job_detail modal styling */
+    .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--card-bg);
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        padding: 1rem 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        z-index: 1000;
+        transform: translateX(400px);
+        opacity: 0;
+        transition: var(--transition);
+        border: 1px solid var(--border-color);
+        min-width: 280px;
+    }
+
+    .toast.show {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    .toast.toast-success {
+        border-left: 4px solid var(--success-color);
+    }
+
+    .toast.toast-success i {
+        color: var(--success-color);
+    }
+
+    .toast.toast-error {
+        border-left: 4px solid var(--accent-color);
+    }
+
+    .toast.toast-error i {
+        color: var(--accent-color);
+    }
+
+    .toast.toast-info {
+        border-left: 4px solid var(--primary-color);
+    }
+
+    .toast.toast-info i {
+        color: var(--primary-color);
+    }
+
+    /* Notification Area - matching job_detail */
+    .notification-area {
+        margin-bottom: 1.5rem;
+    }
+
+    .notification {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.875rem 1rem;
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+        border: 1px solid transparent;
+        transition: var(--transition);
+    }
+
+    .notification.success {
+        background: var(--success-color-light);
+        border-color: var(--success-color);
+        color: var(--success-color);
+    }
+
+    .notification.error {
+        background: #ffebee;
+        border-color: var(--accent-color);
+        color: var(--accent-color);
+    }
+
+    .notification.warning {
+        background: #fff8e1;
+        border-color: #ffc107;
+        color: #ffc107;
+    }
+
+    .notification.info {
+        background: var(--accent-color-light);
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+    }
+
+    .notification .close-btn {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+        color: inherit;
+        margin-left: auto;
+        padding: 0.25rem;
+        border-radius: 50%;
+        transition: var(--transition);
+    }
+
+    .notification .close-btn:hover {
+        background: rgba(0, 0, 0, 0.1);
+    }
+
+    /* Job Card Footer */
+    .job-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        background: var(--bg-secondary);
+        border-top: 1px solid var(--border-light);
+    }
+
+    .job-status {
+        display: flex;
+        align-items: center;
+    }
+
+    .status-applied {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.5rem 1rem;
+        background: var(--success-light);
+        color: var(--success-color);
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px solid var(--success-color);
+    }
+
+    .status-new {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.5rem 1rem;
+        background: var(--warning-light);
+        color: var(--warning-color);
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px solid var(--warning-color);
+    }
+
+    .job-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.625rem 1.25rem;
+        border-radius: var(--border-radius-sm);
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: var(--transition);
+        border: 1px solid transparent;
+    }
+
+    .action-btn.primary {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .action-btn.primary:hover {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow);
+    }
+
+    .action-btn.secondary {
+        background: var(--bg-primary);
+        color: var(--text-secondary);
+        border-color: var(--border-color);
+    }
+
+    .action-btn.secondary:hover {
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+        border-color: var(--text-secondary);
+    }
+
+    .action-btn.outline {
+        background: transparent;
+        color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .action-btn.outline:hover {
+        background: var(--primary-light);
+    }
+
+    /* No Results Section */
+    .no-results {
+        padding: 4rem 2rem;
+        text-align: center;
+    }
+
+    .no-results-content {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .no-results-icon {
+        font-size: 4rem;
+        color: var(--text-tertiary);
+        margin-bottom: 1.5rem;
+        opacity: 0.6;
+    }
+
+    .no-results-title {
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.75rem;
+    }
+
+    .no-results-text {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+    }
+
+    .search-suggestions {
+        background: var(--bg-secondary);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        text-align: left;
+        border: 1px solid var(--border-color);
+    }
+
+    .suggestions-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    .suggestions-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .suggestions-list li {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 0;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+    }
+
+    .suggestions-list i {
+        color: var(--success-color);
+        font-size: 1rem;
+    }
+
+    .no-results-actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    /* Toast Notifications */
+    .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--bg-primary);
+        border-radius: var(--border-radius-sm);
+        box-shadow: var(--shadow-lg);
+        padding: 1rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        z-index: 1000;
+        transform: translateX(400px);
+        opacity: 0;
+        transition: var(--transition);
+        border: 1px solid var(--border-color);
+        min-width: 300px;
+    }
+
+    .toast.show {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    .toast.toast-success {
+        border-left: 4px solid var(--success-color);
+    }
+
+    .toast.toast-success i {
+        color: var(--success-color);
+    }
+
+    .toast.toast-error {
+        border-left: 4px solid var(--error-color);
+    }
+
+    .toast.toast-error i {
+        color: var(--error-color);
+    }
+
+    .toast.toast-info {
+        border-left: 4px solid var(--primary-color);
+    }
+
+    .toast.toast-info i {
+        color: var(--primary-color);
+    }
+
+    /* Responsive Design - matching job_detail breakpoints */
+    @media (max-width: 1200px) {
+        .search-grid {
+            grid-template-columns: 2fr 1.5fr 1fr auto;
+        }
+        
+        .search-button-group {
+            flex-direction: column;
+        }
+    }
+
+    @media (max-width: 1024px) {
+        .main-content {
+            margin-left: 0;
+            padding: 2rem 1.5rem;
+        }
+        
+        .search-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .search-button-group {
+            grid-column: 1 / -1;
+            justify-self: center;
+            flex-direction: row;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .main-content {
+            padding: 1.5rem 1rem;
+        }
+        
+        .page-header {
+            padding: 1rem;
+        }
+        
+        .page-title {
+            font-size: 1.5rem;
+        }
+        
+        .search-form {
+            padding: 1rem;
+        }
+        
+        .search-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .results-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+        
+        .job-company-section {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .job-header {
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .job-meta-badges {
+            justify-content: center;
+        }
+        
+        .job-actions {
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        .action-btn {
+            justify-content: center;
+        }
+        
+        .jobs-container {
+            padding: 1rem;
+        }
+        
+        .job-card-main {
+            padding: 1rem;
+        }
+        
+        .job-card-footer {
+            padding: 1rem;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .page-title {
+            font-size: 1.25rem;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .breadcrumb {
+            font-size: 0.8rem;
+        }
+        
+        .search-header {
+            padding: 1rem;
+        }
+        
+        .search-title {
+            font-size: 1.1rem;
+        }
+        
+        .job-meta-badges {
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .meta-badge {
+            width: fit-content;
+        }
+        
+        .toast {
+            left: 10px;
+            right: 10px;
+            min-width: auto;
+            transform: translateY(-100px);
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+        }
+        
+        .no-results-actions {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .action-btn {
+            width: 100%;
+            max-width: 250px;
+        }
+    }
+
+    /* Focus states for accessibility - matching job_detail */
+    .search-input:focus,
+    .search-select:focus,
+    .search-btn:focus,
+    .action-btn:focus,
+    .bookmark-btn:focus {
+        outline: 2px solid var(--primary-color);
+        outline-offset: 2px;
+    }
+
+    /* Animation keyframes */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.05);
+        }
+    }
+
+    /* Add subtle animations */
+    .job-card {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    .bookmark-btn:hover {
+        animation: pulse 0.3s ease-in-out;
+    }
+
+    .search-btn:active,
+    .action-btn:active {
+        transform: translateY(1px);
+    }
+
+    /* Reduced motion support */
+    @media (prefers-reduced-motion: reduce) {
+        * {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+        
+        .job-card:hover {
+            transform: none;
+        }
+        
+        .bookmark-btn:hover {
+            animation: none;
+        }
+    }
+</style>
+{% endblock %}

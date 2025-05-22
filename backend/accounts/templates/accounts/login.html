@@ -1,0 +1,488 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - JobElevate</title>
+    <!-- ==== "Inter" FONT-FAMILY FROM FONTS.GOOGLE.COM  ==== -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- ====  REMIXICON CDN ==== -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet" />
+    <style>
+      /* ==== ROOT RESET ==== */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Inter", sans-serif;
+      }
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      /* ==== CSS VARIABLES ==== */
+      :root {
+        --primary-color: #335eea;
+        --btn-hover-color: #2b50c7;
+        --lg-heading: #161c2d;
+        --text-content: #869ab8;
+        --fixed-header-height: 4.5rem;
+        --box-shadow: 0 10px 30px rgba(57, 108, 248, 0.1);
+      }
+      body {
+        width: 100%;
+        height: 100vh;
+        overflow-x: hidden;
+        background-color: #f8f9fa;
+      }
+      a {
+        text-decoration: none;
+      }
+      button {
+        cursor: pointer;
+      }
+      /* ==== HEADER ==== */
+      .header {
+        height: var(--fixed-header-height);
+        padding: 0 2rem;
+        background-color: #fff;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 100;
+      }
+      .nav {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        max-width: 1600px;
+        margin: 0 auto;
+      }
+      .logo h2 {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--primary-color);
+      }
+      .nav_menu_list {
+        display: flex;
+        align-items: center;
+        list-style: none;
+      }
+      .nav_menu_list .nav_menu_item {
+        margin: 0 1.5rem;
+      }
+      .nav_menu_item .nav_menu_link {
+        font-size: 16px;
+        font-weight: 500;
+        color: var(--lg-heading);
+        text-transform: capitalize;
+        transition: color 0.3s ease;
+      }
+      .nav_menu_link:hover {
+        color: var(--primary-color);
+      }
+      .toggle_btn {
+        font-size: 20px;
+        color: var(--lg-heading);
+        background: transparent;
+        border: none;
+        display: none;
+      }
+      .close_btn {
+        display: none;
+        background: transparent;
+        border: none;
+      }
+
+      /* ==== MAIN CONTAINER ==== */
+      .main-container {
+        display: flex;
+        min-height: 100vh;
+        padding-top: var(--fixed-header-height);
+      }
+
+      /* ==== IMAGE SIDE ==== */
+      .image-side {
+        width: 45%;
+        background-color: #f1f4ff;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+      }
+      .image-side img {
+        max-width: 65%;
+        height: auto;
+      }
+      .image-side .welcome-text {
+        margin-top: 2rem;
+        text-align: center;
+      }
+      .welcome-text h3 {
+        font-size: 28px;
+        color: var(--lg-heading);
+        margin-bottom: 1rem;
+      }
+      .welcome-text p {
+        font-size: 16px;
+        color: var(--text-content);
+        max-width: 400px;
+        line-height: 1.6;
+      }
+
+      /* ==== FORM SIDE ==== */
+      .form-side {
+        width: 55%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+      }
+
+      /* ==== FORM CONTAINER ==== */
+      .form-container {
+        width: 100%;
+        max-width: 450px;
+        padding: 3rem;
+        background-color: #fff;
+        border-radius: 16px;
+        box-shadow: var(--box-shadow);
+      }
+      .form-container .title {
+        font-size: 30px;
+        font-weight: 700;
+        color: var(--lg-heading);
+        margin-bottom: 0.5rem;
+      }
+      .form-container .subtitle {
+        font-size: 16px;
+        color: var(--text-content);
+        margin-bottom: 2.5rem;
+      }
+      .input-box {
+        margin-bottom: 1.8rem;
+        position: relative;
+      }
+      .input-box label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--lg-heading);
+        margin-bottom: 0.5rem;
+      }
+      .input-box input {
+        width: 100%;
+        height: 55px;
+        padding: 0 1rem;
+        font-size: 15px;
+        border: 1px solid #e1e5ee;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        background-color: #f8f9fa;
+      }
+      .input-box input:focus {
+        border-color: var(--primary-color);
+        background-color: #fff;
+        box-shadow: 0 0 0 4px rgba(51, 94, 234, 0.1);
+        outline: none;
+      }
+      .input-box .toggle-password {
+        position: absolute;
+        right: 1rem;
+        top: 60%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: var(--text-content);
+      }
+      .forgot-password {
+        text-align: right;
+        margin-bottom: 1.5rem;
+      }
+      .forgot-password a {
+        font-size: 14px;
+        color: var(--primary-color);
+        font-weight: 500;
+      }
+      .forgot-password a:hover {
+        text-decoration: underline;
+      }
+      .button {
+        margin-top: 1rem;
+      }
+      .button input {
+        width: 100%;
+        height: 55px;
+        background-color: var(--primary-color);
+        color: #fff;
+        font-size: 16px;
+        font-weight: 600;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(51, 94, 234, 0.3);
+      }
+      .button input:hover {
+        background-color: var(--btn-hover-color);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(51, 94, 234, 0.4);
+      }
+      .signup-link {
+        margin-top: 2rem;
+        text-align: center;
+        font-size: 15px;
+        color: var(--text-content);
+      }
+      .signup-link a {
+        color: var(--primary-color);
+        font-weight: 600;
+      }
+      .signup-link a:hover {
+        text-decoration: underline;
+      }
+      .alert {
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        border-radius: 8px;
+        text-align: center;
+        font-size: 14px;
+      }
+      .alert.success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .alert.error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+
+      /* ==== MEDIA QUERIES ==== */
+      @media screen and (max-width: 1024px) {
+        .image-side {
+          width: 40%;
+        }
+        .form-side {
+          width: 60%;
+        }
+      }
+      
+      @media screen and (max-width: 768px) {
+        .toggle_btn {
+          display: block;
+        }
+        .nav_menu {
+          position: fixed;
+          width: 93%;
+          height: 100%;
+          top: 2.5%;
+          right: -100%;
+          background-color: #fff;
+          padding: 3rem;
+          border-radius: 10px;
+          box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
+          z-index: 50;
+          transition: 0.4s;
+        }
+        .nav_menu_list {
+          flex-direction: column;
+          align-items: flex-start;
+          margin-top: 4rem;
+        }
+        .nav_menu_list .nav_menu_item {
+          margin: 1rem 0;
+        }
+        .close_btn {
+          display: block;
+          position: absolute;
+          right: 10%;
+          font-size: 25px;
+          color: var(--lg-heading);
+        }
+        .close_btn:hover {
+          color: var(--primary-color);
+        }
+        .show {
+          right: 3% !important;
+        }
+        
+        .main-container {
+          flex-direction: column;
+        }
+        .image-side {
+          width: 100%;
+          height: auto;
+          padding: 3rem 2rem;
+        }
+        .form-side {
+          width: 100%;
+          padding: 2rem 1.5rem;
+        }
+        .form-container {
+          padding: 2rem;
+        }
+      }
+      
+      @media screen and (max-width: 480px) {
+        .logo h2 {
+          font-size: 24px;
+        }
+        .header {
+          padding: 0 1.5rem;
+        }
+        .form-container {
+          padding: 1.5rem;
+        }
+        .form-container .title {
+          font-size: 26px;
+        }
+        .welcome-text h3 {
+          font-size: 24px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ==== HEADER ==== -->
+    <header class="header">
+      <nav class="nav">
+        <div class="logo">
+          <h2>JobElevate.</h2>
+        </div>
+        <div class="nav_menu" id="nav_menu">
+          <button class="close_btn" id="close_btn">
+            <i class="ri-close-fill"></i>
+          </button>
+          <ul class="nav_menu_list">
+            <li class="nav_menu_item">
+              <a href="/" class="nav_menu_link">Home</a>
+            </li>
+            <li class="nav_menu_item">
+              <a href="/signup/" class="nav_menu_link">Signup</a>
+            </li>
+            <li class="nav_menu_item">
+              <a href="#" class="nav_menu_link">Services</a>
+            </li>
+            <li class="nav_menu_item">
+              <a href="#" class="nav_menu_link">Contact</a>
+            </li>
+          </ul>
+        </div>
+        <button class="toggle_btn" id="toggle_btn">
+          <i class="ri-menu-line"></i>
+        </button>
+      </nav>
+    </header>
+
+    <!-- ==== MAIN CONTAINER ==== -->
+    <div class="main-container">
+      <!-- ==== IMAGE SIDE ==== -->
+      <div class="image-side">
+        <img src="{% static 'images/6310507.jpg' %}" alt="Team Illustration" />
+        <div class="welcome-text">
+          <h3>Welcome to JobElevate</h3>
+          <p>Unlock your career potential and connect with top employers in your industry.</p>
+        </div>
+      </div>
+      
+      <!-- ==== FORM SIDE ==== -->
+      <div class="form-side">
+        <div class="form-container">
+          <div class="title">Login</div>
+          <div class="subtitle">Welcome back! Please login to your account.</div>
+          
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert {% if message.tags %}{{ message.tags }}{% endif %}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+          
+          <form action="{% url 'accounts:login' %}" method="POST">
+            {% csrf_token %}
+            <div class="input-box">
+              <label for="email">Email Address</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+            <div class="input-box">
+              <label for="password">Password</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Enter your password"
+                required
+              />
+              <i
+                class="ri-eye-line toggle-password"
+                onclick="togglePassword()"
+              ></i>
+            </div>
+            
+            <div class="forgot-password">
+              <a href="#">Forgot password?</a>
+            </div>
+            
+            <div class="button">
+              <input type="submit" value="Login" />
+            </div>
+            
+            <div class="signup-link">
+              Don't have an account? <a href="/signup/">Sign up</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function togglePassword() {
+        const passwordField = document.getElementById("password");
+        const eyeIcon = document.querySelector(".toggle-password");
+        if (passwordField.type === "password") {
+          passwordField.type = "text";
+          eyeIcon.classList.remove("ri-eye-line");
+          eyeIcon.classList.add("ri-eye-off-line");
+        } else {
+          passwordField.type = "password";
+          eyeIcon.classList.remove("ri-eye-off-line");
+          eyeIcon.classList.add("ri-eye-line");
+        }
+      }
+
+      // Toggle Navbar for Mobile
+      document.addEventListener("DOMContentLoaded", function() {
+        const navMenu = document.getElementById("nav_menu");
+        const toggleBtn = document.getElementById("toggle_btn");
+        const closeBtn = document.getElementById("close_btn");
+
+        if (toggleBtn) {
+          toggleBtn.addEventListener("click", () => {
+            navMenu.classList.add("show");
+          });
+        }
+        
+        if (closeBtn) {
+          closeBtn.addEventListener("click", () => {
+            navMenu.classList.remove("show");
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

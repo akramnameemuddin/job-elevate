@@ -1,0 +1,1592 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Application Details | JobPortal{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="header-content">
+        <h1 class="page-title">
+            <i class='bx bx-file'></i> Application Details
+        </h1>
+        <div class="breadcrumb">
+            <span class="breadcrumb-item"><a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Dashboard</a></span>
+            <span class="breadcrumb-separator"><i class='bx bx-chevron-right'></i></span>
+            <span class="breadcrumb-item"><a href="{% url 'jobs:my_applications' %}" class="breadcrumb-link">My Applications</a></span>
+            <span class="breadcrumb-separator"><i class='bx bx-chevron-right'></i></span>
+            <span class="breadcrumb-item">Application Details</span>
+        </div>
+    </div>
+    <div class="header-actions">
+        <a href="{% url 'jobs:job_detail' application.job.id %}" class="btn btn-light">
+            <i class='bx bx-link-external'></i>
+            <span>View Job</span>
+        </a>
+    </div>
+</div>
+
+<!-- Messages/Notifications -->
+{% if messages %}
+<div class="notifications">
+    {% for message in messages %}
+    <div class="notification {% if message.tags %}notification-{{ message.tags }}{% endif %}">
+        {% if message.tags == 'success' %}
+        <i class='bx bx-check-circle'></i>
+        {% elif message.tags == 'error' %}
+        <i class='bx bx-error'></i>
+        {% elif message.tags == 'warning' %}
+        <i class='bx bx-error-circle'></i>
+        {% else %}
+        <i class='bx bx-info-circle'></i>
+        {% endif %}
+        <p>{{ message }}</p>
+        <button class="notification-close"><i class='bx bx-x'></i></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="notifications">
+    <!-- Application Summary Card -->
+    <div class="content-section application-summary-section">
+        <div class="section-header">
+            <div class="section-title-container">
+                <h2 class="section-title">
+                    <i class='bx bx-briefcase'></i> Application Summary
+                </h2>
+                <span class="section-subtitle">Overview of your job application</span>
+            </div>
+            <div class="application-status-badge status-{{ application.status|lower }}">
+                {{ application.status }}
+            </div>
+        </div>
+        
+        <div class="application-summary-card">
+            <div class="job-info">
+                <h3 class="job-title">{{ application.job.title }}</h3>
+                <div class="job-meta">
+                    <div class="job-detail-item">
+                        <i class='bx bx-buildings'></i>
+                        <span>{{ application.job.company }}</span>
+                    </div>
+                    <div class="job-detail-item">
+                        <i class='bx bx-map'></i>
+                        <span>{{ application.job.location }}</span>
+                    </div>
+                    <div class="job-detail-item">
+                        <i class='bx bx-briefcase'></i>
+                        <span>{{ application.job.job_type }}</span>
+                    </div>
+                </div>
+                <div class="job-dates">
+                    <div class="job-detail-item">
+                        <i class='bx bx-calendar'></i>
+                        <span>Applied on: {{ application.applied_at|date:"M d, Y" }}</span>
+                    </div>
+                    <div class="job-detail-item">
+                        <i class='bx bx-refresh'></i>
+                        <span>Last update: {{ application.updated_at|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Cover Letter Section -->
+    <div class="content-section">
+        <div class="section-header">
+            <div class="section-title-container">
+                <h2 class="section-title">
+                    <i class='bx bx-envelope'></i> Cover Letter
+                </h2>
+            </div>
+        </div>
+        <div class="section-content">
+            {% if application.cover_letter %}
+                <div class="cover-letter-content">
+                    {{ application.cover_letter|linebreaks }}
+                </div>
+            {% else %}
+                <div class="empty-state-inline">
+                    <i class='bx bx-envelope'></i>
+                    <p>No cover letter was included with this application.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Resume Section -->
+    {% if application.resume %}
+    <div class="content-section">
+        <div class="section-header">
+            <div class="section-title-container">
+                <h2 class="section-title">
+                    <i class='bx bx-file'></i> Resume
+                </h2>
+            </div>
+        </div>
+        <div class="section-content">
+            <div class="resume-container">
+                <div class="resume-preview">
+                    <div class="file-icon">
+                        <i class='bx bxs-file-pdf'></i>
+                    </div>
+                    <div class="file-info">
+                        <span class="file-name">{{ application.resume.name }}</span>
+                        <span class="file-meta">PDF Document</span>
+                    </div>
+                </div>
+                <div class="resume-actions">
+                    <a href="{{ application.resume.url }}" class="btn btn-primary" target="_blank">
+                        <i class='bx bx-download'></i> Download
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Messages Thread Section -->
+    <div class="content-section messages-section">
+        <div class="section-header">
+            <div class="section-title-container">
+                <h2 class="section-title">
+                    <i class='bx bx-message-square-dots'></i> Messages
+                </h2>
+                <span class="section-subtitle">Communication thread for this application</span>
+            </div>
+        </div>
+        
+        <div class="section-content">
+            <div class="messages-thread">
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="message-item {% if message.sender == request.user %}message-sent{% else %}message-received{% endif %}">
+                        <div class="message-avatar">
+                            {% if message.sender.profile_image %}
+                                <img src="{{ message.sender.profile_image.url }}" alt="{{ message.sender.get_full_name }}">
+                            {% else %}
+                                <div class="avatar-placeholder">{{ message.sender.get_initials }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="message-content">
+                            <div class="message-header">
+                                <span class="message-sender">{{ message.sender.get_full_name }}</span>
+                                <span class="message-time">{{ message.sent_at|date:"M d, Y" }} at {{ message.sent_at|time:"H:i" }}</span>
+                            </div>
+                            <div class="message-body">
+                                {{ message.content|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class='bx bx-message-square-x'></i>
+                        <h3>No Messages Yet</h3>
+                        <p>Start the conversation with the employer!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- New Message Form -->
+        <div class="section-divider"></div>
+        <div class="section-content new-message-content">
+            <h3 class="subsection-title">Send a Message</h3>
+            <form method="post" action="{% url 'jobs:send_application_message' application.id %}" class="message-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <textarea name="message_content" id="message_content" rows="4" class="form-control" 
+                      placeholder="Type your message here..." required></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class='bx bx-send'></i> Send Message
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Application Timeline -->
+    <div class="content-section timeline-section">
+        <div class="section-header">
+            <div class="section-title-container">
+                <h2 class="section-title">
+                    <i class='bx bx-history'></i> Application Timeline
+                </h2>
+                <span class="section-subtitle">Track your application progress</span>
+            </div>
+        </div>
+        
+        <div class="section-content">
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-marker timeline-marker-primary"></div>
+                    <div class="timeline-content">
+                        <h4 class="timeline-title">Application Submitted</h4>
+                        <p class="timeline-date">{{ application.applied_at|date:"F d, Y" }} at {{ application.applied_at|time:"H:i" }}</p>
+                        <p class="timeline-description">Your application was successfully submitted</p>
+                    </div>
+                </div>
+                
+                <!-- If there are status changes in the application history -->
+                {% if application.status != 'Applied' %}
+                <div class="timeline-item">
+                    <div class="timeline-marker timeline-marker-success"></div>
+                    <div class="timeline-content">
+                        <h4 class="timeline-title">Status Updated to {{ application.status }}</h4>
+                        <p class="timeline-date">{{ application.updated_at|date:"F d, Y" }} at {{ application.updated_at|time:"H:i" }}</p>
+                        <p class="timeline-description">Application status was changed by the employer</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Add message events to timeline -->
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker timeline-marker-info"></div>
+                        <div class="timeline-content">
+                            <h4 class="timeline-title">Message from {{ message.sender.get_full_name }}</h4>
+                            <p class="timeline-date">{{ message.sent_at|date:"F d, Y" }} at {{ message.sent_at|time:"H:i" }}</p>
+                            <p class="timeline-description">{{ message.content|truncatewords:15 }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Modern Application Detail Page Styles - Matching job_listings.html */
+/* Modern Application Detail Page Styles - Fixed Version */
+:root {
+  --primary-color: #4361ee;
+  --primary-light: rgba(67, 97, 238, 0.1);
+  --primary-dark: #3a56d4;
+  --success-color: #2ecc71;
+  --warning-color: #f39c12;
+  --danger-color: #e74c3c;
+  --info-color: #3498db;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --transition: all 0.3s ease;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+}
+
+/* Page Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem; /* Reduced gap */
+  background: #fff;
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  box-shadow: var(--card-shadow);
+}
+
+.header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gray-800);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.page-title i {
+  font-size: 1.5rem;
+  color: var(--primary-color);
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  color: var(--gray-500);
+}
+
+.breadcrumb-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.breadcrumb-link:hover {
+  color: var(--primary-dark);
+}
+
+.breadcrumb-separator {
+  margin: 0 0.5rem;
+  display: flex;
+  align-items: center;
+  color: var(--gray-400);
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* Notifications */
+.notifications {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.notification {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  background: white;
+  box-shadow: var(--card-shadow);
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.notification i {
+  font-size: 1.25rem;
+  margin-right: 0.75rem;
+}
+
+.notification p {
+  flex: 1;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.notification-success {
+  border-left: 4px solid var(--success-color);
+}
+
+.notification-success i {
+  color: var(--success-color);
+}
+
+.notification-error {
+  border-left: 4px solid var(--danger-color);
+}
+
+.notification-error i {
+  color: var(--danger-color);
+}
+
+.notification-warning {
+  border-left: 4px solid var(--warning-color);
+}
+
+.notification-warning i {
+  color: var(--warning-color);
+}
+
+.notification-info {
+  border-left: 4px solid var(--info-color);
+}
+
+.notification-info i {
+  color: var(--info-color);
+}
+
+.notification-close {
+  background: transparent;
+  border: none;
+  color: var(--gray-500);
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  transition: var(--transition);
+}
+
+.notification-close:hover {
+  background: var(--gray-100);
+  color: var(--gray-700);
+}
+
+/* Main Content */
+.main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Content Sections */
+.content-section {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+}
+
+.application-summary-section {
+  border-left: 4px solid var(--primary-color);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--gray-200);
+  background: var(--gray-50);
+  margin: 0;
+}
+
+.section-title-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-title i {
+  font-size: 1.125rem;
+  color: var(--primary-color);
+}
+
+.section-subtitle {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--gray-500);
+}
+
+.section-content {
+  padding: 1.5rem;
+}
+
+.section-divider {
+  height: 1px;
+  background: var(--gray-200);
+  margin: 0 1.5rem;
+}
+
+.subsection-title {
+  margin: 0 0 1rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+/* Application Summary Card - FIXED */
+.application-summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.job-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+}
+
+.job-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin: 0;
+  line-height: 1.3;
+  padding: 0;
+}
+
+.job-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+}
+
+.job-dates {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+}
+
+.job-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: 0.95rem;
+  color: var(--gray-600);
+  margin: 0;
+  padding: 0;
+}
+
+.job-detail-item i {
+  font-size: 1.1rem;
+  color: var(--primary-color);
+  min-width: 1.1rem;
+}
+
+/* Status Badge */
+.application-status-badge {
+  padding: 0.75rem 1.25rem;
+  border-radius: 2rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.status-applied {
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+  border: 1px solid rgba(67, 97, 238, 0.3);
+}
+
+.status-reviewing {
+  background-color: rgba(243, 156, 18, 0.15);
+  color: var(--warning-color);
+  border: 1px solid rgba(243, 156, 18, 0.3);
+}
+
+.status-interview {
+  background-color: rgba(52, 152, 219, 0.15);
+  color: var(--info-color);
+  border: 1px solid rgba(52, 152, 219, 0.3);
+}
+
+.status-accepted {
+  background-color: rgba(46, 204, 113, 0.15);
+  color: var(--success-color);
+  border: 1px solid rgba(46, 204, 113, 0.3);
+}
+
+.status-rejected {
+  background-color: rgba(231, 76, 60, 0.15);
+  color: var(--danger-color);
+  border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+/* Cover Letter */
+.cover-letter-content {
+  line-height: 1.7;
+  color: var(--gray-700);
+  font-size: 1rem;
+}
+
+.cover-letter-content p {
+  margin-bottom: 1rem;
+}
+
+.cover-letter-content p:last-child {
+  margin-bottom: 0;
+}
+
+/* Empty States */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+.empty-state i {
+  font-size: 3rem;
+  color: var(--gray-400);
+  margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+  font-size: 1.25rem;
+  color: var(--gray-700);
+  margin: 0 0 0.5rem;
+}
+
+.empty-state p {
+  color: var(--gray-500);
+  margin-bottom: 1.5rem;
+  max-width: 400px;
+}
+
+.empty-state-inline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  text-align: center;
+  color: var(--gray-500);
+  font-style: italic;
+}
+
+.empty-state-inline i {
+  font-size: 2rem;
+  color: var(--gray-400);
+}
+
+/* Resume Container */
+.resume-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  background: var(--gray-50);
+}
+
+.resume-preview {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.file-icon {
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e53935;
+  border-radius: var(--radius-md);
+  color: white;
+}
+
+.file-icon i {
+  font-size: 1.75rem;
+}
+
+.file-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.file-name {
+  font-weight: 500;
+  color: var(--gray-800);
+  font-size: 1rem;
+}
+
+.file-meta {
+  font-size: 0.875rem;
+  color: var(--gray-500);
+}
+
+/* Messages Thread */
+.messages-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-height: 200px;
+}
+
+.message-item {
+  display: flex;
+  gap: 1rem;
+  max-width: 100%;
+}
+
+.message-sent {
+  flex-direction: row-reverse;
+}
+
+.message-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 2px solid var(--gray-200);
+}
+
+.message-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.message-content {
+  background-color: var(--gray-50);
+  border-radius: 16px;
+  padding: 1.25rem;
+  box-shadow: var(--card-shadow);
+  max-width: 70%;
+  border: 1px solid var(--gray-200);
+}
+
+.message-sent .message-content {
+  background-color: var(--primary-light);
+  border-color: rgba(67, 97, 238, 0.2);
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.message-sender {
+  font-weight: 600;
+  color: var(--gray-800);
+  font-size: 0.9rem;
+}
+
+.message-time {
+  color: var(--gray-500);
+  font-size: 0.8rem;
+}
+
+.message-body {
+  color: var(--gray-700);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+/* Message Form */
+.message-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-control {
+  width: 100%;
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  background-color: var(--gray-50);
+  color: var(--gray-800);
+  font-size: 1rem;
+  line-height: 1.5;
+  transition: var(--transition);
+  resize: vertical;
+  min-height: 120px;
+  font-family: inherit;
+}
+
+.form-control:focus {
+  border-color: var(--primary-color);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+  background-color: white;
+}
+
+.form-control::placeholder {
+  color: var(--gray-500);
+  opacity: 0.8;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+/* Timeline */
+.timeline {
+  position: relative;
+  padding-left: 2.5rem;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 1rem;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--primary-color), var(--gray-300));
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.timeline-item:last-child {
+  margin-bottom: 0;
+}
+
+.timeline-marker {
+  position: absolute;
+  left: -2.75rem;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 0 0 2px var(--primary-color);
+  top: 0.5rem;
+}
+
+.timeline-marker-primary {
+  background-color: var(--primary-color);
+}
+
+.timeline-marker-success {
+  background-color: var(--success-color);
+  box-shadow: 0 0 0 2px var(--success-color);
+}
+
+.timeline-marker-info {
+  background-color: var(--info-color);
+  box-shadow: 0 0 0 2px var(--info-color);
+}
+
+.timeline-content {
+  background-color: var(--gray-50);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  border: 1px solid var(--gray-200);
+  box-shadow: var(--card-shadow);
+}
+
+.timeline-title {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.timeline-date {
+  color: var(--gray-500);
+  font-size: 0.9rem;
+  margin: 0 0 0.5rem 0;
+  font-weight: 500;
+}
+
+.timeline-description {
+  color: var(--gray-600);
+  font-size: 0.95rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Buttons */
+.btn {
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+  border: none;
+}
+
+.btn i {
+  font-size: 1.1rem;
+}
+
+.btn-primary {
+  background: var(--primary-color);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+  box-shadow: 0 4px 6px rgba(67, 97, 238, 0.2);
+}
+
+.btn-light {
+  background: var(--gray-100);
+  color: var(--gray-700);
+}
+
+.btn-light:hover {
+  background: var(--gray-200);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+}
+
+.btn-outline:hover {
+  background: var(--primary-light);
+}
+
+/* Additional fixes for spacing issues */
+.application-summary-card p {
+  margin: 0;
+  padding: 0;
+}
+
+.application-summary-card ul,
+.application-summary-card ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.application-summary-section * {
+  box-sizing: border-box;
+}
+
+.application-summary-card .row {
+  margin: 0;
+}
+
+.application-summary-card .col,
+.application-summary-card [class*="col-"] {
+  padding: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .job-meta {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .resume-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .resume-actions {
+    width: 100%;
+  }
+  
+  .message-content {
+    max-width: 85%;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .header-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .application-status-badge {
+    align-self: flex-start;
+  }
+  
+  .job-dates {
+    margin-top: 0;
+  }
+  
+  .timeline {
+    padding-left: 2rem;
+  }
+  
+  .timeline::before {
+    left: 0.75rem;
+  }
+  
+  .timeline-marker {
+    left: -2.25rem;
+  }
+  
+  .message-content {
+    max-width: 90%;
+    padding: 1rem;
+  }
+  
+  .form-control {
+    min-height: 100px;
+  }
+  
+  .btn {
+    padding: 0.65rem 1.25rem;
+    font-size: 0.85rem;
+  }
+  
+  .application-summary-section .section-content {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 1.25rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .breadcrumb {
+    font-size: 0.8rem;
+  }
+  
+  .section-content {
+    padding: 1rem;
+  }
+  
+  .section-header {
+    padding: 1rem;
+  }
+  
+  .job-title {
+    font-size: 1.25rem;
+  }
+  
+  .message-item {
+    gap: 0.75rem;
+  }
+  
+  .message-avatar {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .timeline {
+    padding-left: 1.5rem;
+  }
+  
+  .timeline::before {
+    left: 0.5rem;
+  }
+  
+  .timeline-marker {
+    left: -2rem;
+    width: 12px;
+    height: 12px;
+  }
+  
+  .timeline-content {
+    padding: 1rem;
+  }
+  
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .form-actions .btn {
+    width: auto;
+  }
+}
+
+/* Additional animations and interactions */
+.content-section {
+  animation: fadeInUp 0.6s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.content-section:hover {
+  box-shadow: var(--card-shadow-hover);
+  transition: var(--transition);
+}
+
+/* Message animation */
+.message-item {
+  animation: messageSlideIn 0.4s ease;
+}
+
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.message-sent {
+  animation: messageSentSlideIn 0.4s ease;
+}
+
+@keyframes messageSentSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Timeline animation */
+.timeline-item {
+  animation: timelineSlideIn 0.5s ease;
+}
+
+@keyframes timelineSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Focus states for accessibility */
+.btn:focus,
+.form-control:focus,
+.breadcrumb-link:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Loading states */
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn:disabled:hover {
+  background-color: inherit;
+  box-shadow: none;
+}
+
+/* Print styles */
+@media print {
+  .page-header,
+  .header-actions,
+  .notifications,
+  .new-message-content,
+  .btn {
+    display: none !important;
+  }
+  
+  .content-section {
+    box-shadow: none;
+    border: 1px solid var(--gray-300);
+    margin-bottom: 1rem;
+    break-inside: avoid;
+  }
+  
+  .main-content {
+    gap: 1rem;
+  }
+}
+
+/* Dark mode support (if implemented) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --gray-50: #1f2937;
+    --gray-100: #374151;
+    --gray-200: #4b5563;
+    --gray-300: #6b7280;
+    --gray-400: #9ca3af;
+    --gray-500: #d1d5db;
+    --gray-600: #e5e7eb;
+    --gray-700: #f3f4f6;
+    --gray-800: #f9fafb;
+    --gray-900: #ffffff;
+  }
+  
+  .content-section {
+    background: var(--gray-100);
+  }
+  
+  .form-control {
+    background-color: var(--gray-200);
+    color: var(--gray-800);
+  }
+}
+</style>
+
+<script>
+// Enhanced JavaScript for Application Detail Page
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize notification close buttons
+    initNotificationClose();
+    
+    // Initialize form enhancements
+    initFormEnhancements();
+    
+    // Initialize smooth scrolling
+    initSmoothScrolling();
+    
+    // Initialize timeline animations
+    initTimelineAnimations();
+    
+    // Initialize message form validation
+    initMessageFormValidation();
+});
+
+// Initialize notification close functionality
+function initNotificationClose() {
+    document.querySelectorAll('.notification-close').forEach(button => {
+        button.addEventListener('click', function() {
+            const notification = this.closest('.notification');
+            hideNotification(notification);
+        });
+    });
+    
+    // Auto-hide notifications after 5 seconds
+    document.querySelectorAll('.notification').forEach(notification => {
+        setTimeout(() => {
+            hideNotification(notification);
+        }, 5000);
+    });
+}
+
+// Hide notification with animation
+function hideNotification(notification) {
+    notification.style.opacity = '0';
+    notification.style.transform = 'translateY(-20px)';
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 300);
+}
+
+// Initialize form enhancements
+function initFormEnhancements() {
+    const textarea = document.getElementById('message_content');
+    if (textarea) {
+        // Auto-resize textarea
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+        });
+        
+        // Character counter (optional)
+        addCharacterCounter(textarea);
+    }
+}
+
+// Add character counter to textarea
+function addCharacterCounter(textarea) {
+    const maxLength = 1000; // Set your desired max length
+    const counter = document.createElement('div');
+    counter.className = 'char-counter';
+    counter.style.cssText = `
+        font-size: 0.875rem;
+        color: var(--gray-500);
+        text-align: right;
+        margin-top: 0.5rem;
+    `;
+    
+    const updateCounter = () => {
+        const remaining = maxLength - textarea.value.length;
+        counter.textContent = `${textarea.value.length}/${maxLength} characters`;
+        
+        if (remaining < 50) {
+            counter.style.color = 'var(--warning-color)';
+        } else if (remaining < 0) {
+            counter.style.color = 'var(--danger-color)';
+        } else {
+            counter.style.color = 'var(--gray-500)';
+        }
+    };
+    
+    textarea.addEventListener('input', updateCounter);
+    textarea.parentNode.appendChild(counter);
+    updateCounter();
+}
+
+// Initialize smooth scrolling for internal links
+function initSmoothScrolling() {
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+}
+
+// Initialize timeline animations on scroll
+function initTimelineAnimations() {
+    const timelineItems = document.querySelectorAll('.timeline-item');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    });
+    
+    timelineItems.forEach(item => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateY(20px)';
+        item.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(item);
+    });
+}
+
+// Initialize message form validation
+function initMessageFormValidation() {
+    const form = document.querySelector('.message-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const textarea = form.querySelector('textarea');
+            const submitBtn = form.querySelector('button[type="submit"]');
+            
+            // Validate message content
+            if (!textarea.value.trim()) {
+                e.preventDefault();
+                showValidationError(textarea, 'Please enter a message');
+                return;
+            }
+            
+            // Show loading state
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Sending...';
+                
+                // Reset button after 5 seconds as fallback
+                setTimeout(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="bx bx-send"></i> Send Message';
+                }, 5000);
+            }
+        });
+    }
+}
+
+// Show validation error
+function showValidationError(element, message) {
+    // Remove existing error
+    const existingError = element.parentNode.querySelector('.validation-error');
+    if (existingError) {
+        existingError.remove();
+    }
+    
+    // Add error message
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'validation-error';
+    errorDiv.style.cssText = `
+        color: var(--danger-color);
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        animation: shake 0.5s ease-in-out;
+    `;
+    errorDiv.textContent = message;
+    
+    element.parentNode.appendChild(errorDiv);
+    element.style.borderColor = 'var(--danger-color)';
+    
+    // Focus the element
+    element.focus();
+    
+    // Remove error on input
+    element.addEventListener('input', function() {
+        if (this.value.trim()) {
+            this.style.borderColor = '';
+            if (errorDiv.parentNode) {
+                errorDiv.remove();
+            }
+        }
+    });
+}
+
+// Add shake animation for validation errors
+const shakeStyle = document.createElement('style');
+shakeStyle.textContent = `
+    @keyframes shake {
+        0% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        50% { transform: translateX(5px); }
+        75% { transform: translateX(-5px); }
+        100% { transform: translateX(0); }
+    }
+`;
+document.head.appendChild(shakeStyle);
+
+// Copy functionality for application details
+function copyToClipboard(text) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+            showTemporaryMessage('Copied to clipboard!', 'success');
+        });
+    } else {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            showTemporaryMessage('Copied to clipboard!', 'success');
+        } catch (err) {
+            showTemporaryMessage('Copy failed', 'error');
+        }
+        document.body.removeChild(textArea);
+    }
+}
+
+// Show temporary message
+function showTemporaryMessage(message, type = 'info') {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `temp-message temp-message-${type}`;
+    messageDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        background: white;
+        border-radius: var(--radius-md);
+        box-shadow: var(--card-shadow-hover);
+        z-index: 1000;
+        animation: slideInRight 0.3s ease;
+        border-left: 4px solid var(--${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'}-color);
+    `;
+    messageDiv.textContent = message;
+    
+    document.body.appendChild(messageDiv);
+    
+    setTimeout(() => {
+        messageDiv.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(() => {
+            if (messageDiv.parentNode) {
+                messageDiv.remove();
+            }
+        }, 300);
+    }, 3000);
+}
+
+// Add slide animations for temporary messages
+const slideStyle = document.createElement('style');
+slideStyle.textContent = `
+    @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(slideStyle);
+
+// Handle page visibility change
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+        // Page became visible, refresh timestamps if needed
+        updateRelativeTimestamps();
+    }
+});
+
+// Update relative timestamps
+function updateRelativeTimestamps() {
+    document.querySelectorAll('[data-timestamp]').forEach(element => {
+        const timestamp = element.getAttribute('data-timestamp');
+        if (timestamp) {
+            element.textContent = formatRelativeTime(new Date(timestamp));
+        }
+    });
+}
+
+// Format relative time
+function formatRelativeTime(date) {
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) return '1 day ago';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
+    return `${Math.ceil(diffDays / 30)} months ago`;
+}
+</script>
+{% endblock %}

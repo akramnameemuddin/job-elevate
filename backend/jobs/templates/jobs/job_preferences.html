@@ -1,0 +1,1744 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Job Preferences | JobConnect{% endblock %}
+
+{% block content %}
+<div class="preferences-page">
+    <!-- Header Section -->
+    <div class="page-header">
+        <div class="container">
+            <div class="breadcrumb-nav">
+                <a href="{% url 'jobs:job_listings' %}" class="breadcrumb-link">
+                    Jobs
+                </a>
+                <i class='bx bx-chevron-right'></i>
+                <span class="breadcrumb-current">Preferences</span>
+            </div>
+            
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="page-title">
+                        <i class='bx bx-cog'></i>
+                        Job Preferences
+                    </h1>
+                    <p class="page-subtitle">Customize your job recommendations by setting your preferences</p>
+                </div>
+                <div class="header-actions">
+                    <a href="{% url 'jobs:recommended_jobs' %}" class="btn btn-outline">
+                        <i class='bx bx-left-arrow-alt'></i>
+                        Back to Recommendations
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="container">
+            <div class="messages-container">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        <i class='bx {% if message.tags == 'success' %}bx-check-circle{% elif message.tags == 'error' %}bx-x-circle{% elif message.tags == 'warning' %}bx-error-circle{% else %}bx-info-circle{% endif %}'></i>
+                        <span>{{ message }}</span>
+                        <button class="alert-close" onclick="this.parentElement.remove()">
+                            <i class='bx bx-x'></i>
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="container">
+        <form method="POST" action="{% url 'jobs:update_job_preferences' %}" class="preferences-form">
+            {% csrf_token %}
+            
+            <!-- Progress Indicator -->
+            <div class="progress-indicator">
+                <div class="progress-steps">
+                    <div class="progress-step active" data-step="1">
+                        <div class="step-circle">
+                            <i class='bx bx-briefcase'></i>
+                        </div>
+                        <span class="step-label">Job Types</span>
+                    </div>
+                    <div class="progress-step" data-step="2">
+                        <div class="step-circle">
+                            <i class='bx bx-map'></i>
+                        </div>
+                        <span class="step-label">Location</span>
+                    </div>
+                    <div class="progress-step" data-step="3">
+                        <div class="step-circle">
+                            <i class='bx bx-dollar'></i>
+                        </div>
+                        <span class="step-label">Salary</span>
+                    </div>
+                    <div class="progress-step" data-step="4">
+                        <div class="step-circle">
+                            <i class='bx bx-building'></i>
+                        </div>
+                        <span class="step-label">Industry</span>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 25%"></div>
+                </div>
+            </div>
+
+            <div class="form-sections">
+                <!-- Job Types Section -->
+                <div class="form-section active" id="section-1">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class='bx bx-briefcase-alt-2'></i>
+                        </div>
+                        <div class="section-content">
+                            <h2 class="section-title">Job Types</h2>
+                            <p class="section-description">What types of employment are you looking for?</p>
+                        </div>
+                    </div>
+
+                    <div class="job-types-grid">
+                        {% for value, label in job_types.items %}
+                        <label class="job-type-card">
+                            <input type="checkbox" name="preferred_job_types" value="{{ value }}" 
+                                {% if preferences and value in preferences.preferred_job_types %}checked{% endif %}>
+                            <div class="card-content">
+                                <div class="card-icon">
+                                    <i class='bx {% if value == "Full-time" %}bx-time{% elif value == "Part-time" %}bx-time-five{% elif value == "Contract" %}bx-file-blank{% elif value == "Freelance" %}bx-user{% elif value == "Internship" %}bx-graduation{% else %}bx-briefcase{% endif %}'></i>
+                                </div>
+                                <h3 class="card-title">{{ label }}</h3>
+                                <div class="card-check">
+                                    <i class='bx bx-check'></i>
+                                </div>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Remote Work Toggle -->
+                    <div class="remote-preference">
+                        <div class="preference-card">
+                            <div class="preference-content">
+                                <div class="preference-info">
+                                    <h3 class="preference-title">
+                                        <i class='bx bx-home-heart'></i>
+                                        Remote Work Preference
+                                    </h3>
+                                    <p class="preference-description">Prioritize remote and work-from-home opportunities</p>
+                                </div>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" name="remote_preference" id="remote-toggle"
+                                        {% if preferences and preferences.remote_preference %}checked{% endif %}>
+                                    <label for="remote-toggle" class="toggle-label">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Location Section -->
+                <div class="form-section" id="section-2">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class='bx bx-map-pin'></i>
+                        </div>
+                        <div class="section-content">
+                            <h2 class="section-title">Preferred Locations</h2>
+                            <p class="section-description">Where would you like to work? Add multiple locations.</p>
+                        </div>
+                    </div>
+
+                    <div class="location-input-section">
+                        <div class="input-group">
+                            <div class="input-wrapper">
+                                <i class='bx bx-search'></i>
+                                <input type="text" id="location-input" placeholder="Enter city, state, or country..." class="location-search">
+                                <button type="button" class="add-location-btn" id="add-location">
+                                    <i class='bx bx-plus'></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="selected-locations" id="location-tags">
+                            {% if preferences and preferences.preferred_locations %}
+                                {% for location in preferences.preferred_locations %}
+                                <div class="location-tag">
+                                    <i class='bx bx-map'></i>
+                                    <span>{{ location }}</span>
+                                    <button type="button" class="remove-tag" data-value="{{ location }}">
+                                        <i class='bx bx-x'></i>
+                                    </button>
+                                </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Hidden inputs for locations -->
+                    <div id="location-hidden-inputs" style="display: none;">
+                        {% if preferences and preferences.preferred_locations %}
+                            {% for location in preferences.preferred_locations %}
+                            <input type="hidden" name="preferred_locations" value="{{ location }}">
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Salary Section -->
+                <div class="form-section" id="section-3">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class='bx bx-dollar-circle'></i>
+                        </div>
+                        <div class="section-content">
+                            <h2 class="section-title">Salary Expectations</h2>
+                            <p class="section-description">Set your minimum expected annual salary (USD)</p>
+                        </div>
+                    </div>
+
+                    <div class="salary-input-section">
+                        <div class="salary-slider-container">
+                            <div class="salary-display">
+                                <span class="currency">$</span>
+                                <span class="salary-amount" id="salary-display">{{ preferences.min_salary_expectation|default:50000 }}</span>
+                                <span class="salary-period">per year</span>
+                            </div>
+                            
+                            <div class="salary-slider">
+                                <input type="range" id="salary-slider" name="min_salary" 
+                                    min="25000" max="200000" step="5000" 
+                                    value="{{ preferences.min_salary_expectation|default:50000 }}">
+                                <div class="slider-labels">
+                                    <span>$25K</span>
+                                    <span>$200K+</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick salary presets -->
+                        <div class="salary-presets">
+                            <span class="presets-label">Quick select:</span>
+                            <div class="preset-buttons">
+                                <button type="button" class="preset-btn" data-salary="40000">$40K</button>
+                                <button type="button" class="preset-btn" data-salary="60000">$60K</button>
+                                <button type="button" class="preset-btn" data-salary="80000">$80K</button>
+                                <button type="button" class="preset-btn" data-salary="100000">$100K</button>
+                                <button type="button" class="preset-btn" data-salary="120000">$120K</button>
+                                <button type="button" class="preset-btn" data-salary="150000">$150K</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Industry Section -->
+                <div class="form-section" id="section-4">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class='bx bx-buildings'></i>
+                        </div>
+                        <div class="section-content">
+                            <h2 class="section-title">Industry Preferences</h2>
+                            <p class="section-description">Which industries interest you the most?</p>
+                        </div>
+                    </div>
+
+                    <div class="industry-selection">
+                        <!-- Popular Industries -->
+                        <div class="popular-industries">
+                            <h3 class="subsection-title">Popular Industries</h3>
+                            <div class="industry-grid">
+                                <button type="button" class="industry-card" data-industry="Technology">
+                                    <div class="industry-icon">
+                                        <i class='bx bx-code-alt'></i>
+                                    </div>
+                                    <span class="industry-name">Technology</span>
+                                </button>
+                                <button type="button" class="industry-card" data-industry="Healthcare">
+                                    <div class="industry-icon">
+                                        <i class='bx bx-health'></i>
+                                    </div>
+                                    <span class="industry-name">Healthcare</span>
+                                </button>
+                                <button type="button" class="industry-card" data-industry="Finance">
+                                    <div class="industry-icon">
+                                        <i class='bx bx-money'></i>
+                                    </div>
+                                    <span class="industry-name">Finance</span>
+                                </button>
+                                <button type="button" class="industry-card" data-industry="Education">
+                                    <div class="industry-icon">
+                                        <i class='bx bx-book-reader'></i>
+                                    </div>
+                                    <span class="industry-name">Education</span>
+                                </button>
+                                <button type="button" class="industry-card" data-industry="Marketing">
+                                    <div class="industry-icon">
+                                        <i class='bx bx-trending-up'></i>
+                                    </div>
+                                    <span class="industry-name">Marketing</span>
+                                </button>
+                                <button type="button" class="industry-card" data-industry="Manufacturing">
+                                    <div class="industry-icon">
+                                        <i class='bx bx-cog'></i>
+                                    </div>
+                                    <span class="industry-name">Manufacturing</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Custom Industry Input -->
+                        <div class="custom-industry">
+                            <h3 class="subsection-title">Add Custom Industry</h3>
+                            <div class="input-group">
+                                <div class="input-wrapper">
+                                    <i class='bx bx-plus'></i>
+                                    <input type="text" id="industry-input" placeholder="Type industry name..." class="industry-search">
+                                    <button type="button" class="add-industry-btn" id="add-industry">
+                                        <i class='bx bx-check'></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Selected Industries -->
+                        <div class="selected-industries" id="industry-tags">
+                            {% if preferences and preferences.industry_preferences %}
+                                {% for industry in preferences.industry_preferences %}
+                                <div class="industry-tag">
+                                    <i class='bx bx-building'></i>
+                                    <span>{{ industry }}</span>
+                                    <button type="button" class="remove-tag" data-value="{{ industry }}">
+                                        <i class='bx bx-x'></i>
+                                    </button>
+                                </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Hidden inputs for industries -->
+                    <div id="industry-hidden-inputs" style="display: none;">
+                        {% if preferences and preferences.industry_preferences %}
+                            {% for industry in preferences.industry_preferences %}
+                            <input type="hidden" name="industry_preferences" value="{{ industry }}">
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation and Actions -->
+            <div class="form-navigation">
+                <button type="button" class="btn btn-outline nav-btn" id="prev-btn" style="display: none;">
+                    <i class='bx bx-chevron-left'></i>
+                    Previous
+                </button>
+                
+                <div class="nav-center">
+                    <span class="section-indicator">
+                        <span class="current-section">1</span> of <span class="total-sections">4</span>
+                    </span>
+                </div>
+                
+                <button type="button" class="btn btn-primary nav-btn" id="next-btn">
+                    Next
+                    <i class='bx bx-chevron-right'></i>
+                </button>
+                
+                <button type="submit" class="btn btn-success nav-btn" id="save-btn" style="display: none;">
+                    <i class='bx bx-save'></i>
+                    Save Preferences
+                </button>
+            </div>
+        </form>
+    </div>
+
+    
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let currentSection = 1;
+    const totalSections = 4;
+    
+    // Initialize form functionality
+    initializeFormNavigation();
+    initializeSalarySlider();
+    initializeLocationInput();
+    initializeIndustryInput();
+    
+    // Form navigation
+    function initializeFormNavigation() {
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const saveBtn = document.getElementById('save-btn');
+        
+        nextBtn.addEventListener('click', () => {
+            if (currentSection < totalSections) {
+                showSection(currentSection + 1);
+            }
+        });
+        
+        prevBtn.addEventListener('click', () => {
+            if (currentSection > 1) {
+                showSection(currentSection - 1);
+            }
+        });
+    }
+    
+    function showSection(sectionNumber) {
+        // Hide current section
+        document.getElementById(`section-${currentSection}`).classList.remove('active');
+        document.querySelector(`.progress-step[data-step="${currentSection}"]`).classList.remove('active');
+        
+        // Show new section
+        currentSection = sectionNumber;
+        document.getElementById(`section-${currentSection}`).classList.add('active');
+        document.querySelector(`.progress-step[data-step="${currentSection}"]`).classList.add('active');
+        
+        // Update progress bar
+        const progressFill = document.querySelector('.progress-fill');
+        progressFill.style.width = `${(currentSection / totalSections) * 100}%`;
+        
+        // Update navigation buttons
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const saveBtn = document.getElementById('save-btn');
+        
+        prevBtn.style.display = currentSection === 1 ? 'none' : 'flex';
+        nextBtn.style.display = currentSection === totalSections ? 'none' : 'flex';
+        saveBtn.style.display = currentSection === totalSections ? 'flex' : 'none';
+        
+        // Update section indicator
+        document.querySelector('.current-section').textContent = currentSection;
+        
+        // Animate section transition
+        const activeSection = document.querySelector('.form-section.active');
+        activeSection.style.opacity = '0';
+        activeSection.style.transform = 'translateX(20px)';
+        
+        setTimeout(() => {
+            activeSection.style.opacity = '1';
+            activeSection.style.transform = 'translateX(0)';
+        }, 100);
+    }
+    
+    // Salary slider functionality
+    function initializeSalarySlider() {
+        const slider = document.getElementById('salary-slider');
+        const display = document.getElementById('salary-display');
+        const presetButtons = document.querySelectorAll('.preset-btn');
+        
+        slider.addEventListener('input', function() {
+            const value = parseInt(this.value);
+            display.textContent = formatSalary(value);
+        });
+        
+        presetButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const salary = parseInt(this.dataset.salary);
+                slider.value = salary;
+                display.textContent = formatSalary(salary);
+                
+                // Visual feedback
+                presetButtons.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    }
+    
+    function formatSalary(amount) {
+        return new Intl.NumberFormat('en-US').format(amount);
+    }
+    
+    // Location input functionality
+    function initializeLocationInput() {
+        const input = document.getElementById('location-input');
+        const addBtn = document.getElementById('add-location');
+        const tagsContainer = document.getElementById('location-tags');
+        
+        function addLocation() {
+            const value = input.value.trim();
+            if (value && !isLocationExists(value)) {
+                createLocationTag(value);
+                input.value = '';
+            }
+        }
+        
+        addBtn.addEventListener('click', addLocation);
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addLocation();
+            }
+        });
+        
+        // Remove location tags
+        tagsContainer.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-tag') || e.target.parentElement.classList.contains('remove-tag')) {
+                const tag = e.target.closest('.location-tag');
+                const value = tag.querySelector('span').textContent;
+                removeLocationTag(tag, value);
+            }
+        });
+    }
+    
+    function createLocationTag(value) {
+        const tagsContainer = document.getElementById('location-tags');
+        const hiddenContainer = document.getElementById('location-hidden-inputs');
+        
+        const tag = document.createElement('div');
+        tag.className = 'location-tag';
+        tag.innerHTML = `
+            <i class='bx bx-map'></i>
+            <span>${value}</span>
+            <button type="button" class="remove-tag" data-value="${value}">
+                <i class='bx bx-x'></i>
+            </button>
+        `;
+        
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'preferred_locations';
+        hiddenInput.value = value;
+        
+        tagsContainer.appendChild(tag);
+        hiddenContainer.appendChild(hiddenInput);
+        
+        // Animate tag appearance
+        tag.style.opacity = '0';
+        tag.style.transform = 'scale(0.8)';
+        setTimeout(() => {
+            tag.style.opacity = '1';
+            tag.style.transform = 'scale(1)';
+        }, 100);
+    }
+    
+    function removeLocationTag(tagElement, value) {
+        const hiddenContainer = document.getElementById('location-hidden-inputs');
+        const hiddenInput = hiddenContainer.querySelector(`input[value="${value}"]`);
+        
+        tagElement.remove();
+        if (hiddenInput) hiddenInput.remove();
+    }
+    
+    function isLocationExists(value) {
+        const existingTags = document.querySelectorAll('#location-tags .location-tag span');
+        return Array.from(existingTags).some(span => span.textContent === value);
+    }
+    
+    // Industry input functionality
+    function initializeIndustryInput() {
+        const input = document.getElementById('industry-input');
+        const addBtn = document.getElementById('add-industry');
+        const industryButtons = document.querySelectorAll('.industry-card');
+        
+        function addIndustry(value) {
+            if (value && !isIndustryExists(value)) {
+                createIndustryTag(value);
+            }
+        }
+        
+        addBtn.addEventListener('click', function() {
+            const value = input.value.trim();
+            addIndustry(value);
+            input.value = '';
+        });
+        
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const value = this.value.trim();
+                addIndustry(value);
+                this.value = '';
+            }
+        });
+        
+        // Industry card selection
+        industryButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const industry = this.dataset.industry;
+                addIndustry(industry);
+                this.classList.add('selected');
+            });
+        });
+        
+        // Remove industry tags
+        const tagsContainer = document.getElementById('industry-tags');
+        tagsContainer.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-tag') || e.target.parentElement.classList.contains('remove-tag')) {
+                const tag = e.target.closest('.industry-tag');
+                const value = tag.querySelector('span').textContent;
+                removeIndustryTag(tag, value);
+            }
+        });
+    }
+    
+    function createIndustryTag(value) {
+        const tagsContainer = document.getElementById('industry-tags');
+        const hiddenContainer = document.getElementById('industry-hidden-inputs');
+        
+        const tag = document.createElement('div');
+        tag.className = 'industry-tag';
+        tag.innerHTML = `
+            <i class='bx bx-building'></i>
+            <span>${value}</span>
+            <button type="button" class="remove-tag" data-value="${value}">
+                <i class='bx bx-x'></i>
+            </button>
+        `;
+        
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'industry_preferences';
+        hiddenInput.value = value;
+        
+        tagsContainer.appendChild(tag);
+        hiddenContainer.appendChild(hiddenInput);
+        
+        // Animate tag appearance
+        tag.style.opacity = '0';
+        tag.style.transform = 'scale(0.8)';
+        setTimeout(() => {
+            tag.style.opacity = '1';
+            tag.style.transform = 'scale(1)';
+        }, 100);
+    }
+    
+    function removeIndustryTag(tagElement, value) {
+        const hiddenContainer = document.getElementById('industry-hidden-inputs');
+        const hiddenInput = hiddenContainer.querySelector(`input[value="${value}"]`);
+        const industryCard = document.querySelector(`.industry-card[data-industry="${value}"]`);
+        
+        tagElement.remove();
+        if (hiddenInput) hiddenInput.remove();
+        if (industryCard) industryCard.classList.remove('selected');
+    }
+    
+    function isIndustryExists(value) {
+        const existingTags = document.querySelectorAll('#industry-tags .industry-tag span');
+        return Array.from(existingTags).some(span => span.textContent === value);
+    }
+});
+</script>
+
+<style>
+/* CSS Variables */
+:root {
+    --primary-color: #4f46e5;
+    --secondary-color: #7c3aed;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --error-color: #ef4444;
+    --info-color: #06b6d4;
+    
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+    --text-muted: #9ca3af;
+    
+    --bg-primary: #ffffff;
+    --bg-secondary: #f9fafb;
+    --bg-tertiary: #f3f4f6;
+    
+    --border-color: #e5e7eb;
+    --border-light: #f3f4f6;
+    
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+}
+
+/* Base Styles */
+.preferences-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 ;
+    padding: 0 1rem;
+}
+
+/* Header Section */
+.page-header {
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border-color);
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+}
+
+.breadcrumb-nav {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.breadcrumb-link {
+    display: flex;
+    align-items: center;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.breadcrumb-link:hover {
+    color: var(--primary-color);
+}
+
+.breadcrumb-link i {
+    margin-right: 0.5rem;
+}
+
+.breadcrumb-nav > i {
+    margin: 0 0.5rem;
+    color: var(--text-muted);
+}
+
+.breadcrumb-current {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem 0;
+    display: flex;
+    align-items: center;
+}
+
+.page-title i {
+    margin-right: 0.75rem;
+    color: var(--primary-color);
+}
+
+.page-subtitle {
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* Messages */
+.messages-container {
+    margin-bottom: 2rem;
+}
+
+.alert {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 1rem;
+    position: relative;
+}
+
+.alert-success {
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+}
+
+.alert-error {
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+}
+
+.alert-warning {
+    background-color: #fffbeb;
+    border: 1px solid #fed7aa;
+    color: #92400e;
+}
+
+.alert-info {
+    background-color: #f0f9ff;
+    border: 1px solid #bae6fd;
+    color: #1e40af;
+}
+
+.alert i {
+    margin-right: 0.75rem;
+    font-size: 1.25rem;
+}
+
+.alert-close {
+    position: absolute;
+    right: 1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.alert-close:hover {
+    opacity: 1;
+}
+
+/* Form Styles */
+.preferences-form {
+    background: var(--bg-primary);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    margin-bottom: 3rem;
+}
+
+/* Progress Indicator */
+.progress-indicator {
+    padding: 2rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+}
+
+.progress-steps {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+}
+
+.progress-step.active {
+    opacity: 1;
+}
+
+.step-circle {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+    font-size: 1.25rem;
+    transition: background-color 0.3s ease;
+}
+
+.progress-step.active .step-circle {
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--primary-color);
+}
+
+.step-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+.progress-bar {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+/* Form Sections */
+.form-sections {
+    position: relative;
+    min-height: 500px;
+}
+
+.form-section {
+    display: none;
+    padding: 3rem;
+    opacity: 0;
+    transform: translateX(20px);
+    transition: all 0.3s ease;
+}
+
+.form-section.active {
+    display: block;
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.section-header {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+}
+
+.section-icon {
+    width: 4rem;
+    height: 4rem;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-right: 1.5rem;
+    flex-shrink: 0;
+}
+
+.section-content {
+    flex: 1;
+}
+
+.section-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem 0;
+}
+
+.section-description {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Job Types Grid */
+.job-types-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.job-type-card {
+    position: relative;
+    display: block;
+    cursor: pointer;
+}
+
+.job-type-card input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.card-content {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.job-type-card:hover .card-content {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.job-type-card input:checked + .card-content {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.card-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem auto;
+    font-size: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.job-type-card input:checked + .card-content .card-icon {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.card-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-primary);
+    transition: color 0.3s ease;
+}
+
+.job-type-card input:checked + .card-content .card-title {
+    color: white;
+}
+
+.card-check {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    background: var(--success-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.3s ease;
+}
+
+.job-type-card input:checked + .card-content .card-check {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Remote Preference */
+.remote-preference {
+    margin-top: 2rem;
+}
+
+.preference-card {
+    background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+    border: 1px solid #bae6fd;
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+}
+
+.preference-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.preference-info {
+    flex: 1;
+}
+
+.preference-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem 0;
+    display: flex;
+    align-items: center;
+}
+
+.preference-title i {
+    margin-right: 0.75rem;
+    color: var(--info-color);
+}
+
+.preference-description {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+}
+
+.toggle-switch input[type="checkbox"] {
+    opacity: 0;
+    position: absolute;
+}
+
+.toggle-label {
+    display: block;
+    width: 4rem;
+    height: 2rem;
+    background: var(--border-color);
+    border-radius: 2rem;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.toggle-slider {
+    position: absolute;
+    top: 0.25rem;
+    left: 0.25rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.toggle-switch input:checked + .toggle-label {
+    background: var(--primary-color);
+}
+
+.toggle-switch input:checked + .toggle-label .toggle-slider {
+    transform: translateX(2rem);
+}
+
+/* Location Input */
+.location-input-section {
+    margin-bottom: 2rem;
+}
+
+.input-group {
+    margin-bottom: 1.5rem;
+}
+
+.input-wrapper {
+    display: flex;
+    align-items: center;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 0.75rem 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.input-wrapper:focus-within {
+    border-color: var(--primary-color);
+}
+
+.input-wrapper i {
+    color: var(--text-muted);
+    margin-right: 0.75rem;
+    font-size: 1.25rem;
+}
+
+.location-search,
+.industry-search {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+
+.location-search::placeholder,
+.industry-search::placeholder {
+    color: var(--text-muted);
+}
+
+.add-location-btn,
+.add-industry-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.add-location-btn:hover,
+.add-industry-btn:hover {
+    background: var(--secondary-color);
+    transform: scale(1.05);
+}
+
+/* Tags */
+.selected-locations,
+.selected-industries {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    min-height: 3rem;
+    padding: 1rem;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-lg);
+    border: 2px dashed var(--border-color);
+}
+
+.location-tag,
+.industry-tag {
+    display: flex;
+    align-items: center;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.location-tag:hover,
+.industry-tag:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.location-tag i,
+.industry-tag i {
+    margin-right: 0.5rem;
+}
+
+.remove-tag {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    border-radius: 50%;
+    width: 1.5rem;
+    height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.remove-tag:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Salary Section */
+.salary-input-section {
+    max-width: 500px;
+}
+
+.salary-slider-container {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.salary-display {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.currency {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+}
+
+.salary-amount {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin: 0 0.25rem;
+}
+
+.salary-period {
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
+
+.salary-slider {
+    position: relative;
+}
+
+.salary-slider input[type="range"] {
+    width: 100%;
+    height: 6px;
+    background: var(--border-color);
+    border-radius: 3px;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    margin-bottom: 1rem;
+}
+
+.salary-slider input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.salary-slider input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+.slider-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.salary-presets {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.presets-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.preset-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.preset-btn {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.preset-btn:hover,
+.preset-btn.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+/* Industry Section */
+.industry-selection {
+    margin-bottom: 2rem;
+}
+
+.subsection-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 1rem 0;
+}
+
+.popular-industries {
+    margin-bottom: 2rem;
+}
+
+.industry-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.industry-card {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.industry-card:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.industry-card.selected {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.industry-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.75rem;
+    font-size: 1.25rem;
+    transition: all 0.3s ease;
+}
+
+.industry-card.selected .industry-icon {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.industry-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    transition: color 0.3s ease;
+}
+
+.industry-card.selected .industry-name {
+    color: white;
+}
+
+.custom-industry {
+    margin-bottom: 2rem;
+}
+
+/* Form Navigation */
+.form-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem 3rem;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+}
+
+.nav-center {
+    flex: 1;
+    text-align: center;
+}
+
+.section-indicator {
+    background: var(--bg-primary);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.current-section {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    gap: 0.5rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #4338ca, #6d28d9);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.btn-outline:hover {
+    background: var(--bg-secondary);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--success-color), #059669);
+    color: white;
+    border-color: var(--success-color);
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.nav-btn {
+    min-width: 120px;
+}
+
+/* Benefits Section */
+.benefits-section {
+    background: var(--bg-primary);
+    padding: 4rem 0;
+    margin-top: 3rem;
+}
+
+.benefits-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.benefits-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 1rem 0;
+}
+
+.benefits-subtitle {
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.benefit-card {
+    text-align: center;
+    padding: 2rem;
+    border-radius: var(--radius-lg);
+    background: var(--bg-secondary);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.benefit-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.benefit-icon {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem auto;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.benefit-icon.primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+}
+
+.benefit-icon.success {
+    background: linear-gradient(135deg, var(--success-color), #059669);
+}
+
+.benefit-icon.warning {
+    background: linear-gradient(135deg, var(--warning-color), #d97706);
+}
+
+.benefit-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 1rem 0;
+}
+
+.benefit-description {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 0.75rem;
+    }
+    
+    .page-header {
+        padding: 1.5rem 0;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .progress-steps {
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .step-circle {
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 1rem;
+    }
+    
+    .step-label {
+        font-size: 0.75rem;
+    }
+    
+    .form-section {
+        padding: 2rem 1.5rem;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .section-icon {
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+    
+    .job-types-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .preference-content {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .industry-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .form-navigation {
+        padding: 1.5rem;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .nav-center {
+        order: -1;
+    }
+    
+    .benefits-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .benefits-section {
+        padding: 3rem 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .progress-indicator {
+        padding: 1.5rem;
+    }
+    
+    .progress-steps {
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    
+    .step-circle {
+        width: 2rem;
+        height: 2rem;
+        font-size: 0.875rem;
+    }
+    
+    .step-label {
+        display: none;
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+    }
+    
+    .salary-amount {
+        font-size: 2rem;
+    }
+    
+    .industry-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .preset-buttons {
+        justify-content: center;
+    }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-section.active {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+/* Focus States for Accessibility */
+.btn:focus,
+.job-type-card:focus,
+.industry-card:focus,
+.toggle-label:focus,
+.preset-btn:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+.location-search:focus,
+.industry-search:focus {
+    outline: none;
+}
+
+.input-wrapper:focus-within {
+    box-shadow: 0 0 0 3px rgb(79 70 229 / 0.1);
+}
+</style>
+{% endblock %}
