@@ -1,0 +1,364 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobElevate - Verify Email</title>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Inter", sans-serif;
+        }
+
+        :root {
+            --primary-color: #3563E9;
+            --secondary-color: #6D83F2;
+            --btn-hover-color: #2952D8;
+            --lg-heading: #161c2d;
+            --text-content: #869ab8;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+        }
+
+        body {
+            background-color: #f7f9fc;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .verification-container {
+            background: white;
+            padding: 3rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .verification-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 50%;
+            margin: 0 auto 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+        }
+
+        .verification-title {
+            font-size: 2rem;
+            color: var(--lg-heading);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .verification-subtitle {
+            color: var(--text-content);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .email-highlight {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .otp-form {
+            margin-bottom: 2rem;
+        }
+
+        .otp-input-group {
+            margin-bottom: 2rem;
+        }
+
+        .otp-input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--lg-heading);
+            font-weight: 500;
+        }
+
+        .otp-input {
+            width: 100%;
+            height: 60px;
+            padding: 0 1rem;
+            font-size: 1.5rem;
+            text-align: center;
+            border: 2px solid #e5e9f2;
+            border-radius: 12px;
+            letter-spacing: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .otp-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(53, 99, 233, 0.1);
+        }
+
+        .verify-button {
+            width: 100%;
+            height: 52px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(53, 99, 233, 0.3);
+        }
+
+        .verify-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(53, 99, 233, 0.4);
+        }
+
+        .resend-section {
+            padding: 1.5rem 0;
+            border-top: 1px solid #e5e9f2;
+            margin-top: 2rem;
+        }
+
+        .resend-text {
+            color: var(--text-content);
+            margin-bottom: 1rem;
+        }
+
+        .resend-button {
+            background: none;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .resend-button:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .resend-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .alert {
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .alert.success {
+            background-color: #d1fadf;
+            color: #039855;
+            border: 1px solid #a6f4c5;
+        }
+
+        .alert.error {
+            background-color: #fee4e2;
+            color: #d92d20;
+            border: 1px solid #fecdca;
+        }
+
+        .back-to-signup {
+            margin-top: 2rem;
+        }
+
+        .back-to-signup a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .back-to-signup a:hover {
+            text-decoration: underline;
+        }
+
+        .timer {
+            color: var(--error-color);
+            font-weight: 500;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .verification-container {
+                padding: 2rem;
+                margin: 1rem;
+            }
+            
+            .verification-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="verification-container">
+        <div class="verification-icon">
+            📧
+        </div>
+        
+        <h1 class="verification-title">Verify Your Email</h1>
+        <p class="verification-subtitle">
+            We've sent a verification code to<br>
+            <span class="email-highlight">{{ email }}</span>
+        </p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if message.tags %}{{ message.tags }}{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" class="otp-form">
+            {% csrf_token %}
+            <input type="hidden" name="step" value="2">
+            
+            <div class="otp-input-group">
+                <label for="email_otp">Enter 6-digit code</label>
+                <input 
+                    type="text" 
+                    id="email_otp"
+                    name="email_otp" 
+                    class="otp-input"
+                    maxlength="6" 
+                    placeholder="000000"
+                    required
+                    autocomplete="off"
+                >
+            </div>
+            
+            <button type="submit" class="verify-button">
+                Verify & Create Account
+            </button>
+        </form>
+
+        <div class="resend-section">
+            <p class="resend-text">Didn't receive the code?</p>
+            <button type="button" class="resend-button" id="resendBtn" onclick="resendOTP()">
+                Resend Code
+            </button>
+            <div class="timer" id="timer" style="display: none;"></div>
+        </div>
+
+        <div class="back-to-signup">
+            <a href="{% url 'accounts:signup' %}">← Back to Sign Up</a>
+        </div>
+    </div>
+
+    <script>
+        let countdownTimer;
+        
+        function resendOTP() {
+            const resendBtn = document.getElementById('resendBtn');
+            const timer = document.getElementById('timer');
+            
+            resendBtn.disabled = true;
+            resendBtn.textContent = 'Sending...';
+            
+            fetch('{% url "accounts:resend_otp" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    showMessage(data.message, 'success');
+                    
+                    // Start countdown
+                    startCountdown();
+                } else {
+                    showMessage(data.message, 'error');
+                    resendBtn.disabled = false;
+                    resendBtn.textContent = 'Resend Code';
+                }
+            })
+            .catch(error => {
+                showMessage('Failed to resend OTP. Please try again.', 'error');
+                resendBtn.disabled = false;
+                resendBtn.textContent = 'Resend Code';
+            });
+        }
+        
+        function startCountdown() {
+            const resendBtn = document.getElementById('resendBtn');
+            const timer = document.getElementById('timer');
+            let seconds = 60;
+            
+            timer.style.display = 'block';
+            resendBtn.style.display = 'none';
+            
+            countdownTimer = setInterval(() => {
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                timer.textContent = `Resend available in ${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+                
+                if (seconds <= 0) {
+                    clearInterval(countdownTimer);
+                    timer.style.display = 'none';
+                    resendBtn.style.display = 'inline-block';
+                    resendBtn.disabled = false;
+                    resendBtn.textContent = 'Resend Code';
+                }
+                seconds--;
+            }, 1000);
+        }
+        
+        function showMessage(message, type) {
+            // Remove existing alerts
+            const existingAlerts = document.querySelectorAll('.alert');
+            existingAlerts.forEach(alert => alert.remove());
+            
+            // Create new alert
+            const alert = document.createElement('div');
+            alert.className = `alert ${type}`;
+            alert.textContent = message;
+            
+            // Insert after the subtitle
+            const subtitle = document.querySelector('.verification-subtitle');
+            subtitle.insertAdjacentElement('afterend', alert);
+            
+            // Auto-remove success messages after 5 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    alert.remove();
+                }, 5000);
+            }
+        }
+        
+        // Format OTP input
+        document.getElementById('email_otp').addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+        
+        // Auto-focus on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('email_otp').focus();
+        });
+    </script>
+</body>
+</html>

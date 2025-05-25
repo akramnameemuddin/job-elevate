@@ -1141,23 +1141,34 @@
 
     <script>
         // Theme Management
-        const themeToggle = document.querySelector('.theme-toggle');
-        const body = document.body;
-        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.addEventListener('DOMContentLoaded', () => {
+        const themeToggleBtn = document.querySelector('.theme-toggle');
+        const root = document.documentElement;
 
-        const updateThemeIcon = () => {
-            const isDark = body.getAttribute('data-theme') === 'dark';
-            themeToggle.innerHTML = isDark ? '<i class="bx bx-sun"></i>' : '<i class="bx bx-moon"></i>';
-        };
+        // Load from local storage
+        const storedTheme = localStorage.getItem('theme');
+        if (storedTheme) {
+            root.setAttribute('data-theme', storedTheme);
+            updateThemeIcon(storedTheme);
+        }
 
-        body.setAttribute('data-theme', savedTheme);
-        updateThemeIcon();
+        if (themeToggleBtn) {
+            themeToggleBtn.addEventListener('click', () => {
+                const currentTheme = root.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                root.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                updateThemeIcon(newTheme);
+            });
+        }
 
-        themeToggle.addEventListener('click', () => {
-            const newTheme = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            body.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            updateThemeIcon();
+        function updateThemeIcon(theme) {
+            if (!themeToggleBtn) return;
+            const icon = themeToggleBtn.querySelector('i');
+            if (icon) {
+                icon.className = theme === 'dark' ? 'bx bx-sun' : 'bx bx-moon';
+            }
+        }
         });
 
         // Sidebar Management

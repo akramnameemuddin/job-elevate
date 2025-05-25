@@ -4,7 +4,11 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
+from django.utils import timezone
+from django.http import JsonResponse
 from .models import User
+from .utils import generate_otp, send_email_otp, is_otp_valid
+from datetime import timedelta
 
 
 # Homepage
@@ -12,70 +16,257 @@ def home(request):
     return render(request, 'accounts/index.html')
 
 
-# Signup
+# Signup with OTP verification
 def signup(request):
     if request.method == "POST":
-        full_name = request.POST.get('full_name', '').strip()
-        username = request.POST.get('username', '').strip()
-        email = request.POST.get('email', '').strip()
-        phone_number = request.POST.get('phone_number', '').strip()
-        password = request.POST.get('password', '').strip()
-        confirm_password = request.POST.get('confirm_password', '').strip()
-        user_type = request.POST.get('user_type', '').strip()
-
-        if password != confirm_password:
-            messages.error(request, "Passwords do not match.")
-            return render(request, 'accounts/signup.html')
-
-        if len(password) < 8 or not re.search(r'[A-Za-z]', password) or not re.search(r'\d', password):
-            messages.error(request, "Password must be at least 8 characters long and contain letters and numbers.")
-            return render(request, 'accounts/signup.html')
-
-        if User.objects.filter(email=email).exists():
-            messages.error(request, "Email already exists.")
-            return render(request, 'accounts/signup.html')
-
-        if User.objects.filter(phone_number=phone_number).exists():
-            messages.error(request, "Phone number already exists.")
-            return render(request, 'accounts/signup.html')
-
-        try:
-            user = User.objects.create_user(
-                full_name=full_name,
-                username=username,
-                email=email,
-                phone_number=phone_number,
-                user_type=user_type,
-                password=password
-            )
-
-            if user_type in ['student']:
-                user.university = request.POST.get('university', '').strip()
-                user.degree = request.POST.get('degree', '').strip()
-                user.graduation_year = request.POST.get('graduation_year', '').strip()
-
-            if user_type == 'professional':
-                user.job_title = request.POST.get('job_title', '').strip()
-                user.organization = request.POST.get('organization', '').strip()
-                user.experience = request.POST.get('experience', '').strip()
-
-            if user_type == 'recruiter':
-                user.company_name = request.POST.get('company_name', '').strip()
-                user.company_website = request.POST.get('company_website', '').strip()
-                user.company_description = request.POST.get('company_description', '').strip()
-
-            user.save()
-            messages.success(request, "Account created successfully. Please log in.")
-            return redirect('accounts:login')
-
-        except IntegrityError:
-            messages.error(request, "Something went wrong. Please try again.")
-            return render(request, 'accounts/signup.html')
-
+        step = request.POST.get('step', '1')
+        
+        if step == '1':
+            # First step - collect user data and send OTP
+            return handle_signup_step1(request)
+        elif step == '2':
+            # Second step - verify OTP and create user
+            return handle_signup_step2(request)
+    
     return render(request, 'accounts/signup.html')
 
 
-# Login
+def handle_signup_step1(request):
+    """Handle first step of signup - validate data and send OTP"""
+    # Get form data
+    full_name = request.POST.get('full_name', '').strip()
+    username = request.POST.get('username', '').strip()
+    email = request.POST.get('email', '').strip()
+    phone_number = request.POST.get('phone_number', '').strip()
+    password = request.POST.get('password', '').strip()
+    confirm_password = request.POST.get('confirm_password', '').strip()
+    user_type = request.POST.get('user_type', '').strip()
+
+    # Store form data for re-displaying on error
+    form_data = {
+        'full_name': full_name,
+        'username': username,
+        'email': email,
+        'phone_number': phone_number,
+        'user_type': user_type,
+        'university': request.POST.get('university', ''),
+        'degree': request.POST.get('degree', ''),
+        'graduation_year': request.POST.get('graduation_year', ''),
+        'job_title': request.POST.get('job_title', ''),
+        'organization': request.POST.get('organization', ''),
+        'experience': request.POST.get('experience', ''),
+        'company_name': request.POST.get('company_name', ''),
+        'company_website': request.POST.get('company_website', ''),
+        'company_description': request.POST.get('company_description', ''),
+    }
+
+    # Validation
+    if not all([full_name, username, email, phone_number, password, confirm_password, user_type]):
+        messages.error(request, "All required fields must be filled.")
+        return render(request, 'accounts/signup.html', {'form_data': form_data})
+
+    if password != confirm_password:
+        messages.error(request, "Passwords do not match.")
+        return render(request, 'accounts/signup.html', {'form_data': form_data})
+
+    if len(password) < 8 or not re.search(r'[A-Za-z]', password) or not re.search(r'\d', password):
+        messages.error(request, "Password must be at least 8 characters long and contain letters and numbers.")
+        return render(request, 'accounts/signup.html', {'form_data': form_data})
+
+    # Check if email already exists and is verified
+    existing_user = User.objects.filter(email=email).first()
+    if existing_user and existing_user.email_verified:
+        messages.error(request, "Email already exists and is verified.")
+        return render(request, 'accounts/signup.html', {'form_data': form_data})
+
+    # Check username (only if it doesn't belong to unverified user with same email)
+    username_user = User.objects.filter(username=username).first()
+    if username_user and (username_user.email != email or username_user.email_verified):
+        messages.error(request, "Username already exists.")
+        return render(request, 'accounts/signup.html', {'form_data': form_data})
+
+    # Check phone number (only if it doesn't belong to unverified user with same email)
+    phone_user = User.objects.filter(phone_number=phone_number).first()
+    if phone_user and (phone_user.email != email or phone_user.email_verified):
+        messages.error(request, "Phone number already exists.")
+        return render(request, 'accounts/signup.html', {'form_data': form_data})
+
+    # Delete existing unverified user with same email if exists
+    if existing_user and not existing_user.email_verified:
+        existing_user.delete()
+
+    # Generate and send OTP
+    email_otp = generate_otp()
+    
+    if send_email_otp(email, email_otp):
+        # Store data in session
+        request.session['signup_data'] = {
+            'full_name': full_name,
+            'username': username,
+            'email': email,
+            'phone_number': phone_number,
+            'password': password,
+            'user_type': user_type,
+            'email_otp': email_otp,
+            'otp_created_at': timezone.now().isoformat(),
+            # Store user-type specific fields
+            'university': request.POST.get('university', ''),
+            'degree': request.POST.get('degree', ''),
+            'graduation_year': request.POST.get('graduation_year', ''),
+            'job_title': request.POST.get('job_title', ''),
+            'organization': request.POST.get('organization', ''),
+            'experience': request.POST.get('experience', ''),
+            'company_name': request.POST.get('company_name', ''),
+            'company_website': request.POST.get('company_website', ''),
+            'company_description': request.POST.get('company_description', ''),
+        }
+        
+        return JsonResponse({
+            'success': True, 
+            'message': f'OTP sent to {email}. Please check your email and enter the verification code.',
+            'email': email
+        })
+    else:
+        return JsonResponse({
+            'success': False, 
+            'message': 'Failed to send OTP. Please check your email address and try again.'
+        })
+
+
+def handle_signup_step2(request):
+    """Handle second step of signup - verify OTP and create user"""
+    signup_data = request.session.get('signup_data')
+    if not signup_data:
+        return JsonResponse({
+            'success': False, 
+            'message': 'Session expired. Please start registration again.'
+        })
+    
+    email_otp_input = request.POST.get('email_otp', '').strip()
+    
+    if not email_otp_input:
+        return JsonResponse({
+            'success': False, 
+            'message': 'Please enter the OTP.'
+        })
+    
+    # Check OTP expiration
+    otp_created_at = timezone.datetime.fromisoformat(signup_data['otp_created_at'])
+    
+    if not is_otp_valid(otp_created_at):
+        return JsonResponse({
+            'success': False, 
+            'message': 'OTP has expired. Please request a new one.'
+        })
+    
+    # Verify OTP
+    if email_otp_input != signup_data['email_otp']:
+        return JsonResponse({
+            'success': False, 
+            'message': 'Invalid OTP. Please try again.'
+        })
+    if User.objects.filter(email=signup_data['email'], email_verified=True).exists():
+        return JsonResponse({'success': False, 'message': 'Email already exists and is verified.'})
+
+    if User.objects.filter(username=signup_data['username']).exclude(email=signup_data['email']).exists():
+        return JsonResponse({'success': False, 'message': 'Username is already taken.'})
+        
+    # Create user
+    try:
+        user = User.objects.create_user(
+            username=signup_data['username'],
+            email=signup_data['email'],
+            password=signup_data['password'],
+            full_name=signup_data['full_name'],
+            phone_number=signup_data['phone_number'],
+            user_type=signup_data['user_type'],
+            email_verified=True  # Mark email as verified
+        )
+        
+        # Set user-type specific fields
+        if signup_data['user_type'] == 'student':
+            if signup_data.get('university'):
+                user.university = signup_data['university']
+            if signup_data.get('degree'):
+                user.degree = signup_data['degree']
+            if signup_data.get('graduation_year'):
+                try:
+                    user.graduation_year = int(signup_data['graduation_year'])
+                except ValueError:
+                    pass
+        
+        elif signup_data['user_type'] == 'professional':
+            if signup_data.get('job_title'):
+                user.job_title = signup_data['job_title']
+            if signup_data.get('organization'):
+                user.organization = signup_data['organization']
+            if signup_data.get('experience'):
+                try:
+                    user.experience = int(signup_data['experience'])
+                except ValueError:
+                    pass
+        
+        elif signup_data['user_type'] == 'recruiter':
+            if signup_data.get('company_name'):
+                user.company_name = signup_data['company_name']
+            if signup_data.get('company_website'):
+                user.company_website = signup_data['company_website']
+            if signup_data.get('company_description'):
+                user.company_description = signup_data['company_description']
+        
+        user.save()
+        
+        # Clear session data
+        if 'signup_data' in request.session:
+            del request.session['signup_data']
+        
+        return JsonResponse({
+            'success': True, 
+            'message': 'Account created successfully! Your email has been verified. Redirecting to login...',
+            'redirect_url': '/login/'
+        })
+        
+    except IntegrityError as e:
+        print(f"[SIGNUP] IntegrityError: {str(e)}")
+        return JsonResponse({
+            'success': False, 
+            'message': 'Failed to create account. Username or email might already exist.'
+        })
+
+    except Exception as e:
+        print(f"[SIGNUP] Unexpected error: {str(e)}")
+        return JsonResponse({
+            'success': False, 
+            'message': 'Failed to create account. Please try again.'
+        })
+
+
+
+def resend_otp(request):
+    """Resend OTP to email"""
+    if request.method == "POST":
+        signup_data = request.session.get('signup_data')
+        if not signup_data:
+            return JsonResponse({'success': False, 'message': 'Session expired. Please start registration again.'})
+        
+        try:
+            new_otp = generate_otp()
+            if send_email_otp(signup_data['email'], new_otp):
+                # Update session with new OTP and timestamp
+                signup_data['email_otp'] = new_otp
+                signup_data['otp_created_at'] = timezone.now().isoformat()
+                request.session['signup_data'] = signup_data
+                
+                return JsonResponse({'success': True, 'message': 'New OTP sent successfully to your email.'})
+            else:
+                return JsonResponse({'success': False, 'message': 'Failed to send OTP. Please try again.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': 'Failed to send OTP. Please try again.'})
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'})
+
+
+# Login with email verification check
 def login(request):
     if request.method == 'POST':
         email = request.POST.get('email')
@@ -87,17 +278,24 @@ def login(request):
 
         try:
             user = User.objects.get(email=email)
+            
+            # Check if email is verified
+            if not user.email_verified:
+                messages.error(request, "Please verify your email address before logging in.")
+                return render(request, 'accounts/login.html')
+            
             auth_user = authenticate(request, username=user.username, password=password)
 
             if auth_user:
                 auth_login(request, auth_user)
 
                 if auth_user.user_type == 'recruiter':
-                    return redirect('/recruiter/')  # Use absolute URL path with leading slash
+                    return redirect('/recruiter/')
                 else:
-                    return redirect('dashboard:home')  # General users go here
+                    return redirect('dashboard:home')
             else:
                 messages.error(request, "Incorrect password.")
+                
         except User.DoesNotExist:
             messages.error(request, "User not found.")
 
@@ -109,6 +307,7 @@ def logout_user(request):
     auth_logout(request)
     messages.success(request, "You have been logged out.")
     return redirect('accounts:login')
+
 
 # Profile
 @login_required
@@ -130,6 +329,7 @@ def profile(request):
             messages.error(request, f"Error updating profile: {str(e)}")
 
     return render(request, 'accounts/profile.html', {'user': user})
+
 
 # Delete Account
 @login_required

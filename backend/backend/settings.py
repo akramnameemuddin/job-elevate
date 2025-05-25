@@ -68,20 +68,29 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'backend.wsgi.application'
+# Email settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'vvitproject2022@gmail.com' 
+EMAIL_HOST_PASSWORD = 'uxszdkmsbgjsgkym'
+
+
+
 
 
 # Database
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'job_elevate',  
-        'USER': 'root',
-        'PASSWORD': 'Akram04@vvit',
+        'USER': 'job_user',
+        'PASSWORD': 'Akram09@vvit',
         'HOST': 'localhost',
-        'PORT': '3306',
+        'PORT': '5432',
     }
 }
-
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [

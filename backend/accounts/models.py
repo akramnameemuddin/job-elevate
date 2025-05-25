@@ -12,6 +12,10 @@ class User(AbstractUser):
     linkedin_profile = models.URLField(_('LinkedIn profile'), blank=True, null=True)
     github_profile = models.URLField(_('GitHub profile'), blank=True, null=True)
     portfolio_website = models.URLField(_('portfolio website'), blank=True, null=True)
+    # Add these fields to your User model
+    email_verified = models.BooleanField(default=False)
+    email_otp = models.CharField(max_length=6, blank=True, null=True)
+    otp_created_at = models.DateTimeField(blank=True, null=True)
     USER_TYPE_CHOICES = [
         ('student', _('Student')),
         ('professional', _('Professional')),

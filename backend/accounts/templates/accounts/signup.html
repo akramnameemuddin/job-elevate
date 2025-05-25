@@ -36,6 +36,8 @@
         --h1-font-size: calc(var(--font-size-body-text) * 2.4);
         --h2-font-size: calc(var(--h1-font-size) - 15px);
         --h3-font-size: calc(var(--h2-font-size) - 8px);
+        --success-color: #10b981;
+        --error-color: #ef4444;
       }
 
       /* ==== RESET HTML ==== */
@@ -309,6 +311,158 @@
         border: 1px solid #fecdca;
       }
 
+      /* ==== OTP VERIFICATION SECTION ==== */
+      .otp-section {
+        display: none;
+        margin-top: 2rem;
+        padding: 2rem;
+        background: linear-gradient(135deg, #f8faff, #eef4ff);
+        border-radius: 12px;
+        border: 2px solid #e5e9f2;
+        text-align: center;
+      }
+
+      .otp-section.active {
+        display: block;
+      }
+
+      .otp-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border-radius: 50%;
+        margin: 0 auto 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+      }
+
+      .otp-title {
+        font-size: 1.5rem;
+        color: var(--lg-heading);
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+      }
+
+      .otp-subtitle {
+        color: var(--text-content);
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+      }
+
+      .email-highlight {
+        color: var(--primary-color);
+        font-weight: 500;
+      }
+
+      .otp-input-group {
+        margin-bottom: 1.5rem;
+      }
+
+      .otp-input {
+        width: 100%;
+        height: 60px;
+        padding: 0 1rem;
+        font-size: 1.5rem;
+        text-align: center;
+        border: 2px solid #e5e9f2;
+        border-radius: 12px;
+        letter-spacing: 0.5rem;
+        transition: all 0.3s ease;
+        max-width: 300px;
+        margin: 0 auto;
+      }
+
+      .otp-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 4px rgba(53, 99, 233, 0.1);
+      }
+
+      .verify-button {
+        width: 100%;
+        max-width: 300px;
+        height: 52px;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(53, 99, 233, 0.3);
+        margin: 0 auto 1.5rem;
+        display: block;
+      }
+
+      .verify-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(53, 99, 233, 0.4);
+      }
+
+      .resend-section {
+        padding: 1rem 0;
+        border-top: 1px solid #e5e9f2;
+        margin-top: 1rem;
+      }
+
+      .resend-text {
+        color: var(--text-content);
+        margin-bottom: 1rem;
+        font-size: 14px;
+      }
+
+      .resend-button {
+        background: none;
+        border: 2px solid var(--primary-color);
+        color: var(--primary-color);
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        font-size: 14px;
+      }
+
+      .resend-button:hover {
+        background: var(--primary-color);
+        color: white;
+      }
+
+      .resend-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .timer {
+        color: var(--error-color);
+        font-weight: 500;
+        margin-top: 1rem;
+        font-size: 14px;
+      }
+
+      .back-to-form {
+        margin-top: 1rem;
+      }
+
+      .back-to-form button {
+        color: var(--text-content);
+        text-decoration: none;
+        font-weight: 500;
+        border: none;
+        background: none;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      .back-to-form button:hover {
+        text-decoration: underline;
+        color: var(--primary-color);
+      }
+
       /* ==== MEDIA QUERIES ==== */
       @media screen and (max-width: 1024px) {
         .main-container {
@@ -353,51 +507,30 @@
         color: var(--link-color);
         pointer-events: auto;
       }
+
+      /* Loading state */
+      .loading {
+        opacity: 0.7;
+        pointer-events: none;
+      }
+
+      .spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #ffffff;
+        border-top: 2px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        display: inline-block;
+        margin-right: 8px;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
     </style>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
-    <script>
-      function togglePassword(fieldId) {
-        const passwordField = document.getElementById(fieldId);
-        const eyeIcon = passwordField.nextElementSibling;
-        
-        if (passwordField.type === "password") {
-          passwordField.type = "text";
-          eyeIcon.classList.remove("ri-eye-line");
-          eyeIcon.classList.add("ri-eye-off-line");
-        } else {
-          passwordField.type = "password";
-          eyeIcon.classList.remove("ri-eye-off-line");
-          eyeIcon.classList.add("ri-eye-line");
-        }
-      }
-      
-      function toggleDynamicFields() {
-        const userType = document.getElementById("user_type").value;
-        const studentFields = document.getElementById("student-fields");
-        const professionalFields = document.getElementById("professional-fields");
-        const recruiterFields = document.getElementById("recruiter-fields");
-
-        studentFields.classList.remove("active");
-        professionalFields.classList.remove("active");
-        recruiterFields.classList.remove("active");
-
-        if (userType === "student") {
-          studentFields.classList.add("active");
-        } else if (userType === "professional") {
-          professionalFields.classList.add("active");
-        } else if (userType === "recruiter") {
-          recruiterFields.classList.add("active");
-        }
-      }
-      
-      // Execute when page loads
-      document.addEventListener('DOMContentLoaded', function() {
-        const userType = document.getElementById("user_type").value;
-        if (userType) {
-          toggleDynamicFields();
-        }
-      });
-    </script>
   </head>
   <body>
     <!-- ==== HEADER ==== -->
@@ -412,248 +545,609 @@
         <li class="nav_menu_item">
           <a href="/login/" class="nav_menu_link">Login</a>
         </li>
-        <li class="nav_menu_item">
-          <a href="/" class="nav_menu_link">Services</a>
-        </li>
-        <li class="nav_menu_item">
-          <a href="#" class="nav_menu_link">Contact</a>
-        </li>
       </ul>
     </header>
 
     <!-- ==== MAIN CONTAINER ==== -->
     <div class="main-container">
-      <!-- Image Section -->
+      <!-- ==== IMAGE SECTION ==== -->
       <div class="image-section">
-        <img src="{% static 'images/file.svg' %}" alt="Team Illustration">
+        <img src="https://via.placeholder.com/400x300/3563E9/ffffff?text=JobElevate" alt="JobElevate Signup">
         <div class="welcome-text">
-          <h2>Welcome to JobElevate</h2>
-          <p>Join our platform to connect with employers, find jobs, and advance your career with personalized opportunities.</p>
+          <h2>Join JobElevate Today!</h2>
+          <p>Create your account and start your journey towards finding the perfect job or talent. Connect with opportunities that match your skills and ambitions.</p>
         </div>
       </div>
-      
-      <!-- Form Section -->
+
+      <!-- ==== FORM SECTION ==== -->
       <div class="form-section">
         <div class="form-container">
-          <div class="title">Create Your Account</div>
-          <div class="subtitle">Please fill in the details to get started</div>
-          
+          <!-- Display Django Messages -->
           {% if messages %}
             {% for message in messages %}
-              <div class="alert {% if message.tags %}{{ message.tags }}{% endif %}">
+              <div class="alert {% if message.tags == 'error' %}error{% else %}{{ message.tags }}{% endif %}">
                 {{ message }}
               </div>
             {% endfor %}
           {% endif %}
 
-          <form action="{% url 'accounts:signup' %}" method="POST">
-            {% csrf_token %}
-            <div class="form-row">
-              <div class="input-box">
-                <label for="full_name">Full Name</label>
-                <input
-                  type="text"
-                  id="full_name"
-                  name="full_name"
-                  placeholder="Enter your full name"
-                  value="{{ form_data.full_name|default:'' }}"
-                  required
-                />
-              </div>
-              <div class="input-box">
-                <label for="username">Username</label>
-                <input
-                  type="text"
-                  id="username"
-                  name="username"
-                  placeholder="Choose a username"
-                  value="{{ form_data.username|default:'' }}"
-                  required
-                />
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="input-box">
-                <label for="email">Email Address</label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  placeholder="you@example.com"
-                  value="{{ form_data.email|default:'' }}"
-                  required
-                />
-              </div>
-              <div class="input-box">
-                <label for="phone_number">Phone Number</label>
-                <input
-                  type="text"
-                  id="phone_number"
-                  name="phone_number"
-                  placeholder="Enter your phone number"
-                  value="{{ form_data.phone_number|default:'' }}"
-                  required
-                />
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="input-box">
-                <label for="password">Password</label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  placeholder="Create a password"
-                  required
-                />
-                <i class="ri-eye-line toggle-password" onclick="togglePassword('password')"></i>
-              </div>
-              <div class="input-box">
-                <label for="confirm_password">Confirm Password</label>
-                <input
-                  type="password"
-                  id="confirm_password"
-                  name="confirm_password"
-                  placeholder="Confirm your password"
-                  required
-                />
-                <i class="ri-eye-line toggle-password" onclick="togglePassword('confirm_password')"></i>
-              </div>
-            </div>  
-            <div class="input-box full-width">
-              <label for="user_type">I am a</label>
-              <select
-                id="user_type"
-                name="user_type"
-                onchange="toggleDynamicFields()"
-                required
-              >
-                <option value="">Select user type</option>
-                <option value="student" {% if form_data.user_type == 'student' %}selected{% endif %}>Student</option>
-                <option value="professional" {% if form_data.user_type == 'professional' %}selected{% endif %}>Professional</option>
-                <option value="recruiter" {% if form_data.user_type == 'recruiter' %}selected{% endif %}>Recruiter</option>
-              </select>
-            </div>
+          <!-- Registration Form -->
+          <div id="signup-form" class="signup-form">
+            <h1 class="title">Create Account</h1>
+            <p class="subtitle">Join our community and unlock your career potential</p>
 
-            <!-- Dynamic Fields -->
-            <div id="student-fields" class="dynamic-fields">
-              <div class="dynamic-fields-title">Student Information</div>
+            <form id="registrationForm" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="step" value="1">
+
+              <!-- Basic Information -->
               <div class="form-row">
                 <div class="input-box">
-                  <label for="university">University</label>
-                  <input
-                    type="text"
-                    id="university"
-                    name="university"
-                    placeholder="Enter your university"
-                    value="{{ form_data.university|default:'' }}"
-                  />
+                  <label for="full_name">Full Name *</label>
+                  <input type="text" id="full_name" name="full_name" required value="{{ form_data.full_name|default:'' }}">
                 </div>
                 <div class="input-box">
-                  <label for="degree">Degree</label>
-                  <input
-                    type="text"
-                    id="degree"
-                    name="degree"
-                    placeholder="Enter your degree program"
-                    value="{{ form_data.degree|default:'' }}"
-                  />
+                  <label for="username">Username *</label>
+                  <input type="text" id="username" name="username" required value="{{ form_data.username|default:'' }}">
                 </div>
               </div>
-              <div class="input-box full-width">
-                <label for="graduation_year">Expected Graduation Year</label>
-                <input
-                  type="number"
-                  id="graduation_year"
-                  name="graduation_year"
-                  placeholder="Enter your graduation year"
-                  value="{{ form_data.graduation_year|default:'' }}"
-                />
-              </div>
-            </div>
 
-            <div id="professional-fields" class="dynamic-fields">
-              <div class="dynamic-fields-title">Professional Information</div>
               <div class="form-row">
                 <div class="input-box">
-                  <label for="job_title">Current Job Title</label>
-                  <input
-                    type="text"
-                    id="job_title"
-                    name="job_title"
-                    placeholder="Enter your job title"
-                    value="{{ form_data.job_title|default:'' }}"
-                  />
+                  <label for="email">Email Address *</label>
+                  <input type="email" id="email" name="email" required value="{{ form_data.email|default:'' }}">
                 </div>
                 <div class="input-box">
-                  <label for="organization">Organization</label>
-                  <input
-                    type="text"
-                    id="organization"
-                    name="organization"
-                    placeholder="Enter your organization"
-                    value="{{ form_data.organization|default:'' }}"
-                  />
+                  <label for="phone_number">Phone Number *</label>
+                  <input type="tel" id="phone_number" name="phone_number" required value="{{ form_data.phone_number|default:'' }}">
                 </div>
               </div>
-              <div class="input-box full-width">
-                <label for="experience">Years of Experience</label>
-                <input
-                  type="text"
-                  id="experience"
-                  name="experience"
-                  placeholder="Enter your years of experience"
-                  value="{{ form_data.experience|default:'' }}"
-                />
-              </div>
-            </div>
 
-            <div id="recruiter-fields" class="dynamic-fields">
-              <div class="dynamic-fields-title">Company Information</div>
               <div class="form-row">
                 <div class="input-box">
-                  <label for="company_name">Company Name</label>
-                  <input
-                    type="text"
-                    id="company_name"
-                    name="company_name"
-                    placeholder="Enter your company name"
-                    value="{{ form_data.company_name|default:'' }}"
-                  />
+                  <label for="password">Password *</label>
+                  <input type="password" id="password" name="password" required>
+                  <i class="toggle-password ri-eye-off-line" onclick="togglePassword('password')"></i>
                 </div>
                 <div class="input-box">
-                  <label for="company_website">Company Website</label>
-                  <input
-                    type="text"
-                    id="company_website"
-                    name="company_website"
-                    placeholder="Enter your company website"
-                    value="{{ form_data.company_website|default:'' }}"
-                  />
+                  <label for="confirm_password">Confirm Password *</label>
+                  <input type="password" id="confirm_password" name="confirm_password" required>
+                  <i class="toggle-password ri-eye-off-line" onclick="togglePassword('confirm_password')"></i>
                 </div>
               </div>
-              <div class="input-box full-width">
-                <label for="company_description">Company Description</label>
-                <input
-                  type="text"
-                  id="company_description"
-                  name="company_description"
-                  placeholder="Briefly describe your company"
-                  value="{{ form_data.company_description|default:'' }}"
-                />
-              </div>
-            </div>
 
-            <div class="button">
-              <input type="submit" value="Create Account" />
-            </div>
-            
+              <div class="input-box full-width">
+                <label for="user_type">I am a *</label>
+                <select id="user_type" name="user_type" required onchange="showDynamicFields()">
+                  <option value="">Select your role</option>
+                  <option value="student" {% if form_data.user_type == 'student' %}selected{% endif %}>Student</option>
+                  <option value="professional" {% if form_data.user_type == 'professional' %}selected{% endif %}>Professional</option>
+                  <option value="recruiter" {% if form_data.user_type == 'recruiter' %}selected{% endif %}>Recruiter</option>
+                </select>
+              </div>
+
+              <!-- Dynamic Fields for Student -->
+              <div id="student-fields" class="dynamic-fields">
+                <h3 class="dynamic-fields-title">Student Information</h3>
+                <div class="form-row">
+                  <div class="input-box">
+                    <label for="university">University</label>
+                    <input type="text" id="university" name="university" value="{{ form_data.university|default:'' }}">
+                  </div>
+                  <div class="input-box">
+                    <label for="degree">Degree</label>
+                    <input type="text" id="degree" name="degree" value="{{ form_data.degree|default:'' }}">
+                  </div>
+                </div>
+                <div class="input-box full-width">
+                  <label for="graduation_year">Expected Graduation Year</label>
+                  <input type="number" id="graduation_year" name="graduation_year" min="2020" max="2030" value="{{ form_data.graduation_year|default:'' }}">
+                </div>
+              </div>
+
+              <!-- Dynamic Fields for Professional -->
+              <div id="professional-fields" class="dynamic-fields">
+                <h3 class="dynamic-fields-title">Professional Information</h3>
+                <div class="form-row">
+                  <div class="input-box">
+                    <label for="job_title">Current Job Title</label>
+                    <input type="text" id="job_title" name="job_title" value="{{ form_data.job_title|default:'' }}">
+                  </div>
+                  <div class="input-box">
+                    <label for="organization">Organization</label>
+                    <input type="text" id="organization" name="organization" value="{{ form_data.organization|default:'' }}">
+                  </div>
+                </div>
+                <div class="input-box full-width">
+                  <label for="experience">Years of Experience</label>
+                  <input type="number" id="experience" name="experience" min="0" max="50" value="{{ form_data.experience|default:'' }}">
+                </div>
+              </div>
+
+              <!-- Dynamic Fields for Recruiter -->
+              <div id="recruiter-fields" class="dynamic-fields">
+                <h3 class="dynamic-fields-title">Company Information</h3>
+                <div class="form-row">
+                  <div class="input-box">
+                    <label for="company_name">Company Name</label>
+                    <input type="text" id="company_name" name="company_name" value="{{ form_data.company_name|default:'' }}">
+                  </div>
+                  <div class="input-box">
+                    <label for="company_website">Company Website</label>
+                    <input type="url" id="company_website" name="company_website" value="{{ form_data.company_website|default:'' }}">
+                  </div>
+                </div>
+                <div class="input-box full-width">
+                  <label for="company_description">Company Description</label>
+                  <input type="text" id="company_description" name="company_description" value="{{ form_data.company_description|default:'' }}">
+                </div>
+              </div>
+
+              <div class="button">
+                <input type="submit" value="Create Account">
+              </div>
+            </form>
+
             <div class="login-link">
-              Already have an account? <a href="/login/">Login here</a>
+              Already have an account? <a href="/login/">Sign in here</a>
             </div>
-          </form>
+          </div>
+
+          <!-- OTP Verification Section -->
+          <div id="otp-section" class="otp-section">
+            <div class="otp-icon">
+              <i class="ri-mail-check-line"></i>
+            </div>
+            <h2 class="otp-title">Verify Your Email</h2>
+            <p class="otp-subtitle">
+              We've sent a 6-digit verification code to<br>
+              <span class="email-highlight" id="verification-email"></span>
+            </p>
+
+            <form id="otpForm">
+              {% csrf_token %}
+              <input type="hidden" name="step" value="2">
+              
+              <div class="otp-input-group">
+                <input type="text" id="email_otp" name="email_otp" class="otp-input" maxlength="6" placeholder="000000" required>
+              </div>
+
+              <button type="submit" class="verify-button">
+                <span id="verify-btn-text">Verify Email</span>
+              </button>
+            </form>
+
+            <div class="resend-section">
+              <p class="resend-text">Didn't receive the code?</p>
+              <button type="button" id="resend-btn" class="resend-button" onclick="resendOTP()">
+                Resend Code
+              </button>
+              <div id="timer" class="timer" style="display: none;"></div>
+            </div>
+
+            <div class="back-to-form">
+              <button type="button" onclick="backToForm()">
+                <i class="ri-arrow-left-line"></i> Back to registration
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+
+    <script>
+      // Toggle password visibility
+      function togglePassword(fieldId) {
+        const field = document.getElementById(fieldId);
+        const icon = field.nextElementSibling;
+        
+        if (field.type === 'password') {
+          field.type = 'text';
+          icon.classList.remove('ri-eye-off-line');
+          icon.classList.add('ri-eye-line');
+        } else {
+          field.type = 'password';
+          icon.classList.remove('ri-eye-line');
+          icon.classList.add('ri-eye-off-line');
+        }
+      }
+
+      // Show dynamic fields based on user type
+      function showDynamicFields() {
+        const userType = document.getElementById('user_type').value;
+        const studentFields = document.getElementById('student-fields');
+        const professionalFields = document.getElementById('professional-fields');
+        const recruiterFields = document.getElementById('recruiter-fields');
+
+        // Hide all dynamic fields
+        studentFields.classList.remove('active');
+        professionalFields.classList.remove('active');
+        recruiterFields.classList.remove('active');
+
+        // Show relevant fields
+        if (userType === 'student') {
+          studentFields.classList.add('active');
+        } else if (userType === 'professional') {
+          professionalFields.classList.add('active');
+        } else if (userType === 'recruiter') {
+          recruiterFields.classList.add('active');
+        }
+      }
+
+      // Initialize dynamic fields on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        showDynamicFields();
+      });
+
+      // Handle registration form submission
+      document.getElementById('registrationForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const submitBtn = this.querySelector('input[type="submit"]');
+        const originalText = submitBtn.value;
+        
+        // Show loading state
+        submitBtn.value = 'Sending OTP...';
+        submitBtn.disabled = true;
+        
+        const formData = new FormData(this);
+        
+        fetch('/signup/', {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Show OTP section
+            document.getElementById('signup-form').style.display = 'none';
+            document.getElementById('otp-section').classList.add('active');
+            document.getElementById('verification-email').textContent = data.email;
+            startResendTimer();
+          } else {
+            showAlert(data.message, 'error');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showAlert('An error occurred. Please try again.', 'error');
+        })
+        .finally(() => {
+          // Reset button state
+          submitBtn.value = originalText;
+          submitBtn.disabled = false;
+        });
+      });
+
+      // Handle OTP verification
+      document.getElementById('otpForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const submitBtn = this.querySelector('.verify-button');
+        const btnText = document.getElementById('verify-btn-text');
+        const originalText = btnText.textContent;
+        
+        // Show loading state
+        btnText.innerHTML = '<span class="spinner"></span>Verifying...';
+        submitBtn.disabled = true;
+        
+        const formData = new FormData(this);
+        
+        fetch('/signup/', {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            showAlert(data.message, 'success');
+            setTimeout(() => {
+              if (data.redirect_url) {
+                window.location.href = data.redirect_url;
+              }
+            }, 2000);
+          } else {
+            showAlert(data.message, 'error');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showAlert('An error occurred. Please try again.', 'error');
+        })
+        .finally(() => {
+          // Reset button state
+          btnText.textContent = originalText;
+          submitBtn.disabled = false;
+        });
+      });
+
+      // Resend OTP functionality
+      let resendTimer;
+      let resendCountdown = 60;
+
+      function resendOTP() {
+        const resendBtn = document.getElementById('resend-btn');
+        resendBtn.disabled = true;
+        resendBtn.textContent = 'Sending...';
+        
+        fetch('/resend-otp/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'X-Requested-With': 'XMLHttpRequest',
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            showAlert(data.message, 'success');
+            startResendTimer();
+          } else {
+            showAlert(data.message, 'error');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showAlert('An error occurred. Please try again.', 'error');
+        })
+        .finally(() => {
+          resendBtn.disabled = false;
+          resendBtn.textContent = 'Resend Code';
+        });
+      }
+
+      function startResendTimer() {
+        const resendBtn = document.getElementById('resend-btn');
+        const timer = document.getElementById('timer');
+        
+        resendCountdown = 60;
+        resendBtn.disabled = true;
+        timer.style.display = 'block';
+        
+        resendTimer = setInterval(() => {
+          resendCountdown--;
+          timer.textContent = `Resend code in ${resendCountdown} seconds`;
+          
+          if (resendCountdown <= 0) {
+            clearInterval(resendTimer);
+            resendBtn.disabled = false;
+            timer.style.display = 'none';
+          }
+        }, 1000);
+      }
+
+      function backToForm() {
+        document.getElementById('otp-section').classList.remove('active');
+        document.getElementById('signup-form').style.display = 'block';
+        
+        // Clear OTP input
+        document.getElementById('email_otp').value = '';
+        
+        // Clear any existing timer
+        if (resendTimer) {
+          clearInterval(resendTimer);
+        }
+      }
+
+      function showAlert(message, type) {
+        // Remove existing alerts
+        const existingAlerts = document.querySelectorAll('.alert');
+        existingAlerts.forEach(alert => alert.remove());
+        
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert ${type}`;
+        alertDiv.textContent = message;
+        
+        const formContainer = document.querySelector('.form-container');
+        formContainer.insertBefore(alertDiv, formContainer.firstChild);
+        
+        // Auto-remove alert after 5 seconds
+        setTimeout(() => {
+          if (alertDiv.parentNode) {
+            alertDiv.remove();
+          }
+        }, 5000);
+      }
+
+      // Auto-format OTP input
+      document.getElementById('email_otp').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+        if (value.length > 6) {
+          value = value.substring(0, 6);
+        }
+        e.target.value = value;
+      });
+
+      // Auto-submit OTP when 6 digits are entered
+      document.getElementById('email_otp').addEventListener('input', function(e) {
+        if (e.target.value.length === 6) {
+          setTimeout(() => {
+            document.getElementById('otpForm').dispatchEvent(new Event('submit'));
+          }, 500);
+        }
+      });
+
+      // Prevent form submission on Enter key for OTP input
+      document.getElementById('email_otp').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (this.value.length === 6) {
+            document.getElementById('otpForm').dispatchEvent(new Event('submit'));
+          }
+        }
+      });
+
+      // Password strength indicator
+      document.getElementById('password').addEventListener('input', function(e) {
+        const password = e.target.value;
+        const strength = checkPasswordStrength(password);
+        updatePasswordStrength(strength);
+      });
+
+      function checkPasswordStrength(password) {
+        let score = 0;
+        if (password.length >= 8) score += 25;
+        if (/[a-z]/.test(password)) score += 25;
+        if (/[A-Z]/.test(password)) score += 25;
+        if (/\d/.test(password)) score += 25;
+        
+        return score;
+      }
+
+      function updatePasswordStrength(strength) {
+        // You can add a password strength indicator here if needed
+        // For now, we'll just validate on form submission
+      }
+
+      // Phone number validation
+      document.getElementById('phone_number').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+        if (value.length > 15) {
+          value = value.substring(0, 15);
+        }
+        e.target.value = value;
+      });
+
+      // Username validation (no spaces, lowercase, alphanumeric)
+      document.getElementById('username').addEventListener('input', function(e) {
+        let value = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+        e.target.value = value;
+      });
+
+      // Graduation year validation
+      document.getElementById('graduation_year').addEventListener('input', function(e) {
+        const currentYear = new Date().getFullYear();
+        const maxYear = currentYear + 10;
+        const minYear = currentYear - 10;
+        
+        if (parseInt(e.target.value) > maxYear) {
+          e.target.value = maxYear;
+        } else if (parseInt(e.target.value) < minYear) {
+          e.target.value = minYear;
+        }
+      });
+
+      // Experience validation
+      document.getElementById('experience').addEventListener('input', function(e) {
+        if (parseInt(e.target.value) > 50) {
+          e.target.value = 50;
+        } else if (parseInt(e.target.value) < 0) {
+          e.target.value = 0;
+        }
+      });
+
+      // Email validation
+      function validateEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+      }
+
+      // Real-time email validation
+      document.getElementById('email').addEventListener('blur', function(e) {
+        const email = e.target.value;
+        if (email && !validateEmail(email)) {
+          showAlert('Please enter a valid email address.', 'error');
+          e.target.focus();
+        }
+      });
+
+      // Confirm password validation
+      document.getElementById('confirm_password').addEventListener('blur', function(e) {
+        const password = document.getElementById('password').value;
+        const confirmPassword = e.target.value;
+        
+        if (confirmPassword && password !== confirmPassword) {
+          showAlert('Passwords do not match.', 'error');
+          e.target.focus();
+        }
+      });
+
+      // Form validation before submission
+      function validateForm() {
+        const requiredFields = ['full_name', 'username', 'email', 'phone_number', 'password', 'confirm_password', 'user_type'];
+        
+        for (let fieldId of requiredFields) {
+          const field = document.getElementById(fieldId);
+          if (!field.value.trim()) {
+            showAlert(`Please fill in the ${field.previousElementSibling.textContent.replace(' *', '')}.`, 'error');
+            field.focus();
+            return false;
+          }
+        }
+        
+        const email = document.getElementById('email').value;
+        if (!validateEmail(email)) {
+          showAlert('Please enter a valid email address.', 'error');
+          document.getElementById('email').focus();
+          return false;
+        }
+        
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+        
+        if (password !== confirmPassword) {
+          showAlert('Passwords do not match.', 'error');
+          document.getElementById('confirm_password').focus();
+          return false;
+        }
+        
+        if (password.length < 8 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+          showAlert('Password must be at least 8 characters long and contain both letters and numbers.', 'error');
+          document.getElementById('password').focus();
+          return false;
+        }
+        
+        return true;
+      }
+
+      // Add form validation to the submit event
+      document.getElementById('registrationForm').addEventListener('submit', function(e) {
+        if (!validateForm()) {
+          e.preventDefault();
+          return false;
+        }
+      });
+
+      // Handle browser back button
+      window.addEventListener('popstate', function(e) {
+        if (document.getElementById('otp-section').classList.contains('active')) {
+          backToForm();
+        }
+      });
+
+      // Prevent multiple form submissions
+      let isSubmitting = false;
+      
+      document.getElementById('registrationForm').addEventListener('submit', function(e) {
+        if (isSubmitting) {
+          e.preventDefault();
+          return false;
+        }
+        isSubmitting = true;
+        
+        setTimeout(() => {
+          isSubmitting = false;
+        }, 3000);
+      });
+
+      document.getElementById('otpForm').addEventListener('submit', function(e) {
+        if (isSubmitting) {
+          e.preventDefault();
+          return false;
+        }
+        isSubmitting = true;
+        
+        setTimeout(() => {
+          isSubmitting = false;
+        }, 3000);
+      });
+    </script>
   </body>
 </html>
