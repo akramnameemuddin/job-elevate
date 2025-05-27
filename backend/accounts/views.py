@@ -342,3 +342,209 @@ def delete_account(request):
         user.delete()
         return redirect('accounts:home')
     return redirect('accounts:profile')
+
+# Add these new functions to your existing views.py
+
+def forgot_password(request):
+    """Handle forgot password - send OTP to email"""
+    if request.method == "POST":
+        step = request.POST.get('step', '1')
+        
+        if step == '1':
+            # First step - validate email and send OTP
+            return handle_forgot_password_step1(request)
+        elif step == '2':
+            # Second step - verify OTP
+            return handle_forgot_password_step2(request)
+        elif step == '3':
+            # Third step - reset password
+            return handle_forgot_password_step3(request)
+    
+    return render(request, 'accounts/forgot_password.html')
+
+
+def handle_forgot_password_step1(request):
+    """Send OTP to user's email for password reset"""
+    email = request.POST.get('email', '').strip()
+    
+    if not email:
+        return JsonResponse({
+            'success': False,
+            'message': 'Please enter your email address.'
+        })
+    
+    try:
+        user = User.objects.get(email=email, email_verified=True)
+        
+        # Generate and send OTP
+        reset_otp = generate_otp()
+        
+        if send_email_otp(email, reset_otp):
+            # Store OTP and timestamp in user model
+            user.email_otp = reset_otp
+            user.otp_created_at = timezone.now()
+            user.save()
+            
+            # Store email in session for next steps
+            request.session['reset_email'] = email
+            
+            return JsonResponse({
+                'success': True,
+                'message': f'Password reset OTP sent to {email}. Please check your email.',
+                'email': email
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': 'Failed to send OTP. Please try again.'
+            })
+            
+    except User.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'No account found with this email address.'
+        })
+
+
+def handle_forgot_password_step2(request):
+    """Verify OTP for password reset"""
+    reset_email = request.session.get('reset_email')
+    if not reset_email:
+        return JsonResponse({
+            'success': False,
+            'message': 'Session expired. Please start the password reset process again.'
+        })
+    
+    otp_input = request.POST.get('otp', '').strip()
+    
+    if not otp_input:
+        return JsonResponse({
+            'success': False,
+            'message': 'Please enter the OTP.'
+        })
+    
+    try:
+        user = User.objects.get(email=reset_email, email_verified=True)
+        
+        # Check OTP expiration
+        if not is_otp_valid(user.otp_created_at):
+            return JsonResponse({
+                'success': False,
+                'message': 'OTP has expired. Please request a new one.'
+            })
+        
+        # Verify OTP
+        if otp_input != user.email_otp:
+            return JsonResponse({
+                'success': False,
+                'message': 'Invalid OTP. Please try again.'
+            })
+        
+        # OTP verified successfully
+        return JsonResponse({
+            'success': True,
+            'message': 'OTP verified successfully. You can now reset your password.'
+        })
+        
+    except User.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Invalid session. Please start again.'
+        })
+
+
+def handle_forgot_password_step3(request):
+    """Reset user password after OTP verification"""
+    reset_email = request.session.get('reset_email')
+    if not reset_email:
+        return JsonResponse({
+            'success': False,
+            'message': 'Session expired. Please start the password reset process again.'
+        })
+    
+    new_password = request.POST.get('new_password', '').strip()
+    confirm_password = request.POST.get('confirm_password', '').strip()
+    
+    if not new_password or not confirm_password:
+        return JsonResponse({
+            'success': False,
+            'message': 'Please fill in both password fields.'
+        })
+    
+    if new_password != confirm_password:
+        return JsonResponse({
+            'success': False,
+            'message': 'Passwords do not match.'
+        })
+    
+    if len(new_password) < 8 or not re.search(r'[A-Za-z]', new_password) or not re.search(r'\d', new_password):
+        return JsonResponse({
+            'success': False,
+            'message': 'Password must be at least 8 characters long and contain letters and numbers.'
+        })
+    
+    try:
+        user = User.objects.get(email=reset_email, email_verified=True)
+        
+        # Reset password
+        user.set_password(new_password)
+        user.email_otp = None  # Clear OTP
+        user.otp_created_at = None  # Clear OTP timestamp
+        user.save()
+        
+        # Clear session
+        if 'reset_email' in request.session:
+            del request.session['reset_email']
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Password reset successfully! You can now login with your new password.',
+            'redirect_url': '/login/'
+        })
+        
+    except User.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Invalid session. Please start again.'
+        })
+
+
+def resend_reset_otp(request):
+    """Resend OTP for password reset"""
+    if request.method == "POST":
+        reset_email = request.session.get('reset_email')
+        if not reset_email:
+            return JsonResponse({
+                'success': False,
+                'message': 'Session expired. Please start the password reset process again.'
+            })
+        
+        try:
+            user = User.objects.get(email=reset_email, email_verified=True)
+            
+            # Generate new OTP
+            new_otp = generate_otp()
+            
+            if send_email_otp(reset_email, new_otp):
+                # Update user with new OTP
+                user.email_otp = new_otp
+                user.otp_created_at = timezone.now()
+                user.save()
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': 'New OTP sent successfully to your email.'
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Failed to send OTP. Please try again.'
+                })
+                
+        except User.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Invalid session. Please start again.'
+            })
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'})
