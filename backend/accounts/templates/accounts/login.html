@@ -30,12 +30,15 @@
         --text-content: #869ab8;
         --fixed-header-height: 4.5rem;
         --box-shadow: 0 10px 30px rgba(57, 108, 248, 0.1);
+        --success-color: #10b981;
+        --error-color: #ef4444;
+        --warning-color: #f59e0b;
       }
       body {
         width: 100%;
         height: 100vh;
         overflow-x: hidden;
-        background-color: #f8f9fa;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       }
       a {
         text-decoration: none;
@@ -47,8 +50,9 @@
       .header {
         height: var(--fixed-header-height);
         padding: 0 2rem;
-        background-color: #fff;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        background-color: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
         position: fixed;
         top: 0;
         left: 0;
@@ -110,31 +114,49 @@
       /* ==== IMAGE SIDE ==== */
       .image-side {
         width: 45%;
-        background-color: #f1f4ff;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+        backdrop-filter: blur(10px);
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         padding: 2rem;
+        position: relative;
+        overflow: hidden;
+      }
+      .image-side::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+        opacity: 0.3;
       }
       .image-side img {
         max-width: 65%;
         height: auto;
+        filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.2));
+        z-index: 1;
       }
       .image-side .welcome-text {
         margin-top: 2rem;
         text-align: center;
+        z-index: 1;
       }
       .welcome-text h3 {
         font-size: 28px;
-        color: var(--lg-heading);
+        color: white;
         margin-bottom: 1rem;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
       }
       .welcome-text p {
         font-size: 16px;
-        color: var(--text-content);
+        color: rgba(255, 255, 255, 0.9);
         max-width: 400px;
         line-height: 1.6;
+        text-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
       }
 
       /* ==== FORM SIDE ==== */
@@ -144,6 +166,8 @@
         justify-content: center;
         align-items: center;
         padding: 2rem;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
       }
 
       /* ==== FORM CONTAINER ==== */
@@ -151,20 +175,53 @@
         width: 100%;
         max-width: 450px;
         padding: 3rem;
-        background-color: #fff;
-        border-radius: 16px;
-        box-shadow: var(--box-shadow);
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        position: relative;
+        overflow: hidden;
+      }
+      .form-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-color), #764ba2);
       }
       .form-container .title {
         font-size: 30px;
         font-weight: 700;
         color: var(--lg-heading);
         margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
       }
       .form-container .subtitle {
         font-size: 16px;
         color: var(--text-content);
         margin-bottom: 2.5rem;
+      }
+      .step {
+        display: none;
+        animation: fadeInSlide 0.5s ease-out;
+      }
+      .step.active {
+        display: block;
+      }
+      @keyframes fadeInSlide {
+        from {
+          opacity: 0;
+          transform: translateX(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
       }
       .input-box {
         margin-bottom: 1.8rem;
@@ -182,16 +239,18 @@
         height: 55px;
         padding: 0 1rem;
         font-size: 15px;
-        border: 1px solid #e1e5ee;
-        border-radius: 8px;
+        border: 2px solid rgba(225, 229, 238, 0.5);
+        border-radius: 12px;
         transition: all 0.3s ease;
-        background-color: #f8f9fa;
+        background-color: rgba(248, 249, 250, 0.8);
+        backdrop-filter: blur(5px);
       }
       .input-box input:focus {
         border-color: var(--primary-color);
-        background-color: #fff;
+        background-color: rgba(255, 255, 255, 0.9);
         box-shadow: 0 0 0 4px rgba(51, 94, 234, 0.1);
         outline: none;
+        transform: translateY(-2px);
       }
       .input-box .toggle-password {
         position: absolute;
@@ -200,69 +259,179 @@
         transform: translateY(-50%);
         cursor: pointer;
         color: var(--text-content);
+        transition: all 0.3s ease;
+        font-size: 18px;
+      }
+      .input-box .toggle-password:hover {
+        color: var(--primary-color);
+        transform: translateY(-50%) scale(1.1);
       }
       .forgot-password {
         text-align: right;
         margin-bottom: 1.5rem;
       }
-      .forgot-password a {
+      .forgot-password button {
         font-size: 14px;
         color: var(--primary-color);
         font-weight: 500;
+        background: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
       }
-      .forgot-password a:hover {
+      .forgot-password button:hover {
         text-decoration: underline;
+        color: var(--btn-hover-color);
       }
       .button {
         margin-top: 1rem;
       }
-      .button input {
+      .button input, .button button {
         width: 100%;
         height: 55px;
-        background-color: var(--primary-color);
+        background: linear-gradient(135deg, var(--primary-color), #764ba2);
         color: #fff;
         font-size: 16px;
         font-weight: 600;
-        border-radius: 8px;
+        border-radius: 12px;
         border: none;
         cursor: pointer;
         transition: all 0.3s ease;
-        box-shadow: 0 5px 15px rgba(51, 94, 234, 0.3);
+        box-shadow: 0 8px 25px rgba(51, 94, 234, 0.3);
+        position: relative;
+        overflow: hidden;
       }
-      .button input:hover {
-        background-color: var(--btn-hover-color);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(51, 94, 234, 0.4);
+      .button input::before, .button button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s ease;
       }
-      .signup-link {
+      .button input:hover, .button button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 35px rgba(51, 94, 234, 0.4);
+      }
+      .button input:hover::before, .button button:hover::before {
+        left: 100%;
+      }
+      .signup-link, .back-to-login {
         margin-top: 2rem;
         text-align: center;
         font-size: 15px;
         color: var(--text-content);
       }
-      .signup-link a {
+      .signup-link a, .back-to-login a, .back-to-login button {
         color: var(--primary-color);
         font-weight: 600;
+        background: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
       }
-      .signup-link a:hover {
+      .signup-link a:hover, .back-to-login a:hover, .back-to-login button:hover {
         text-decoration: underline;
+        color: var(--btn-hover-color);
       }
       .alert {
         padding: 1rem;
         margin-bottom: 1.5rem;
-        border-radius: 8px;
+        border-radius: 12px;
         text-align: center;
         font-size: 14px;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        animation: slideInAlert 0.3s ease-out;
+      }
+      @keyframes slideInAlert {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
       .alert.success {
-        background-color: #d4edda;
-        color: #155724;
-        border: 1px solid #c3e6cb;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+        color: var(--success-color);
+        border-left: 4px solid var(--success-color);
       }
       .alert.error {
-        background-color: #f8d7da;
-        color: #721c24;
-        border: 1px solid #f5c6cb;
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+        color: var(--error-color);
+        border-left: 4px solid var(--error-color);
+      }
+      .resend-otp {
+        text-align: center;
+        margin-top: 1rem;
+      }
+      .resend-otp button {
+        background: none;
+        border: none;
+        color: var(--primary-color);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 14px;
+      }
+      .resend-otp button:hover {
+        color: var(--btn-hover-color);
+        text-decoration: underline;
+      }
+      .step-indicator {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 2rem;
+        gap: 1rem;
+      }
+      .step-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: #e5e7eb;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+      .step-dot.active {
+        background-color: var(--primary-color);
+        transform: scale(1.2);
+      }
+      .step-dot.completed {
+        background-color: var(--success-color);
+      }
+      .step-line {
+        width: 30px;
+        height: 2px;
+        background-color: #e5e7eb;
+        transition: all 0.3s ease;
+      }
+      .step-line.active {
+        background-color: var(--primary-color);
+      }
+
+      /* ==== LOADING SPINNER ==== */
+      .loading {
+        display: none;
+        width: 20px;
+        height: 20px;
+        border: 2px solid transparent;
+        border-top: 2px solid #fff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 0.5rem;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
       }
 
       /* ==== MEDIA QUERIES ==== */
@@ -285,7 +454,8 @@
           height: 100%;
           top: 2.5%;
           right: -100%;
-          background-color: #fff;
+          background-color: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(10px);
           padding: 3rem;
           border-radius: 10px;
           box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
@@ -396,93 +566,585 @@
       <!-- ==== FORM SIDE ==== -->
       <div class="form-side">
         <div class="form-container">
-          <div class="title">Login</div>
-          <div class="subtitle">Welcome back! Please login to your account.</div>
-          
-          {% if messages %}
-            {% for message in messages %}
-              <div class="alert {% if message.tags %}{{ message.tags }}{% endif %}">
-                {{ message }}
+          <!-- Login Step -->
+          <div class="step active" id="login-step">
+            <div class="title">
+              <i class="ri-login-circle-line"></i>
+              Login
+            </div>
+            <div class="subtitle">Welcome back! Please login to your account.</div>
+            
+            {% if messages %}
+              {% for message in messages %}
+                <div class="alert {% if message.tags %}{{ message.tags }}{% endif %}">
+                  {% if message.tags == 'success' %}
+                    <i class="ri-check-circle-line"></i>
+                  {% elif message.tags == 'error' %}
+                    <i class="ri-error-warning-line"></i>
+                  {% endif %}
+                  {{ message }}
+                </div>
+              {% endfor %}
+            {% endif %}
+            
+            <div id="login-message-container"></div>
+            
+            <form action="{% url 'accounts:login' %}" method="POST" id="login-form">
+              {% csrf_token %}
+              <div class="input-box">
+                <label for="email">Email Address</label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  placeholder="Enter your email"
+                  required
+                />
               </div>
-            {% endfor %}
-          {% endif %}
-          
-          <form action="{% url 'accounts:login' %}" method="POST">
-            {% csrf_token %}
-            <div class="input-box">
-              <label for="email">Email Address</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                placeholder="Enter your email"
-                required
-              />
-            </div>
-            <div class="input-box">
-              <label for="password">Password</label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                placeholder="Enter your password"
-                required
-              />
-              <i
-                class="ri-eye-line toggle-password"
-                onclick="togglePassword()"
-              ></i>
+              <div class="input-box">
+                <label for="password">Password</label>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  placeholder="Enter your password"
+                  required
+                />
+                <i
+                  class="ri-eye-line toggle-password"
+                  onclick="togglePassword('password')"
+                ></i>
+              </div>
+              
+              <div class="forgot-password">
+                <button type="button" onclick="showForgotPassword()">Forgot password?</button>
+              </div>
+              
+              <div class="button">
+                <button type="submit">
+                  <span class="loading" id="login-loading"></span>
+                  Login
+                </button>
+              </div>
+              
+              <div class="signup-link">
+                Don't have an account? <a href="/signup/">Sign up</a>
+              </div>
+            </form>
+          </div>
+
+          <!-- Forgot Password Step 1: Enter Email -->
+          <div class="step" id="forgot-step1">
+            <div class="step-indicator">
+              <div class="step-dot active"></div>
+              <div class="step-line"></div>
+              <div class="step-dot"></div>
+              <div class="step-line"></div>
+              <div class="step-dot"></div>
             </div>
             
-            <div class="forgot-password">
-              <a href="{% url 'accounts:forgot_password' %}">Forgot password?</a>
+            <div class="title">
+              <i class="ri-lock-password-line"></i>
+              Forgot Password
+            </div>
+            <div class="subtitle">Enter your email address to receive a password reset code.</div>
+            
+            <div id="forgot-message-container1"></div>
+            
+            <form id="forgot-password-form-step1">
+              {% csrf_token %}
+              <input type="hidden" name="step" value="1">
+              <div class="input-box">
+                <label for="forgot-email">Email Address</label>
+                <input
+                  type="email"
+                  id="forgot-email"
+                  name="email"
+                  placeholder="Enter your email"
+                  required
+                />
+              </div>
+              
+              <div class="button">
+                <button type="submit">
+                  <span class="loading" id="forgot-loading1"></span>
+                  Send Reset Code
+                </button>
+              </div>
+              
+              <div class="back-to-login">
+                <button type="button" onclick="showLogin()">
+                  <i class="ri-arrow-left-line"></i>
+                  Back to Login
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Forgot Password Step 2: Enter OTP -->
+          <div class="step" id="forgot-step2">
+            <div class="step-indicator">
+              <div class="step-dot completed"></div>
+              <div class="step-line active"></div>
+              <div class="step-dot active"></div>
+              <div class="step-line"></div>
+              <div class="step-dot"></div>
             </div>
             
-            <div class="button">
-              <input type="submit" value="Login" />
+            <div class="title">
+              <i class="ri-shield-check-line"></i>
+              Verify OTP
+            </div>
+            <div class="subtitle">Enter the 6-digit code sent to your email.</div>
+            
+            <div id="forgot-message-container2"></div>
+            
+            <form id="forgot-password-form-step2">
+              {% csrf_token %}
+              <input type="hidden" name="step" value="2">
+              <div class="input-box">
+                <label for="otp">Verification Code</label>
+                <input
+                  type="text"
+                  id="otp"
+                  name="otp"
+                  placeholder="Enter 6-digit code"
+                  maxlength="6"
+                  required
+                />
+              </div>
+              
+              <div class="button">
+                <button type="submit">
+                  <span class="loading" id="forgot-loading2"></span>
+                  Verify Code
+                </button>
+              </div>
+              
+              <div class="resend-otp">
+                <button type="button" id="resend-reset-otp-btn">
+                  <i class="ri-refresh-line"></i>
+                  Resend Code
+                </button>
+              </div>
+              
+              <div class="back-to-login">
+                <button type="button" onclick="showLogin()">
+                  <i class="ri-arrow-left-line"></i>
+                  Back to Login
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Forgot Password Step 3: Reset Password -->
+          <div class="step" id="forgot-step3">
+            <div class="step-indicator">
+              <div class="step-dot completed"></div>
+              <div class="step-line active"></div>
+              <div class="step-dot completed"></div>
+              <div class="step-line active"></div>
+              <div class="step-dot active"></div>
             </div>
             
-            <div class="signup-link">
-              Don't have an account? <a href="/signup/">Sign up</a>
+            <div class="title">
+              <i class="ri-key-2-line"></i>
+              Reset Password
             </div>
-          </form>
+            <div class="subtitle">Enter your new password.</div>
+            
+            <div id="forgot-message-container3"></div>
+            
+            <form id="forgot-password-form-step3">
+              {% csrf_token %}
+              <input type="hidden" name="step" value="3">
+              <div class="input-box">
+                <label for="new_password">New Password</label>
+                <input
+                  type="password"
+                  id="new_password"
+                  name="new_password"
+                  placeholder="Enter new password"
+                  required
+                />
+                <i
+                  class="ri-eye-line toggle-password"
+                  onclick="togglePassword('new_password')"
+                ></i>
+              </div>
+              
+              <div class="input-box">
+                <label for="confirm_password">Confirm Password</label>
+                <input
+                  type="password"
+                  id="confirm_password"
+                  name="confirm_password"
+                  placeholder="Confirm new password"
+                  required
+                />
+                <i
+                  class="ri-eye-line toggle-password"
+                  onclick="togglePassword('confirm_password')"
+                ></i>
+              </div>
+              
+              <div class="button">
+                <button type="submit">
+                  <span class="loading" id="forgot-loading3"></span>
+                  Reset Password
+                </button>
+              </div>
+              
+              <div class="back-to-login">
+                <button type="button" onclick="showLogin()">
+                  <i class="ri-arrow-left-line"></i>
+                  Back to Login
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>
 
     <script>
-      function togglePassword() {
-        const passwordField = document.getElementById("password");
-        const eyeIcon = document.querySelector(".toggle-password");
-        if (passwordField.type === "password") {
-          passwordField.type = "text";
-          eyeIcon.classList.remove("ri-eye-line");
-          eyeIcon.classList.add("ri-eye-off-line");
-        } else {
-          passwordField.type = "password";
-          eyeIcon.classList.remove("ri-eye-off-line");
-          eyeIcon.classList.add("ri-eye-line");
-        }
+    function togglePassword(fieldId) {
+      const passwordField = document.getElementById(fieldId);
+      const eyeIcon = passwordField.nextElementSibling;
+      if (passwordField.type === "password") {
+        passwordField.type = "text";
+        eyeIcon.classList.remove("ri-eye-line");
+        eyeIcon.classList.add("ri-eye-off-line");
+      } else {
+        passwordField.type = "password";
+        eyeIcon.classList.remove("ri-eye-off-line");
+        eyeIcon.classList.add("ri-eye-line");
+      }
+    }
+
+    function showStep(stepId) {
+      document.querySelectorAll('.step').forEach(step => {
+        step.classList.remove('active');
+      });
+      const targetStep = document.getElementById(stepId);
+      if (targetStep) {
+        targetStep.classList.add('active');
+      }
+    }
+
+    function showLogin() {
+      showStep('login-step');
+      clearMessages();
+    }
+
+    function showForgotPassword() {
+      showStep('forgot-step1');
+      clearMessages();
+    }
+
+    function clearMessages() {
+      ['login-message-container', 'forgot-message-container1', 'forgot-message-container2', 'forgot-message-container3'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = '';
+      });
+    }
+
+    function showLoading(id, show = true) {
+      const el = document.getElementById(id);
+      if (el) el.style.display = show ? 'inline-block' : 'none';
+    }
+
+    function getCsrfToken() {
+      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+      return csrfToken ? csrfToken.value : '';
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      const navMenu = document.getElementById("nav_menu");
+      const toggleBtn = document.getElementById("toggle_btn");
+      const closeBtn = document.getElementById("close_btn");
+
+      toggleBtn?.addEventListener("click", () => navMenu.classList.add("show"));
+      closeBtn?.addEventListener("click", () => navMenu.classList.remove("show"));
+
+      // Regular login form (if it exists)
+      const loginForm = document.getElementById('login-form');
+      if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+          showLoading('login-loading', true);
+          // Let form submit normally for Django messages
+        });
       }
 
-      // Toggle Navbar for Mobile
-      document.addEventListener("DOMContentLoaded", function() {
-        const navMenu = document.getElementById("nav_menu");
-        const toggleBtn = document.getElementById("toggle_btn");
-        const closeBtn = document.getElementById("close_btn");
+      // Step 1: Email Submission
+      const forgotStep1Form = document.getElementById('forgot-password-form-step1');
+      if (forgotStep1Form) {
+        forgotStep1Form.addEventListener('submit', async function (e) {
+          e.preventDefault();
+          showLoading('forgot-loading1', true);
 
-        if (toggleBtn) {
-          toggleBtn.addEventListener("click", () => {
-            navMenu.classList.add("show");
-          });
-        }
-        
-        if (closeBtn) {
-          closeBtn.addEventListener("click", () => {
-            navMenu.classList.remove("show");
-          });
-        }
-      });
-    </script>
+          const formData = new FormData(this);
+          formData.append('step', '1');
+          const container = document.getElementById('forgot-message-container1');
+          const csrfToken = getCsrfToken();
+
+          if (!csrfToken) {
+            container.innerHTML = `<div class="alert error"><i class="ri-error-warning-line"></i> CSRF token not found. Please refresh the page.</div>`;
+            showLoading('forgot-loading1', false);
+            return;
+          }
+
+          try {
+            const response = await fetch('forgot-password/', {
+              method: 'POST',
+              body: formData,
+              headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+              },
+            });
+
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            container.innerHTML = `
+              <div class="alert ${data.success ? 'success' : 'error'}">
+                <i class="ri-${data.success ? 'check-circle-line' : 'error-warning-line'}"></i>
+                ${data.message}
+              </div>
+            `;
+
+            if (data.success) {
+              setTimeout(() => {
+                showStep('forgot-step2');
+                const otpField = document.getElementById('otp');
+                if (otpField) otpField.focus();
+              }, 1500);
+            }
+          } catch (error) {
+            console.error('Network error:', error);
+            container.innerHTML = `<div class="alert error"><i class="ri-error-warning-line"></i> Network error. Please try again.</div>`;
+          } finally {
+            showLoading('forgot-loading1', false);
+          }
+        });
+      }
+
+      // Step 2: OTP Verification
+      const forgotStep2Form = document.getElementById('forgot-password-form-step2');
+      if (forgotStep2Form) {
+        forgotStep2Form.addEventListener('submit', async function (e) {
+          e.preventDefault();
+          showLoading('forgot-loading2', true);
+
+          const formData = new FormData(this);
+          formData.append('step', '2');
+          const container = document.getElementById('forgot-message-container2');
+          const csrfToken = getCsrfToken();
+
+          if (!csrfToken) {
+            container.innerHTML = `<div class="alert error"><i class="ri-error-warning-line"></i> CSRF token not found. Please refresh the page.</div>`;
+            showLoading('forgot-loading2', false);
+            return;
+          }
+
+          try {
+            const response = await fetch('/forgot-password/', {
+              method: 'POST',
+              body: formData,
+              headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+              },
+            });
+
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            container.innerHTML = `
+              <div class="alert ${data.success ? 'success' : 'error'}">
+                <i class="ri-${data.success ? 'check-circle-line' : 'error-warning-line'}"></i>
+                ${data.message}
+              </div>
+            `;
+
+            if (data.success) {
+              setTimeout(() => {
+                showStep('forgot-step3');
+                const newPasswordField = document.getElementById('new_password');
+                if (newPasswordField) newPasswordField.focus();
+              }, 1500);
+            }
+          } catch (error) {
+            console.error('Network error:', error);
+            container.innerHTML = `<div class="alert error"><i class="ri-error-warning-line"></i> Network error. Please try again.</div>`;
+          } finally {
+            showLoading('forgot-loading2', false);
+          }
+        });
+      }
+
+      // Step 3: Set New Password
+      const forgotStep3Form = document.getElementById('forgot-password-form-step3');
+      if (forgotStep3Form) {
+        forgotStep3Form.addEventListener('submit', async function (e) {
+          e.preventDefault();
+          showLoading('forgot-loading3', true);
+
+          const formData = new FormData(this);
+          formData.append('step', '3');
+          const container = document.getElementById('forgot-message-container3');
+          const csrfToken = getCsrfToken();
+
+          if (!csrfToken) {
+            container.innerHTML = `<div class="alert error"><i class="ri-error-warning-line"></i> CSRF token not found. Please refresh the page.</div>`;
+            showLoading('forgot-loading3', false);
+            return;
+          }
+
+          try {
+            const response = await fetch('/forgot-password/', {
+              method: 'POST',
+              body: formData,
+              headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+              },
+            });
+
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            container.innerHTML = `
+              <div class="alert ${data.success ? 'success' : 'error'}">
+                <i class="ri-${data.success ? 'check-circle-line' : 'error-warning-line'}"></i>
+                ${data.message}
+              </div>
+            `;
+
+            if (data.success) {
+              setTimeout(() => {
+                if (data.redirect_url) {
+                  window.location.href = data.redirect_url;
+                } else {
+                  showLogin();
+                }
+              }, 2000);
+            }
+          } catch (error) {
+            console.error('Network error:', error);
+            container.innerHTML = `<div class="alert error"><i class="ri-error-warning-line"></i> Network error. Please try again.</div>`;
+          } finally {
+            showLoading('forgot-loading3', false);
+          }
+        });
+      }
+
+      // Resend Reset OTP
+      const resendResetOtpBtn = document.getElementById('resend-reset-otp-btn');
+      if (resendResetOtpBtn) {
+        resendResetOtpBtn.addEventListener('click', async function () {
+          const button = this;
+          const container = document.getElementById('forgot-message-container2');
+          const originalText = button.innerHTML;
+          const csrfToken = getCsrfToken();
+
+          if (!csrfToken) {
+            container.innerHTML = `<div class="alert error"><i class="ri-error-warning-line"></i> CSRF token not found. Please refresh the page.</div>`;
+            return;
+          }
+
+          button.disabled = true;
+          button.innerHTML = '<i class="ri-loader-4-line"></i> Sending...';
+
+          try {
+            const response = await fetch('/accounts/resend-reset-otp/', {
+              method: 'POST',
+              headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+            });
+
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            container.innerHTML = `
+              <div class="alert ${data.success ? 'success' : 'error'}">
+                <i class="ri-${data.success ? 'check-circle-line' : 'error-warning-line'}"></i>
+                ${data.message}
+              </div>
+            `;
+
+            if (data.success) {
+              let countdown = 30;
+              const timer = setInterval(() => {
+                button.innerHTML = `<i class="ri-time-line"></i> Resend in ${countdown--}s`;
+                if (countdown < 0) {
+                  clearInterval(timer);
+                  button.disabled = false;
+                  button.innerHTML = originalText;
+                }
+              }, 1000);
+            } else {
+              button.disabled = false;
+              button.innerHTML = originalText;
+            }
+          } catch (error) {
+            console.error('Network error:', error);
+            container.innerHTML = `<div class="alert error"><i class="ri-error-warning-line"></i> Network error. Please try again.</div>`;
+            button.disabled = false;
+            button.innerHTML = originalText;
+          }
+        });
+      }
+
+      // OTP Auto-format and Auto-submit
+      const otpInput = document.getElementById('otp');
+      if (otpInput) {
+        otpInput.addEventListener('input', function (e) {
+          let value = e.target.value.replace(/\D/g, '').slice(0, 6);
+          e.target.value = value;
+
+          if (value.length === 6) {
+            setTimeout(() => {
+              const form = document.getElementById('forgot-password-form-step2');
+              if (form) {
+                form.dispatchEvent(new Event('submit'));
+              }
+            }, 500);
+          }
+        });
+      }
+
+      // Password Strength Checker
+      const passwordInput = document.getElementById('new_password');
+      if (passwordInput) {
+        passwordInput.addEventListener('input', function (e) {
+          const strength = checkPasswordStrength(e.target.value);
+          // Add visual feedback if desired
+        });
+      }
+
+      function checkPasswordStrength(password) {
+        let strength = 0;
+        if (password.length >= 8) strength++;
+        if (/[A-Z]/.test(password)) strength++;
+        if (/[a-z]/.test(password)) strength++;
+        if (/\d/.test(password)) strength++;
+        if (/[^A-Za-z0-9]/.test(password)) strength++;
+        return strength;
+      }
+    });
+  </script>
   </body>
 </html>

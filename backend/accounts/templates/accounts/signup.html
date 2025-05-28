@@ -5,11 +5,12 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>JobElevate - Create Account</title>
-    <!-- ==== STYLE.CSS ==== -->
+    <title>Sign Up - JobElevate</title>
+    <!-- ==== "Inter" FONT-FAMILY FROM FONTS.GOOGLE.COM  ==== -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- ====  REMIXICON CDN ==== -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet" />
     <style>
-      /* ==== "Inter" FONT-FAMILY FROM FONTS.GOOGLE.COM  ==== */
-      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
       /* ==== ROOT RESET ==== */
       * {
         margin: 0;
@@ -17,7 +18,6 @@
         box-sizing: border-box;
         font-family: "Inter", sans-serif;
       }
-      *,
       *::before,
       *::after {
         box-sizing: border-box;
@@ -25,154 +25,199 @@
 
       /* ==== CSS VARIABLES ==== */
       :root {
-        --primary-color: #3563E9;
-        --secondary-color: #6D83F2;
-        --link-color: #506690;
-        --btn-hover-color: #2952D8;
+        --primary-color: #335eea;
+        --secondary-color: #764ba2;
+        --btn-hover-color: #2b50c7;
         --lg-heading: #161c2d;
         --text-content: #869ab8;
         --fixed-header-height: 4.5rem;
-        --font-size-body-text: clamp(14px, 1.6vw, 16px);
-        --h1-font-size: calc(var(--font-size-body-text) * 2.4);
-        --h2-font-size: calc(var(--h1-font-size) - 15px);
-        --h3-font-size: calc(var(--h2-font-size) - 8px);
+        --box-shadow: 0 10px 30px rgba(57, 108, 248, 0.1);
         --success-color: #10b981;
         --error-color: #ef4444;
+        --warning-color: #f59e0b;
       }
 
-      /* ==== RESET HTML ==== */
       body {
         width: 100%;
-        height: 100vh;
+        min-height: 100vh;
         overflow-x: hidden;
-        background-color: #f7f9fc;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        position: relative;
       }
-      ul li {
-        list-style-type: none;
+
+      body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+        opacity: 0.3;
+        z-index: -1;
       }
+
       a {
         text-decoration: none;
       }
-      button {
-        background-color: transparent;
-        border: none;
-        outline: none;
-        cursor: pointer;
-      }
 
-      /* ==== CONTAINER ==== */
-      .container {
-        width: 100%;
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0;
+      button {
+        cursor: pointer;
       }
 
       /* ==== HEADER ==== */
       .header {
         height: var(--fixed-header-height);
         padding: 0 2rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background-color: #fff;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        background-color: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
         position: fixed;
         top: 0;
         left: 0;
-        right: 0;
+        width: 100%;
         z-index: 100;
       }
 
-      .logo {
+      .nav {
+        width: 100%;
+        height: 100%;
         display: flex;
         align-items: center;
+        justify-content: space-between;
+        max-width: 1600px;
+        margin: 0 auto;
       }
 
       .logo h2 {
-        font-size: var(--h2-font-size);
-        color: var(--primary-color);
+        font-size: 28px;
         font-weight: 700;
+        color: var(--primary-color);
       }
 
       .nav_menu_list {
         display: flex;
         align-items: center;
-        gap: 2.5rem;
+        list-style: none;
+        gap: 2rem;
       }
 
       .nav_menu_item .nav_menu_link {
         font-size: 16px;
-        line-height: 27px;
-        color: var(--link-color);
         font-weight: 500;
-        transition: all 0.3s ease;
+        color: var(--lg-heading);
+        text-transform: capitalize;
+        transition: color 0.3s ease;
       }
 
       .nav_menu_link:hover {
         color: var(--primary-color);
       }
 
+      .toggle_btn {
+        font-size: 20px;
+        color: var(--lg-heading);
+        background: transparent;
+        border: none;
+        display: none;
+      }
+
       /* ==== MAIN CONTAINER ==== */
       .main-container {
         display: flex;
-        margin-top: var(--fixed-header-height);
-        min-height: calc(100vh - var(--fixed-header-height));
+        min-height: 100vh;
+        padding-top: var(--fixed-header-height);
       }
 
-      /* ==== IMAGE SECTION ==== */
-      .image-section {
+      /* ==== IMAGE SIDE ==== */
+      .image-side {
         width: 45%;
-        background-color: #f0f4ff;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+        backdrop-filter: blur(10px);
         display: flex;
         flex-direction: column;
-        align-items: center;
         justify-content: center;
+        align-items: center;
         padding: 2rem;
+        position: relative;
+        overflow: hidden;
       }
 
-      .image-section img {
+      .image-side img {
         max-width: 65%;
         height: auto;
+        filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.2));
+        z-index: 1;
       }
 
-      .image-section .welcome-text {
+      .image-side .welcome-text {
         margin-top: 2rem;
         text-align: center;
+        z-index: 1;
       }
 
-      .image-section h2 {
-        font-size: var(--h2-font-size);
-        color: var(--primary-color);
+      .welcome-text h3 {
+        font-size: 28px;
+        color: white;
         margin-bottom: 1rem;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        font-weight: 700;
       }
 
-      .image-section p {
+      .welcome-text p {
         font-size: 16px;
-        color: var(--text-content);
+        color: rgba(255, 255, 255, 0.9);
+        max-width: 400px;
         line-height: 1.6;
-        max-width: 80%;
-        margin: 0 auto;
+        text-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
       }
 
-      /* ==== FORM SECTION ==== */
-      .form-section {
+      /* ==== FORM SIDE ==== */
+      .form-side {
         width: 55%;
-        padding: 3rem 4rem;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 2rem;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
         overflow-y: auto;
         max-height: calc(100vh - var(--fixed-header-height));
       }
 
-      /* ==== FORM STYLES ==== */
+      /* ==== FORM CONTAINER ==== */
       .form-container {
         width: 100%;
+        max-width: 500px;
+        padding: 3rem;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        position: relative;
+        overflow: hidden;
+        margin: 2rem 0;
+      }
+
+      .form-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
       }
 
       .form-container .title {
-        font-size: var(--h1-font-size);
+        font-size: 30px;
+        font-weight: 700;
         color: var(--lg-heading);
         margin-bottom: 0.5rem;
-        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
       }
 
       .form-container .subtitle {
@@ -181,151 +226,225 @@
         margin-bottom: 2rem;
       }
 
-      .form-container .input-box {
+      /* ==== FORM SECTIONS ==== */
+      .signup-form, .otp-section {
+        display: none;
+        animation: fadeInSlide 0.5s ease-out;
+      }
+
+      .signup-form.active, .otp-section.active {
+        display: block;
+      }
+
+      @keyframes fadeInSlide {
+        from {
+          opacity: 0;
+          transform: translateX(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      /* ==== INPUT STYLES ==== */
+      .input-box {
         margin-bottom: 1.5rem;
-        width: 48%;
+        position: relative;
       }
 
       .form-row {
         display: flex;
-        justify-content: space-between;
-        flex-wrap: wrap;
+        gap: 1rem;
+        flex-wrap: nowrap;
       }
 
-      .form-container .input-box.full-width {
+      .form-row .input-box {
+        flex: 1;
+        min-width: 0;
+        width: calc(50% - 0.5rem);
+      }
+
+      .input-box.full-width {
         width: 100%;
       }
 
-      .form-container .input-box label {
+      .input-box label {
         display: block;
         font-size: 14px;
+        font-weight: 600;
         color: var(--lg-heading);
         margin-bottom: 0.5rem;
-        font-weight: 500;
       }
 
-      .form-container .input-box input,
-      .form-container .input-box select {
+      .input-box input,
+      .input-box select {
         width: 100%;
-        height: 50px;
+        height: 55px;
         padding: 0 1rem;
         font-size: 15px;
-        border: 1px solid #e5e9f2;
-        border-radius: 8px;
-        background-color: #fff;
+        border: 2px solid rgba(225, 229, 238, 0.5);
+        border-radius: 12px;
         transition: all 0.3s ease;
+        background-color: rgba(248, 249, 250, 0.8);
+        backdrop-filter: blur(5px);
       }
 
-      .form-container .input-box input:focus,
-      .form-container .input-box select:focus {
+      .input-box input:focus,
+      .input-box select:focus {
         border-color: var(--primary-color);
-        box-shadow: 0 0 0 4px rgba(53, 99, 233, 0.1);
+        background-color: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 0 0 4px rgba(51, 94, 234, 0.1);
         outline: none;
+        transform: translateY(-2px);
       }
 
-      .form-container .input-box .toggle-password {
+      .toggle-password {
         position: absolute;
         right: 1rem;
-        top: 70%;
+        top: 60%;
         transform: translateY(-50%);
         cursor: pointer;
-        font-size: 18px;
-        color: var(--link-color);
-      }
-
-      .form-container .button {
-        margin-top: 2rem;
-      }
-
-      .form-container .button input {
-        width: 100%;
-        height: 52px;
-        background-color: var(--primary-color);
-        color: #fff;
-        font-size: 16px;
-        font-weight: 600;
-        border-radius: 8px;
-        border: none;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 5px 15px rgba(53, 99, 233, 0.2);
-      }
-
-      .form-container .button input:hover {
-        background-color: var(--btn-hover-color);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(53, 99, 233, 0.3);
-      }
-
-      .form-container .login-link {
-        text-align: center;
-        margin-top: 1.5rem;
-        font-size: 15px;
         color: var(--text-content);
+        transition: all 0.3s ease;
+        font-size: 18px;
       }
 
-      .form-container .login-link a {
+      .toggle-password:hover {
         color: var(--primary-color);
-        font-weight: 500;
+        transform: translateY(-50%) scale(1.1);
       }
 
-      .form-container .login-link a:hover {
-        text-decoration: underline;
-      }
-
+      /* ==== DYNAMIC FIELDS ==== */
       .dynamic-fields {
         display: none;
         margin-top: 1.5rem;
         padding-top: 1.5rem;
-        border-top: 1px solid #e5e9f2;
+        border-top: 2px solid rgba(225, 229, 238, 0.3);
+        animation: slideDown 0.3s ease-out;
       }
 
       .dynamic-fields.active {
         display: block;
       }
 
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          max-height: 0;
+        }
+        to {
+          opacity: 1;
+          max-height: 500px;
+        }
+      }
+
       .dynamic-fields-title {
         font-size: 18px;
         color: var(--lg-heading);
         margin-bottom: 1.5rem;
-        font-weight: 500;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
       }
 
+      /* ==== BUTTON STYLES ==== */
+      .button {
+        margin-top: 2rem;
+      }
+
+      .button input,
+      .button button,
+      .verify-button {
+        width: 100%;
+        height: 55px;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: #fff;
+        font-size: 16px;
+        font-weight: 600;
+        border-radius: 12px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 25px rgba(51, 94, 234, 0.3);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .button input::before,
+      .button button::before,
+      .verify-button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s ease;
+      }
+
+      .button input:hover,
+      .button button:hover,
+      .verify-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 35px rgba(51, 94, 234, 0.4);
+      }
+
+      .button input:hover::before,
+      .button button:hover::before,
+      .verify-button:hover::before {
+        left: 100%;
+      }
+
+      .button input:disabled,
+      .button button:disabled,
+      .verify-button:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      /* ==== ALERT STYLES ==== */
       .alert {
         padding: 1rem;
         margin-bottom: 1.5rem;
-        border-radius: 8px;
+        border-radius: 12px;
         text-align: center;
         font-size: 14px;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        animation: slideInAlert 0.3s ease-out;
+      }
+
+      @keyframes slideInAlert {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
 
       .alert.success {
-        background-color: #d1fadf;
-        color: #039855;
-        border: 1px solid #a6f4c5;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.1));
+        color: var(--success-color);
+        border-left: 4px solid var(--success-color);
       }
 
       .alert.error {
-        background-color: #fee4e2;
-        color: #d92d20;
-        border: 1px solid #fecdca;
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.1));
+        color: var(--error-color);
+        border-left: 4px solid var(--error-color);
       }
 
-      /* ==== OTP VERIFICATION SECTION ==== */
-      .otp-section {
-        display: none;
-        margin-top: 2rem;
-        padding: 2rem;
-        background: linear-gradient(135deg, #f8faff, #eef4ff);
-        border-radius: 12px;
-        border: 2px solid #e5e9f2;
-        text-align: center;
-      }
-
-      .otp-section.active {
-        display: block;
-      }
-
+      /* ==== OTP SECTION ==== */
       .otp-icon {
         width: 60px;
         height: 60px;
@@ -337,28 +456,27 @@
         justify-content: center;
         font-size: 1.5rem;
         color: white;
+        box-shadow: 0 10px 30px rgba(51, 94, 234, 0.3);
       }
 
       .otp-title {
-        font-size: 1.5rem;
+        font-size: 24px;
         color: var(--lg-heading);
         margin-bottom: 0.5rem;
-        font-weight: 600;
+        font-weight: 700;
+        text-align: center;
       }
 
       .otp-subtitle {
         color: var(--text-content);
-        margin-bottom: 1.5rem;
+        margin-bottom: 2rem;
         line-height: 1.6;
+        text-align: center;
       }
 
       .email-highlight {
         color: var(--primary-color);
-        font-weight: 500;
-      }
-
-      .otp-input-group {
-        margin-bottom: 1.5rem;
+        font-weight: 600;
       }
 
       .otp-input {
@@ -367,46 +485,28 @@
         padding: 0 1rem;
         font-size: 1.5rem;
         text-align: center;
-        border: 2px solid #e5e9f2;
+        border: 2px solid rgba(225, 229, 238, 0.5);
         border-radius: 12px;
         letter-spacing: 0.5rem;
         transition: all 0.3s ease;
-        max-width: 300px;
-        margin: 0 auto;
+        background-color: rgba(248, 249, 250, 0.8);
+        backdrop-filter: blur(5px);
+        margin-bottom: 1.5rem;
       }
 
       .otp-input:focus {
         outline: none;
         border-color: var(--primary-color);
-        box-shadow: 0 0 0 4px rgba(53, 99, 233, 0.1);
-      }
-
-      .verify-button {
-        width: 100%;
-        max-width: 300px;
-        height: 52px;
-        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-        color: white;
-        border: none;
-        border-radius: 12px;
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 5px 15px rgba(53, 99, 233, 0.3);
-        margin: 0 auto 1.5rem;
-        display: block;
-      }
-
-      .verify-button:hover {
+        box-shadow: 0 0 0 4px rgba(51, 94, 234, 0.1);
+        background-color: rgba(255, 255, 255, 0.95);
         transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(53, 99, 233, 0.4);
       }
 
       .resend-section {
-        padding: 1rem 0;
-        border-top: 1px solid #e5e9f2;
-        margin-top: 1rem;
+        padding: 1.5rem 0;
+        border-top: 2px solid rgba(225, 229, 238, 0.3);
+        margin-top: 1.5rem;
+        text-align: center;
       }
 
       .resend-text {
@@ -420,9 +520,9 @@
         border: 2px solid var(--primary-color);
         color: var(--primary-color);
         padding: 0.75rem 2rem;
-        border-radius: 8px;
+        border-radius: 10px;
         cursor: pointer;
-        font-weight: 500;
+        font-weight: 600;
         transition: all 0.3s ease;
         font-size: 14px;
       }
@@ -430,22 +530,25 @@
       .resend-button:hover {
         background: var(--primary-color);
         color: white;
+        transform: translateY(-2px);
       }
 
       .resend-button:disabled {
         opacity: 0.5;
         cursor: not-allowed;
+        transform: none;
       }
 
       .timer {
         color: var(--error-color);
-        font-weight: 500;
+        font-weight: 600;
         margin-top: 1rem;
         font-size: 14px;
       }
 
       .back-to-form {
-        margin-top: 1rem;
+        margin-top: 1.5rem;
+        text-align: center;
       }
 
       .back-to-form button {
@@ -456,6 +559,7 @@
         background: none;
         cursor: pointer;
         font-size: 14px;
+        transition: all 0.3s ease;
       }
 
       .back-to-form button:hover {
@@ -463,117 +567,222 @@
         color: var(--primary-color);
       }
 
-      /* ==== MEDIA QUERIES ==== */
-      @media screen and (max-width: 1024px) {
-        .main-container {
-          flex-direction: column;
-        }
-        .image-section, .form-section {
-          width: 100%;
-        }
-        .image-section {
-          padding: 3rem 2rem;
-        }
-        .form-section {
-          padding: 3rem 2rem;
-        }
+      /* ==== LINKS ==== */
+      .login-link {
+        margin-top: 2rem;
+        text-align: center;
+        font-size: 15px;
+        color: var(--text-content);
       }
 
-      @media screen and (max-width: 768px) {
-        .form-container .input-box {
-          width: 100%;
-        }
-        .nav_menu_list {
-          display: none;
-        }
-        .form-section {
-          padding: 2rem;
-        }
-        .image-section img {
-          max-width: 90%;
-        }
-      }
-      
-      .form-container .input-box {
-        position: relative;
-      }
-      
-      .form-container .toggle-password {
-        position: absolute;
-        right: 1rem;
-        top: calc(50% + 12px);
-        transform: translateY(-50%);
-        cursor: pointer;
-        color: var(--link-color);
-        pointer-events: auto;
+      .login-link a {
+        color: var(--primary-color);
+        font-weight: 600;
+        transition: all 0.3s ease;
       }
 
-      /* Loading state */
+      .login-link a:hover {
+        text-decoration: underline;
+        color: var(--btn-hover-color);
+      }
+
+      /* ==== LOADING SPINNER ==== */
       .loading {
         opacity: 0.7;
         pointer-events: none;
       }
 
       .spinner {
+        display: none;
         width: 20px;
         height: 20px;
-        border: 2px solid #ffffff;
-        border-top: 2px solid transparent;
+        border: 2px solid transparent;
+        border-top: 2px solid #fff;
         border-radius: 50%;
         animation: spin 1s linear infinite;
-        display: inline-block;
-        margin-right: 8px;
+        margin-right: 0.5rem;
       }
 
       @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
       }
+
+      /* ==== STEP INDICATORS ==== */
+      .step-indicator {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 2rem;
+        gap: 1rem;
+      }
+
+      .step-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: rgba(225, 229, 238, 0.5);
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .step-dot.active {
+        background-color: var(--primary-color);
+        transform: scale(1.3);
+        box-shadow: 0 0 0 4px rgba(51, 94, 234, 0.2);
+      }
+
+      .step-dot.completed {
+        background-color: var(--success-color);
+      }
+
+      .step-line {
+        width: 30px;
+        height: 2px;
+        background-color: rgba(225, 229, 238, 0.5);
+        transition: all 0.3s ease;
+      }
+
+      .step-line.active {
+        background-color: var(--primary-color);
+      }
+
+      /* ==== MEDIA QUERIES ==== */
+      @media screen and (max-width: 1024px) {
+        .image-side {
+          width: 40%;
+        }
+        .form-side {
+          width: 60%;
+        }
+      }
+
+      @media screen and (max-width: 768px) {
+        .toggle_btn {
+          display: block;
+        }
+        
+        .main-container {
+          flex-direction: column;
+        }
+        
+        .image-side {
+          width: 100%;
+          height: auto;
+          padding: 3rem 2rem;
+          min-height: 40vh;
+        }
+        
+        .form-side {
+          width: 100%;
+          padding: 2rem 1.5rem;
+        }
+        
+        .form-container {
+          padding: 2rem;
+          margin: 1rem 0;
+        }
+
+        .form-row {
+        flex-direction: column;
+        gap: 1rem;
+        flex-wrap: nowrap;
+      }
+
+      .form-row .input-box {
+        min-width: auto;
+        width: 100%;
+      }
+        .nav_menu_list {
+          display: none;
+        }
+      }
+
+      @media screen and (max-width: 480px) {
+        .logo h2 {
+          font-size: 24px;
+        }
+        
+        .header {
+          padding: 0 1.5rem;
+        }
+        
+        .form-container {
+          padding: 1.5rem;
+        }
+        
+        .form-container .title {
+          font-size: 26px;
+        }
+        
+        .welcome-text h3 {
+          font-size: 24px;
+        }
+
+        .image-side {
+          padding: 2rem 1.5rem;
+        }
+      }
     </style>
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
   </head>
   <body>
     <!-- ==== HEADER ==== -->
     <header class="header">
-      <div class="logo">
-        <h2>JobElevate.</h2>
-      </div>
-      <ul class="nav_menu_list">
-        <li class="nav_menu_item">
-          <a href="/" class="nav_menu_link">Home</a>
-        </li>
-        <li class="nav_menu_item">
-          <a href="/login/" class="nav_menu_link">Login</a>
-        </li>
-      </ul>
+      <nav class="nav">
+        <div class="logo">
+          <h2>JobElevate.</h2>
+        </div>
+        <ul class="nav_menu_list">
+          <li class="nav_menu_item">
+            <a href="/" class="nav_menu_link">Home</a>
+          </li>
+          <li class="nav_menu_item">
+            <a href="/login/" class="nav_menu_link">Login</a>
+          </li>
+        </ul>
+        <button class="toggle_btn">
+          <i class="ri-menu-line"></i>
+        </button>
+      </nav>
     </header>
 
     <!-- ==== MAIN CONTAINER ==== -->
     <div class="main-container">
-      <!-- ==== IMAGE SECTION ==== -->
-      <div class="image-section">
+      <!-- ==== IMAGE SIDE ==== -->
+      <div class="image-side">
         <img src="{% static 'images/6368592.jpg' %}" alt="JobElevate Signup">
         <div class="welcome-text">
-          <h2>Join JobElevate Today!</h2>
+          <h3>Join JobElevate Today!</h3>
           <p>Create your account and start your journey towards finding the perfect job or talent. Connect with opportunities that match your skills and ambitions.</p>
         </div>
       </div>
 
-      <!-- ==== FORM SECTION ==== -->
-      <div class="form-section">
+      <!-- ==== FORM SIDE ==== -->
+      <div class="form-side">
         <div class="form-container">
           <!-- Display Django Messages -->
           {% if messages %}
             {% for message in messages %}
               <div class="alert {% if message.tags == 'error' %}error{% else %}{{ message.tags }}{% endif %}">
+                <i class="ri-{% if message.tags == 'error' %}error-warning{% elif message.tags == 'success' %}check-double{% else %}information{% endif %}-line"></i>
                 {{ message }}
               </div>
             {% endfor %}
           {% endif %}
 
+          <!-- Step Indicator -->
+          <div class="step-indicator">
+            <div class="step-dot active" id="step1-dot"></div>
+            <div class="step-line" id="step1-line"></div>
+            <div class="step-dot" id="step2-dot"></div>
+          </div>
+
           <!-- Registration Form -->
-          <div id="signup-form" class="signup-form">
-            <h1 class="title">Create Account</h1>
+          <div id="signup-form" class="signup-form active">
+            <h1 class="title">
+              <i class="ri-user-add-line"></i>
+              Create Account
+            </h1>
             <p class="subtitle">Join our community and unlock your career potential</p>
 
             <form id="registrationForm" method="post">
@@ -628,7 +837,10 @@
 
               <!-- Dynamic Fields for Student -->
               <div id="student-fields" class="dynamic-fields">
-                <h3 class="dynamic-fields-title">Student Information</h3>
+                <h3 class="dynamic-fields-title">
+                  <i class="ri-graduation-cap-line"></i>
+                  Student Information
+                </h3>
                 <div class="form-row">
                   <div class="input-box">
                     <label for="university">University</label>
@@ -641,13 +853,16 @@
                 </div>
                 <div class="input-box full-width">
                   <label for="graduation_year">Expected Graduation Year</label>
-                  <input type="number" id="graduation_year" name="graduation_year" min="2020" max="2030" value="{{ form_data.graduation_year|default:'' }}">
+                  <input type="number" id="graduation_year" name="graduation_year" min="2020" max="2035" value="{{ form_data.graduation_year|default:'' }}">
                 </div>
               </div>
 
               <!-- Dynamic Fields for Professional -->
               <div id="professional-fields" class="dynamic-fields">
-                <h3 class="dynamic-fields-title">Professional Information</h3>
+                <h3 class="dynamic-fields-title">
+                  <i class="ri-briefcase-line"></i>
+                  Professional Information
+                </h3>
                 <div class="form-row">
                   <div class="input-box">
                     <label for="job_title">Current Job Title</label>
@@ -666,7 +881,10 @@
 
               <!-- Dynamic Fields for Recruiter -->
               <div id="recruiter-fields" class="dynamic-fields">
-                <h3 class="dynamic-fields-title">Company Information</h3>
+                <h3 class="dynamic-fields-title">
+                  <i class="ri-building-line"></i>
+                  Company Information
+                </h3>
                 <div class="form-row">
                   <div class="input-box">
                     <label for="company_name">Company Name</label>

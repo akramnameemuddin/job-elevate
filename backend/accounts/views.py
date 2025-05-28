@@ -6,9 +6,13 @@ from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.utils import timezone
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+import json
 from .models import User
-from .utils import generate_otp, send_email_otp, is_otp_valid
-from datetime import timedelta
+from .utils import generate_otp, send_email_otp, is_otp_valid, send_password_reset_otp
+from datetime import timedelta, datetime
+from django.contrib.auth.hashers import make_password
 
 
 # Homepage
@@ -19,97 +23,48 @@ def home(request):
 # Signup with OTP verification
 def signup(request):
     if request.method == "POST":
-        step = request.POST.get('step', '1')
-        
-        if step == '1':
-            # First step - collect user data and send OTP
-            return handle_signup_step1(request)
-        elif step == '2':
-            # Second step - verify OTP and create user
-            return handle_signup_step2(request)
+        try:
+            step = request.POST.get('step', '1')
+            
+            if step == '1':
+                # First step - collect user data and send OTP
+                return handle_signup_step1(request)
+            elif step == '2':
+                # Second step - verify OTP and create user
+                return handle_signup_step2(request)
+        except Exception as e:
+            print(f"[SIGNUP] Error in signup view: {str(e)}")
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False, 
+                    'message': 'An error occurred. Please try again.'
+                })
+            else:
+                messages.error(request, 'An error occurred. Please try again.')
+                return render(request, 'accounts/signup.html')
     
     return render(request, 'accounts/signup.html')
 
 
 def handle_signup_step1(request):
     """Handle first step of signup - validate data and send OTP"""
-    # Get form data
-    full_name = request.POST.get('full_name', '').strip()
-    username = request.POST.get('username', '').strip()
-    email = request.POST.get('email', '').strip()
-    phone_number = request.POST.get('phone_number', '').strip()
-    password = request.POST.get('password', '').strip()
-    confirm_password = request.POST.get('confirm_password', '').strip()
-    user_type = request.POST.get('user_type', '').strip()
+    try:
+        # Get form data
+        full_name = request.POST.get('full_name', '').strip()
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        phone_number = request.POST.get('phone_number', '').strip()
+        password = request.POST.get('password', '').strip()
+        confirm_password = request.POST.get('confirm_password', '').strip()
+        user_type = request.POST.get('user_type', '').strip()
 
-    # Store form data for re-displaying on error
-    form_data = {
-        'full_name': full_name,
-        'username': username,
-        'email': email,
-        'phone_number': phone_number,
-        'user_type': user_type,
-        'university': request.POST.get('university', ''),
-        'degree': request.POST.get('degree', ''),
-        'graduation_year': request.POST.get('graduation_year', ''),
-        'job_title': request.POST.get('job_title', ''),
-        'organization': request.POST.get('organization', ''),
-        'experience': request.POST.get('experience', ''),
-        'company_name': request.POST.get('company_name', ''),
-        'company_website': request.POST.get('company_website', ''),
-        'company_description': request.POST.get('company_description', ''),
-    }
-
-    # Validation
-    if not all([full_name, username, email, phone_number, password, confirm_password, user_type]):
-        messages.error(request, "All required fields must be filled.")
-        return render(request, 'accounts/signup.html', {'form_data': form_data})
-
-    if password != confirm_password:
-        messages.error(request, "Passwords do not match.")
-        return render(request, 'accounts/signup.html', {'form_data': form_data})
-
-    if len(password) < 8 or not re.search(r'[A-Za-z]', password) or not re.search(r'\d', password):
-        messages.error(request, "Password must be at least 8 characters long and contain letters and numbers.")
-        return render(request, 'accounts/signup.html', {'form_data': form_data})
-
-    # Check if email already exists and is verified
-    existing_user = User.objects.filter(email=email).first()
-    if existing_user and existing_user.email_verified:
-        messages.error(request, "Email already exists and is verified.")
-        return render(request, 'accounts/signup.html', {'form_data': form_data})
-
-    # Check username (only if it doesn't belong to unverified user with same email)
-    username_user = User.objects.filter(username=username).first()
-    if username_user and (username_user.email != email or username_user.email_verified):
-        messages.error(request, "Username already exists.")
-        return render(request, 'accounts/signup.html', {'form_data': form_data})
-
-    # Check phone number (only if it doesn't belong to unverified user with same email)
-    phone_user = User.objects.filter(phone_number=phone_number).first()
-    if phone_user and (phone_user.email != email or phone_user.email_verified):
-        messages.error(request, "Phone number already exists.")
-        return render(request, 'accounts/signup.html', {'form_data': form_data})
-
-    # Delete existing unverified user with same email if exists
-    if existing_user and not existing_user.email_verified:
-        existing_user.delete()
-
-    # Generate and send OTP
-    email_otp = generate_otp()
-    
-    if send_email_otp(email, email_otp):
-        # Store data in session
-        request.session['signup_data'] = {
+        # Store form data for re-displaying on error
+        form_data = {
             'full_name': full_name,
             'username': username,
             'email': email,
             'phone_number': phone_number,
-            'password': password,
             'user_type': user_type,
-            'email_otp': email_otp,
-            'otp_created_at': timezone.now().isoformat(),
-            # Store user-type specific fields
             'university': request.POST.get('university', ''),
             'degree': request.POST.get('degree', ''),
             'graduation_year': request.POST.get('graduation_year', ''),
@@ -120,59 +75,182 @@ def handle_signup_step1(request):
             'company_website': request.POST.get('company_website', ''),
             'company_description': request.POST.get('company_description', ''),
         }
+
+        # Validation
+        if not all([full_name, username, email, phone_number, password, confirm_password, user_type]):
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False, 
+                    'message': 'All required fields must be filled.'
+                })
+            messages.error(request, "All required fields must be filled.")
+            return render(request, 'accounts/signup.html', {'form_data': form_data})
+
+        if password != confirm_password:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False, 
+                    'message': 'Passwords do not match.'
+                })
+            messages.error(request, "Passwords do not match.")
+            return render(request, 'accounts/signup.html', {'form_data': form_data})
+
+        if len(password) < 8 or not re.search(r'[A-Za-z]', password) or not re.search(r'\d', password):
+            error_msg = "Password must be at least 8 characters long and contain letters and numbers."
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False, 
+                    'message': error_msg
+                })
+            messages.error(request, error_msg)
+            return render(request, 'accounts/signup.html', {'form_data': form_data})
+
+        # Email validation
+        email_regex = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
+        if not re.match(email_regex, email):
+            error_msg = "Please enter a valid email address."
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False, 
+                    'message': error_msg
+                })
+            messages.error(request, error_msg)
+            return render(request, 'accounts/signup.html', {'form_data': form_data})
+
+        # Check if email already exists and is verified
+        existing_user = User.objects.filter(email=email).first()
+        if existing_user and existing_user.email_verified:
+            error_msg = "Email already exists and is verified."
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False, 
+                    'message': error_msg
+                })
+            messages.error(request, error_msg)
+            return render(request, 'accounts/signup.html', {'form_data': form_data})
+
+        # Check username (only if it doesn't belong to unverified user with same email)
+        username_user = User.objects.filter(username=username).first()
+        if username_user and (username_user.email != email or username_user.email_verified):
+            error_msg = "Username already exists."
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False, 
+                    'message': error_msg
+                })
+            messages.error(request, error_msg)
+            return render(request, 'accounts/signup.html', {'form_data': form_data})
+
+        # Check phone number (only if it doesn't belong to unverified user with same email)
+        phone_user = User.objects.filter(phone_number=phone_number).first()
+        if phone_user and (phone_user.email != email or phone_user.email_verified):
+            error_msg = "Phone number already exists."
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False, 
+                    'message': error_msg
+                })
+            messages.error(request, error_msg)
+            return render(request, 'accounts/signup.html', {'form_data': form_data})
+
+        # Delete existing unverified user with same email if exists
+        if existing_user and not existing_user.email_verified:
+            existing_user.delete()
+
+        # Generate and send OTP
+        email_otp = generate_otp()
         
-        return JsonResponse({
-            'success': True, 
-            'message': f'OTP sent to {email}. Please check your email and enter the verification code.',
-            'email': email
-        })
-    else:
+        if send_email_otp(email, email_otp):
+            # Store data in session
+            request.session['signup_data'] = {
+                'full_name': full_name,
+                'username': username,
+                'email': email,
+                'phone_number': phone_number,
+                'password': password,
+                'user_type': user_type,
+                'email_otp': email_otp,
+                'otp_created_at': timezone.now().isoformat(),
+                # Store user-type specific fields
+                'university': request.POST.get('university', ''),
+                'degree': request.POST.get('degree', ''),
+                'graduation_year': request.POST.get('graduation_year', ''),
+                'job_title': request.POST.get('job_title', ''),
+                'organization': request.POST.get('organization', ''),
+                'experience': request.POST.get('experience', ''),
+                'company_name': request.POST.get('company_name', ''),
+                'company_website': request.POST.get('company_website', ''),
+                'company_description': request.POST.get('company_description', ''),
+            }
+            
+            return JsonResponse({
+                'success': True, 
+                'message': f'OTP sent to {email}. Please check your email and enter the verification code.',
+                'email': email
+            })
+        else:
+            return JsonResponse({
+                'success': False, 
+                'message': 'Failed to send OTP. Please check your email address and try again.'
+            })
+            
+    except Exception as e:
+        print(f"[SIGNUP STEP1] Error: {str(e)}")
         return JsonResponse({
             'success': False, 
-            'message': 'Failed to send OTP. Please check your email address and try again.'
+            'message': 'An error occurred during registration. Please try again.'
         })
 
 
 def handle_signup_step2(request):
     """Handle second step of signup - verify OTP and create user"""
-    signup_data = request.session.get('signup_data')
-    if not signup_data:
-        return JsonResponse({
-            'success': False, 
-            'message': 'Session expired. Please start registration again.'
-        })
-    
-    email_otp_input = request.POST.get('email_otp', '').strip()
-    
-    if not email_otp_input:
-        return JsonResponse({
-            'success': False, 
-            'message': 'Please enter the OTP.'
-        })
-    
-    # Check OTP expiration
-    otp_created_at = timezone.datetime.fromisoformat(signup_data['otp_created_at'])
-    
-    if not is_otp_valid(otp_created_at):
-        return JsonResponse({
-            'success': False, 
-            'message': 'OTP has expired. Please request a new one.'
-        })
-    
-    # Verify OTP
-    if email_otp_input != signup_data['email_otp']:
-        return JsonResponse({
-            'success': False, 
-            'message': 'Invalid OTP. Please try again.'
-        })
-    if User.objects.filter(email=signup_data['email'], email_verified=True).exists():
-        return JsonResponse({'success': False, 'message': 'Email already exists and is verified.'})
-
-    if User.objects.filter(username=signup_data['username']).exclude(email=signup_data['email']).exists():
-        return JsonResponse({'success': False, 'message': 'Username is already taken.'})
-        
-    # Create user
     try:
+        signup_data = request.session.get('signup_data')
+        if not signup_data:
+            return JsonResponse({
+                'success': False, 
+                'message': 'Session expired. Please start registration again.'
+            })
+        
+        email_otp_input = request.POST.get('email_otp', '').strip()
+        
+        if not email_otp_input:
+            return JsonResponse({
+                'success': False, 
+                'message': 'Please enter the OTP.'
+            })
+        
+        # Check OTP expiration
+        otp_created_at = timezone.datetime.fromisoformat(signup_data['otp_created_at'])
+        
+        if not is_otp_valid(otp_created_at):
+            return JsonResponse({
+                'success': False, 
+                'message': 'OTP has expired. Please request a new one.'
+            })
+        
+        # Verify OTP
+        if email_otp_input != signup_data['email_otp']:
+            return JsonResponse({
+                'success': False, 
+                'message': 'Invalid OTP. Please try again.'
+            })
+            
+        # Double-check if email already exists and is verified
+        if User.objects.filter(email=signup_data['email'], email_verified=True).exists():
+            return JsonResponse({
+                'success': False, 
+                'message': 'Email already exists and is verified.'
+            })
+
+        # Check if username is taken by another user
+        if User.objects.filter(username=signup_data['username']).exclude(email=signup_data['email']).exists():
+            return JsonResponse({
+                'success': False, 
+                'message': 'Username is already taken.'
+            })
+            
+        # Create user
         user = User.objects.create_user(
             username=signup_data['username'],
             email=signup_data['email'],
@@ -192,7 +270,7 @@ def handle_signup_step2(request):
             if signup_data.get('graduation_year'):
                 try:
                     user.graduation_year = int(signup_data['graduation_year'])
-                except ValueError:
+                except (ValueError, TypeError):
                     pass
         
         elif signup_data['user_type'] == 'professional':
@@ -203,7 +281,7 @@ def handle_signup_step2(request):
             if signup_data.get('experience'):
                 try:
                     user.experience = int(signup_data['experience'])
-                except ValueError:
+                except (ValueError, TypeError):
                     pass
         
         elif signup_data['user_type'] == 'recruiter':
@@ -223,328 +301,366 @@ def handle_signup_step2(request):
         return JsonResponse({
             'success': True, 
             'message': 'Account created successfully! Your email has been verified. Redirecting to login...',
-            'redirect_url': '/login/'
+            'redirect_url': '/accounts/login/'
         })
         
     except IntegrityError as e:
-        print(f"[SIGNUP] IntegrityError: {str(e)}")
+        print(f"[SIGNUP STEP2] IntegrityError: {str(e)}")
         return JsonResponse({
             'success': False, 
-            'message': 'Failed to create account. Username or email might already exist.'
+            'message': 'Failed to create account. Username, email or phone number might already exist.'
         })
 
     except Exception as e:
-        print(f"[SIGNUP] Unexpected error: {str(e)}")
+        print(f"[SIGNUP STEP2] Unexpected error: {str(e)}")
         return JsonResponse({
             'success': False, 
             'message': 'Failed to create account. Please try again.'
         })
 
 
-
+@require_http_methods(["POST"])
 def resend_otp(request):
     """Resend OTP to email"""
-    if request.method == "POST":
+    try:
         signup_data = request.session.get('signup_data')
         if not signup_data:
-            return JsonResponse({'success': False, 'message': 'Session expired. Please start registration again.'})
+            return JsonResponse({
+                'success': False, 
+                'message': 'Session expired. Please start registration again.'
+            })
         
-        try:
-            new_otp = generate_otp()
-            if send_email_otp(signup_data['email'], new_otp):
-                # Update session with new OTP and timestamp
-                signup_data['email_otp'] = new_otp
-                signup_data['otp_created_at'] = timezone.now().isoformat()
-                request.session['signup_data'] = signup_data
-                
-                return JsonResponse({'success': True, 'message': 'New OTP sent successfully to your email.'})
-            else:
-                return JsonResponse({'success': False, 'message': 'Failed to send OTP. Please try again.'})
-        except Exception as e:
-            return JsonResponse({'success': False, 'message': 'Failed to send OTP. Please try again.'})
-    
-    return JsonResponse({'success': False, 'message': 'Invalid request method.'})
-
-
-# Login with email verification check
-def login(request):
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-
-        if not email or not password:
-            messages.error(request, "Email and password are required.")
-            return render(request, 'accounts/login.html')
-
-        try:
-            user = User.objects.get(email=email)
-            
-            # Check if email is verified
-            if not user.email_verified:
-                messages.error(request, "Please verify your email address before logging in.")
-                return render(request, 'accounts/login.html')
-            
-            auth_user = authenticate(request, username=user.username, password=password)
-
-            if auth_user:
-                auth_login(request, auth_user)
-
-                if auth_user.user_type == 'recruiter':
-                    return redirect('/recruiter/')
-                else:
-                    return redirect('dashboard:home')
-            else:
-                messages.error(request, "Incorrect password.")
-                
-        except User.DoesNotExist:
-            messages.error(request, "User not found.")
-
-    return render(request, 'accounts/login.html')
-
-
-# Logout
-def logout_user(request):
-    auth_logout(request)
-    messages.success(request, "You have been logged out.")
-    return redirect('accounts:login')
-
-
-# Profile
-@login_required
-def profile(request):
-    user = request.user
-
-    if request.method == 'POST':
-        try:
-            user.full_name = request.POST.get('full_name', user.full_name)
-            user.phone_number = request.POST.get('phone_number', user.phone_number)
-            user.linkedin_profile = request.POST.get('linkedin_profile', user.linkedin_profile)
-            user.github_profile = request.POST.get('github_profile', user.github_profile)
-            user.portfolio_website = request.POST.get('portfolio_website', user.portfolio_website)
-            user.objective = request.POST.get('objective', user.objective)
-            user.profile_photo = request.FILES.get('profile_photo', user.profile_photo)
-            user.save()
-            messages.success(request, "Profile updated successfully!")
-        except Exception as e:
-            messages.error(request, f"Error updating profile: {str(e)}")
-
-    return render(request, 'accounts/profile.html', {'user': user})
-
-
-# Delete Account
-@login_required
-def delete_account(request):
-    if request.method == 'POST':
-        user = request.user
-        if hasattr(user, 'recruiterprofile'):
-            user.recruiterprofile.delete()
-        auth_logout(request)
-        user.delete()
-        return redirect('accounts:home')
-    return redirect('accounts:profile')
-
-# Add these new functions to your existing views.py
-
-def forgot_password(request):
-    """Handle forgot password - send OTP to email"""
-    if request.method == "POST":
-        step = request.POST.get('step', '1')
-        
-        if step == '1':
-            # First step - validate email and send OTP
-            return handle_forgot_password_step1(request)
-        elif step == '2':
-            # Second step - verify OTP
-            return handle_forgot_password_step2(request)
-        elif step == '3':
-            # Third step - reset password
-            return handle_forgot_password_step3(request)
-    
-    return render(request, 'accounts/forgot_password.html')
-
-
-def handle_forgot_password_step1(request):
-    """Send OTP to user's email for password reset"""
-    email = request.POST.get('email', '').strip()
-    
-    if not email:
-        return JsonResponse({
-            'success': False,
-            'message': 'Please enter your email address.'
-        })
-    
-    try:
-        user = User.objects.get(email=email, email_verified=True)
-        
-        # Generate and send OTP
-        reset_otp = generate_otp()
-        
-        if send_email_otp(email, reset_otp):
-            # Store OTP and timestamp in user model
-            user.email_otp = reset_otp
-            user.otp_created_at = timezone.now()
-            user.save()
-            
-            # Store email in session for next steps
-            request.session['reset_email'] = email
+        new_otp = generate_otp()
+        if send_email_otp(signup_data['email'], new_otp):
+            # Update session with new OTP and timestamp
+            signup_data['email_otp'] = new_otp
+            signup_data['otp_created_at'] = timezone.now().isoformat()
+            request.session['signup_data'] = signup_data
             
             return JsonResponse({
-                'success': True,
-                'message': f'Password reset OTP sent to {email}. Please check your email.',
-                'email': email
+                'success': True, 
+                'message': 'New OTP sent successfully to your email.'
             })
         else:
             return JsonResponse({
-                'success': False,
+                'success': False, 
                 'message': 'Failed to send OTP. Please try again.'
             })
             
-    except User.DoesNotExist:
+    except Exception as e:
+        print(f"[RESEND OTP] Error: {str(e)}")
         return JsonResponse({
-            'success': False,
-            'message': 'No account found with this email address.'
+            'success': False, 
+            'message': 'Failed to send OTP. Please try again.'
         })
 
 
-def handle_forgot_password_step2(request):
-    """Verify OTP for password reset"""
-    reset_email = request.session.get('reset_email')
-    if not reset_email:
-        return JsonResponse({
-            'success': False,
-            'message': 'Session expired. Please start the password reset process again.'
-        })
-    
-    otp_input = request.POST.get('otp', '').strip()
-    
-    if not otp_input:
-        return JsonResponse({
-            'success': False,
-            'message': 'Please enter the OTP.'
-        })
-    
-    try:
-        user = User.objects.get(email=reset_email, email_verified=True)
-        
-        # Check OTP expiration
-        if not is_otp_valid(user.otp_created_at):
-            return JsonResponse({
-                'success': False,
-                'message': 'OTP has expired. Please request a new one.'
-            })
-        
-        # Verify OTP
-        if otp_input != user.email_otp:
-            return JsonResponse({
-                'success': False,
-                'message': 'Invalid OTP. Please try again.'
-            })
-        
-        # OTP verified successfully
-        return JsonResponse({
-            'success': True,
-            'message': 'OTP verified successfully. You can now reset your password.'
-        })
-        
-    except User.DoesNotExist:
-        return JsonResponse({
-            'success': False,
-            'message': 'Invalid session. Please start again.'
-        })
 
-
-def handle_forgot_password_step3(request):
-    """Reset user password after OTP verification"""
-    reset_email = request.session.get('reset_email')
-    if not reset_email:
-        return JsonResponse({
-            'success': False,
-            'message': 'Session expired. Please start the password reset process again.'
-        })
-    
-    new_password = request.POST.get('new_password', '').strip()
-    confirm_password = request.POST.get('confirm_password', '').strip()
-    
-    if not new_password or not confirm_password:
-        return JsonResponse({
-            'success': False,
-            'message': 'Please fill in both password fields.'
-        })
-    
-    if new_password != confirm_password:
-        return JsonResponse({
-            'success': False,
-            'message': 'Passwords do not match.'
-        })
-    
-    if len(new_password) < 8 or not re.search(r'[A-Za-z]', new_password) or not re.search(r'\d', new_password):
-        return JsonResponse({
-            'success': False,
-            'message': 'Password must be at least 8 characters long and contain letters and numbers.'
-        })
-    
-    try:
-        user = User.objects.get(email=reset_email, email_verified=True)
-        
-        # Reset password
-        user.set_password(new_password)
-        user.email_otp = None  # Clear OTP
-        user.otp_created_at = None  # Clear OTP timestamp
-        user.save()
-        
-        # Clear session
-        if 'reset_email' in request.session:
-            del request.session['reset_email']
-        
-        return JsonResponse({
-            'success': True,
-            'message': 'Password reset successfully! You can now login with your new password.',
-            'redirect_url': '/login/'
-        })
-        
-    except User.DoesNotExist:
-        return JsonResponse({
-            'success': False,
-            'message': 'Invalid session. Please start again.'
-        })
-
-
-def resend_reset_otp(request):
-    """Resend OTP for password reset"""
+# Login view
+def login(request):
     if request.method == "POST":
-        reset_email = request.session.get('reset_email')
-        if not reset_email:
+        try:
+            email = request.POST.get('email', '').strip()
+            password = request.POST.get('password', '').strip()
+            
+            if not email or not password:
+                messages.error(request, "Please fill in all fields.")
+                return render(request, 'accounts/login.html')
+            
+            # Try to find user by email
+            try:
+                user = User.objects.get(email=email)
+                username = user.username
+            except User.DoesNotExist:
+                messages.error(request, "Invalid email or password.")
+                return render(request, 'accounts/login.html')
+            
+            # Authenticate user
+            user = authenticate(request, username=username, password=password)
+            
+            if user is not None:
+                if user.email_verified:
+                    auth_login(request, user)
+                    messages.success(request, f"Welcome back, {user.full_name}!")
+                    return redirect('dashboard:home')
+                else:
+                    messages.error(request, "Please verify your email before logging in.")
+                    return render(request, 'accounts/login.html')
+            else:
+                messages.error(request, "Invalid email or password.")
+                return render(request, 'accounts/login.html')
+                
+        except Exception as e:
+            print(f"[LOGIN] Error: {str(e)}")
+            messages.error(request, "An error occurred during login. Please try again.")
+            return render(request, 'accounts/login.html')
+    
+    return render(request, 'accounts/login.html')
+
+
+# Logout view
+@login_required
+def logout_user(request):
+    auth_logout(request)
+    messages.success(request, "You have been logged out successfully.")
+    return redirect('accounts:home')
+
+
+# Profile view
+@login_required
+def profile(request):
+    return render(request, 'accounts/profile.html', {'user': request.user})
+
+
+# Delete account view
+@login_required
+def delete_account(request):
+    if request.method == "POST":
+        try:
+            user = request.user
+            auth_logout(request)
+            user.delete()
+            messages.success(request, "Your account has been deleted successfully.")
+            return redirect('accounts:home')
+        except Exception as e:
+            print(f"[DELETE ACCOUNT] Error: {str(e)}")
+            messages.error(request, "An error occurred while deleting your account.")
+            return redirect('accounts:profile')
+    
+    return redirect('accounts:profile')
+
+
+def forgot_password(request):
+    if request.method == "POST":
+        try:
+            step = request.POST.get('step', '1')
+            
+            # Step 1: Email submission
+            if step == '1':
+                email = request.POST.get('email', '').strip()
+                
+                if not email:
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({
+                            'success': False, 
+                            'message': 'Please enter your email address.'
+                        })
+                    messages.error(request, "Please enter your email address.")
+                    return render(request, 'accounts/login.html')
+                
+                # Check if user exists and is verified
+                try:
+                    user = User.objects.get(email=email, email_verified=True)
+                except User.DoesNotExist:
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({
+                            'success': False, 
+                            'message': 'No verified account found with this email address.'
+                        })
+                    messages.error(request, "No verified account found with this email address.")
+                    return render(request, 'accounts/login.html')
+                
+                # Generate and send reset OTP
+                reset_otp = generate_otp()
+                
+                if send_password_reset_otp(email, reset_otp):
+                    # Store reset data in session
+                    request.session['password_reset_data'] = {
+                        'email': email,
+                        'otp': reset_otp,
+                        'otp_created_at': timezone.now().isoformat(),
+                    }
+                    
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({
+                            'success': True, 
+                            'message': f'Password reset code sent to {email}. Please check your email.',
+                            'email': email
+                        })
+                    messages.success(request, f"Password reset code sent to {email}. Please check your email.")
+                    return render(request, 'accounts/login.html', {'email': email})
+                else:
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({
+                            'success': False, 
+                            'message': 'Failed to send reset code. Please try again.'
+                        })
+                    messages.error(request, "Failed to send reset code. Please try again.")
+                    return render(request, 'accounts/login.html')
+            
+            # Step 2: OTP verification
+            elif step == '2':
+                reset_data = request.session.get('password_reset_data')
+                if not reset_data:
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({
+                            'success': False, 
+                            'message': 'Session expired. Please start the password reset process again.'
+                        })
+                    messages.error(request, "Session expired. Please start over.")
+                    return render(request, 'accounts/login.html')
+                
+                entered_otp = request.POST.get('otp', '').strip()
+                
+                if not entered_otp:
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({
+                            'success': False, 
+                            'message': 'Please enter the verification code.'
+                        })
+                    messages.error(request, "Please enter the verification code.")
+                    return render(request, 'accounts/login.html')
+                
+                # Check if OTP is valid
+                otp_created_at = datetime.fromisoformat(reset_data['otp_created_at'])
+                if not is_otp_valid(otp_created_at):
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({
+                            'success': False, 
+                            'message': 'Verification code has expired. Please request a new one.'
+                        })
+                    messages.error(request, "Verification code has expired.")
+                    return render(request, 'accounts/login.html')
+                
+                # Check if OTP matches
+                if entered_otp != reset_data['otp']:
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({
+                            'success': False, 
+                            'message': 'Invalid verification code. Please try again.'
+                        })
+                    messages.error(request, "Invalid verification code.")
+                    return render(request, 'accounts/login.html')
+                
+                # OTP is valid, mark it as verified
+                reset_data['otp_verified'] = True
+                request.session['password_reset_data'] = reset_data
+                
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': True, 
+                        'message': 'Code verified successfully. Please set your new password.'
+                    })
+                messages.success(request, "Code verified successfully.")
+                return render(request, 'accounts/login.html')
+            
+            # Step 3: Password reset
+            elif step == '3':
+                reset_data = request.session.get('password_reset_data')
+                if not reset_data or not reset_data.get('otp_verified'):
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({
+                            'success': False, 
+                            'message': 'Session expired or OTP not verified. Please start over.'
+                        })
+                    messages.error(request, "Session expired. Please start over.")
+                    return render(request, 'accounts/login.html')
+                
+                new_password = request.POST.get('new_password', '').strip()
+                confirm_password = request.POST.get('confirm_password', '').strip()
+                
+                if not new_password or not confirm_password:
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({
+                            'success': False, 
+                            'message': 'Please enter both password fields.'
+                        })
+                    messages.error(request, "Please enter both password fields.")
+                    return render(request, 'accounts/login.html')
+                
+                if new_password != confirm_password:
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({
+                            'success': False, 
+                            'message': 'Passwords do not match.'
+                        })
+                    messages.error(request, "Passwords do not match.")
+                    return render(request, 'accounts/login.html')
+                
+                if len(new_password) < 8:
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({
+                            'success': False, 
+                            'message': 'Password must be at least 8 characters long.'
+                        })
+                    messages.error(request, "Password must be at least 8 characters long.")
+                    return render(request, 'accounts/login.html')
+                
+                try:
+                    # Update user password
+                    user = User.objects.get(email=reset_data['email'])
+                    user.password = make_password(new_password)
+                    user.save()
+                    
+                    # Clear session data
+                    if 'password_reset_data' in request.session:
+                        del request.session['password_reset_data']
+                    
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({
+                            'success': True, 
+                            'message': 'Password reset successfully! You can now login with your new password.',
+                            'redirect_url': '/accounts/login/'
+                        })
+                    messages.success(request, "Password reset successfully! You can now login.")
+                    return redirect('accounts:login')
+                    
+                except User.DoesNotExist:
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({
+                            'success': False, 
+                            'message': 'User not found. Please start over.'
+                        })
+                    messages.error(request, "User not found.")
+                    return render(request, 'accounts/login.html')
+                
+        except Exception as e:
+            print(f"[FORGOT PASSWORD] Error: {str(e)}")
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False, 
+                    'message': 'An error occurred. Please try again.'
+                })
+            messages.error(request, "An error occurred. Please try again.")
+            return render(request, 'accounts/login.html')
+    
+    return render(request, 'accounts/login.html')
+
+
+# Resend reset OTP
+@require_http_methods(["POST"])
+def resend_reset_otp(request):
+    """Resend password reset OTP"""
+    try:
+        reset_data = request.session.get('password_reset_data')
+        if not reset_data:
             return JsonResponse({
-                'success': False,
+                'success': False, 
                 'message': 'Session expired. Please start the password reset process again.'
             })
         
-        try:
-            user = User.objects.get(email=reset_email, email_verified=True)
+        new_otp = generate_otp()
+        if send_password_reset_otp(reset_data['email'], new_otp):
+            # Update session with new OTP and timestamp
+            reset_data['otp'] = new_otp
+            reset_data['otp_created_at'] = timezone.now().isoformat()
+            # Remove verification flag to require re-verification
+            reset_data.pop('otp_verified', None)
+            request.session['password_reset_data'] = reset_data
             
-            # Generate new OTP
-            new_otp = generate_otp()
-            
-            if send_email_otp(reset_email, new_otp):
-                # Update user with new OTP
-                user.email_otp = new_otp
-                user.otp_created_at = timezone.now()
-                user.save()
-                
-                return JsonResponse({
-                    'success': True,
-                    'message': 'New OTP sent successfully to your email.'
-                })
-            else:
-                return JsonResponse({
-                    'success': False,
-                    'message': 'Failed to send OTP. Please try again.'
-                })
-                
-        except User.DoesNotExist:
             return JsonResponse({
-                'success': False,
-                'message': 'Invalid session. Please start again.'
+                'success': True, 
+                'message': 'New password reset code sent successfully to your email.'
             })
-    
-    return JsonResponse({'success': False, 'message': 'Invalid request method.'})
+        else:
+            return JsonResponse({
+                'success': False, 
+                'message': 'Failed to send reset code. Please try again.'
+            })
+            
+    except Exception as e:
+        print(f"[RESEND RESET OTP] Error: {str(e)}")
+        return JsonResponse({
+            'success': False, 
+            'message': 'Failed to send reset code. Please try again.'
+        })
