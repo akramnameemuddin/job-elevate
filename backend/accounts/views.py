@@ -301,7 +301,7 @@ def handle_signup_step2(request):
         return JsonResponse({
             'success': True, 
             'message': 'Account created successfully! Your email has been verified. Redirecting to login...',
-            'redirect_url': '/accounts/login/'
+            'redirect_url': '/login/'
         })
         
     except IntegrityError as e:
@@ -405,7 +405,7 @@ def login(request):
 def logout_user(request):
     auth_logout(request)
     messages.success(request, "You have been logged out successfully.")
-    return redirect('accounts:home')
+    return redirect('accounts:login')
 
 
 # Profile view
