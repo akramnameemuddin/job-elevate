@@ -356,7 +356,6 @@ def resend_otp(request):
 
 
 
-# Login view
 def login(request):
     if request.method == "POST":
         try:
@@ -367,7 +366,7 @@ def login(request):
                 messages.error(request, "Please fill in all fields.")
                 return render(request, 'accounts/login.html')
             
-            # Try to find user by email
+            # Find user by email
             try:
                 user = User.objects.get(email=email)
                 username = user.username
@@ -379,25 +378,28 @@ def login(request):
             user = authenticate(request, username=username, password=password)
             
             if user is not None:
-                if user.email_verified:
-                    auth_login(request, user)
-                    messages.success(request, f"Welcome back, {user.full_name}!")
-                    return redirect('dashboard:home')
-                else:
+                if hasattr(user, 'email_verified') and not user.email_verified:
                     messages.error(request, "Please verify your email before logging in.")
                     return render(request, 'accounts/login.html')
+
+                auth_login(request, user)
+                messages.success(request, f"Welcome back, {getattr(user, 'full_name', user.username)}!")
+
+                if user.user_type == 'recruiter':
+                    return redirect('recruiter:recruiter_dashboard')
+                else:
+                    return redirect('dashboard:home')
+
             else:
                 messages.error(request, "Invalid email or password.")
                 return render(request, 'accounts/login.html')
-                
+
         except Exception as e:
-            print(f"[LOGIN] Error: {str(e)}")
+            print(f"[LOGIN ERROR] {str(e)}")
             messages.error(request, "An error occurred during login. Please try again.")
             return render(request, 'accounts/login.html')
-    
+
     return render(request, 'accounts/login.html')
-
-
 # Logout view
 @login_required
 def logout_user(request):
