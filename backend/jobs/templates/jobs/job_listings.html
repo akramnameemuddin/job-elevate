@@ -315,18 +315,28 @@
   --warning-color: #f39c12;
   --danger-color: #e74c3c;
   --info-color: #3498db;
-  --gray-50: #f9fafb;
-  --gray-100: #f3f4f6;
-  --gray-200: #e5e7eb;
+
+  --background-color: #f9fafb;
+  --hover-bg: #f3f4f6;
+  --border-color: #e5e7eb;
+  --card-bg: #ffffff;
+  --text-color: #111827;
+  --text-light: #6b7280;
+
+  --gray-50: var(--background-color);
+  --gray-100: var(--hover-bg);
+  --gray-200: var(--border-color);
   --gray-300: #d1d5db;
   --gray-400: #9ca3af;
-  --gray-500: #6b7280;
+  --gray-500: var(--text-light);
   --gray-600: #4b5563;
   --gray-700: #374151;
-  --gray-800: #1f2937;
+  --gray-800: var(--text-color);
   --gray-900: #111827;
+
   --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
   --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
   --transition: all 0.3s ease;
   --radius-sm: 0.25rem;
   --radius-md: 0.5rem;
@@ -334,13 +344,37 @@
   --radius-xl: 1rem;
 }
 
+[data-theme="dark"] {
+  --background-color: #111827;
+  --hover-bg: #1f2937;
+  --border-color: #374151;
+  --card-bg: #1f2937;
+  --text-color: #f9fafb;
+  --text-light: #d1d5db;
+
+  --gray-50: var(--background-color);
+  --gray-100: var(--hover-bg);
+  --gray-200: var(--border-color);
+  --gray-300: #4b5563;
+  --gray-400: #6b7280;
+  --gray-500: var(--text-light);
+  --gray-600: #9ca3af;
+  --gray-700: #d1d5db;
+  --gray-800: var(--text-color);
+  --gray-900: #ffffff;
+
+  --card-shadow: 0 1px 3px rgba(255, 255, 255, 0.05), 0 1px 2px rgba(255, 255, 255, 0.03);
+  --card-shadow-hover: 0 10px 15px -3px rgba(255, 255, 255, 0.08), 0 4px 6px -2px rgba(255, 255, 255, 0.02);
+}
+
+
 /* Page Header */
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
-  background: #fff;
+  background: var(--card-bg);
   border-radius: var(--radius-lg);
   padding: 1.25rem;
   box-shadow: var(--card-shadow);
@@ -388,7 +422,7 @@
   flex-wrap: wrap;
   gap: 1rem;
   margin-bottom: 1.5rem;
-  background: #fff;
+  background: var(--card-bg);
   padding: 1rem;
   border-radius: var(--radius-lg);
   box-shadow: var(--card-shadow);
@@ -506,7 +540,7 @@
 
 /* Content Sections */
 .content-section {
-  background: #fff;
+  background: var(--card-bg);
   border-radius: var(--radius-lg);
   margin-bottom: 1.5rem;
   padding: 1.5rem;
@@ -554,7 +588,7 @@
 
 /* Job Card Styling */
 .job-card {
-  background: #fff;
+  background: var(--card-bg);
   border-radius: var(--radius-lg);
   overflow: hidden;
   border: 1px solid var(--gray-200);
@@ -1169,6 +1203,7 @@
     gap: 0.25rem;
   }
 }
+
 </style>
 <script>
 // Document Ready Function
