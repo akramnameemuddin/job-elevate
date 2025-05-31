@@ -383,7 +383,6 @@ def login(request):
                     return render(request, 'accounts/login.html')
 
                 auth_login(request, user)
-                messages.success(request, f"Welcome back, {getattr(user, 'full_name', user.username)}!")
 
                 if user.user_type == 'recruiter':
                     return redirect('recruiter:recruiter_dashboard')

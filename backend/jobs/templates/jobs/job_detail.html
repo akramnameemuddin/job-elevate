@@ -141,15 +141,14 @@
                     </div>
                 </div>
             </div>
-
             <!-- About the company -->
             <div class="content-section">
                 <div class="section-header">
                     <h2 class="section-title"><i class='bx bx-building'></i> About {{ job.company }}</h2>
                 </div>
                 <div class="section-content">
-                    {% if job.company_description %}
-                        {{ job.company_description|linebreaks }}
+                    {% if company_description %}
+                        {{ company_description|linebreaks }}
                     {% else %}
                         <p>No company description available.</p>
                     {% endif %}

@@ -306,67 +306,210 @@
   {% endif %}
 </div>
 <style>
-/* Modern Job Listings Styles */
+/* Modern CSS Variables - Updated for dark mode */
 :root {
+  /* Light mode colors */
   --primary-color: #4361ee;
   --primary-light: rgba(67, 97, 238, 0.1);
   --primary-dark: #3a56d4;
+  --secondary-color: #7c3aed;
   --success-color: #2ecc71;
   --warning-color: #f39c12;
   --danger-color: #e74c3c;
   --info-color: #3498db;
 
   --background-color: #f9fafb;
+  --card-bg: #ffffff;
   --hover-bg: #f3f4f6;
   --border-color: #e5e7eb;
-  --card-bg: #ffffff;
   --text-color: #111827;
   --text-light: #6b7280;
 
-  --gray-50: var(--background-color);
-  --gray-100: var(--hover-bg);
-  --gray-200: var(--border-color);
-  --gray-300: #d1d5db;
-  --gray-400: #9ca3af;
-  --gray-500: var(--text-light);
-  --gray-600: #4b5563;
-  --gray-700: #374151;
-  --gray-800: var(--text-color);
-  --gray-900: #111827;
-
-  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-  --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-
-  --transition: all 0.3s ease;
-  --radius-sm: 0.25rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
+/* Dark mode colors */
 [data-theme="dark"] {
+  --primary-color: #818cf8;
+  --primary-light: rgba(129, 140, 248, 0.1);
+  --primary-dark: #6366f1;
+  --secondary-color: #a78bfa;
+  --success-color: #34d399;
+  --warning-color: #fbbf24;
+  --danger-color: #f87171;
+  --info-color: #60a5fa;
+
   --background-color: #111827;
-  --hover-bg: #1f2937;
-  --border-color: #374151;
   --card-bg: #1f2937;
+  --hover-bg: #374151;
+  --border-color: #374151;
   --text-color: #f9fafb;
   --text-light: #d1d5db;
 
-  --gray-50: var(--background-color);
-  --gray-100: var(--hover-bg);
-  --gray-200: var(--border-color);
-  --gray-300: #4b5563;
-  --gray-400: #6b7280;
-  --gray-500: var(--text-light);
-  --gray-600: #9ca3af;
-  --gray-700: #d1d5db;
-  --gray-800: var(--text-color);
-  --gray-900: #ffffff;
-
-  --card-shadow: 0 1px 3px rgba(255, 255, 255, 0.05), 0 1px 2px rgba(255, 255, 255, 0.03);
-  --card-shadow-hover: 0 10px 15px -3px rgba(255, 255, 255, 0.08), 0 4px 6px -2px rgba(255, 255, 255, 0.02);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
 }
 
+/* Update existing components */
+.job-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.job-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-color);
+}
+
+.job-title {
+  color: var(--text-color);
+}
+
+.company-name {
+  color: var(--text-light);
+}
+
+.meta-badge {
+  background: var(--hover-bg);
+  color: var(--text-light);
+  border: 1px solid var(--border-color);
+}
+
+.skill-tag {
+  background: var(--hover-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+/* Update notification styles */
+.notification {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .notification.success {
+  background: rgba(52, 211, 153, 0.1);
+  border-color: var(--success-color);
+}
+
+[data-theme="dark"] .notification.error {
+  background: rgba(248, 113, 113, 0.1);
+  border-color: var(--danger-color);
+}
+
+[data-theme="dark"] .notification.warning {
+  background: rgba(251, 191, 36, 0.1);
+  border-color: var(--warning-color);
+}
+
+[data-theme="dark"] .notification.info {
+  background: rgba(96, 165, 250, 0.1);
+  border-color: var(--info-color);
+}
+
+/* Empty state improvements */
+.empty-state {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+}
+
+.empty-state i {
+  color: var(--text-light);
+}
+
+.empty-state h3 {
+  color: var(--text-color);
+}
+
+.empty-state p {
+  color: var(--text-light);
+}
+
+/* Button improvements */
+.btn-primary {
+  background: var(--primary-color);
+  color: #ffffff;
+  border: none;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .btn-outline:hover {
+  background: var(--hover-bg);
+  border-color: var(--primary-color);
+}
+
+/* Table improvements */
+.job-list-table th {
+  background: var(--hover-bg);
+  color: var(--text-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.job-list-table td {
+  color: var(--text-light);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.job-list-table tr:hover {
+  background: var(--hover-bg);
+}
+
+/* Search and filter improvements */
+input[type="text"],
+input[type="search"],
+select {
+  background: var(--card-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+input[type="text"]:focus,
+input[type="search"]:focus,
+select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px var(--primary-light);
+}
+
+/* Add smooth transitions */
+.job-card,
+.btn,
+.notification,
+input,
+select {
+  transition: all 0.2s ease;
+}
+
+/* Improve accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}
+
+/* High contrast improvements for dark mode */
+[data-theme="dark"] .job-title a:hover {
+  color: var(--primary-color);
+}
+
+[data-theme="dark"] .meta-badge {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .skill-tag {
+  background: rgba(255, 255, 255, 0.05);
+}
 
 /* Page Header */
 .page-header {
@@ -995,7 +1138,7 @@
 
 .btn-primary {
   background: var(--primary-color);
-  color: white;
+  color: #ffffff;
 }
 
 .btn-primary:hover {
@@ -1014,36 +1157,12 @@
 
 .btn-outline {
   background: transparent;
-  color: var(--primary-color);
-  border: 1px solid var(--primary-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
 }
 
 .btn-outline:hover {
-  background: var(--primary-light);
-}
-
-.btn-icon {
-  width: 2.25rem;
-  height: 2.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  border: none;
-  background: var(--gray-100);
-  color: var(--gray-600);
-  transition: var(--transition);
-  cursor: pointer;
-}
-
-.btn-icon:hover {
-  background: var(--gray-200);
-  color: var(--gray-800);
-}
-
-.btn-icon.active {
-  background: var(--primary-light);
-  color: var(--primary-color);
+  background: var(--hover-bg);
 }
 
 /* Notifications */
@@ -1225,6 +1344,17 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize CSRF token for AJAX requests
     initCSRFToken();
+    
+    // Theme handling
+    const theme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+    
+    // Listen for theme changes
+    window.addEventListener('theme-change', function(e) {
+        const newTheme = e.detail.theme;
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+    });
 });
 
 // Initialize CSRF token for AJAX requests
