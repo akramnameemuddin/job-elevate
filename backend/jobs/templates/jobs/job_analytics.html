@@ -332,7 +332,11 @@
             </div>
             <div class="location-stats">
               <div class="location-demand-bar">
+                {% if top_locations and top_locations.0.1 %}
                 <div class="demand-fill" style="width: {% widthratio count top_locations.0.1 100 %}%"></div>
+                {% else %}
+                <div class="demand-fill" style="width: 0%"></div>
+                {% endif %}
               </div>
               <span class="location-count">{{ count }}</span>
             </div>
