@@ -264,7 +264,11 @@ def bookmarked_jobs(request):
 @login_required
 def recommended_jobs(request):
     """Display personalized job recommendations"""
-    recommended_jobs = recommender.recommend_jobs(request.user, limit=50)
+    try:
+        recommended_jobs = recommender.recommend_jobs(request.user, limit=50)
+    except Exception as e:
+        logger.error(f"Error getting recommendations for user {request.user.id}: {str(e)}")
+        recommended_jobs = []
     
     # Get user's applied job IDs for checking
     applied_job_ids = Application.objects.filter(applicant=request.user).values_list('job_id', flat=True)
@@ -272,10 +276,21 @@ def recommended_jobs(request):
     # Get user's bookmarked job IDs for checking
     bookmarked_job_ids = JobBookmark.objects.filter(user=request.user).values_list('job_id', flat=True)
     
+    # Calculate statistics
+    high_match_count = sum(1 for rec in recommended_jobs if rec.get('score', 0) > 80)
+    medium_match_count = sum(1 for rec in recommended_jobs if 60 <= rec.get('score', 0) <= 80)
+    low_match_count = sum(1 for rec in recommended_jobs if rec.get('score', 0) < 60)
+    
     context = {
         'recommended_jobs': recommended_jobs,
         'applied_job_ids': list(applied_job_ids),
         'bookmarked_job_ids': list(bookmarked_job_ids),
+        'stats': {
+            'total_recommendations': len(recommended_jobs),
+            'high_match_count': high_match_count,
+            'medium_match_count': medium_match_count,
+            'low_match_count': low_match_count,
+        }
     }
     
     return render(request, 'jobs/recommended_jobs.html', context)

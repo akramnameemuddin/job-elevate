@@ -5,58 +5,61 @@
 
 {% block content %}
 <div class="preferences-page">
-    <!-- Header Section -->
+    <!-- Page Header -->
     <div class="page-header">
-        <div class="container">
-            <div class="breadcrumb-nav">
-                <a href="{% url 'jobs:job_listings' %}" class="breadcrumb-link">
-                    Jobs
-                </a>
-                <i class='bx bx-chevron-right'></i>
-                <span class="breadcrumb-current">Preferences</span>
+        <div class="header-content">
+            <h1 class="page-title">
+                <i class='bx bx-cog'></i>
+                Job Preferences
+            </h1>
+            <div class="breadcrumb">
+                <span class="breadcrumb-item"><a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Dashboard</a></span>
+                <span class="breadcrumb-separator"><i class='bx bx-chevron-right'></i></span>
+                <span class="breadcrumb-item"><a href="{% url 'jobs:job_listings' %}" class="breadcrumb-link">Jobs</a></span>
+                <span class="breadcrumb-separator"><i class='bx bx-chevron-right'></i></span>
+                <span class="breadcrumb-item">Preferences</span>
             </div>
-            
-            <div class="header-content">
-                <div class="header-text">
-                    <h1 class="page-title">
-                        <i class='bx bx-cog'></i>
-                        Job Preferences
-                    </h1>
-                    <p class="page-subtitle">Customize your job recommendations by setting your preferences</p>
-                </div>
-                <div class="header-actions">
-                    <a href="{% url 'jobs:recommended_jobs' %}" class="btn btn-outline">
-                        <i class='bx bx-left-arrow-alt'></i>
-                        Back to Recommendations
-                    </a>
-                </div>
-            </div>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'jobs:recommended_jobs' %}" class="btn btn-light">
+                <i class='bx bx-left-arrow-alt'></i>
+                <span>Back to Recommendations</span>
+            </a>
         </div>
     </div>
 
     <!-- Messages -->
     {% if messages %}
-        <div class="container">
-            <div class="messages-container">
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }}">
-                        <i class='bx {% if message.tags == 'success' %}bx-check-circle{% elif message.tags == 'error' %}bx-x-circle{% elif message.tags == 'warning' %}bx-error-circle{% else %}bx-info-circle{% endif %}'></i>
-                        <span>{{ message }}</span>
-                        <button class="alert-close" onclick="this.parentElement.remove()">
-                            <i class='bx bx-x'></i>
-                        </button>
-                    </div>
-                {% endfor %}
-            </div>
+    <div class="notifications">
+        {% for message in messages %}
+        <div class="notification {% if message.tags %}notification-{{ message.tags }}{% endif %}">
+            {% if message.tags == 'success' %}
+            <i class='bx bx-check-circle'></i>
+            {% elif message.tags == 'error' %}
+            <i class='bx bx-error'></i>
+            {% elif message.tags == 'warning' %}
+            <i class='bx bx-error-circle'></i>
+            {% else %}
+            <i class='bx bx-info-circle'></i>
+            {% endif %}
+            <p>{{ message }}</p>
+            <button class="notification-close"><i class='bx bx-x'></i></button>
         </div>
+        {% endfor %}
+    </div>
     {% endif %}
 
-    <div class="container">
+    <!-- Preferences Form -->
+    <div class="content-section">
         <form method="POST" action="{% url 'jobs:update_job_preferences' %}" class="preferences-form">
             {% csrf_token %}
             
             <!-- Progress Indicator -->
             <div class="progress-indicator">
+                <div class="progress-header">
+                    <h2>Customize Your Job Preferences</h2>
+                    <p>Help us find the perfect jobs for you by setting your preferences</p>
+                </div>
                 <div class="progress-steps">
                     <div class="progress-step active" data-step="1">
                         <div class="step-circle">
@@ -165,10 +168,10 @@
                             </div>
                         </div>
 
-                        <div class="selected-locations" id="location-tags">
+                        <div class="selected-items" id="location-tags">
                             {% if preferences and preferences.preferred_locations %}
                                 {% for location in preferences.preferred_locations %}
-                                <div class="location-tag">
+                                <div class="item-tag">
                                     <i class='bx bx-map'></i>
                                     <span>{{ location }}</span>
                                     <button type="button" class="remove-tag" data-value="{{ location }}">
@@ -307,10 +310,10 @@
                         </div>
 
                         <!-- Selected Industries -->
-                        <div class="selected-industries" id="industry-tags">
+                        <div class="selected-items" id="industry-tags">
                             {% if preferences and preferences.industry_preferences %}
                                 {% for industry in preferences.industry_preferences %}
-                                <div class="industry-tag">
+                                <div class="item-tag">
                                     <i class='bx bx-building'></i>
                                     <span>{{ industry }}</span>
                                     <button type="button" class="remove-tag" data-value="{{ industry }}">
@@ -358,449 +361,22 @@
             </div>
         </form>
     </div>
-
-    
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    let currentSection = 1;
-    const totalSections = 4;
-    
-    // Initialize form functionality
-    initializeFormNavigation();
-    initializeSalarySlider();
-    initializeLocationInput();
-    initializeIndustryInput();
-    
-    // Form navigation
-    function initializeFormNavigation() {
-        const prevBtn = document.getElementById('prev-btn');
-        const nextBtn = document.getElementById('next-btn');
-        const saveBtn = document.getElementById('save-btn');
-        
-        nextBtn.addEventListener('click', () => {
-            if (currentSection < totalSections) {
-                showSection(currentSection + 1);
-            }
-        });
-        
-        prevBtn.addEventListener('click', () => {
-            if (currentSection > 1) {
-                showSection(currentSection - 1);
-            }
-        });
-    }
-    
-    function showSection(sectionNumber) {
-        // Hide current section
-        document.getElementById(`section-${currentSection}`).classList.remove('active');
-        document.querySelector(`.progress-step[data-step="${currentSection}"]`).classList.remove('active');
-        
-        // Show new section
-        currentSection = sectionNumber;
-        document.getElementById(`section-${currentSection}`).classList.add('active');
-        document.querySelector(`.progress-step[data-step="${currentSection}"]`).classList.add('active');
-        
-        // Update progress bar
-        const progressFill = document.querySelector('.progress-fill');
-        progressFill.style.width = `${(currentSection / totalSections) * 100}%`;
-        
-        // Update navigation buttons
-        const prevBtn = document.getElementById('prev-btn');
-        const nextBtn = document.getElementById('next-btn');
-        const saveBtn = document.getElementById('save-btn');
-        
-        prevBtn.style.display = currentSection === 1 ? 'none' : 'flex';
-        nextBtn.style.display = currentSection === totalSections ? 'none' : 'flex';
-        saveBtn.style.display = currentSection === totalSections ? 'flex' : 'none';
-        
-        // Update section indicator
-        document.querySelector('.current-section').textContent = currentSection;
-        
-        // Animate section transition
-        const activeSection = document.querySelector('.form-section.active');
-        activeSection.style.opacity = '0';
-        activeSection.style.transform = 'translateX(20px)';
-        
-        setTimeout(() => {
-            activeSection.style.opacity = '1';
-            activeSection.style.transform = 'translateX(0)';
-        }, 100);
-    }
-    
-    // Salary slider functionality
-    function initializeSalarySlider() {
-        const slider = document.getElementById('salary-slider');
-        const display = document.getElementById('salary-display');
-        const presetButtons = document.querySelectorAll('.preset-btn');
-        
-        slider.addEventListener('input', function() {
-            const value = parseInt(this.value);
-            display.textContent = formatSalary(value);
-        });
-        
-        presetButtons.forEach(btn => {
-            btn.addEventListener('click', function() {
-                const salary = parseInt(this.dataset.salary);
-                slider.value = salary;
-                display.textContent = formatSalary(salary);
-                
-                // Visual feedback
-                presetButtons.forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-            });
-        });
-    }
-    
-    function formatSalary(amount) {
-        return new Intl.NumberFormat('en-US').format(amount);
-    }
-    
-    // Location input functionality
-    function initializeLocationInput() {
-        const input = document.getElementById('location-input');
-        const addBtn = document.getElementById('add-location');
-        const tagsContainer = document.getElementById('location-tags');
-        
-        function addLocation() {
-            const value = input.value.trim();
-            if (value && !isLocationExists(value)) {
-                createLocationTag(value);
-                input.value = '';
-            }
-        }
-        
-        addBtn.addEventListener('click', addLocation);
-        input.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                addLocation();
-            }
-        });
-        
-        // Remove location tags
-        tagsContainer.addEventListener('click', function(e) {
-            if (e.target.classList.contains('remove-tag') || e.target.parentElement.classList.contains('remove-tag')) {
-                const tag = e.target.closest('.location-tag');
-                const value = tag.querySelector('span').textContent;
-                removeLocationTag(tag, value);
-            }
-        });
-    }
-    
-    function createLocationTag(value) {
-        const tagsContainer = document.getElementById('location-tags');
-        const hiddenContainer = document.getElementById('location-hidden-inputs');
-        
-        const tag = document.createElement('div');
-        tag.className = 'location-tag';
-        tag.innerHTML = `
-            <i class='bx bx-map'></i>
-            <span>${value}</span>
-            <button type="button" class="remove-tag" data-value="${value}">
-                <i class='bx bx-x'></i>
-            </button>
-        `;
-        
-        const hiddenInput = document.createElement('input');
-        hiddenInput.type = 'hidden';
-        hiddenInput.name = 'preferred_locations';
-        hiddenInput.value = value;
-        
-        tagsContainer.appendChild(tag);
-        hiddenContainer.appendChild(hiddenInput);
-        
-        // Animate tag appearance
-        tag.style.opacity = '0';
-        tag.style.transform = 'scale(0.8)';
-        setTimeout(() => {
-            tag.style.opacity = '1';
-            tag.style.transform = 'scale(1)';
-        }, 100);
-    }
-    
-    function removeLocationTag(tagElement, value) {
-        const hiddenContainer = document.getElementById('location-hidden-inputs');
-        const hiddenInput = hiddenContainer.querySelector(`input[value="${value}"]`);
-        
-        tagElement.remove();
-        if (hiddenInput) hiddenInput.remove();
-    }
-    
-    function isLocationExists(value) {
-        const existingTags = document.querySelectorAll('#location-tags .location-tag span');
-        return Array.from(existingTags).some(span => span.textContent === value);
-    }
-    
-    // Industry input functionality
-    function initializeIndustryInput() {
-        const input = document.getElementById('industry-input');
-        const addBtn = document.getElementById('add-industry');
-        const industryButtons = document.querySelectorAll('.industry-card');
-        
-        function addIndustry(value) {
-            if (value && !isIndustryExists(value)) {
-                createIndustryTag(value);
-            }
-        }
-        
-        addBtn.addEventListener('click', function() {
-            const value = input.value.trim();
-            addIndustry(value);
-            input.value = '';
-        });
-        
-        input.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                const value = this.value.trim();
-                addIndustry(value);
-                this.value = '';
-            }
-        });
-        
-        // Industry card selection
-        industryButtons.forEach(btn => {
-            btn.addEventListener('click', function() {
-                const industry = this.dataset.industry;
-                addIndustry(industry);
-                this.classList.add('selected');
-            });
-        });
-        
-        // Remove industry tags
-        const tagsContainer = document.getElementById('industry-tags');
-        tagsContainer.addEventListener('click', function(e) {
-            if (e.target.classList.contains('remove-tag') || e.target.parentElement.classList.contains('remove-tag')) {
-                const tag = e.target.closest('.industry-tag');
-                const value = tag.querySelector('span').textContent;
-                removeIndustryTag(tag, value);
-            }
-        });
-    }
-    
-    function createIndustryTag(value) {
-        const tagsContainer = document.getElementById('industry-tags');
-        const hiddenContainer = document.getElementById('industry-hidden-inputs');
-        
-        const tag = document.createElement('div');
-        tag.className = 'industry-tag';
-        tag.innerHTML = `
-            <i class='bx bx-building'></i>
-            <span>${value}</span>
-            <button type="button" class="remove-tag" data-value="${value}">
-                <i class='bx bx-x'></i>
-            </button>
-        `;
-        
-        const hiddenInput = document.createElement('input');
-        hiddenInput.type = 'hidden';
-        hiddenInput.name = 'industry_preferences';
-        hiddenInput.value = value;
-        
-        tagsContainer.appendChild(tag);
-        hiddenContainer.appendChild(hiddenInput);
-        
-        // Animate tag appearance
-        tag.style.opacity = '0';
-        tag.style.transform = 'scale(0.8)';
-        setTimeout(() => {
-            tag.style.opacity = '1';
-            tag.style.transform = 'scale(1)';
-        }, 100);
-    }
-    
-    function removeIndustryTag(tagElement, value) {
-        const hiddenContainer = document.getElementById('industry-hidden-inputs');
-        const hiddenInput = hiddenContainer.querySelector(`input[value="${value}"]`);
-        const industryCard = document.querySelector(`.industry-card[data-industry="${value}"]`);
-        
-        tagElement.remove();
-        if (hiddenInput) hiddenInput.remove();
-        if (industryCard) industryCard.classList.remove('selected');
-    }
-    
-    function isIndustryExists(value) {
-        const existingTags = document.querySelectorAll('#industry-tags .industry-tag span');
-        return Array.from(existingTags).some(span => span.textContent === value);
-    }
-});
-</script>
+</div>
 
 <style>
-/* CSS Variables */
-:root {
-    --primary-color: #4f46e5;
-    --secondary-color: #7c3aed;
-    --success-color: #10b981;
-    --warning-color: #f59e0b;
-    --error-color: #ef4444;
-    --info-color: #06b6d4;
-    
-    --text-primary: #1f2937;
-    --text-secondary: #6b7280;
-    --text-muted: #9ca3af;
-    
-    --bg-primary: #ffffff;
-    --bg-secondary: #f9fafb;
-    --bg-tertiary: #f3f4f6;
-    
-    --border-color: #e5e7eb;
-    --border-light: #f3f4f6;
-    
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-    
-    --radius-sm: 0.375rem;
-    --radius-md: 0.5rem;
-    --radius-lg: 0.75rem;
-    --radius-xl: 1rem;
-}
+/* ...existing code from recommended_jobs.html base styles... */
 
-/* Base Styles */
+/* Preferences Page Specific Styles */
 .preferences-page {
     min-height: 100vh;
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    background: var(--bg-color);
 }
 
-.container {
-    max-width: 900px;
-    margin: 0 ;
-    padding: 0 1rem;
-}
-
-/* Header Section */
-.page-header {
-    background: var(--bg-primary);
-    border-bottom: 1px solid var(--border-color);
-    padding: 2rem 0;
-    margin-bottom: 2rem;
-}
-
-.breadcrumb-nav {
-    display: flex;
-    align-items: center;
-    margin-bottom: 1rem;
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-}
-
-.breadcrumb-link {
-    display: flex;
-    align-items: center;
-    color: var(--text-secondary);
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-
-.breadcrumb-link:hover {
-    color: var(--primary-color);
-}
-
-.breadcrumb-link i {
-    margin-right: 0.5rem;
-}
-
-.breadcrumb-nav > i {
-    margin: 0 0.5rem;
-    color: var(--text-muted);
-}
-
-.breadcrumb-current {
-    color: var(--text-primary);
-    font-weight: 500;
-}
-
-.header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.page-title {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0 0 0.5rem 0;
-    display: flex;
-    align-items: center;
-}
-
-.page-title i {
-    margin-right: 0.75rem;
-    color: var(--primary-color);
-}
-
-.page-subtitle {
-    font-size: 1.125rem;
-    color: var(--text-secondary);
-    margin: 0;
-}
-
-/* Messages */
-.messages-container {
-    margin-bottom: 2rem;
-}
-
-.alert {
-    display: flex;
-    align-items: center;
-    padding: 1rem;
-    border-radius: var(--radius-md);
-    margin-bottom: 1rem;
-    position: relative;
-}
-
-.alert-success {
-    background-color: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    color: #166534;
-}
-
-.alert-error {
-    background-color: #fef2f2;
-    border: 1px solid #fecaca;
-    color: #991b1b;
-}
-
-.alert-warning {
-    background-color: #fffbeb;
-    border: 1px solid #fed7aa;
-    color: #92400e;
-}
-
-.alert-info {
-    background-color: #f0f9ff;
-    border: 1px solid #bae6fd;
-    color: #1e40af;
-}
-
-.alert i {
-    margin-right: 0.75rem;
-    font-size: 1.25rem;
-}
-
-.alert-close {
-    position: absolute;
-    right: 1rem;
-    background: none;
-    border: none;
-    cursor: pointer;
-    opacity: 0.6;
-    transition: opacity 0.2s ease;
-}
-
-.alert-close:hover {
-    opacity: 1;
-}
-
-/* Form Styles */
+/* Enhanced Form Styles */
 .preferences-form {
-    background: var(--bg-primary);
+    background: var(--card-bg);
     border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow);
     overflow: hidden;
     margin-bottom: 3rem;
 }
@@ -812,9 +388,27 @@ document.addEventListener('DOMContentLoaded', function() {
     color: white;
 }
 
+.progress-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.progress-header h2 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+}
+
+.progress-header p {
+    font-size: 1rem;
+    opacity: 0.9;
+    margin: 0;
+}
+
 .progress-steps {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
     margin-bottom: 1.5rem;
     position: relative;
 }
@@ -832,47 +426,49 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .step-circle {
-    width: 3rem;
-    height: 3rem;
+    width: 3.5rem;
+    height: 3.5rem;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 0.5rem;
-    font-size: 1.25rem;
-    transition: background-color 0.3s ease;
+    margin-bottom: 0.75rem;
+    font-size: 1.5rem;
+    transition: all 0.3s ease;
 }
 
 .progress-step.active .step-circle {
     background: rgba(255, 255, 255, 0.9);
     color: var(--primary-color);
+    transform: scale(1.1);
 }
 
 .step-label {
     font-size: 0.875rem;
     font-weight: 500;
     text-align: center;
+    line-height: 1.2;
 }
 
 .progress-bar {
-    height: 4px;
+    height: 6px;
     background: rgba(255, 255, 255, 0.2);
-    border-radius: 2px;
+    border-radius: 3px;
     overflow: hidden;
 }
 
 .progress-fill {
     height: 100%;
     background: rgba(255, 255, 255, 0.9);
-    border-radius: 2px;
+    border-radius: 3px;
     transition: width 0.3s ease;
 }
 
 /* Form Sections */
 .form-sections {
     position: relative;
-    min-height: 500px;
+    min-height: 600px;
 }
 
 .form-section {
@@ -887,12 +483,25 @@ document.addEventListener('DOMContentLoaded', function() {
     display: block;
     opacity: 1;
     transform: translateX(0);
+    animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 .section-header {
     display: flex;
     align-items: flex-start;
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
+    gap: 1.5rem;
 }
 
 .section-icon {
@@ -904,8 +513,7 @@ document.addEventListener('DOMContentLoaded', function() {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
-    margin-right: 1.5rem;
+    font-size: 1.75rem;
     flex-shrink: 0;
 }
 
@@ -914,15 +522,15 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .section-title {
-    font-size: 1.75rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin: 0 0 0.5rem 0;
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin: 0 0 0.75rem 0;
 }
 
 .section-description {
-    font-size: 1rem;
-    color: var(--text-secondary);
+    font-size: 1.125rem;
+    color: var(--text-light);
     margin: 0;
     line-height: 1.6;
 }
@@ -932,7 +540,7 @@ document.addEventListener('DOMContentLoaded', function() {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1.5rem;
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
 }
 
 .job-type-card {
@@ -948,7 +556,7 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .card-content {
-    background: var(--bg-secondary);
+    background: var(--hover-bg);
     border: 2px solid var(--border-color);
     border-radius: var(--radius-lg);
     padding: 2rem;
@@ -960,8 +568,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .job-type-card:hover .card-content {
     border-color: var(--primary-color);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
 }
 
 .job-type-card input:checked + .card-content {
@@ -971,16 +579,16 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .card-icon {
-    width: 3rem;
-    height: 3rem;
+    width: 3.5rem;
+    height: 3.5rem;
     border-radius: 50%;
     background: var(--primary-color);
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 1rem auto;
-    font-size: 1.5rem;
+    margin: 0 auto 1.25rem auto;
+    font-size: 1.75rem;
     transition: all 0.3s ease;
 }
 
@@ -989,10 +597,10 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .card-title {
-    font-size: 1.125rem;
+    font-size: 1.25rem;
     font-weight: 600;
     margin: 0;
-    color: var(--text-primary);
+    color: var(--text-color);
     transition: color 0.3s ease;
 }
 
@@ -1002,10 +610,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .card-check {
     position: absolute;
-    top: 1rem;
-    right: 1rem;
-    width: 1.5rem;
-    height: 1.5rem;
+    top: 1.25rem;
+    right: 1.25rem;
+    width: 2rem;
+    height: 2rem;
     border-radius: 50%;
     background: var(--success-color);
     color: white;
@@ -1015,6 +623,7 @@ document.addEventListener('DOMContentLoaded', function() {
     opacity: 0;
     transform: scale(0);
     transition: all 0.3s ease;
+    font-size: 1.125rem;
 }
 
 .job-type-card input:checked + .card-content .card-check {
@@ -1029,15 +638,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .preference-card {
     background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
-    border: 1px solid #bae6fd;
+    border: 2px solid #bae6fd;
     border-radius: var(--radius-lg);
-    padding: 1.5rem;
+    padding: 2rem;
+    transition: all 0.3s ease;
+}
+
+.preference-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
 }
 
 .preference-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 1.5rem;
 }
 
 .preference-info {
@@ -1045,23 +661,25 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .preference-title {
-    font-size: 1.25rem;
+    font-size: 1.375rem;
     font-weight: 600;
-    color: var(--text-primary);
-    margin: 0 0 0.5rem 0;
+    color: var(--text-color);
+    margin: 0 0 0.75rem 0;
     display: flex;
     align-items: center;
+    gap: 0.75rem;
 }
 
 .preference-title i {
-    margin-right: 0.75rem;
     color: var(--info-color);
+    font-size: 1.5rem;
 }
 
 .preference-description {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
+    font-size: 1rem;
+    color: var(--text-light);
     margin: 0;
+    line-height: 1.5;
 }
 
 /* Toggle Switch */
@@ -1076,10 +694,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .toggle-label {
     display: block;
-    width: 4rem;
-    height: 2rem;
+    width: 4.5rem;
+    height: 2.5rem;
     background: var(--border-color);
-    border-radius: 2rem;
+    border-radius: 2.5rem;
     position: relative;
     cursor: pointer;
     transition: background-color 0.3s ease;
@@ -1087,14 +705,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .toggle-slider {
     position: absolute;
-    top: 0.25rem;
-    left: 0.25rem;
-    width: 1.5rem;
-    height: 1.5rem;
+    top: 0.375rem;
+    left: 0.375rem;
+    width: 1.75rem;
+    height: 1.75rem;
     background: white;
     border-radius: 50%;
     transition: transform 0.3s ease;
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow);
 }
 
 .toggle-switch input:checked + .toggle-label {
@@ -1105,33 +723,30 @@ document.addEventListener('DOMContentLoaded', function() {
     transform: translateX(2rem);
 }
 
-/* Location Input */
-.location-input-section {
-    margin-bottom: 2rem;
-}
-
+/* Input Groups */
 .input-group {
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
 }
 
 .input-wrapper {
     display: flex;
     align-items: center;
-    background: var(--bg-secondary);
+    background: var(--hover-bg);
     border: 2px solid var(--border-color);
     border-radius: var(--radius-lg);
-    padding: 0.75rem 1rem;
-    transition: border-color 0.3s ease;
+    padding: 1rem 1.25rem;
+    transition: all 0.3s ease;
 }
 
 .input-wrapper:focus-within {
     border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
 }
 
 .input-wrapper i {
-    color: var(--text-muted);
-    margin-right: 0.75rem;
-    font-size: 1.25rem;
+    color: var(--text-light);
+    margin-right: 1rem;
+    font-size: 1.375rem;
 }
 
 .location-search,
@@ -1140,19 +755,19 @@ document.addEventListener('DOMContentLoaded', function() {
     border: none;
     outline: none;
     background: transparent;
-    font-size: 1rem;
-    color: var(--text-primary);
+    font-size: 1.125rem;
+    color: var(--text-color);
 }
 
 .location-search::placeholder,
 .industry-search::placeholder {
-    color: var(--text-muted);
+    color: var(--text-light);
 }
 
 .add-location-btn,
 .add-industry-btn {
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 3rem;
+    height: 3rem;
     border-radius: 50%;
     background: var(--primary-color);
     color: white;
@@ -1162,49 +777,56 @@ document.addEventListener('DOMContentLoaded', function() {
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s ease;
+    font-size: 1.25rem;
 }
 
 .add-location-btn:hover,
 .add-industry-btn:hover {
     background: var(--secondary-color);
-    transform: scale(1.05);
+    transform: scale(1.1);
 }
 
-/* Tags */
-.selected-locations,
-.selected-industries {
+/* Selected Items */
+.selected-items {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
-    min-height: 3rem;
-    padding: 1rem;
-    background: var(--bg-tertiary);
+    gap: 1rem;
+    min-height: 4rem;
+    padding: 1.5rem;
+    background: var(--hover-bg);
     border-radius: var(--radius-lg);
     border: 2px dashed var(--border-color);
+    align-items: center;
 }
 
-.location-tag,
-.industry-tag {
+.selected-items:empty::before {
+    content: "No items selected yet. Add some above.";
+    color: var(--text-light);
+    font-style: italic;
+    width: 100%;
+    text-align: center;
+}
+
+.item-tag {
     display: flex;
     align-items: center;
     background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     color: white;
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1.25rem;
     border-radius: var(--radius-md);
-    font-size: 0.875rem;
+    font-size: 0.925rem;
     font-weight: 500;
     transition: all 0.3s ease;
+    gap: 0.75rem;
 }
 
-.location-tag:hover,
-.industry-tag:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+.item-tag:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
 }
 
-.location-tag i,
-.industry-tag i {
-    margin-right: 0.5rem;
+.item-tag i {
+    font-size: 1.125rem;
 }
 
 .remove-tag {
@@ -1212,52 +834,54 @@ document.addEventListener('DOMContentLoaded', function() {
     border: none;
     color: white;
     border-radius: 50%;
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 1.75rem;
+    height: 1.75rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-left: 0.5rem;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
+    font-size: 1rem;
 }
 
 .remove-tag:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.4);
+    transform: scale(1.1);
 }
 
 /* Salary Section */
 .salary-input-section {
-    max-width: 500px;
+    max-width: 600px;
+    margin: 0 auto;
 }
 
 .salary-slider-container {
-    background: var(--bg-secondary);
+    background: var(--hover-bg);
     border-radius: var(--radius-lg);
-    padding: 2rem;
-    margin-bottom: 2rem;
+    padding: 2.5rem;
+    margin-bottom: 2.5rem;
+    text-align: center;
 }
 
 .salary-display {
-    text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
 }
 
 .currency {
-    font-size: 1.25rem;
-    color: var(--text-secondary);
+    font-size: 1.5rem;
+    color: var(--text-light);
 }
 
 .salary-amount {
-    font-size: 2.5rem;
+    font-size: 3rem;
     font-weight: 700;
     color: var(--primary-color);
-    margin: 0 0.25rem;
+    margin: 0 0.5rem;
 }
 
 .salary-period {
-    font-size: 1rem;
-    color: var(--text-secondary);
+    font-size: 1.125rem;
+    color: var(--text-light);
 }
 
 .salary-slider {
@@ -1266,66 +890,78 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .salary-slider input[type="range"] {
     width: 100%;
-    height: 6px;
+    height: 8px;
     background: var(--border-color);
-    border-radius: 3px;
+    border-radius: 4px;
     outline: none;
     appearance: none;
     -webkit-appearance: none;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    cursor: pointer;
 }
 
 .salary-slider input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     background: var(--primary-color);
     border-radius: 50%;
     cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: all 0.2s ease;
+}
+
+.salary-slider input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
 }
 
 .salary-slider input[type="range"]::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     background: var(--primary-color);
     border-radius: 50%;
     cursor: pointer;
     border: none;
+    box-shadow: var(--shadow);
 }
 
 .slider-labels {
     display: flex;
     justify-content: space-between;
-    font-size: 0.875rem;
-    color: var(--text-secondary);
+    font-size: 0.925rem;
+    color: var(--text-light);
+    font-weight: 500;
 }
 
 .salary-presets {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.75rem;
+    gap: 1rem;
+    justify-content: center;
 }
 
 .presets-label {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
+    font-size: 1rem;
+    color: var(--text-light);
     font-weight: 500;
+    margin-right: 0.5rem;
 }
 
 .preset-buttons {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.75rem;
 }
 
 .preset-btn {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    padding: 0.5rem 1rem;
+    background: var(--card-bg);
+    border: 2px solid var(--border-color);
+    color: var(--text-color);
+    padding: 0.75rem 1.25rem;
     border-radius: var(--radius-md);
-    font-size: 0.875rem;
+    font-size: 0.925rem;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
 }
@@ -1335,48 +971,46 @@ document.addEventListener('DOMContentLoaded', function() {
     background: var(--primary-color);
     color: white;
     border-color: var(--primary-color);
+    transform: translateY(-2px);
 }
 
 /* Industry Section */
-.industry-selection {
-    margin-bottom: 2rem;
-}
-
 .subsection-title {
-    font-size: 1.25rem;
+    font-size: 1.375rem;
     font-weight: 600;
-    color: var(--text-primary);
-    margin: 0 0 1rem 0;
+    color: var(--text-color);
+    margin: 0 0 1.5rem 0;
 }
 
 .popular-industries {
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
 }
 
 .industry-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.25rem;
     margin-bottom: 2rem;
 }
 
 .industry-card {
-    background: var(--bg-secondary);
+    background: var(--hover-bg);
     border: 2px solid var(--border-color);
     border-radius: var(--radius-lg);
-    padding: 1.5rem;
+    padding: 2rem;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 1rem;
 }
 
 .industry-card:hover {
     border-color: var(--primary-color);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
 }
 
 .industry-card.selected {
@@ -1386,16 +1020,15 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .industry-icon {
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 3rem;
+    height: 3rem;
     border-radius: 50%;
     background: var(--primary-color);
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 0.75rem;
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     transition: all 0.3s ease;
 }
 
@@ -1404,9 +1037,9 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .industry-name {
-    font-size: 0.875rem;
+    font-size: 1rem;
     font-weight: 500;
-    color: var(--text-primary);
+    color: var(--text-color);
     transition: color 0.3s ease;
 }
 
@@ -1415,7 +1048,7 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .custom-industry {
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
 }
 
 /* Form Navigation */
@@ -1423,8 +1056,8 @@ document.addEventListener('DOMContentLoaded', function() {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 2rem 3rem;
-    background: var(--bg-secondary);
+    padding: 2.5rem 3rem;
+    background: var(--hover-bg);
     border-top: 1px solid var(--border-color);
 }
 
@@ -1434,206 +1067,67 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .section-indicator {
-    background: var(--bg-primary);
-    padding: 0.5rem 1rem;
+    background: var(--card-bg);
+    padding: 0.75rem 1.5rem;
     border-radius: var(--radius-md);
-    font-size: 0.875rem;
-    color: var(--text-secondary);
+    font-size: 1rem;
+    color: var(--text-light);
     border: 1px solid var(--border-color);
+    font-weight: 500;
 }
 
 .current-section {
-    font-weight: 600;
+    font-weight: 700;
     color: var(--primary-color);
-}
-
-/* Buttons */
-.btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius-md);
-    font-size: 0.875rem;
-    font-weight: 500;
-    text-decoration: none;
-    border: 1px solid transparent;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    gap: 0.5rem;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    color: white;
-    border-color: var(--primary-color);
-}
-
-.btn-primary:hover {
-    background: linear-gradient(135deg, #4338ca, #6d28d9);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-}
-
-.btn-outline {
-    background: transparent;
-    color: var(--text-primary);
-    border-color: var(--border-color);
-}
-
-.btn-outline:hover {
-    background: var(--bg-secondary);
-    border-color: var(--primary-color);
-    color: var(--primary-color);
-}
-
-.btn-success {
-    background: linear-gradient(135deg, var(--success-color), #059669);
-    color: white;
-    border-color: var(--success-color);
-}
-
-.btn-success:hover {
-    background: linear-gradient(135deg, #059669, #047857);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
 }
 
 .nav-btn {
-    min-width: 120px;
-}
-
-/* Benefits Section */
-.benefits-section {
-    background: var(--bg-primary);
-    padding: 4rem 0;
-    margin-top: 3rem;
-}
-
-.benefits-header {
-    text-align: center;
-    margin-bottom: 3rem;
-}
-
-.benefits-title {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0 0 1rem 0;
-}
-
-.benefits-subtitle {
-    font-size: 1.125rem;
-    color: var(--text-secondary);
-    margin: 0;
-}
-
-.benefits-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    max-width: 1000px;
-    margin: 0 auto;
-}
-
-.benefit-card {
-    text-align: center;
-    padding: 2rem;
-    border-radius: var(--radius-lg);
-    background: var(--bg-secondary);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.benefit-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-lg);
-}
-
-.benefit-icon {
-    width: 4rem;
-    height: 4rem;
-    border-radius: 50%;
+    min-width: 140px;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
     display: flex;
     align-items: center;
-    justify-content: center;
-    margin: 0 auto 1.5rem auto;
-    font-size: 1.5rem;
-    color: white;
-}
-
-.benefit-icon.primary {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-}
-
-.benefit-icon.success {
-    background: linear-gradient(135deg, var(--success-color), #059669);
-}
-
-.benefit-icon.warning {
-    background: linear-gradient(135deg, var(--warning-color), #d97706);
-}
-
-.benefit-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin: 0 0 1rem 0;
-}
-
-.benefit-description {
-    font-size: 1rem;
-    color: var(--text-secondary);
-    line-height: 1.6;
-    margin: 0;
+    gap: 0.75rem;
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+    .job-types-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+    
+    .industry-grid {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+}
+
 @media (max-width: 768px) {
-    .container {
-        padding: 0 0.75rem;
+    .form-section {
+        padding: 2rem;
     }
     
-    .page-header {
-        padding: 1.5rem 0;
-    }
-    
-    .header-content {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-    }
-    
-    .page-title {
-        font-size: 1.5rem;
+    .progress-indicator {
+        padding: 1.5rem;
     }
     
     .progress-steps {
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-    
-    .step-circle {
-        width: 2.5rem;
-        height: 2.5rem;
-        font-size: 1rem;
-    }
-    
-    .step-label {
-        font-size: 0.75rem;
-    }
-    
-    .form-section {
-        padding: 2rem 1.5rem;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
     }
     
     .section-header {
         flex-direction: column;
         text-align: center;
+        gap: 1rem;
     }
     
     .section-icon {
-        margin-right: 0;
-        margin-bottom: 1rem;
+        margin: 0 auto;
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
     }
     
     .job-types-grid {
@@ -1642,7 +1136,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     .preference-content {
         flex-direction: column;
-        gap: 1rem;
+        gap: 1.5rem;
         text-align: center;
     }
     
@@ -1651,46 +1145,49 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     .form-navigation {
-        padding: 1.5rem;
+        padding: 2rem;
         flex-direction: column;
-        gap: 1rem;
+        gap: 1.5rem;
     }
     
     .nav-center {
         order: -1;
     }
     
-    .benefits-grid {
-        grid-template-columns: 1fr;
+    .salary-amount {
+        font-size: 2.5rem;
     }
     
-    .benefits-section {
-        padding: 3rem 0;
+    .preset-buttons {
+        justify-content: center;
     }
 }
 
 @media (max-width: 480px) {
-    .progress-indicator {
+    .form-section {
         padding: 1.5rem;
     }
     
     .progress-steps {
-        justify-content: center;
-        gap: 0.5rem;
+        grid-template-columns: 1fr;
     }
     
     .step-circle {
-        width: 2rem;
-        height: 2rem;
-        font-size: 0.875rem;
+        width: 3rem;
+        height: 3rem;
+        font-size: 1.25rem;
     }
     
     .step-label {
-        display: none;
+        font-size: 0.75rem;
     }
     
     .section-title {
-        font-size: 1.5rem;
+        font-size: 1.375rem;
+    }
+    
+    .card-content {
+        padding: 1.5rem;
     }
     
     .salary-amount {
@@ -1702,11 +1199,44 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     .preset-buttons {
-        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .preset-btn {
+        width: 100%;
+        max-width: 200px;
+    }
+    
+    .item-tag {
+        font-size: 0.875rem;
+        padding: 0.625rem 1rem;
     }
 }
 
-/* Animations */
+/* Dark mode support */
+[data-theme="dark"] .preference-card {
+    background: linear-gradient(135deg, #1e3a8a, #1e40af);
+    border-color: #3b82f6;
+}
+
+[data-theme="dark"] .toggle-label {
+    background: var(--border-color);
+}
+
+[data-theme="dark"] .industry-card.selected {
+    background: linear-gradient(135deg, #4338ca, #7c3aed);
+}
+
+/* Animation enhancements */
+.job-type-card {
+    animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.industry-card {
+    animation: fadeInUp 0.5s ease-out forwards;
+}
+
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -1718,27 +1248,495 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 }
 
-.form-section.active {
-    animation: fadeInUp 0.3s ease-out;
-}
+/* Stagger animations */
+.job-type-card:nth-child(1) { animation-delay: 0.1s; }
+.job-type-card:nth-child(2) { animation-delay: 0.2s; }
+.job-type-card:nth-child(3) { animation-delay: 0.3s; }
+.job-type-card:nth-child(4) { animation-delay: 0.4s; }
+.job-type-card:nth-child(5) { animation-delay: 0.5s; }
+.job-type-card:nth-child(6) { animation-delay: 0.6s; }
 
-/* Focus States for Accessibility */
-.btn:focus,
-.job-type-card:focus,
-.industry-card:focus,
-.toggle-label:focus,
-.preset-btn:focus {
-    outline: 2px solid var(--primary-color);
-    outline-offset: 2px;
-}
-
-.location-search:focus,
-.industry-search:focus {
-    outline: none;
-}
-
-.input-wrapper:focus-within {
-    box-shadow: 0 0 0 3px rgb(79 70 229 / 0.1);
-}
+.industry-card:nth-child(1) { animation-delay: 0.1s; }
+.industry-card:nth-child(2) { animation-delay: 0.2s; }
+.industry-card:nth-child(3) { animation-delay: 0.3s; }
+.industry-card:nth-child(4) { animation-delay: 0.4s; }
+.industry-card:nth-child(5) { animation-delay: 0.5s; }
+.industry-card:nth-child(6) { animation-delay: 0.6s; }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let currentSection = 1;
+    const totalSections = 4;
+    
+    // Initialize all functionality
+    initializeFormNavigation();
+    initializeSalarySlider();
+    initializeLocationInput();
+    initializeIndustryInput();
+    initializeNotifications();
+    
+    // Set initial animations
+    setTimeout(() => {
+        document.querySelectorAll('.job-type-card, .industry-card').forEach((el, index) => {
+            el.style.animationDelay = `${index * 0.1}s`;
+        });
+    }, 100);
+    
+    // Form navigation with enhanced animations
+    function initializeFormNavigation() {
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const saveBtn = document.getElementById('save-btn');
+        
+        nextBtn.addEventListener('click', () => {
+            if (validateCurrentSection() && currentSection < totalSections) {
+                showSection(currentSection + 1);
+            }
+        });
+        
+        prevBtn.addEventListener('click', () => {
+            if (currentSection > 1) {
+                showSection(currentSection - 1);
+            }
+        });
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' && currentSection < totalSections) {
+                nextBtn.click();
+            } else if (e.key === 'ArrowLeft' && currentSection > 1) {
+                prevBtn.click();
+            }
+        });
+    }
+    
+    function validateCurrentSection() {
+        // Add validation logic for each section
+        if (currentSection === 1) {
+            const checkedTypes = document.querySelectorAll('input[name="preferred_job_types"]:checked');
+            if (checkedTypes.length === 0) {
+                showNotification('Please select at least one job type.', 'warning');
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    function showSection(sectionNumber) {
+        // Enhanced section transition with better animations
+        const currentSectionEl = document.getElementById(`section-${currentSection}`);
+        const newSectionEl = document.getElementById(`section-${sectionNumber}`);
+        
+        // Hide current section with slide out
+        currentSectionEl.style.transform = 'translateX(-30px)';
+        currentSectionEl.style.opacity = '0';
+        
+        setTimeout(() => {
+            currentSectionEl.classList.remove('active');
+            currentSection = sectionNumber;
+            
+            // Show new section with slide in
+            newSectionEl.classList.add('active');
+            newSectionEl.style.transform = 'translateX(30px)';
+            newSectionEl.style.opacity = '0';
+            
+            setTimeout(() => {
+                newSectionEl.style.transform = 'translateX(0)';
+                newSectionEl.style.opacity = '1';
+            }, 50);
+        }, 150);
+        
+        // Update progress indicators
+        updateProgressIndicators();
+        updateNavigationButtons();
+    }
+    
+    function updateProgressIndicators() {
+        // Update step indicators
+        document.querySelectorAll('.progress-step').forEach((step, index) => {
+            if (index + 1 <= currentSection) {
+                step.classList.add('active');
+            } else {
+                step.classList.remove('active');
+            }
+        });
+        
+        // Update progress bar
+        const progressFill = document.querySelector('.progress-fill');
+        progressFill.style.width = `${(currentSection / totalSections) * 100}%`;
+        
+        // Update section indicator
+        document.querySelector('.current-section').textContent = currentSection;
+    }
+    
+    function updateNavigationButtons() {
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const saveBtn = document.getElementById('save-btn');
+        
+        prevBtn.style.display = currentSection === 1 ? 'none' : 'flex';
+        nextBtn.style.display = currentSection === totalSections ? 'none' : 'flex';
+        saveBtn.style.display = currentSection === totalSections ? 'flex' : 'none';
+    }
+    
+    // Enhanced salary slider with real-time updates
+    function initializeSalarySlider() {
+        const slider = document.getElementById('salary-slider');
+        const display = document.getElementById('salary-display');
+        const presetButtons = document.querySelectorAll('.preset-btn');
+        
+        if (!slider || !display) return;
+        
+        // Update display on slider change
+        slider.addEventListener('input', function() {
+            const value = parseInt(this.value);
+            display.textContent = formatSalary(value);
+            updateActivePreset(value);
+        });
+        
+        // Preset button functionality
+        presetButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const salary = parseInt(this.dataset.salary);
+                slider.value = salary;
+                display.textContent = formatSalary(salary);
+                updateActivePreset(salary);
+                
+                // Animate the change
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 150);
+            });
+        });
+        
+        function updateActivePreset(currentValue) {
+            presetButtons.forEach(btn => {
+                const btnValue = parseInt(btn.dataset.salary);
+                if (btnValue === currentValue) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+        
+        // Initialize with current value
+        updateActivePreset(parseInt(slider.value));
+    }
+    
+    function formatSalary(amount) {
+        return new Intl.NumberFormat('en-US').format(amount);
+    }
+    
+    // Enhanced location input with suggestions
+    function initializeLocationInput() {
+        const input = document.getElementById('location-input');
+        const addBtn = document.getElementById('add-location');
+        const tagsContainer = document.getElementById('location-tags');
+        
+        if (!input || !addBtn || !tagsContainer) return;
+        
+        function addLocation() {
+            const value = input.value.trim();
+            if (value && !isLocationExists(value)) {
+                createLocationTag(value);
+                input.value = '';
+                input.focus();
+            } else if (isLocationExists(value)) {
+                showNotification('This location is already added.', 'warning');
+            }
+        }
+        
+        addBtn.addEventListener('click', addLocation);
+        
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addLocation();
+            }
+        });
+        
+        // Remove location functionality
+        tagsContainer.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-tag') || e.target.parentElement.classList.contains('remove-tag')) {
+                const tag = e.target.closest('.item-tag');
+                const value = tag.querySelector('span').textContent;
+                removeLocationTag(tag, value);
+            }
+        });
+    }
+    
+    function createLocationTag(value) {
+        const tagsContainer = document.getElementById('location-tags');
+        const hiddenContainer = document.getElementById('location-hidden-inputs');
+        
+        const tag = document.createElement('div');
+        tag.className = 'item-tag';
+        tag.innerHTML = `
+            <i class='bx bx-map'></i>
+            <span>${value}</span>
+            <button type="button" class="remove-tag" data-value="${value}">
+                <i class='bx bx-x'></i>
+            </button>
+        `;
+        
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'preferred_locations';
+        hiddenInput.value = value;
+        
+        // Animate tag appearance
+        tag.style.opacity = '0';
+        tag.style.transform = 'scale(0.8)';
+        tagsContainer.appendChild(tag);
+        hiddenContainer.appendChild(hiddenInput);
+        
+        setTimeout(() => {
+            tag.style.opacity = '1';
+            tag.style.transform = 'scale(1)';
+        }, 100);
+    }
+    
+    function removeLocationTag(tagElement, value) {
+        const hiddenContainer = document.getElementById('location-hidden-inputs');
+        const hiddenInput = hiddenContainer.querySelector(`input[value="${value}"]`);
+        
+        // Animate removal
+        tagElement.style.transform = 'scale(0.8)';
+        tagElement.style.opacity = '0';
+        
+        setTimeout(() => {
+            tagElement.remove();
+            if (hiddenInput) hiddenInput.remove();
+        }, 200);
+    }
+    
+    function isLocationExists(value) {
+        const existingTags = document.querySelectorAll('#location-tags .item-tag span');
+        return Array.from(existingTags).some(span => span.textContent === value);
+    }
+    
+    // Enhanced industry input with selection
+    function initializeIndustryInput() {
+        const input = document.getElementById('industry-input');
+        const addBtn = document.getElementById('add-industry');
+        const industryButtons = document.querySelectorAll('.industry-card');
+        
+        if (!input || !addBtn) return;
+        
+        function addIndustry(value) {
+            if (value && !isIndustryExists(value)) {
+                createIndustryTag(value);
+                return true;
+            } else if (isIndustryExists(value)) {
+                showNotification('This industry is already added.', 'warning');
+                return false;
+            }
+            return false;
+        }
+        
+        addBtn.addEventListener('click', function() {
+            const value = input.value.trim();
+            if (addIndustry(value)) {
+                input.value = '';
+                input.focus();
+            }
+        });
+        
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const value = this.value.trim();
+                if (addIndustry(value)) {
+                    this.value = '';
+                }
+            }
+        });
+        
+        // Industry card selection
+        industryButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const industry = this.dataset.industry;
+                if (addIndustry(industry)) {
+                    this.classList.add('selected');
+                    
+                    // Animate selection
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = 'scale(1)';
+                    }, 150);
+                }
+            });
+        });
+        
+        // Remove industry tags
+        const tagsContainer = document.getElementById('industry-tags');
+        if (tagsContainer) {
+            tagsContainer.addEventListener('click', function(e) {
+                if (e.target.classList.contains('remove-tag') || e.target.parentElement.classList.contains('remove-tag')) {
+                    const tag = e.target.closest('.item-tag');
+                    const value = tag.querySelector('span').textContent;
+                    removeIndustryTag(tag, value);
+                }
+            });
+        }
+    }
+    
+    function createIndustryTag(value) {
+        const tagsContainer = document.getElementById('industry-tags');
+        const hiddenContainer = document.getElementById('industry-hidden-inputs');
+        
+        const tag = document.createElement('div');
+        tag.className = 'item-tag';
+        tag.innerHTML = `
+            <i class='bx bx-building'></i>
+            <span>${value}</span>
+            <button type="button" class="remove-tag" data-value="${value}">
+                <i class='bx bx-x'></i>
+            </button>
+        `;
+        
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'industry_preferences';
+        hiddenInput.value = value;
+        
+        // Animate tag appearance
+        tag.style.opacity = '0';
+        tag.style.transform = 'scale(0.8)';
+        tagsContainer.appendChild(tag);
+        hiddenContainer.appendChild(hiddenInput);
+        
+        setTimeout(() => {
+            tag.style.opacity = '1';
+            tag.style.transform = 'scale(1)';
+        }, 100);
+    }
+    
+    function removeIndustryTag(tagElement, value) {
+        const hiddenContainer = document.getElementById('industry-hidden-inputs');
+        const hiddenInput = hiddenContainer.querySelector(`input[value="${value}"]`);
+        const industryCard = document.querySelector(`.industry-card[data-industry="${value}"]`);
+        
+        // Animate removal
+        tagElement.style.transform = 'scale(0.8)';
+        tagElement.style.opacity = '0';
+        
+        setTimeout(() => {
+            tagElement.remove();
+            if (hiddenInput) hiddenInput.remove();
+            if (industryCard) industryCard.classList.remove('selected');
+        }, 200);
+    }
+    
+    function isIndustryExists(value) {
+        const existingTags = document.querySelectorAll('#industry-tags .item-tag span');
+        return Array.from(existingTags).some(span => span.textContent === value);
+    }
+    
+    // Initialize existing industry selections
+    function initializeExistingSelections() {
+        const existingIndustries = document.querySelectorAll('#industry-tags .item-tag span');
+        existingIndustries.forEach(tag => {
+            const value = tag.textContent;
+            const industryCard = document.querySelector(`.industry-card[data-industry="${value}"]`);
+            if (industryCard) {
+                industryCard.classList.add('selected');
+            }
+        });
+    }
+    
+    // Enhanced notifications
+    function initializeNotifications() {
+        document.querySelectorAll('.notification-close').forEach(button => {
+            button.addEventListener('click', function() {
+                hideNotification(this.closest('.notification'));
+            });
+        });
+        
+        // Auto-hide notifications after 5 seconds
+        document.querySelectorAll('.notification').forEach(notification => {
+            setTimeout(() => {
+                hideNotification(notification);
+            }, 5000);
+        });
+    }
+    
+    function showNotification(message, type = 'info') {
+        let notificationsContainer = document.querySelector('.notifications');
+        if (!notificationsContainer) {
+            notificationsContainer = document.createElement('div');
+            notificationsContainer.className = 'notifications';
+            const pageHeader = document.querySelector('.page-header');
+            pageHeader.parentNode.insertBefore(notificationsContainer, pageHeader.nextSibling);
+        }
+        
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        
+        let icon = 'bx-info-circle';
+        if (type === 'success') icon = 'bx-check-circle';
+        if (type === 'error') icon = 'bx-error';
+        if (type === 'warning') icon = 'bx-error-circle';
+        
+        notification.innerHTML = `
+            <i class='bx ${icon}'></i>
+            <p>${message}</p>
+            <button class="notification-close"><i class='bx bx-x'></i></button>
+        `;
+        
+        notificationsContainer.appendChild(notification);
+        
+        // Animate in
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateY(-20px)';
+        setTimeout(() => {
+            notification.style.opacity = '1';
+            notification.style.transform = 'translateY(0)';
+        }, 100);
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            hideNotification(notification);
+        }, 5000);
+        
+        // Close button functionality
+        notification.querySelector('.notification-close').addEventListener('click', function() {
+            hideNotification(notification);
+        });
+    }
+    
+    function hideNotification(notification) {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateY(-20px)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 300);
+    }
+    
+    // Initialize existing selections
+    initializeExistingSelections();
+    
+    // Form submission validation
+    const form = document.querySelector('.preferences-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Additional validation before submit
+            const jobTypes = document.querySelectorAll('input[name="preferred_job_types"]:checked');
+            if (jobTypes.length === 0) {
+                e.preventDefault();
+                showNotification('Please select at least one job type before saving.', 'error');
+                showSection(1);
+                return false;
+            }
+            
+            showNotification('Saving your preferences...', 'info');
+        });
+    }
+});
+</script>
 {% endblock %}
