@@ -15,15 +15,18 @@ class PostForm(forms.ModelForm):
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Enter post title...'
+                'placeholder': 'Enter post title...',
+                'required': True
             }),
             'content': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 6,
-                'placeholder': 'Share your thoughts, questions, or resources...'
+                'placeholder': 'Share your thoughts, questions, or resources...',
+                'required': True
             }),
             'post_type': forms.Select(attrs={
-                'class': 'form-control'
+                'class': 'form-control',
+                'required': True
             }),
             'image': forms.FileInput(attrs={
                 'class': 'form-control',
@@ -35,6 +38,26 @@ class PostForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['title'].widget.attrs.update({'required': True})
         self.fields['content'].widget.attrs.update({'required': True})
+        self.fields['post_type'].widget.attrs.update({'required': True})
+        self.fields['tags'].widget = forms.CheckboxSelectMultiple(attrs={
+            'class': 'tag-checkbox-input'
+        })
+        self.fields['tags'].help_text = "Select relevant tags for your post"
+        
+        # Set queryset for tags to ensure they're always available
+        self.fields['tags'].queryset = Tag.objects.all().order_by('name')
+    
+    def clean_title(self):
+        title = self.cleaned_data.get('title')
+        if not title or len(title.strip()) < 5:
+            raise forms.ValidationError("Title must be at least 5 characters long.")
+        return title.strip()
+    
+    def clean_content(self):
+        content = self.cleaned_data.get('content')
+        if not content or len(content.strip()) < 10:
+            raise forms.ValidationError("Content must be at least 10 characters long.")
+        return content.strip()
 
 class CommentForm(forms.ModelForm):
     class Meta:
@@ -48,6 +71,12 @@ class CommentForm(forms.ModelForm):
                 'required': True
             })
         }
+    
+    def clean_content(self):
+        content = self.cleaned_data.get('content')
+        if not content or len(content.strip()) < 3:
+            raise forms.ValidationError("Comment must be at least 3 characters long.")
+        return content.strip()
 
 class PostFilterForm(forms.Form):
     POST_TYPE_CHOICES = [

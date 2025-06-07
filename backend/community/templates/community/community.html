@@ -1,0 +1,1784 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="community-container">
+    <!-- Community Header -->
+    <div class="community-header">
+        <div class="header-content">
+            <div class="header-info">
+                <h1 class="community-title">
+                    <i class='bx bx-group'></i>
+                    Career Community
+                </h1>
+                <p class="community-subtitle">Connect, share experiences, and grow together with fellow professionals</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="showSection('create-post')">
+                    <i class='bx bx-plus'></i> Create Post
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Community Navigation -->
+    <div class="community-nav">
+        <div class="nav-pills">
+            <button class="nav-pill active" data-section="home" onclick="showSection('home')">
+                <i class='bx bx-home'></i> Feed
+            </button>
+            <button class="nav-pill" data-section="my-posts" onclick="showSection('my-posts')">
+                <i class='bx bx-user'></i> My Posts
+            </button>
+            <button class="nav-pill" data-section="notifications" onclick="showSection('notifications')">
+                <i class='bx bx-bell'></i> Notifications
+                {% if unread_notifications_count > 0 %}
+                    <span class="notification-badge">{{ unread_notifications_count }}</span>
+                {% endif %}
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Community Content -->
+    <div class="community-content">
+        <div class="content-wrapper">
+            <!-- Left Sidebar -->
+            <div class="community-sidebar">
+                <!-- Quick Actions -->
+                <div class="sidebar-card">
+                    <h3 class="sidebar-title">Quick Actions</h3>
+                    <div class="quick-actions">
+                        <button class="quick-action-btn" onclick="showSection('create-post')">
+                            <i class='bx bx-plus'></i> New Post
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Popular Tags -->
+                <div class="sidebar-card">
+                    <h3 class="sidebar-title">Popular Tags</h3>
+                    <div class="tags-list">
+                        {% for tag in popular_tags %}
+                        <span class="tag-pill" onclick="filterByTag('{{ tag.slug }}')">
+                            {{ tag.name }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Suggested Users -->
+                <div class="sidebar-card">
+                    <h3 class="sidebar-title">Connect With</h3>
+                    <div class="suggested-users">
+                        {% for user_suggestion in suggested_users %}
+                        <div class="user-suggestion">
+                            <div class="user-avatar">
+                                {{ user_suggestion.full_name|first|upper }}
+                            </div>
+                            <div class="user-info">
+                                <div class="user-name">{{ user_suggestion.full_name }}</div>
+                                <div class="user-role">{{ user_suggestion.user_type|capfirst }}</div>
+                            </div>
+                            <button class="follow-btn" onclick="toggleFollow('user', {{ user_suggestion.id }})">
+                                <i class='bx bx-plus'></i>
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Trending Posts -->
+                {% if trending_posts %}
+                <div class="sidebar-card">
+                    <h3 class="sidebar-title">Trending</h3>
+                    <div class="trending-posts">
+                        {% for post in trending_posts %}
+                        <div class="trending-post" onclick="showPostDetail('{{ post.slug }}')">
+                            <div class="trending-title">{{ post.title|truncatechars:40 }}</div>
+                            <div class="trending-stats">
+                                <span><i class='bx bx-heart'></i> {{ post.likes_count }}</span>
+                                <span><i class='bx bx-comment'></i> {{ post.comments_count }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="community-main">
+                <!-- Home Feed Section -->
+                <div class="section-content" id="home-section">
+                    <!-- Filters -->
+                    <div class="feed-filters">
+                        <div class="filter-group">
+                            <select class="filter-select" id="post-type-filter" onchange="applyFilters()">
+                                <option value="all">All Types</option>
+                                <option value="discussion">Discussion</option>
+                                <option value="question">Question</option>
+                                <option value="announcement">Announcement</option>
+                                <option value="job_sharing">Job Sharing</option>
+                                <option value="resource">Resource</option>
+                            </select>
+                            <select class="filter-select" id="sort-filter" onchange="applyFilters()">
+                                <option value="recent">Most Recent</option>
+                                <option value="popular">Most Popular</option>
+                                <option value="most_viewed">Most Viewed</option>
+                            </select>
+                        </div>
+                        <div class="search-group">
+                            <div class="search-box">
+                                <i class='bx bx-search'></i>
+                                <input type="text" placeholder="Search posts, users, or topics..." id="search-input" onkeyup="handleSearch(event)">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Posts Feed -->
+                    <div class="posts-feed" id="posts-container">
+                        {% if posts %}
+                            {% for post in posts %}
+                            <div class="post-card" data-post-id="{{ post.id }}">
+                                <div class="post-header">
+                                    <div class="post-author">
+                                        <div class="author-avatar">
+                                            {{ post.author.full_name|first|upper }}
+                                        </div>
+                                        <div class="author-info">
+                                            <div class="author-name" onclick="showUserProfile('{{ post.author.username }}')">
+                                                {{ post.author.full_name }}
+                                            </div>
+                                            <div class="post-meta">
+                                                <span class="post-type">{{ post.get_post_type_display }}</span>
+                                                <span class="post-date">{{ post.created_at|timesince }} ago</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% if post.author == user %}
+                                    <div class="post-actions">
+                                        <div class="dropdown">
+                                            <button class="dropdown-toggle">
+                                                <i class='bx bx-dots-horizontal-rounded'></i>
+                                            </button>
+                                            <div class="dropdown-menu">
+                                                <a href="#" onclick="editPost('{{ post.slug }}')">Edit</a>
+                                                <a href="#" onclick="deletePost({{ post.id }})" class="danger">Delete</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="post-content" onclick="showPostDetail('{{ post.slug }}')">
+                                    <h3 class="post-title">{{ post.title }}</h3>
+                                    <div class="post-text">{{ post.content|truncatewords:50 }}</div>
+                                    {% if post.image %}
+                                    <div class="post-image">
+                                        <img src="{{ post.image.url }}" alt="{{ post.title }}">
+                                    </div>
+                                    {% endif %}
+                                    {% if post.tags.exists %}
+                                    <div class="post-tags">
+                                        {% for tag in post.tags.all %}
+                                        <span class="tag">{{ tag.name }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="post-footer">
+                                    <div class="post-stats">
+                                        <button class="stat-btn like-btn {% if post.id in user_liked_posts %}active{% endif %}" 
+                                                onclick="toggleLike('post', {{ post.id }}, this)">
+                                            <i class='bx bx-heart'></i>
+                                            <span class="like-count">{{ post.likes_count }}</span>
+                                        </button>
+                                        <button class="stat-btn comment-btn" onclick="showPostDetail('{{ post.slug }}')">
+                                            <i class='bx bx-comment'></i>
+                                            <span>{{ post.comments_count }}</span>
+                                        </button>
+                                        <button class="stat-btn view-btn">
+                                            <i class='bx bx-show'></i>
+                                            <span>{{ post.views }}</span>
+                                        </button>
+                                        <button class="stat-btn follow-btn {% if post.id in user_followed_posts %}active{% endif %}" 
+                                                onclick="toggleFollow('post', {{ post.id }}, this)">
+                                            <i class='bx bx-bookmark'></i>
+                                            <span>{{ post.followers_count }}</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+
+                            <!-- Pagination -->
+                            {% if posts.has_other_pages %}
+                            <div class="pagination-container">
+                                <div class="pagination">
+                                    {% if posts.has_previous %}
+                                    <a href="?page={{ posts.previous_page_number }}" class="page-btn">Previous</a>
+                                    {% endif %}
+                                    
+                                    {% for num in posts.paginator.page_range %}
+                                    {% if posts.number == num %}
+                                    <span class="page-btn active">{{ num }}</span>
+                                    {% else %}
+                                    <a href="?page={{ num }}" class="page-btn">{{ num }}</a>
+                                    {% endif %}
+                                    {% endfor %}
+                                    
+                                    {% if posts.has_next %}
+                                    <a href="?page={{ posts.next_page_number }}" class="page-btn">Next</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% else %}
+                        <div class="empty-state">
+                            <i class='bx bx-message-square-dots'></i>
+                            <h3>No posts yet</h3>
+                            <p>Be the first to start a conversation!</p>
+                            <button class="btn btn-primary" onclick="showSection('create-post')">Create First Post</button>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- My Posts Section -->
+                <div class="section-content" id="my-posts-section" style="display: none;">
+                    <div class="section-header">
+                        <h2>My Posts</h2>
+                        <button class="btn btn-primary" onclick="showSection('create-post')">
+                            <i class='bx bx-plus'></i> New Post
+                        </button>
+                    </div>
+                    
+                    <div class="posts-feed" id="my-posts-container">
+                        <!-- My posts will be loaded here via AJAX -->
+                    </div>
+                </div>
+
+                <!-- Notifications Section -->
+                <div class="section-content" id="notifications-section" style="display: none;">
+                    <div class="section-header">
+                        <h2>Notifications</h2>
+                        <button class="btn btn-secondary" onclick="markAllAsRead()">Mark All Read</button>
+                    </div>
+                    
+                    <div class="notifications-feed" id="notifications-container">
+                        <!-- Notifications will be loaded here via AJAX -->
+                    </div>
+                </div>
+
+                <!-- Create Post Section -->
+                <div class="section-content" id="create-post-section" style="display: none;">
+                    <div class="section-header">
+                        <h2>Create New Post</h2>
+                        <button class="btn btn-secondary" onclick="showSection('home')">
+                            <i class='bx bx-arrow-back'></i> Back to Feed
+                        </button>
+                    </div>
+                    
+                    <div class="create-post-form">
+                        <form method="post" enctype="multipart/form-data" id="create-post-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="section" value="create-post">
+                            
+                            <div class="form-group">
+                                <label for="id_title">Post Title</label>
+                                <input type="text" name="title" id="id_title" class="form-control" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="id_post_type">Post Type</label>
+                                <select name="post_type" id="id_post_type" class="form-control" required>
+                                    <option value="">Select type...</option>
+                                    <option value="discussion">Discussion</option>
+                                    <option value="question">Question</option>
+                                    <option value="announcement">Announcement</option>
+                                    <option value="job_sharing">Job Sharing</option>
+                                    <option value="resource">Resource</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="id_content">Content</label>
+                                <textarea name="content" id="id_content" rows="8" class="form-control" required></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="id_image">Image (optional)</label>
+                                <input type="file" name="image" id="id_image" class="form-control" accept="image/*">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Tags</label>
+                                <div class="tags-input">
+                                    {% for tag in popular_tags %}
+                                    <label class="tag-checkbox" for="tag_{{ tag.id }}">
+                                        <input type="checkbox" name="tags" value="{{ tag.id }}" id="tag_{{ tag.id }}">
+                                        <span class="tag-label">{{ tag.name }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary" onclick="showSection('home')">Cancel</button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class='bx bx-send'></i> Publish Post
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Post Detail Section -->
+                <div class="section-content" id="post-detail-section" style="display: none;">
+                    <div class="post-detail-container">
+                        <!-- Post detail content will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Community Specific Styles */
+.community-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.community-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    margin-bottom: 2rem;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+}
+
+.community-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.community-subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+.header-actions .btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    backdrop-filter: blur(10px);
+}
+
+.header-actions .btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.community-nav {
+    margin-bottom: 2rem;
+}
+
+.nav-pills {
+    display: flex;
+    gap: 0.5rem;
+    background: var(--card-bg);
+    padding: 0.5rem;
+    border-radius: 0.75rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.nav-pill {
+    background: none;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+}
+
+.nav-pill:hover {
+    background: var(--hover-bg);
+    color: var(--text-color);
+}
+
+.nav-pill.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+.notification-badge {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    background: var(--danger);
+    color: white;
+    font-size: 0.75rem;
+    padding: 0.125rem 0.375rem;
+    border-radius: 9999px;
+    min-width: 1.25rem;
+    text-align: center;
+}
+
+.content-wrapper {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 2rem;
+}
+
+.community-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.sidebar-card {
+    background: var(--card-bg);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+}
+
+.sidebar-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--text-color);
+}
+
+.quick-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.quick-action-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.quick-action-btn:hover {
+    background: var(--primary-hover);
+}
+
+.tags-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.tag-pill {
+    background: var(--hover-bg);
+    color: var(--text-color);
+    padding: 0.375rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.tag-pill:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+.suggested-users {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.user-suggestion {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.user-info {
+    flex: 1;
+}
+
+.user-name {
+    font-weight: 500;
+    color: var(--text-color);
+    cursor: pointer;
+}
+
+.user-name:hover {
+    color: var(--primary-color);
+}
+
+.user-role {
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+.follow-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.follow-btn:hover {
+    background: var(--primary-hover);
+}
+
+.trending-posts {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.trending-post {
+    cursor: pointer;
+    transition: var(--transition);
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+}
+
+.trending-post:hover {
+    background: var(--hover-bg);
+}
+
+.trending-title {
+    font-weight: 500;
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+}
+
+.trending-stats {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+.community-main {
+    min-height: 600px;
+}
+
+.section-content {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.feed-filters {
+    background: var(--card-bg);
+    padding: 1.5rem;
+    border-radius: 1rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.filter-group {
+    display: flex;
+    gap: 1rem;
+}
+
+.filter-select {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    background: var(--card-bg);
+    color: var(--text-color);
+    cursor: pointer;
+}
+
+.search-group {
+    flex: 1;
+    max-width: 400px;
+}
+
+.search-box {
+    position: relative;
+}
+
+.search-box i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-light);
+}
+
+.search-box input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 9999px;
+    background: var(--card-bg);
+    color: var(--text-color);
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.posts-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.post-card {
+    background: var(--card-bg);
+    border-radius: 1rem;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.post-card:hover {
+    box-shadow: var(--shadow-lg);
+}
+
+.post-header {
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.post-author {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.author-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.author-name {
+    font-weight: 600;
+    color: var(--text-color);
+    cursor: pointer;
+    margin-bottom: 0.25rem;
+}
+
+.author-name:hover {
+    color: var(--primary-color);
+}
+
+.post-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+.post-type {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+.post-actions .dropdown {
+    position: relative;
+}
+
+.dropdown-toggle {
+    background: none;
+    border: none;
+    color: var(--text-light);
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: var(--transition);
+}
+
+.dropdown-toggle:hover {
+    background: var(--hover-bg);
+    color: var(--text-color);
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow-lg);
+    z-index: 10;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: var(--transition);
+}
+
+.dropdown:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-menu a {
+    display: block;
+    padding: 0.75rem 1rem;
+    color: var(--text-color);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.dropdown-menu a:hover {
+    background: var(--hover-bg);
+}
+
+.dropdown-menu a.danger {
+    color: var(--danger);
+}
+
+.post-content {
+    padding: 0 1.5rem;
+    cursor: pointer;
+}
+
+.post-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--text-color);
+}
+
+.post-text {
+    color: var(--text-color);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.post-image {
+    margin: 1rem 0;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.post-image img {
+    width: 100%;
+    height: auto;
+    max-height: 400px;
+    object-fit: cover;
+}
+
+.post-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+.tag {
+    background: var(--hover-bg);
+    color: var(--text-light);
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+}
+
+.post-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+    background: var(--hover-bg);
+}
+
+.post-stats {
+    display: flex;
+    gap: 1rem;
+}
+
+.stat-btn {
+    background: none;
+    border: none;
+    color: var(--text-light);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    transition: var(--transition);
+    font-size: 0.9rem;
+}
+
+.stat-btn:hover {
+    background: var(--card-bg);
+    color: var(--text-color);
+}
+
+.stat-btn.active {
+    color: var(--primary-color);
+}
+
+.like-btn.active {
+    color: var(--danger);
+}
+
+.follow-btn.active {
+    color: var(--warning);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.section-header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.create-post-form {
+    background: var(--card-bg);
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    background: var(--card-bg);
+    color: var(--text-color);
+    transition: var(--transition);
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.tags-input {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.75rem;
+}
+
+.tag-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.tag-checkbox input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
+
+.tag-label {
+    background: var(--hover-bg);
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.9rem;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.tag-checkbox input:checked + .tag-label {
+    background: var(--primary-color);
+    color: white;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    border: none;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+}
+
+.btn-secondary {
+    background: var(--hover-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+    background: var(--border-color);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-light);
+}
+
+.empty-state i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    color: var(--text-light);
+}
+
+.empty-state h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+}
+
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.pagination {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.page-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    background: var(--card-bg);
+    color: var(--text-color);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.page-btn:hover {
+    background: var(--hover-bg);
+}
+
+.page-btn.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .content-wrapper {
+        grid-template-columns: 1fr;
+    }
+    
+    .community-sidebar {
+        order: 2;
+    }
+    
+    .community-main {
+        order: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .nav-pills {
+        flex-wrap: wrap;
+    }
+    
+    .feed-filters {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+    
+    .filter-group {
+        flex-wrap: wrap;
+    }
+    
+    .post-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .tags-input {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+}
+</style>
+
+<script>
+// Global state
+let currentSection = 'home';
+let currentFilters = {
+    type: 'all',
+    sort: 'recent',
+    search: '',
+    tag: ''
+};
+
+// Get CSRF token helper
+function getCSRFToken() {
+    const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (csrfInput) {
+        return csrfInput.value;
+    }
+    // Fallback to meta tag if form token not found
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    return csrfMeta ? csrfMeta.getAttribute('content') : '';
+}
+
+// Section management
+function showSection(section) {
+    try {
+        // Hide all sections
+        document.querySelectorAll('.section-content').forEach(el => {
+            el.style.display = 'none';
+        });
+        
+        // Update nav pills
+        document.querySelectorAll('.nav-pill').forEach(pill => {
+            pill.classList.remove('active');
+        });
+        
+        // Show target section
+        const targetSection = document.getElementById(section + '-section');
+        if (targetSection) {
+            targetSection.style.display = 'block';
+        }
+        
+        // Update active nav pill
+        const targetPill = document.querySelector(`[data-section="${section}"]`);
+        if (targetPill) {
+            targetPill.classList.add('active');
+        }
+        
+        currentSection = section;
+        
+        // Load section content if needed
+        loadSectionContent(section);
+        
+        // Update URL without page reload
+        const url = new URL(window.location);
+        url.searchParams.set('section', section);
+        window.history.replaceState({}, '', url);
+    } catch (error) {
+        console.error('Error showing section:', error);
+    }
+}
+
+// Load content for different sections
+function loadSectionContent(section) {
+    switch(section) {
+        case 'my-posts':
+            loadMyPosts();
+            break;
+        case 'notifications':
+            loadNotifications();
+            break;
+        case 'post-detail':
+            loadPostDetail();
+            break;
+    }
+}
+
+// Load my posts
+function loadMyPosts() {
+    const container = document.getElementById('my-posts-container');
+    if (!container) return;
+    
+    container.innerHTML = '<div class="loading">Loading your posts...</div>';
+    
+    const url = new URL(window.location);
+    url.searchParams.set('section', 'my-posts');
+    
+    fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success && data.html) {
+            container.innerHTML = data.html;
+        } else {
+            container.innerHTML = '<div class="empty-state"><i class="bx bx-file"></i><h3>Your posts will appear here</h3></div>';
+        }
+    })
+    .catch(error => {
+        console.error('Error loading posts:', error);
+        container.innerHTML = '<div class="error">Failed to load posts. Please try again.</div>';
+    });
+}
+
+// Load notifications
+function loadNotifications() {
+    const container = document.getElementById('notifications-container');
+    if (!container) return;
+    
+    container.innerHTML = '<div class="loading">Loading notifications...</div>';
+    
+    const url = new URL(window.location);
+    url.searchParams.set('section', 'notifications');
+    
+    fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success && data.html) {
+            container.innerHTML = data.html;
+            // Update notification badge
+            const badge = document.querySelector('.notification-badge');
+            if (badge) {
+                badge.style.display = 'none';
+            }
+        } else {
+            container.innerHTML = '<div class="empty-state"><i class="bx bx-bell"></i><h3>No new notifications</h3></div>';
+        }
+    })
+    .catch(error => {
+        console.error('Error loading notifications:', error);
+        container.innerHTML = '<div class="error">Failed to load notifications. Please try again.</div>';
+    });
+}
+
+// Load post detail
+function loadPostDetail() {
+    const container = document.querySelector('.post-detail-container');
+    const urlParams = new URLSearchParams(window.location.search);
+    const slug = urlParams.get('slug');
+    
+    if (!container || !slug) return;
+    
+    container.innerHTML = '<div class="loading">Loading post...</div>';
+    
+    const url = new URL(window.location);
+    url.searchParams.set('section', 'post-detail');
+    url.searchParams.set('slug', slug);
+    
+    fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success && data.html) {
+            container.innerHTML = data.html;
+        } else {
+            container.innerHTML = '<div class="error">Post not found</div>';
+        }
+    })
+    .catch(error => {
+        console.error('Error loading post detail:', error);
+        container.innerHTML = '<div class="error">Failed to load post. Please try again.</div>';
+    });
+}
+
+// Filter functionality
+function applyFilters() {
+    try {
+        const typeFilter = document.getElementById('post-type-filter');
+        const sortFilter = document.getElementById('sort-filter');
+        const searchInput = document.getElementById('search-input');
+        
+        if (!typeFilter || !sortFilter || !searchInput) {
+            console.warn('Filter elements not found');
+            return;
+        }
+        
+        currentFilters = {
+            type: typeFilter.value,
+            sort: sortFilter.value,
+            search: searchInput.value.trim(),
+            tag: currentFilters.tag
+        };
+        
+        // Build URL with filters
+        const url = new URL(window.location);
+        url.searchParams.set('section', 'home');
+        url.searchParams.set('type', currentFilters.type);
+        url.searchParams.set('sort', currentFilters.sort);
+        
+        if (currentFilters.search) {
+            url.searchParams.set('search', currentFilters.search);
+        } else {
+            url.searchParams.delete('search');
+        }
+        
+        if (currentFilters.tag) {
+            url.searchParams.set('tag', currentFilters.tag);
+        } else {
+            url.searchParams.delete('tag');
+        }
+        
+        // Reload page with filters
+        window.location.href = url.toString();
+    } catch (error) {
+        console.error('Error applying filters:', error);
+    }
+}
+
+function handleSearch(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        applyFilters();
+    }
+}
+
+function filterByTag(tagSlug) {
+    try {
+        const url = new URL(window.location);
+        url.searchParams.set('section', 'home');
+        url.searchParams.set('tag', tagSlug);
+        url.searchParams.delete('search'); // Clear search when filtering by tag
+        window.location.href = url.toString();
+    } catch (error) {
+        console.error('Error filtering by tag:', error);
+    }
+}
+
+// Post interactions
+function toggleLike(type, id, button) {
+    if (!button) return;
+    
+    const formData = new FormData();
+    formData.append('content_type', type);
+    formData.append('content_id', id);
+    formData.append('csrfmiddlewaretoken', getCSRFToken());
+    
+    // Disable button during request
+    const originalContent = button.innerHTML;
+    button.disabled = true;
+    
+    fetch('/community/toggle-like/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.liked !== undefined) {
+            button.classList.toggle('active', data.liked);
+            const countElement = button.querySelector('.like-count') || button.querySelector('span');
+            if (countElement) {
+                countElement.textContent = data.likes_count || 0;
+            }
+        } else if (data.error) {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error toggling like:', error);
+        alert('Failed to update like. Please try again.');
+    })
+    .finally(() => {
+        button.disabled = false;
+        if (button.innerHTML !== originalContent) {
+            button.innerHTML = originalContent;
+        }
+    });
+}
+
+function toggleFollow(type, id, button) {
+    if (!button) return;
+    
+    const formData = new FormData();
+    formData.append('content_type', type);
+    formData.append('content_id', id);
+    formData.append('csrfmiddlewaretoken', getCSRFToken());
+    
+    // Disable button during request
+    button.disabled = true;
+    
+    fetch('/community/toggle-follow/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.following !== undefined) {
+            button.classList.toggle('active', data.following);
+            const countElement = button.querySelector('span');
+            if (countElement) {
+                countElement.textContent = data.followers_count || 0;
+            }
+        } else if (data.error) {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error toggling follow:', error);
+        alert('Failed to update follow status. Please try again.');
+    })
+    .finally(() => {
+        button.disabled = false;
+    });
+}
+
+function showPostDetail(slug) {
+    if (!slug) return;
+    
+    try {
+        const url = new URL(window.location);
+        url.searchParams.set('section', 'post-detail');
+        url.searchParams.set('slug', slug);
+        window.location.href = url.toString();
+    } catch (error) {
+        console.error('Error showing post detail:', error);
+    }
+}
+
+function showUserProfile(username) {
+    if (!username) return;
+    
+    try {
+        const url = new URL(window.location);
+        url.searchParams.set('section', 'user-profile');
+        url.searchParams.set('username', username);
+        window.location.href = url.toString();
+    } catch (error) {
+        console.error('Error showing user profile:', error);
+    }
+}
+
+function editPost(slug) {
+    if (!slug) return;
+    
+    try {
+        const url = new URL(window.location);
+        url.searchParams.set('section', 'edit-post');
+        url.searchParams.set('slug', slug);
+        window.location.href = url.toString();
+    } catch (error) {
+        console.error('Error editing post:', error);
+    }
+}
+
+function deletePost(postId) {
+    if (!postId || !confirm('Are you sure you want to delete this post?')) {
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('post_id', postId);
+    formData.append('csrfmiddlewaretoken', getCSRFToken());
+    
+    fetch('/community/delete-post/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Remove post from DOM or reload page
+            const postCard = document.querySelector(`[data-post-id="${postId}"]`);
+            if (postCard) {
+                postCard.remove();
+            } else {
+                location.reload();
+            }
+            alert('Post deleted successfully!');
+        } else {
+            alert('Error deleting post: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error deleting post:', error);
+        alert('Failed to delete post. Please try again.');
+    });
+}
+
+function markAllAsRead() {
+    const formData = new FormData();
+    formData.append('csrfmiddlewaretoken', getCSRFToken());
+    
+    fetch('/community/mark-all-notifications-read/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Reload notifications
+            loadNotifications();
+            
+            // Update notification badge
+            const badge = document.querySelector('.notification-badge');
+            if (badge) {
+                badge.style.display = 'none';
+            }
+        } else {
+            alert('Error marking notifications as read: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error marking notifications as read:', error);
+        alert('Failed to mark notifications as read. Please try again.');
+    });
+}
+
+// Form submission handling
+function handleFormSubmission(form, successCallback) {
+    if (!form) return;
+    
+    const formData = new FormData(form);
+    const submitButton = form.querySelector('button[type="submit"]');
+    
+    // Disable submit button
+    if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Submitting...';
+    }
+    
+    fetch(form.action || window.location.href, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            if (data.redirect_url) {
+                window.location.href = data.redirect_url;
+            } else if (successCallback) {
+                successCallback(data);
+            } else {
+                // Default success action
+                showSection('home');
+                location.reload();
+            }
+        } else {
+            const errorMessage = data.error || 'Form submission failed';
+            alert('Error: ' + errorMessage);
+            
+            // Display form errors if available
+            if (data.errors) {
+                console.error('Form errors:', data.errors);
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Form submission error:', error);
+        alert('Error submitting form. Please try again.');
+    })
+    .finally(() => {
+        // Re-enable submit button
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.innerHTML = '<i class="bx bx-send"></i> Publish Post';
+        }
+    });
+}
+
+// Dropdown menu handling
+function initializeDropdowns() {
+    // Handle dropdown toggles
+    document.addEventListener('click', function(e) {
+        const dropdownToggle = e.target.closest('.dropdown-toggle');
+        
+        if (dropdownToggle) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const dropdown = dropdownToggle.closest('.dropdown');
+            const menu = dropdown?.querySelector('.dropdown-menu');
+            
+            if (menu) {
+                const isVisible = menu.style.visibility === 'visible';
+                
+                // Close all other dropdowns
+                document.querySelectorAll('.dropdown-menu').forEach(m => {
+                    if (m !== menu) {
+                        m.style.opacity = '0';
+                        m.style.visibility = 'hidden';
+                        m.style.transform = 'translateY(-10px)';
+                    }
+                });
+                
+                // Toggle current dropdown
+                if (isVisible) {
+                    menu.style.opacity = '0';
+                    menu.style.visibility = 'hidden';
+                    menu.style.transform = 'translateY(-10px)';
+                } else {
+                    menu.style.opacity = '1';
+                    menu.style.visibility = 'visible';
+                    menu.style.transform = 'translateY(0)';
+                }
+            }
+        } else {
+            // Close all dropdowns when clicking outside
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                menu.style.opacity = '0';
+                menu.style.visibility = 'hidden';
+                menu.style.transform = 'translateY(-10px)';
+            });
+        }
+    });
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        // Initialize dropdowns
+        initializeDropdowns();
+        
+        // Handle create post form
+        const createPostForm = document.getElementById('create-post-form');
+        if (createPostForm) {
+            createPostForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                handleFormSubmission(this);
+            });
+        }
+        
+        // Set initial filter values from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const typeFilter = document.getElementById('post-type-filter');
+        const sortFilter = document.getElementById('sort-filter');
+        const searchInput = document.getElementById('search-input');
+        
+        if (typeFilter && urlParams.get('type')) {
+            typeFilter.value = urlParams.get('type');
+        }
+        if (sortFilter && urlParams.get('sort')) {
+            sortFilter.value = urlParams.get('sort');
+        }
+        if (searchInput && urlParams.get('search')) {
+            searchInput.value = urlParams.get('search');
+        }
+        
+        // Load initial section based on URL
+        const section = urlParams.get('section') || 'home';
+        showSection(section);
+        
+        // Handle browser back/forward buttons
+        window.addEventListener('popstate', function(e) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const section = urlParams.get('section') || 'home';
+            showSection(section);
+        });
+        
+        // Auto-refresh notifications periodically (optional)
+        if (document.querySelector('.notification-badge')) {
+            setInterval(() => {
+                if (currentSection === 'notifications') {
+                    // Don't auto-refresh if user is actively viewing notifications
+                    return;
+                }
+                
+                // Check for new notifications
+                fetch('/community/?section=notifications', {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Update notification count if needed
+                    // This is optional and can be implemented based on your needs
+                })
+                .catch(error => {
+                    // Silently fail for background requests
+                    console.debug('Background notification check failed:', error);
+                });
+            }, 30000); // Check every 30 seconds
+        }
+        
+    } catch (error) {
+        console.error('Error initializing community page:', error);
+    }
+});
+
+// Handle page visibility change to reload content when user returns
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden && currentSection === 'notifications') {
+        // Reload notifications when user returns to the page
+        loadNotifications();
+    }
+});
+
+// Export functions for global access
+window.communityFunctions = {
+    showSection,
+    toggleLike,
+    toggleFollow,
+    showPostDetail,
+    showUserProfile,
+    editPost,
+    deletePost,
+    markAllAsRead,
+    applyFilters,
+    handleSearch,
+    filterByTag
+};
+</script>
+{% endblock %}
