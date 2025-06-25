@@ -1,0 +1,30 @@
+{% if notifications %}
+    {% for notification in notifications %}
+    <div class="notification-item {% if not notification.is_read %}unread{% endif %}">
+        <div class="notification-avatar">
+            {{ notification.sender.full_name|first|upper }}
+        </div>
+        <div class="notification-content">
+            <div class="notification-message">
+                {{ notification.message }}
+            </div>
+            <div class="notification-time">
+                {{ notification.created_at|timesince }} ago
+            </div>
+        </div>
+        {% if notification.post %}
+        <div class="notification-action">
+            <button class="btn btn-sm btn-outline" onclick="showPostDetail('{{ notification.post.slug }}')">
+                View Post
+            </button>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+{% else %}
+<div class="empty-state">
+    <i class='bx bx-bell'></i>
+    <h3>No notifications</h3>
+    <p>You're all caught up!</p>
+</div>
+{% endif %}

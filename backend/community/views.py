@@ -1,8 +1,8 @@
-from django.shortcuts import HttpResponseRedirect, get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q, Count, Prefetch
-from django.http import JsonResponse, HttpResponseForbidden
+from django.http import JsonResponse, HttpResponseForbidden, Http404
 from django.core.paginator import Paginator
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
@@ -12,6 +12,8 @@ from django.views.generic import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.template.loader import render_to_string
+from django.utils import timezone
+from datetime import timedelta
 import json
 
 from .models import Post, Comment, Like, Follow, Tag, Notification, UserActivity
@@ -22,49 +24,44 @@ User = get_user_model()
 
 @method_decorator(login_required, name='dispatch')
 class CommunityView(View):
-    """
-    Single view to handle all community functionality
-    """
+    """Single view to handle all community functionality"""
     template_name = 'community/community.html'
     
     def get(self, request, *args, **kwargs):
-        # Get the current section from URL parameter
         section = request.GET.get('section', 'home')
         
         # Handle AJAX requests
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return self._handle_ajax_request(request, section)
         
-        # Base context that's always available
-        context = {
-            'section': section,
-            'user': request.user,
-            'popular_tags': get_popular_tags(limit=10),
-            'suggested_users': get_suggested_users(request.user, limit=5),
-            'unread_notifications_count': Notification.objects.filter(
-                recipient=request.user, is_read=False
-            ).count(),
-        }
+        # Base context
+        context = self._get_base_context(request)
+        context['section'] = section
         
-        # Handle different sections
-        if section == 'home':
-            context.update(self._get_home_context(request))
-        elif section == 'my-posts':
-            context.update(self._get_my_posts_context(request))
-        elif section == 'notifications':
-            context.update(self._get_notifications_context(request))
-        elif section == 'post-detail':
-            context.update(self._get_post_detail_context(request))
-        elif section == 'user-profile':
-            context.update(self._get_user_profile_context(request))
-        elif section == 'tag-posts':
-            context.update(self._get_tag_posts_context(request))
-        elif section == 'create-post':
-            context.update(self._get_create_post_context(request))
-        elif section == 'edit-post':
-            context.update(self._get_edit_post_context(request))
-        else:
-            # Default to home if section not recognized
+        # Load section-specific context
+        try:
+            if section == 'home':
+                context.update(self._get_home_context(request))
+            elif section == 'my-posts':
+                context.update(self._get_my_posts_context(request))
+            elif section == 'notifications':
+                context.update(self._get_notifications_context(request))
+            elif section == 'post-detail':
+                context.update(self._get_post_detail_context(request))
+            elif section == 'user-profile':
+                context.update(self._get_user_profile_context(request))
+            elif section == 'tag-posts':
+                context.update(self._get_tag_posts_context(request))
+            elif section == 'create-post':
+                context.update(self._get_create_post_context(request))
+            elif section == 'edit-post':
+                context.update(self._get_edit_post_context(request))
+            else:
+                section = 'home'
+                context['section'] = 'home'
+                context.update(self._get_home_context(request))
+        except Exception as e:
+            messages.error(request, f'Error loading section: {str(e)}')
             context['section'] = 'home'
             context.update(self._get_home_context(request))
         
@@ -73,44 +70,120 @@ class CommunityView(View):
     def post(self, request, *args, **kwargs):
         section = request.GET.get('section', 'home')
         
-        if section == 'create-post':
-            return self._handle_create_post(request)
-        elif section == 'edit-post':
-            return self._handle_edit_post(request)
-        elif section == 'add-comment':
-            return self._handle_add_comment(request)
+        try:
+            if section == 'create-post':
+                return self._handle_create_post(request)
+            elif section == 'edit-post':
+                return self._handle_edit_post(request)
+            elif section == 'add-comment':
+                return self._handle_add_comment(request)
+        except Exception as e:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'error': str(e)}, status=500)
+            messages.error(request, f'Error: {str(e)}')
         
-        # For other POST requests, redirect to GET
         return self.get(request, *args, **kwargs)
+    
+    def _get_base_context(self, request):
+        """Get base context available to all sections"""
+        try:
+            unread_count = 0
+            popular_tags = []
+            suggested_users = []
+            trending_posts = []
+            
+            if request.user.is_authenticated:
+                unread_count = Notification.objects.filter(
+                    recipient=request.user, is_read=False
+                ).count()
+                
+                popular_tags = get_popular_tags(limit=10)
+                suggested_users = get_suggested_users(request.user, limit=5)
+                trending_posts = get_trending_posts(limit=5)
+            
+            return {
+                'user': request.user,
+                'popular_tags': popular_tags,
+                'suggested_users': suggested_users,
+                'trending_posts': trending_posts,
+                'unread_notifications_count': unread_count,
+            }
+        except Exception as e:
+            print(f"Error in base context: {e}")
+            return {
+                'user': request.user,
+                'popular_tags': [],
+                'suggested_users': [],
+                'trending_posts': [],
+                'unread_notifications_count': 0,
+            }
     
     def _handle_ajax_request(self, request, section):
         """Handle AJAX requests for dynamic content loading"""
         try:
             if section == 'my-posts':
-                context = self._get_my_posts_context(request)
-                html = render_to_string('community/partials/my_posts.html', context, request=request)
+                posts = self._get_user_posts(request.user)
+                html = render_to_string('community/partials/posts_list.html', {
+                    'posts': posts, 
+                    'request': request,
+                    'user_liked_posts': self._get_user_liked_posts(request.user, posts),
+                    'user_followed_posts': self._get_user_followed_posts(request.user, posts),
+                }, request=request)
                 return JsonResponse({'html': html, 'success': True})
+                
             elif section == 'notifications':
-                context = self._get_notifications_context(request)
-                html = render_to_string('community/partials/notifications.html', context, request=request)
+                notifications = self._get_user_notifications(request.user)
+                html = render_to_string('community/partials/notifications_list.html', {
+                    'notifications': notifications,
+                    'request': request
+                }, request=request)
                 return JsonResponse({'html': html, 'success': True})
+                
             elif section == 'post-detail':
-                context = self._get_post_detail_context(request)
-                if 'error' in context:
-                    return JsonResponse({'error': context['error']}, status=404)
-                html = render_to_string('community/partials/post_detail.html', context, request=request)
-                return JsonResponse({'html': html, 'success': True})
-            else:
-                return JsonResponse({'error': 'Invalid section'}, status=400)
+                slug = request.GET.get('slug')
+                if not slug:
+                    return JsonResponse({'error': 'Post slug required'}, status=400)
+                
+                try:
+                    post = Post.objects.select_related('author').prefetch_related('tags').get(
+                        slug=slug, is_active=True
+                    )
+                    post.increment_views()
+                    
+                    context = self._get_post_detail_data(request, post)
+                    html = render_to_string('community/partials/post_detail.html', context, request=request)
+                    return JsonResponse({'html': html, 'success': True})
+                except Post.DoesNotExist:
+                    return JsonResponse({'error': 'Post not found'}, status=404)
+            
+            elif section == 'edit-post':
+                slug = request.GET.get('slug')
+                if not slug:
+                    return JsonResponse({'error': 'Post slug required'}, status=400)
+                
+                try:
+                    post = Post.objects.get(slug=slug, author=request.user, is_active=True)
+                    # Return post data for form population
+                    post_data = {
+                        'id': str(post.id),
+                        'title': post.title,
+                        'content': post.content,
+                        'post_type': post.post_type,
+                        'tags': list(post.tags.values_list('id', flat=True)),
+                        'image_url': post.image.url if post.image else None,
+                    }
+                    return JsonResponse({'success': True, 'post': post_data})
+                except Post.DoesNotExist:
+                    return JsonResponse({'error': 'Post not found or permission denied'}, status=404)
+            
+            return JsonResponse({'error': 'Invalid section'}, status=400)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
     
     def _get_home_context(self, request):
         """Get context for home/feed section"""
         try:
-            queryset = Post.objects.select_related('author').prefetch_related(
-                'tags', 'likes', 'comments'
-            ).filter(is_active=True)
+            queryset = Post.objects.select_related('author').prefetch_related('tags').filter(is_active=True)
             
             # Apply filters
             post_type = request.GET.get('type')
@@ -152,21 +225,8 @@ class CommunityView(View):
             posts = paginator.get_page(page_number)
             
             # User interaction data
-            user_liked_posts = set()
-            user_followed_posts = set()
-            if request.user.is_authenticated:
-                user_liked_posts = set(
-                    Like.objects.filter(
-                        user=request.user,
-                        content_type='post'
-                    ).values_list('post_id', flat=True)
-                )
-                user_followed_posts = set(
-                    Follow.objects.filter(
-                        follower=request.user,
-                        content_type='post'
-                    ).values_list('post_id', flat=True)
-                )
+            user_liked_posts = self._get_user_liked_posts(request.user, posts)
+            user_followed_posts = self._get_user_followed_posts(request.user, posts)
             
             return {
                 'posts': posts,
@@ -174,27 +234,63 @@ class CommunityView(View):
                 'current_filter': request.GET.dict(),
                 'user_liked_posts': user_liked_posts,
                 'user_followed_posts': user_followed_posts,
-                'trending_posts': get_trending_posts(limit=5),
             }
         except Exception as e:
             return {'error': f'Error loading posts: {str(e)}', 'posts': []}
     
-    def _get_post_detail_context(self, request):
-        """Get context for post detail section"""
-        slug = request.GET.get('slug')
-        if not slug:
-            return {'error': 'Post not found'}
+    def _get_user_liked_posts(self, user, posts):
+        """Get set of post IDs that user has liked"""
+        if not user.is_authenticated:
+            return set()
         
-        try:
-            post = Post.objects.select_related('author').prefetch_related('tags').get(
-                slug=slug, is_active=True
-            )
-            # Increment view count
-            post.increment_views()
-        except Post.DoesNotExist:
-            return {'error': 'Post not found'}
+        post_ids = [post.id for post in posts] if hasattr(posts, '__iter__') else []
+        return set(
+            Like.objects.filter(
+                user=user,
+                content_type='post',
+                post_id__in=post_ids
+            ).values_list('post_id', flat=True)
+        )
+    
+    def _get_user_followed_posts(self, user, posts):
+        """Get set of post IDs that user is following"""
+        if not user.is_authenticated:
+            return set()
         
-        # Get comments with replies
+        post_ids = [post.id for post in posts] if hasattr(posts, '__iter__') else []
+        return set(
+            Follow.objects.filter(
+                follower=user,
+                content_type='post',
+                post_id__in=post_ids
+            ).values_list('post_id', flat=True)
+        )
+    
+    def _get_user_posts(self, user):
+        """Get user's posts with pagination"""
+        posts = Post.objects.filter(
+            author=user, is_active=True
+        ).select_related('author').prefetch_related('tags').order_by('-created_at')
+        
+        paginator = Paginator(posts, 10)
+        page_number = 1  # For AJAX, we'll start with page 1
+        return paginator.get_page(page_number)
+    
+    def _get_user_notifications(self, user):
+        """Get user's notifications with pagination"""
+        notifications = Notification.objects.filter(
+            recipient=user
+        ).select_related('sender', 'post', 'comment').order_by('-created_at')
+        
+        # Mark as read when accessed
+        notifications.filter(is_read=False).update(is_read=True)
+        
+        paginator = Paginator(notifications, 20)
+        page_number = 1  # For AJAX, we'll start with page 1
+        return paginator.get_page(page_number)
+    
+    def _get_post_detail_data(self, request, post):
+        """Get post detail context data"""
         comments = Comment.objects.select_related('author').filter(
             post=post, parent=None, is_active=True
         ).prefetch_related(
@@ -241,8 +337,28 @@ class CommunityView(View):
         """Get context for user's posts section"""
         try:
             posts = Post.objects.filter(
-                author=request.user
+                author=request.user,
+                is_active=True
             ).select_related('author').prefetch_related('tags', 'likes', 'comments').order_by('-created_at')
+            
+            # Get user interaction data for my posts
+            user_liked_posts = set()
+            user_followed_posts = set()
+            if posts.exists():
+                user_liked_posts = set(
+                    Like.objects.filter(
+                        user=request.user,
+                        content_type='post',
+                        post__in=posts
+                    ).values_list('post_id', flat=True)
+                )
+                user_followed_posts = set(
+                    Follow.objects.filter(
+                        follower=request.user,
+                        content_type='post',
+                        post__in=posts
+                    ).values_list('post_id', flat=True)
+                )
             
             paginator = Paginator(posts, 10)
             page_number = request.GET.get('page', 1)
@@ -251,6 +367,8 @@ class CommunityView(View):
             return {
                 'my_posts': posts_page,
                 'user_stats': get_user_stats(request.user),
+                'user_liked_posts': user_liked_posts,
+                'user_followed_posts': user_followed_posts,
             }
         except Exception as e:
             return {'error': f'Error loading posts: {str(e)}', 'my_posts': []}
@@ -357,14 +475,14 @@ class CommunityView(View):
             return {'error': 'Post not found'}
         
         try:
-            post = Post.objects.get(slug=slug, author=request.user)
+            post = Post.objects.get(slug=slug, author=request.user, is_active=True)
             return {
                 'edit_post': post,
                 'post_form': PostForm(instance=post),
             }
         except Post.DoesNotExist:
             return {'error': 'Post not found or you do not have permission to edit'}
-    
+
     def _handle_create_post(self, request):
         """Handle post creation"""
         form = PostForm(request.POST, request.FILES)
@@ -392,21 +510,22 @@ class CommunityView(View):
                         'redirect_url': f'/community/?section=post-detail&slug={post.slug}'
                     })
                 
-                return HttpResponseRedirect(f'/community/?section=post-detail&slug={post.slug}')
+                return redirect(f'/community/?section=post-detail&slug={post.slug}')
             except Exception as e:
-                messages.error(request, f'Error creating post: {str(e)}')
+                error_msg = f'Error creating post: {str(e)}'
+                messages.error(request, error_msg)
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                    return JsonResponse({'error': str(e)}, status=500)
+                    return JsonResponse({'error': error_msg}, status=500)
         else:
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({'error': 'Form validation failed', 'errors': form.errors}, status=400)
         
-        context = {
+        # Return to form with errors
+        context = self._get_base_context(request)
+        context.update({
             'section': 'create-post',
             'post_form': form,
-            'popular_tags': get_popular_tags(limit=10),
-            'suggested_users': get_suggested_users(request.user, limit=5),
-        }
+        })
         return render(request, self.template_name, context)
     
     def _handle_edit_post(self, request):
@@ -414,28 +533,32 @@ class CommunityView(View):
         slug = request.GET.get('slug')
         if not slug:
             messages.error(request, 'Post not found')
-            return redirect('?section=my-posts')
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'error': 'Post not found'}, status=404)
+            return redirect('/community/?section=my-posts')
         
         try:
-            post = Post.objects.get(slug=slug, author=request.user)
+            post = Post.objects.get(slug=slug, author=request.user, is_active=True)
         except Post.DoesNotExist:
             messages.error(request, 'Post not found or you do not have permission to edit')
-            return redirect('?section=my-posts')
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'error': 'Post not found or permission denied'}, status=404)
+            return redirect('/community/?section=my-posts')
         
         form = PostForm(request.POST, request.FILES, instance=post)
         
         if form.is_valid():
             try:
-                form.save()
+                updated_post = form.save()
                 messages.success(request, 'Your post has been updated successfully!')
                 
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                     return JsonResponse({
                         'success': True,
-                        'redirect_url': f'/community/?section=post-detail&slug={post.slug}'
+                        'redirect_url': f'/community/?section=post-detail&slug={updated_post.slug}'
                     })
                 
-                return HttpResponseRedirect(f'/community/?section=post-detail&slug={post.slug}')
+                return redirect(f'/community/?section=post-detail&slug={updated_post.slug}')
             except Exception as e:
                 messages.error(request, f'Error updating post: {str(e)}')
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -443,13 +566,16 @@ class CommunityView(View):
         else:
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({'error': 'Form validation failed', 'errors': form.errors}, status=400)
-        
+            messages.error(request, 'Please correct the errors in the form.')
         context = {
             'section': 'edit-post',
             'edit_post': post,
             'post_form': form,
             'popular_tags': get_popular_tags(limit=10),
             'suggested_users': get_suggested_users(request.user, limit=5),
+            'unread_notifications_count': Notification.objects.filter(
+                recipient=request.user, is_read=False
+            ).count(),
         }
         return render(request, self.template_name, context)
     
@@ -535,77 +661,97 @@ class CommunityView(View):
 @login_required
 @require_POST
 def toggle_like(request):
-    content_type = request.POST.get('content_type')
-    content_id = request.POST.get('content_id')
-    
-    if content_type == 'post':
-        content_obj = get_object_or_404(Post, id=content_id)
-        like_obj, created = Like.objects.get_or_create(
-            user=request.user,
-            content_type='post',
-            post=content_obj
-        )
+    """Toggle like status for posts or comments"""
+    try:
+        content_type = request.POST.get('content_type')
+        content_id = request.POST.get('content_id')
         
-        if not created:
-            like_obj.delete()
-            liked = False
-        else:
-            liked = True
-            if content_obj.author != request.user:
-                create_notification(
-                    recipient=content_obj.author,
-                    sender=request.user,
-                    notification_type='like_post',
-                    post=content_obj,
-                    message=f'{request.user.full_name or request.user.username} liked your post "{content_obj.title}"'
-                )
+        if not content_type or not content_id:
+            return JsonResponse({'error': 'Missing parameters'}, status=400)
+        
+        if content_type == 'post':
+            try:
+                content_obj = Post.objects.get(id=content_id, is_active=True)
+            except Post.DoesNotExist:
+                return JsonResponse({'error': 'Post not found'}, status=404)
             
-            create_activity(
+            like_obj, created = Like.objects.get_or_create(
                 user=request.user,
-                activity_type='post_liked',
+                content_type='post',
                 post=content_obj
             )
-        
-        likes_count = content_obj.likes_count
-    
-    elif content_type == 'comment':
-        content_obj = get_object_or_404(Comment, id=content_id)
-        like_obj, created = Like.objects.get_or_create(
-            user=request.user,
-            content_type='comment',
-            comment=content_obj
-        )
-        
-        if not created:
-            like_obj.delete()
-            liked = False
-        else:
-            liked = True
-            if content_obj.author != request.user:
-                create_notification(
-                    recipient=content_obj.author,
-                    sender=request.user,
-                    notification_type='like_comment',
-                    post=content_obj.post,
-                    comment=content_obj,
-                    message=f'{request.user.full_name or request.user.username} liked your comment'
+            
+            if not created:
+                like_obj.delete()
+                liked = False
+            else:
+                liked = True
+                # Create notification for post author
+                if content_obj.author != request.user:
+                    create_notification(
+                        recipient=content_obj.author,
+                        sender=request.user,
+                        notification_type='like_post',
+                        post=content_obj,
+                        message=f'{request.user.full_name or request.user.username} liked your post "{content_obj.title}"'
+                    )
+                
+                # Create activity
+                create_activity(
+                    user=request.user,
+                    activity_type='post_liked',
+                    post=content_obj
                 )
             
-            create_activity(
+            likes_count = content_obj.likes.count()
+        
+        elif content_type == 'comment':
+            try:
+                content_obj = Comment.objects.get(id=content_id, is_active=True)
+            except Comment.DoesNotExist:
+                return JsonResponse({'error': 'Comment not found'}, status=404)
+            
+            like_obj, created = Like.objects.get_or_create(
                 user=request.user,
-                activity_type='comment_liked',
+                content_type='comment',
                 comment=content_obj
             )
+            
+            if not created:
+                like_obj.delete()
+                liked = False
+            else:
+                liked = True
+                # Create notification for comment author
+                if content_obj.author != request.user:
+                    create_notification(
+                        recipient=content_obj.author,
+                        sender=request.user,
+                        notification_type='like_comment',
+                        post=content_obj.post,
+                        comment=content_obj,
+                        message=f'{request.user.full_name or request.user.username} liked your comment'
+                    )
+                
+                # Create activity
+                create_activity(
+                    user=request.user,
+                    activity_type='comment_liked',
+                    comment=content_obj
+                )
+            
+            likes_count = content_obj.likes.count()
         
-        likes_count = content_obj.likes_count
+        else:
+            return JsonResponse({'error': 'Invalid content type'}, status=400)
+        
+        return JsonResponse({
+            'liked': liked,
+            'likes_count': likes_count
+        })
     
-    else:
-        return JsonResponse({'error': 'Invalid content type'}, status=400)
-    
-    return JsonResponse({
-        'liked': liked,
-        'likes_count': likes_count
-    })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 @login_required
 @require_POST
@@ -676,17 +822,23 @@ def toggle_follow(request):
 @login_required
 @require_POST
 def delete_post(request):
-    post_id = request.POST.get('post_id')
-    if not post_id:
-        return JsonResponse({'error': 'Post ID required'}, status=400)
-    
+    """Delete a post - only by the author"""
     try:
-        post = Post.objects.get(id=post_id, author=request.user)
-        post.delete()
-        messages.success(request, 'Post deleted successfully!')
-        return JsonResponse({'success': True})
-    except Post.DoesNotExist:
-        return JsonResponse({'error': 'Post not found or permission denied'}, status=404)
+        post_id = request.POST.get('post_id')
+        if not post_id:
+            return JsonResponse({'error': 'Post ID required'}, status=400)
+        
+        try:
+            post = Post.objects.get(id=post_id, author=request.user, is_active=True)
+            post_title = post.title
+            post.delete()
+            
+            messages.success(request, f'Post "{post_title}" deleted successfully!')
+            return JsonResponse({'success': True, 'message': f'Post "{post_title}" deleted successfully!'})
+        except Post.DoesNotExist:
+            return JsonResponse({'error': 'Post not found or you do not have permission to delete it'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 @login_required
 @require_POST
@@ -713,5 +865,26 @@ def mark_all_notifications_read(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
-# Keep the main community view as the default
+# Add helper view functions for direct URL access
+@login_required
+def post_detail_view(request, slug):
+    """Redirect to community view with post detail"""
+    return redirect(f'/community/?section=post-detail&slug={slug}')
+
+@login_required
+def edit_post_view(request, slug):
+    """Redirect to community view with edit post"""
+    return redirect(f'/community/?section=edit-post&slug={slug}')
+
+@login_required
+def user_profile_view(request, username):
+    """Redirect to community view with user profile"""
+    return redirect(f'/community/?section=user-profile&username={username}')
+
+@login_required
+def tag_posts_view(request, slug):
+    """Redirect to community view with tag posts"""
+    return redirect(f'/community/?section=tag-posts&tag={slug}')
+
+# Create the main community view instance
 community_view = CommunityView.as_view()

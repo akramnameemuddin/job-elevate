@@ -1,0 +1,151 @@
+{% if posts %}
+    {% for post in posts %}
+    <div class="post-card" data-post-id="{{ post.id }}">
+        <div class="post-header">
+            <div class="post-author">
+                <div class="author-avatar">
+                    {{ post.author.full_name|first|upper }}
+                </div>
+                <div class="author-info">
+                    <div class="author-name" onclick="showUserProfile('{{ post.author.username }}')">
+                        {{ post.author.full_name }}
+                    </div>
+                    <div class="post-meta">
+                        <span class="post-type">{{ post.get_post_type_display }}</span>
+                        <span class="post-date">{{ post.created_at|timesince }} ago</span>
+                        <span class="post-views"><i class='bx bx-show'></i> {{ post.views }}</span>
+                    </div>
+                </div>
+            </div>
+            {% if post.author == user %}
+            <div class="post-actions">
+                <div class="dropdown">
+                    <button class="dropdown-toggle" type="button">
+                        <i class='bx bx-dots-horizontal-rounded'></i>
+                    </button>
+                    <div class="dropdown-menu">
+                        <a href="#" onclick="editPost('{{ post.slug }}'); return false;" class="dropdown-item">
+                            <i class='bx bx-edit'></i> Edit Post
+                        </a>
+                        <a href="#" onclick="deletePost('{{ post.id }}'); return false;" class="dropdown-item danger">
+                            <i class='bx bx-trash'></i> Delete Post
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="post-content" onclick="showPostDetail('{{ post.slug }}')">
+            <h3 class="post-title">{{ post.title }}</h3>
+            <div class="post-text">{{ post.content|truncatewords:30|linebreaks }}</div>
+            {% if post.image %}
+            <div class="post-image">
+                <img src="{{ post.image.url }}" alt="{{ post.title }}">
+            </div>
+            {% endif %}
+            {% if post.tags.exists %}
+            <div class="post-tags">
+                {% for tag in post.tags.all %}
+                <span class="tag" onclick="filterByTag('{{ tag.slug }}'); event.stopPropagation();">{{ tag.name }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="post-footer">
+            <div class="post-stats">
+                <button class="stat-btn like-btn {% if post.id in user_liked_posts %}active{% endif %}" 
+                        onclick="toggleLike('post', '{{ post.id }}', this); event.stopPropagation();">
+                    <i class='bx bx-heart'></i>
+                    <span class="like-count">{{ post.likes_count }}</span>
+                </button>
+                <button class="stat-btn comment-btn" onclick="showPostDetail('{{ post.slug }}'); event.stopPropagation();">
+                    <i class='bx bx-comment'></i>
+                    <span>{{ post.comments_count }}</span>
+                </button>
+                <button class="stat-btn follow-btn {% if post.id in user_followed_posts %}active{% endif %}" 
+                        onclick="toggleFollow('post', '{{ post.id }}', this); event.stopPropagation();">
+                    <i class='bx bx-bookmark'></i>
+                    <span>{{ post.followers_count }}</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    
+    {% if posts.has_other_pages %}
+    <div class="pagination-container">
+        <div class="pagination">
+            {% if posts.has_previous %}
+            <button class="page-btn" onclick="loadPage({{ posts.previous_page_number }})">Previous</button>
+            {% endif %}
+            
+            {% for num in posts.paginator.page_range %}
+            {% if posts.number == num %}
+            <span class="page-btn active">{{ num }}</span>
+            {% else %}
+            <button class="page-btn" onclick="loadPage({{ num }})">{{ num }}</button>
+            {% endif %}
+            {% endfor %}
+            
+            {% if posts.has_next %}
+            <button class="page-btn" onclick="loadPage({{ posts.next_page_number }})">Next</button>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+{% else %}
+<div class="empty-state">
+    <i class='bx bx-message-square-dots'></i>
+    <h3>No posts found</h3>
+    <p>You haven't created any posts yet.</p>
+    <button class="btn btn-primary" onclick="showSection('create-post')">Create Your First Post</button>
+</div>
+{% endif %}
+
+<style>
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    color: var(--text-color);
+    text-decoration: none;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.dropdown-item:hover {
+    background: var(--hover-bg);
+    color: var(--text-color);
+}
+
+.dropdown-item.danger {
+    color: var(--danger);
+}
+
+.dropdown-item.danger:hover {
+    background: rgba(220, 53, 69, 0.1);
+    color: var(--danger);
+}
+
+.dropdown-menu {
+    min-width: 150px;
+    padding: 0.5rem 0;
+}
+
+.post-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+.post-views {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+</style>

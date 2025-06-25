@@ -1,0 +1,158 @@
+<div class="post-detail-header">
+    <button class="btn btn-secondary" onclick="showSection('home')">
+        <i class='bx bx-arrow-back'></i> Back to Feed
+    </button>
+</div>
+
+<div class="post-detail-card">
+    <div class="post-header">
+        <div class="post-author">
+            <div class="author-avatar">
+                {{ current_post.author.full_name|first|upper }}
+            </div>
+            <div class="author-info">
+                <div class="author-name" onclick="showUserProfile('{{ current_post.author.username }}')">
+                    {{ current_post.author.full_name }}
+                </div>
+                <div class="post-meta">
+                    <span class="post-type">{{ current_post.get_post_type_display }}</span>
+                    <span class="post-date">{{ current_post.created_at|timesince }} ago</span>
+                    <span class="post-views"><i class='bx bx-show'></i> {{ current_post.views }} views</span>
+                </div>
+            </div>
+        </div>
+        {% if current_post.author == user %}
+        <div class="post-actions">
+            <button class="btn btn-sm btn-outline" onclick="editPost('{{ current_post.slug }}')">
+                <i class='bx bx-edit'></i> Edit
+            </button>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="post-content">
+        <h1 class="post-title">{{ current_post.title }}</h1>
+        <div class="post-text">{{ current_post.content|linebreaks }}</div>
+        {% if current_post.image %}
+        <div class="post-image">
+            <img src="{{ current_post.image.url }}" alt="{{ current_post.title }}">
+        </div>
+        {% endif %}
+        {% if current_post.tags.exists %}
+        <div class="post-tags">
+            {% for tag in current_post.tags.all %}
+            <span class="tag" onclick="filterByTag('{{ tag.slug }}')">{{ tag.name }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="post-footer">
+        <div class="post-stats">
+            <button class="stat-btn like-btn {% if user_liked_post %}active{% endif %}" 
+                    onclick="toggleLike('post', '{{ current_post.id }}', this)">
+                <i class='bx bx-heart'></i>
+                <span class="like-count">{{ current_post.likes_count }}</span>
+            </button>
+            <button class="stat-btn comment-btn">
+                <i class='bx bx-comment'></i>
+                <span>{{ current_post.comments_count }}</span>
+            </button>
+            <button class="stat-btn follow-btn {% if user_following_post %}active{% endif %}" 
+                    onclick="toggleFollow('post', '{{ current_post.id }}', this)">
+                <i class='bx bx-bookmark'></i>
+                <span>{{ current_post.followers_count }}</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Comments Section -->
+<div class="comments-section">
+    <h3>Comments ({{ current_post.comments_count }})</h3>
+    
+    <!-- Add Comment Form -->
+    <div class="add-comment-form">
+        <form method="post" action="/community/?section=add-comment&slug={{ current_post.slug }}" id="comment-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <textarea name="content" rows="3" class="form-control" placeholder="Write your comment..." required></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class='bx bx-send'></i> Post Comment
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Comments List -->
+    <div class="comments-list">
+        {% for comment in comments %}
+        <div class="comment-item" data-comment-id="{{ comment.id }}">
+            <div class="comment-header">
+                <div class="comment-author">
+                    <div class="author-avatar">
+                        {{ comment.author.full_name|first|upper }}
+                    </div>
+                    <div class="author-info">
+                        <div class="author-name">{{ comment.author.full_name }}</div>
+                        <div class="comment-date">{{ comment.created_at|timesince }} ago</div>
+                    </div>
+                </div>
+                {% if comment.author == user %}
+                <div class="comment-actions">
+                    <button class="btn btn-sm btn-danger" onclick="deleteComment('{{ comment.id }}')">
+                        <i class='bx bx-trash'></i>
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+            <div class="comment-content">
+                {{ comment.content|linebreaks }}
+            </div>
+            <div class="comment-footer">
+                <button class="stat-btn like-btn {% if comment.id in user_liked_comments %}active{% endif %}" 
+                        onclick="toggleLike('comment', '{{ comment.id }}', this)">
+                    <i class='bx bx-heart'></i>
+                    <span class="like-count">{{ comment.likes_count }}</span>
+                </button>
+                <button class="stat-btn reply-btn" onclick="showReplyForm('{{ comment.id }}')">
+                    <i class='bx bx-reply'></i> Reply
+                </button>
+            </div>
+            
+            <!-- Replies -->
+            {% if comment.replies.exists %}
+            <div class="replies-list">
+                {% for reply in comment.replies.all %}
+                <div class="comment-item reply" data-comment-id="{{ reply.id }}">
+                    <div class="comment-header">
+                        <div class="comment-author">
+                            <div class="author-avatar">
+                                {{ reply.author.full_name|first|upper }}
+                            </div>
+                            <div class="author-info">
+                                <div class="author-name">{{ reply.author.full_name }}</div>
+                                <div class="comment-date">{{ reply.created_at|timesince }} ago</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="comment-content">
+                        {{ reply.content|linebreaks }}
+                    </div>
+                    <div class="comment-footer">
+                        <button class="stat-btn like-btn {% if reply.id in user_liked_comments %}active{% endif %}" 
+                                onclick="toggleLike('comment', '{{ reply.id }}', this)">
+                            <i class='bx bx-heart'></i>
+                            <span class="like-count">{{ reply.likes_count }}</span>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>

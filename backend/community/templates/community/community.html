@@ -334,6 +334,69 @@
                     </div>
                 </div>
 
+                <!-- Edit Post Section -->
+                <div class="section-content" id="edit-post-section" style="display: none;">
+                    <div class="section-header">
+                        <h2>Edit Post</h2>
+                        <button class="btn btn-secondary" onclick="showSection('my-posts')">
+                            <i class='bx bx-arrow-back'></i> Back to My Posts
+                        </button>
+                    </div>
+                    
+                    <div class="create-post-form">
+                        <form method="post" enctype="multipart/form-data" id="edit-post-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="section" value="edit-post">
+                            
+                            <div class="form-group">
+                                <label for="edit_title">Post Title</label>
+                                <input type="text" name="title" id="edit_title" class="form-control" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="edit_post_type">Post Type</label>
+                                <select name="post_type" id="edit_post_type" class="form-control" required>
+                                    <option value="discussion">Discussion</option>
+                                    <option value="question">Question</option>
+                                    <option value="announcement">Announcement</option>
+                                    <option value="job_sharing">Job Sharing</option>
+                                    <option value="resource">Resource</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="edit_content">Content</label>
+                                <textarea name="content" id="edit_content" rows="8" class="form-control" required></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="edit_image">Image (optional)</label>
+                                <input type="file" name="image" id="edit_image" class="form-control" accept="image/*">
+                                <small class="form-text text-muted">Leave empty to keep current image</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Tags</label>
+                                <div class="tags-input" id="edit-tags-container">
+                                    {% for tag in popular_tags %}
+                                    <label class="tag-checkbox" for="edit_tag_{{ tag.id }}">
+                                        <input type="checkbox" name="tags" value="{{ tag.id }}" id="edit_tag_{{ tag.id }}">
+                                        <span class="tag-label">{{ tag.name }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary" onclick="showSection('my-posts')">Cancel</button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class='bx bx-save'></i> Update Post
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
                 <!-- Post Detail Section -->
                 <div class="section-content" id="post-detail-section" style="display: none;">
                     <div class="post-detail-container">
@@ -982,6 +1045,13 @@
     margin-top: 2rem;
 }
 
+/* Form helper text */
+.form-text {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    margin-top: 0.25rem;
+}
+
 .btn {
     padding: 0.75rem 1.5rem;
     border-radius: 0.5rem;
@@ -1136,7 +1206,7 @@ function getCSRFToken() {
 }
 
 // Section management
-function showSection(section) {
+function showSection(section, params = '') {
     try {
         // Hide all sections
         document.querySelectorAll('.section-content').forEach(el => {
@@ -1163,11 +1233,27 @@ function showSection(section) {
         currentSection = section;
         
         // Load section content if needed
-        loadSectionContent(section);
+        if (section === 'my-posts') {
+            loadMyPosts();
+        } else if (section === 'notifications') {
+            loadNotifications();
+        } else if (section === 'post-detail') {
+            loadPostDetail(params);
+        } else if (section === 'edit-post') {
+            loadEditPost(params);
+        }
         
         // Update URL without page reload
         const url = new URL(window.location);
         url.searchParams.set('section', section);
+        
+        if (params) {
+            const urlParams = new URLSearchParams(params);
+            urlParams.forEach((value, key) => {
+                url.searchParams.set(key, value);
+            });
+        }
+        
         window.history.replaceState({}, '', url);
     } catch (error) {
         console.error('Error showing section:', error);
@@ -1185,6 +1271,9 @@ function loadSectionContent(section) {
             break;
         case 'post-detail':
             loadPostDetail();
+            break;
+        case 'edit-post':
+            loadEditPost();
             break;
     }
 }
@@ -1306,7 +1395,92 @@ function loadPostDetail() {
     });
 }
 
-// Filter functionality
+// Load edit post data
+function loadEditPost(params = '') {
+    const urlParams = new URLSearchParams(params);
+    const slug = urlParams.get('slug') || new URLSearchParams(window.location.search).get('slug');
+    
+    if (!slug) {
+        alert('Post not found');
+        showSection('my-posts');
+        return;
+    }
+    
+    const url = new URL(window.location);
+    url.searchParams.set('section', 'edit-post');
+    url.searchParams.set('slug', slug);
+    
+    fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success && data.post) {
+            // Populate the edit form with post data
+            populateEditForm(data.post);
+        } else {
+            alert(data.error || 'Error loading post for editing');
+            showSection('my-posts');
+        }
+    })
+    .catch(error => {
+        console.error('Error loading edit post:', error);
+        alert('Error loading post for editing');
+        showSection('my-posts');
+    });
+}
+
+// Populate edit form with post data
+function populateEditForm(postData) {
+    try {
+        // Populate form fields
+        const titleField = document.getElementById('edit_title');
+        const contentField = document.getElementById('edit_content');
+        const typeField = document.getElementById('edit_post_type');
+        
+        if (titleField) titleField.value = postData.title || '';
+        if (contentField) contentField.value = postData.content || '';
+        if (typeField) typeField.value = postData.post_type || '';
+        
+        // Handle tags
+        if (postData.tags && Array.isArray(postData.tags)) {
+            const tagCheckboxes = document.querySelectorAll('input[name="tags"][type="checkbox"]');
+            tagCheckboxes.forEach(checkbox => {
+                checkbox.checked = postData.tags.includes(parseInt(checkbox.value));
+            });
+        }
+        
+        // Store post ID for form submission
+        const form = document.getElementById('edit-post-form');
+        if (form) {
+            // Add hidden field for post ID if it doesn't exist
+            let postIdField = form.querySelector('input[name="post_id"]');
+            if (!postIdField) {
+                postIdField = document.createElement('input');
+                postIdField.type = 'hidden';
+                postIdField.name = 'post_id';
+                form.appendChild(postIdField);
+            }
+            postIdField.value = postData.id;
+        }
+        
+        console.log('Edit form populated successfully');
+    } catch (error) {
+        console.error('Error populating edit form:', error);
+        alert('Error loading post data');
+        showSection('my-posts');
+    }
+}
+
 function applyFilters() {
     try {
         const typeFilter = document.getElementById('post-type-filter');
@@ -1502,7 +1676,12 @@ function editPost(slug) {
 }
 
 function deletePost(postId) {
-    if (!postId || !confirm('Are you sure you want to delete this post?')) {
+    if (!postId) {
+        alert('Post ID is required');
+        return;
+    }
+    
+    if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
         return;
     }
     
@@ -1525,14 +1704,27 @@ function deletePost(postId) {
     })
     .then(data => {
         if (data.success) {
-            // Remove post from DOM or reload page
+            // Remove post from DOM
             const postCard = document.querySelector(`[data-post-id="${postId}"]`);
             if (postCard) {
-                postCard.remove();
-            } else {
-                location.reload();
+                postCard.style.transition = 'opacity 0.3s ease';
+                postCard.style.opacity = '0';
+                setTimeout(() => {
+                    postCard.remove();
+                    // Check if there are no more posts
+                    const postsContainer = document.getElementById('my-posts-container') || document.getElementById('posts-container');
+                    if (postsContainer && postsContainer.children.length === 0) {
+                        postsContainer.innerHTML = '<div class="empty-state"><i class="bx bx-file"></i><h3>No posts found</h3><p>You haven\'t created any posts yet.</p></div>';
+                    }
+                }, 300);
             }
-            alert('Post deleted successfully!');
+            
+            alert(data.message || 'Post deleted successfully!');
+            
+            // If we're on my-posts section, reload it
+            if (currentSection === 'my-posts') {
+                loadMyPosts();
+            }
         } else {
             alert('Error deleting post: ' + (data.error || 'Unknown error'));
         }
@@ -1699,6 +1891,77 @@ document.addEventListener('DOMContentLoaded', function() {
             createPostForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 handleFormSubmission(this);
+            });
+        }
+        
+        // Handle edit post form
+        const editPostForm = document.getElementById('edit-post-form');
+        if (editPostForm) {
+            editPostForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Get slug from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const slug = urlParams.get('slug');
+                
+                if (!slug) {
+                    alert('Post not found');
+                    return;
+                }
+                
+                // Update form action to include slug
+                const formData = new FormData(this);
+                const submitButton = this.querySelector('button[type="submit"]');
+                
+                // Disable submit button
+                if (submitButton) {
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Updating...';
+                }
+                
+                const url = new URL(window.location);
+                url.searchParams.set('section', 'edit-post');
+                url.searchParams.set('slug', slug);
+                
+                fetch(url.toString(), {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        if (data.redirect_url) {
+                            window.location.href = data.redirect_url;
+                        } else {
+                            alert('Post updated successfully!');
+                            showSection('my-posts');
+                        }
+                    } else {
+                        alert('Error: ' + (data.error || 'Form submission failed'));
+                        if (data.errors) {
+                            console.error('Form errors:', data.errors);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Form submission error:', error);
+                    alert('Error updating post. Please try again.');
+                })
+                .finally(() => {
+                    // Re-enable submit button
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = '<i class="bx bx-save"></i> Update Post';
+                    }
+                });
             });
         }
         
