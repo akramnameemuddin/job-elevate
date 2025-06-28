@@ -884,7 +884,9 @@
             <a href="{% url 'jobs:job_listings' %}" class="nav-link">
                     <i class="bx bx-briefcase"></i>
                     <span class="nav-text">Job Matches</span>
-                    <span class="nav-badge">5</span>
+                    {% if job_match_count > 0 %}
+                        <span class="nav-badge">{{ job_match_count }}</span>
+                    {% endif %}
                 </a>
             </li>
             
@@ -991,10 +993,10 @@
         <div class="welcome-card">
             <div class="welcome-text">
                 <h2>Welcome back, {{ user.full_name }}!</h2>
-                <p>Your career journey is on track. You have 5 new job matches and 3 skill recommendations to explore this week.</p>
+                <p>Your career journey is on track. You have {{ job_match_count }} new job matches{% if job_match_count > 0 %} and 3 skill recommendations{% endif %} to explore this week.</p>
                 
                 <div class="welcome-buttons">
-                    <a href="{% url 'jobs:job_analytics' %}" class="btn btn-primary">
+                    <a href="{% url 'jobs:job_listings' %}" class="btn btn-primary">
                         <i class='bx bx-briefcase'></i> View Job Matches
                     </a>
                     <a href="{% url 'assessments:assessment' %}" class="btn btn-outline">
@@ -1012,9 +1014,9 @@
                 </div>
                 <div class="stat-info">
                     <div class="stat-label">Job Matches</div>
-                    <div class="stat-value">42</div>
+                    <div class="stat-value">{{ job_match_count }}</div>
                     <div class="stat-change">
-                        <i class='bx bx-up-arrow-alt'></i> 12% this week
+                        <i class='bx bx-up-arrow-alt'></i> {% if job_match_count > 0 %}New matches available{% else %}Complete profile for matches{% endif %}
                     </div>
                 </div>
             </div>
@@ -1024,9 +1026,15 @@
                 </div>
                 <div class="stat-info">
                     <div class="stat-label">Profile Strength</div>
-                    <div class="stat-value">85%</div>
+                    <div class="stat-value">{{ profile_completion }}%</div>
                     <div class="stat-change">
-                        <i class='bx bx-up-arrow-alt'></i> 5% since last update
+                        {% if profile_completion >= 80 %}
+                            <i class='bx bx-up-arrow-alt'></i> Excellent profile
+                        {% elif profile_completion >= 60 %}
+                            <i class='bx bx-up-arrow-alt'></i> Good progress
+                        {% else %}
+                            <i class='bx bx-down-arrow-alt'></i> Needs improvement
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -1036,7 +1044,7 @@
                 </div>
                 <div class="stat-info">
                     <div class="stat-label">Courses Completed</div>
-                    <div class="stat-value">7</div>
+                    <div class="stat-value">{{ courses_completed }}</div>
                     <div class="stat-change">
                         <i class='bx bx-up-arrow-alt'></i> 2 this month
                     </div>
@@ -1048,7 +1056,7 @@
                 </div>
                 <div class="stat-info">
                     <div class="stat-label">Network Growth</div>
-                    <div class="stat-value">28</div>
+                    <div class="stat-value">{{ network_growth }}</div>
                     <div class="stat-change negative">
                         <i class='bx bx-down-arrow-alt'></i> 3% this month
                     </div>

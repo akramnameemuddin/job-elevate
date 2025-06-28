@@ -51,7 +51,7 @@
                         <span class="stat-label">Profile Completion</span>
                     </div>
                     <div class="profile-stat">
-                        <span class="stat-value">42</span>
+                        <span class="stat-value">{{ job_match_count }}</span>
                         <span class="stat-label">Job Matches</span>
                     </div>
                     <div class="profile-stat">
@@ -1980,6 +1980,7 @@
     }
     
     // CERTIFICATION FUNCTIONALITY
+   
     const addCertBtn = document.getElementById('add-certification');
     const certModal = document.getElementById('certification-modal');
     const saveCertBtn = document.getElementById('save-certification');

@@ -157,6 +157,50 @@ class User(AbstractUser):
 
         return int((filled / total) * 100) if total > 0 else 0
 
+    def get_job_matches_count(self, match_threshold=0.3):
+        """
+        Calculate the number of jobs that match user's skills
+        
+        Args:
+            match_threshold (float): Minimum percentage of skill overlap required (default: 30%)
+        
+        Returns:
+            int: Number of matching jobs
+        """
+        if self.user_type not in ['student', 'professional']:
+            return 0
+            
+        try:
+            from recruiter.models import Job
+            
+            user_skills = self.get_skills_list()
+            if not user_skills:
+                return 0
+                
+            user_skills_set = set([skill.lower().strip() for skill in user_skills])
+            match_count = 0
+            
+            open_jobs = Job.objects.filter(status='Open')
+            
+            for job in open_jobs:
+                if job.skills:
+                    job_skills_set = set([skill.lower().strip() for skill in job.skills])
+                    
+                    if job_skills_set:
+                        matching_skills = user_skills_set.intersection(job_skills_set)
+                        match_percentage = len(matching_skills) / len(job_skills_set)
+                        
+                        if match_percentage >= match_threshold:
+                            match_count += 1
+                            
+            return match_count
+            
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error calculating job matches for user {self.id}: {str(e)}")
+            return 0
+
 
 class RecruiterProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='recruiterprofile')

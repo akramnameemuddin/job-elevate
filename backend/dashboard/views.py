@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from accounts.models import User, RecruiterProfile
+from recruiter.models import Job  # Import Job model
+from jobs.recommendation_engine import HybridRecommender  # Import recommendation engine
 import logging
 import json
 
@@ -150,7 +152,8 @@ def profile(request):
     
     # Prepare data for template
     profile_percent = user.profile_completion()
-    
+    job_match_count = user.get_job_matches_count()
+
     # Get structured data from JSON fields
     work_experiences = user.get_work_experience()
     internships_raw = user.get_internships()
@@ -181,6 +184,7 @@ def profile(request):
         'user': user,
         'user_initials': initials,
         'profile_percent': profile_percent,
+        'job_match_count': job_match_count,
         'work_experiences': work_experiences,
         'internships': internships,
         'certifications': certifications,
@@ -211,9 +215,59 @@ def dashboard(request):
     else:
         initials = "US"
 
+    # Calculate job matches using the user model method
+    job_match_count = user.get_job_matches_count()
+    
+    # Calculate profile completion percentage
+    profile_completion = user.profile_completion()
+
     context = {
         'user': user,
         'user_initials': initials,
+        'job_match_count': job_match_count,
+        'profile_completion': profile_completion,
+        'courses_completed': 7,  # Static for now as mentioned
+        'network_growth': 28,    # Static for now as mentioned
+    }
+
+    # Only allow access for students and professionals
+    if user.user_type in ['student', 'professional']:
+        return render(request, 'dashboard/base.html', context)
+    elif user.user_type == 'recruiter':
+        # Redirect to recruiter dashboard
+        return redirect('recruiter/')
+
+    # For others (including recruiters), show 403 or custom error
+    return render(request, 'accounts/access_denied.html', status=403)
+
+# Add a new view function for dashboard home specifically
+@login_required
+def home(request):
+    user = request.user
+
+    # Compute initials from full name
+    full_name = user.full_name.strip() if user.full_name else ""
+    name_parts = full_name.split()
+    if len(name_parts) >= 2:
+        initials = name_parts[0][0].upper() + name_parts[-1][0].upper()
+    elif len(name_parts) == 1:
+        initials = name_parts[0][0].upper()
+    else:
+        initials = "US"
+
+    # Calculate job matches using the user model method
+    job_match_count = user.get_job_matches_count()
+    
+    # Calculate profile completion percentage
+    profile_completion = user.profile_completion()
+
+    context = {
+        'user': user,
+        'user_initials': initials,
+        'job_match_count': job_match_count,
+        'profile_completion': profile_completion,
+        'courses_completed': 7,  # Static for now as mentioned
+        'network_growth': 28,    # Static for now as mentioned
     }
 
     # Only allow access for students and professionals

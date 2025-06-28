@@ -62,6 +62,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'backend.context_processors.user_initials',
+                'dashboard.context_processors.dashboard_context',  # Add this line
             ],
         },
     },
