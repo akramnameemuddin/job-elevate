@@ -1,0 +1,1403 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+{% block content %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Dashboard - Adaptive Pathways</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --primary-light: #8b5cf6;
+            --primary-dark: #4f46e5;
+            --secondary-color: #06b6d4;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --text-light: #9ca3af;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --border-color: #e5e7eb;
+            --border-light: #f3f4f6;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header Styles */
+        .page-header {
+            background: var(--bg-primary);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+        }
+
+        .page-title {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .breadcrumb-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .breadcrumb-link:hover {
+            color: var(--primary-dark);
+        }
+
+        /* Profile Header */
+        .profile-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+            border-radius: var(--radius-xl);
+            padding: 3rem 2rem;
+            margin-bottom: 2rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            transform: translate(100px, -100px);
+        }
+
+        .profile-header-content {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .profile-photo-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .profile-photo-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 4px solid rgba(255,255,255,0.2);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .profile-photo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .learning-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .profile-photo-container:hover .learning-overlay {
+            opacity: 1;
+        }
+
+        .photo-upload-hint {
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+
+        .profile-header-info h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-role {
+            font-size: 1.125rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 2rem;
+        }
+
+        .profile-stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+
+        /* Navigation Tabs */
+        .profile-tabs {
+            display: flex;
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            padding: 0.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            overflow-x: auto;
+        }
+
+        .tab-button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 1.5rem;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-weight: 500;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .tab-button:not(.active):hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .content-section {
+            background: var(--bg-primary);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .section-title i {
+            color: var(--primary-color);
+            font-size: 1.75rem;
+        }
+
+        .btn-add {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-add:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Cards */
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .entry-card {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .entry-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            transition: var(--transition);
+        }
+
+        .entry-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .entry-card:hover::before {
+            width: 6px;
+        }
+
+        .entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .entry-header h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            flex: 1;
+        }
+
+        .entry-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-left: 1rem;
+        }
+
+        .btn-action {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 1.1rem;
+        }
+
+        .btn-edit {
+            background: var(--bg-tertiary);
+            color: var(--primary-color);
+        }
+
+        .btn-edit:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-delete {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+        }
+
+        .btn-delete:hover {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        /* Pathway Specific Styles */
+        .pathway-level {
+            padding: 0.375rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .pathway-level.beginner {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .pathway-level.intermediate {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .pathway-level.advanced {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .pathway-progress {
+            background: var(--bg-tertiary);
+            border-radius: 9999px;
+            height: 8px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+            border-radius: 9999px;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .pathway-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 1rem;
+        }
+
+        .entry-description {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        /* Skills Tags */
+        .entry-skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .skill-tag {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .skill-tag.tech {
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .skill-tag.soft {
+            background: #f0fdf4;
+            color: #166534;
+        }
+
+        /* Duration/Time Tags */
+        .course-duration, .webinar-time, .project-duration {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            padding: 0.375rem 0.75rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Progress Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .stat-info h3 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-info p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        /* Timeline */
+        .timeline {
+            margin-top: 2rem;
+        }
+
+        .timeline-item {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            align-items: flex-start;
+        }
+
+        .timeline-marker {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-top: 6px;
+            flex-shrink: 0;
+        }
+
+        .timeline-marker.completed {
+            background: var(--success-color);
+        }
+
+        .timeline-marker.in-progress {
+            background: var(--warning-color);
+        }
+
+        .timeline-content h5 {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .timeline-time {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        /* Recommendations */
+        .recommendation-card {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            transition: var(--transition);
+        }
+
+        .recommendation-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        .recommendation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .recommendation-header h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .recommendation-score {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            color: white;
+            padding: 0.375rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .recommendation-reason {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+        }
+
+        .recommendation-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .recommendation-action {
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-md);
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .recommendation-action.primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+        }
+
+        .recommendation-action.primary:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .recommendation-action.secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .recommendation-action.secondary:hover {
+            background: var(--border-color);
+        }
+
+        /* Floating Actions */
+        .floating-actions {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            z-index: 1000;
+        }
+
+        .fab {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            box-shadow: var(--shadow-lg);
+            transition: var(--transition);
+        }
+
+        .fab:hover {
+            transform: scale(1.1) translateY(-2px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        /* Save Button */
+        .form-actions {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .btn-submit {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .profile-header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .profile-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .section-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .recommendation-actions {
+                flex-direction: column;
+            }
+
+            .floating-actions {
+                bottom: 1rem;
+                right: 1rem;
+            }
+
+            .profile-tabs {
+                flex-wrap: wrap;
+            }
+        }
+
+        /* Notification Styles */
+        .notification-container {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 1000;
+        }
+
+        .notification {
+            background: var(--bg-primary);
+            border-radius: var(--radius-md);
+            padding: 1rem 1.5rem;
+            box-shadow: var(--shadow-lg);
+            border-left: 4px solid var(--success-color);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- Simulating Django template structure -->
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">Adaptive Learning Dashboard</h1>
+            <div class="breadcrumb">
+                <a href="#" class="breadcrumb-link">Home</a>
+                <i class='bx bx-chevron-right'></i>
+                <span>Learning</span>
+            </div>
+        </div>
+
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="profile-header-content">
+                <div class="profile-photo-wrapper">
+                    <div class="profile-photo-container">
+                        <img class="profile-photo" 
+                            src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" 
+                            alt="Profile Photo">
+                        <div class="learning-overlay">
+                            <i class='bx bx-brain'></i>
+                        </div>
+                    </div>
+                    <span class="photo-upload-hint">Learning Progress</span>
+                </div>
+                <div class="profile-header-info">
+                    <h2>Alex Johnson</h2>
+                    <p class="profile-role">Full-Stack Developer - Learning Journey</p>
+                    <div class="profile-stats">
+                        <div class="profile-stat">
+                            <span class="stat-value">73%</span>
+                            <span class="stat-label">Overall Progress</span>
+                        </div>
+                        <div class="profile-stat">
+                            <span class="stat-value">12</span>
+                            <span class="stat-label">Completed</span>
+                        </div>
+                        <div class="profile-stat">
+                            <span class="stat-value">8</span>
+                            <span class="stat-label">In Progress</span>
+                        </div>
+                        <div class="profile-stat">
+                            <span class="stat-value">4.8</span>
+                            <span class="stat-label">Avg Rating</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="profile-tabs">
+            <button class="tab-button active" data-tab="pathways">
+                <i class='bx bx-target-lock'></i>
+                <span>Learning Pathways</span>
+            </button>
+            <button class="tab-button" data-tab="courses">
+                <i class='bx bx-book-alt'></i>
+                <span>Courses & Content</span>
+            </button>
+            <button class="tab-button" data-tab="progress">
+                <i class='bx bx-trending-up'></i>
+                <span>Progress Tracking</span>
+            </button>
+            <button class="tab-button" data-tab="recommendations">
+                <i class='bx bx-bulb'></i>
+                <span>AI Recommendations</span>
+            </button>
+        </div>
+
+        <!-- Tab Content: Learning Pathways -->
+        <div class="tab-content active" id="pathways-content">
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class='bx bx-target-lock'></i>
+                        Your Adaptive Learning Pathways
+                    </h3>
+                    <button type="button" class="btn-add">
+                        <i class='bx bx-plus'></i>
+                        Enroll in Pathway
+                    </button>
+                </div>
+                
+                <div class="content-grid">
+                    <!-- Frontend Development Pathway -->
+                    <div class="entry-card">
+                        <div class="entry-header">
+                            <div>
+                                <h4>Frontend Development Mastery</h4>
+                                <span class="pathway-level intermediate">Intermediate</span>
+                            </div>
+                            <div class="entry-actions">
+                                <button type="button" class="btn-action btn-edit"><i class='bx bx-play'></i></button>
+                                <button type="button" class="btn-action btn-delete"><i class='bx bx-bookmark'></i></button>
+                            </div>
+                        </div>
+                        <div class="entry-body">
+                            <p class="entry-description">Master modern frontend technologies including React, Vue, and advanced JavaScript concepts with hands-on projects.</p>
+                            <div class="pathway-progress">
+                                <div class="progress-fill" style="width: 78%"></div>
+                            </div>
+                            <div class="pathway-meta">
+                                <span>7 of 9 modules completed</span>
+                                <span>Est. 2 weeks remaining</span>
+                            </div>
+                            <div class="entry-skills">
+                                <span class="skill-tag tech">React</span>
+                                <span class="skill-tag tech">JavaScript</span>
+                                <span class="skill-tag tech">Vue.js</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Backend Development Pathway -->
+                    <div class="entry-card">
+                        <div class="entry-header">
+                            <div>
+                                <h4>Backend API Development</h4>
+                                <span class="pathway-level beginner">Beginner</span>
+                            </div>
+                            <div class="entry-actions">
+                                <button type="button" class="btn-action btn-edit"><i class='bx bx-play'></i></button>
+                                <button type="button" class="btn-action btn-delete"><i class='bx bx-bookmark'></i></button>
+                            </div>
+                        </div>
+                        <div class="entry-body">
+                            <p class="entry-description">Learn to build robust APIs using Python, Django, and database management with industry best practices.</p>
+                            <div class="pathway-progress">
+                                <div class="progress-fill" style="width: 35%"></div>
+                            </div>
+                            <div class="pathway-meta">
+                                <span>3 of 8 modules completed</span>
+                                <span>Est. 5 weeks remaining</span>
+                            </div>
+                            <div class="entry-skills">
+                                <span class="skill-tag tech">Python</span>
+                                <span class="skill-tag tech">Django</span>
+                                <span class="skill-tag tech">PostgreSQL</span>
+                            </div>
+                        </div>
+                    </div>  
+                    <!-- Data Science Pathway -->
+                    <div class="entry-card">
+                        <div class="entry-header">
+                            <div>
+                                <h4>Data Science Foundations</h4>
+                                <span class="pathway-level advanced">Advanced</span>
+                            </div>
+                            <div class="entry-actions">
+                                <button type="button" class="btn-action btn-edit"><i class='bx bx-play'></i></button>
+                                <button type="button" class="btn-action btn-delete"><i class='bx bx-bookmark'></i></button>
+                            </div>
+                        </div>
+                        <div class="entry-body">
+                            <p class="entry-description">Deep dive into machine learning, data analysis, and visualization using Python, Pandas, and TensorFlow.</p>
+                            <div class="pathway-progress">
+                                <div class="progress-fill" style="width: 62%"></div>
+                            </div>
+                            <div class="pathway-meta">
+                                <span>10 of 16 modules completed</span>
+                                <span>Est. 4 weeks remaining</span>
+                            </div>
+                            <div class="entry-skills">
+                                <span class="skill-tag tech">Python</span>
+                                <span class="skill-tag tech">TensorFlow</span>
+                                <span class="skill-tag tech">Pandas</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- DevOps Pathway -->
+                    <div class="entry-card
+">
+                        <div class="entry-header">
+                            <div>
+                                <h4>DevOps Essentials</h4>
+                                <span class="pathway-level intermediate">Intermediate</span>
+                            </div>
+                            <div class="entry-actions">
+                                <button type="button" class="btn-action btn-edit"><i class='bx bx-play'></i></button>
+                                <button type="button" class="btn-action btn-delete"><i class='bx bx-bookmark'></i></button>
+                            </div>
+                        </div>
+                        <div class="entry-body">
+                            <p class="entry-description">Gain expertise in CI/CD, containerization with Docker, and cloud deployment strategies.</p>
+                            <div class="pathway-progress">
+                                <div class="progress-fill" style="width: 50%"></div>
+                            </div>
+                            <div class="pathway-meta">
+                                <span>5 of 10 modules completed</span>
+                                <span>Est. 3 weeks remaining</span>
+                            </div>
+                            <div class="entry-skills">
+                                <span class="skill-tag tech">Docker</span>
+                                <span class="skill-tag tech">Kubernetes</span>
+                                <span class="skill-tag tech">AWS</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Tab Content: Courses & Content -->
+        <div class="tab-content" id="courses-content">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class='bx bx-book-open'></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>24</h3>
+                        <p>Courses Enrolled</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class='bx bx-check-circle'></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>12</h3>
+                        <p>Courses Completed</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class='bx bx-time'></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>85h</h3>
+                        <p>Total Study Time</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class='bx bx-trophy'></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>18</h3>
+                        <p>Certificates Earned</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class='bx bx-book-alt'></i>
+                        Current Courses
+                    </h3>
+                    <button type="button" class="btn-add">
+                        <i class='bx bx-plus'></i>
+                        Enroll in Course
+                    </button>
+                </div>
+                
+                <div class="content-grid">
+                    <!-- React Advanced Patterns -->
+                    <div class="entry-card">
+                        <div class="entry-header">
+                            <div>
+                                <h4>React Advanced Patterns</h4>
+                                <span class="course-duration">8 weeks</span>
+                            </div>
+                            <div class="entry-actions">
+                                <button type="button" class="btn-action btn-edit"><i class='bx bx-play'></i></button>
+                                <button type="button" class="btn-action btn-delete"><i class='bx bx-bookmark'></i></button>
+                            </div>
+                        </div>
+                        <div class="entry-body">
+                            <p class="entry-description">Master advanced React patterns including hooks, context, render props, and performance optimization techniques.</p>
+                            <div class="pathway-progress">
+                                <div class="progress-fill" style="width: 85%"></div>
+                            </div>
+                            <div class="pathway-meta">
+                                <span>6 of 7 modules completed</span>
+                                <span>Due: Dec 15, 2024</span>
+                            </div>
+                            <div class="entry-skills">
+                                <span class="skill-tag tech">React</span>
+                                <span class="skill-tag tech">Hooks</span>
+                                <span class="skill-tag tech">Performance</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Python Data Structures -->
+                    <div class="entry-card">
+                        <div class="entry-header">
+                            <div>
+                                <h4>Python Data Structures & Algorithms</h4>
+                                <span class="course-duration">12 weeks</span>
+                            </div>
+                            <div class="entry-actions">
+                                <button type="button" class="btn-action btn-edit"><i class='bx bx-play'></i></button>
+                                <button type="button" class="btn-action btn-delete"><i class='bx bx-bookmark'></i></button>
+                            </div>
+                        </div>
+                        <div class="entry-body">
+                            <p class="entry-description">Comprehensive course covering data structures, algorithms, and problem-solving techniques using Python.</p>
+                            <div class="pathway-progress">
+                                <div class="progress-fill" style="width: 45%"></div>
+                            </div>
+                            <div class="pathway-meta">
+                                <span>5 of 11 modules completed</span>
+                                <span>Due: Jan 20, 2025</span>
+                            </div>
+                            <div class="entry-skills">
+                                <span class="skill-tag tech">Python</span>
+                                <span class="skill-tag tech">Algorithms</span>
+                                <span class="skill-tag tech">Data Structures</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Machine Learning Basics -->
+                    <div class="entry-card">
+                        <div class="entry-header">
+                            <div>
+                                <h4>Machine Learning Fundamentals</h4>
+                                <span class="course-duration">10 weeks</span>
+                            </div>
+                            <div class="entry-actions">
+                                <button type="button" class="btn-action btn-edit"><i class='bx bx-play'></i></button>
+                                <button type="button" class="btn-action btn-delete"><i class='bx bx-bookmark'></i></button>
+                            </div>
+                        </div>
+                        <div class="entry-body">
+                            <p class="entry-description">Introduction to machine learning concepts, supervised and unsupervised learning, and practical implementations.</p>
+                            <div class="pathway-progress">
+                                <div class="progress-fill" style="width: 20%"></div>
+                            </div>
+                            <div class="pathway-meta">
+                                <span>2 of 10 modules completed</span>
+                                <span>Due: Feb 28, 2025</span>
+                            </div>
+                            <div class="entry-skills">
+                                <span class="skill-tag tech">Machine Learning</span>
+                                <span class="skill-tag tech">Python</span>
+                                <span class="skill-tag tech">Scikit-learn</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Progress Tracking -->
+        <div class="tab-content" id="progress-content">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class='bx bx-trending-up'></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>73%</h3>
+                        <p>Overall Progress</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class='bx bx-calendar'></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>28</h3>
+                        <p>Days Active</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class='bx bx-time-five'></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>3.2h</h3>
+                        <p>Avg Daily Study</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class='bx bx-star'></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>4.8</h3>
+                        <p>Performance Score</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class='bx bx-history'></i>
+                        Recent Activity Timeline
+                    </h3>
+                </div>
+                
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-marker completed"></div>
+                        <div class="timeline-content">
+                            <h5>Completed React Hooks Module</h5>
+                            <p class="timeline-time">2 hours ago</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker in-progress"></div>
+                        <div class="timeline-content">
+                            <h5>Started Python Algorithms Assignment</h5>
+                            <p class="timeline-time">5 hours ago</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker completed"></div>
+                        <div class="timeline-content">
+                            <h5>Earned Certificate in JavaScript ES6</h5>
+                            <p class="timeline-time">1 day ago</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker completed"></div>
+                        <div class="timeline-content">
+                            <h5>Completed Data Structures Quiz (Score: 92%)</h5>
+                            <p class="timeline-time">2 days ago</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker completed"></div>
+                        <div class="timeline-content">
+                            <h5>Joined Machine Learning Study Group</h5>
+                            <p class="timeline-time">3 days ago</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: AI Recommendations -->
+        <div class="tab-content" id="recommendations-content">
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class='bx bx-bulb'></i>
+                        Personalized Learning Recommendations
+                    </h3>
+                </div>
+                
+                <div class="recommendation-card">
+                    <div class="recommendation-header">
+                        <h4>Advanced React Testing with Jest & RTL</h4>
+                        <span class="recommendation-score">95% Match</span>
+                    </div>
+                    <p class="recommendation-reason">
+                        Based on your strong progress in React Advanced Patterns and your interest in frontend development, 
+                        this course will complement your existing skills and prepare you for senior-level positions.
+                    </p>
+                    <div class="recommendation-actions">
+                        <button class="recommendation-action primary">Enroll Now</button>
+                        <button class="recommendation-action secondary">Add to Wishlist</button>
+                    </div>
+                </div>
+
+                <div class="recommendation-card">
+                    <div class="recommendation-header">
+                        <h4>Backend API Design with FastAPI</h4>
+                        <span class="recommendation-score">88% Match</span>
+                    </div>
+                    <p class="recommendation-reason">
+                        Your progress in Python Data Structures shows you're ready for backend development. 
+                        FastAPI is trending and will enhance your full-stack capabilities.
+                    </p>
+                    <div class="recommendation-actions">
+                        <button class="recommendation-action primary">Enroll Now</button>
+                        <button class="recommendation-action secondary">Learn More</button>
+                    </div>
+                </div>
+
+                <div class="recommendation-card">
+                    <div class="recommendation-header">
+                        <h4>Cloud Architecture Fundamentals</h4>
+                        <span class="recommendation-score">82% Match</span>
+                    </div>
+                    <p class="recommendation-reason">
+                        With your DevOps foundation, understanding cloud architecture will open opportunities 
+                        in system design and scalable application development.
+                    </p>
+                    <div class="recommendation-actions">
+                        <button class="recommendation-action primary">Enroll Now</button>
+                        <button class="recommendation-action secondary">Preview</button>
+                    </div>
+                </div>
+
+                <div class="recommendation-card">
+                    <div class="recommendation-header">
+                        <h4>Leadership for Technical Teams</h4>
+                        <span class="recommendation-score">75% Match</span>
+                    </div>
+                    <p class="recommendation-reason">
+                        Your technical skills are strong. Developing leadership skills will prepare you 
+                        for team lead and management roles in your career progression.
+                    </p>
+                    <div class="recommendation-actions">
+                        <button class="recommendation-action primary">Enroll Now</button>
+                        <button class="recommendation-action secondary">Not Interested</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Action Buttons -->
+        <div class="floating-actions">
+            <button class="fab" title="Quick Add Learning Goal">
+                <i class='bx bx-plus'></i>
+            </button>
+            <button class="fab" title="AI Assistant">
+                <i class='bx bx-brain'></i>
+            </button>
+        </div>
+
+        <!-- Notification Container -->
+        <div class="notification-container"></div>
+    </div>
+
+    <!-- JavaScript for Tab Functionality -->
+    <script>
+        // Tab switching functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetTab = button.getAttribute('data-tab');
+                    
+                    // Remove active class from all tabs and contents
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Add active class to clicked tab and corresponding content
+                    button.classList.add('active');
+                    document.getElementById(targetTab + '-content').classList.add('active');
+                });
+            });
+
+            // Notification system
+            function showNotification(message, type = 'success') {
+                const container = document.querySelector('.notification-container');
+                const notification = document.createElement('div');
+                notification.className = 'notification';
+                notification.innerHTML = `
+                    <i class='bx bx-check-circle'></i>
+                    <span>${message}</span>
+                    <button class="notification-close">
+                        <i class='bx bx-x'></i>
+                    </button>
+                `;
+                
+                container.appendChild(notification);
+                
+                // Auto remove after 5 seconds
+                setTimeout(() => {
+                    notification.remove();
+                }, 5000);
+                
+                // Close button functionality
+                notification.querySelector('.notification-close').addEventListener('click', () => {
+                    notification.remove();
+                });
+            }
+
+            // Sample interactions
+            document.querySelectorAll('.btn-add').forEach(button => {
+                button.addEventListener('click', () => {
+                    showNotification('Feature coming soon! Stay tuned for updates.');
+                });
+            });
+
+            document.querySelectorAll('.recommendation-action.primary').forEach(button => {
+                button.addEventListener('click', () => {
+                    showNotification('Successfully enrolled! Check your dashboard for updates.');
+                });
+            });
+
+            document.querySelectorAll('.fab').forEach(button => {
+                button.addEventListener('click', () => {
+                    showNotification('Feature in development. Coming soon!');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+{% endblock %}
