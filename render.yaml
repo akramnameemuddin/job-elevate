@@ -1,7 +1,0 @@
-services:
-  - type: web
-    name: job-elevate
-    env: python
-    buildCommand: pip install -r requirements.txt && ./build.sh
-    startCommand: gunicorn backend.wsgi
-    plan: free
