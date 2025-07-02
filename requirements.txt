@@ -1,5 +1,5 @@
-Django==5.x.x
-gunicorn==20.x
-psycopg2-binary==2.x
-whitenoise==6.x
+Django==5.0.3
+gunicorn==21.2.0
+psycopg2-binary==2.9.9
+whitenoise==6.6.0
 django-environ==0.12.0
