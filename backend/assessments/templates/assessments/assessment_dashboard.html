@@ -1,0 +1,242 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Skill Diagnostics</h1>
+    <div class="breadcrumb">
+        <div class="breadcrumb-item">
+            <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
+            <i class='bx bx-chevron-right'></i>
+        </div>
+        <div class="breadcrumb-item">
+            <span>Skill Diagnostics</span>
+        </div>
+    </div>
+</div>
+
+<style>
+    .feature-container {
+        background: var(--bg-primary);
+        border-radius: var(--radius-xl);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-light);
+    }
+
+    .development-banner {
+        background: linear-gradient(135deg, #e0f2fe 0%, #b3e5fc 100%);
+        border: 1px solid #0288d1;
+        border-radius: var(--radius-lg);
+        padding: 2.5rem;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .development-icon {
+        font-size: 4rem;
+        color: #0288d1;
+        margin-bottom: 1rem;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    .development-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #01579b;
+        margin-bottom: 1rem;
+    }
+
+    .development-message {
+        font-size: 1.125rem;
+        color: #0277bd;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+    }
+
+    .progress-indicator {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        margin: 1.5rem 0;
+    }
+
+    .progress-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #0288d1;
+        animation: bounce 1.4s infinite ease-in-out;
+    }
+
+    .progress-dot:nth-child(1) { animation-delay: -0.32s; }
+    .progress-dot:nth-child(2) { animation-delay: -0.16s; }
+    .progress-dot:nth-child(3) { animation-delay: 0s; }
+
+    @keyframes bounce {
+        0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+        40% { transform: scale(1); opacity: 1; }
+    }
+
+    .feature-preview {
+        background: var(--bg-secondary);
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .preview-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .preview-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .preview-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 0;
+        color: var(--text-secondary);
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .preview-item:last-child {
+        border-bottom: none;
+    }
+
+    .preview-item i {
+        color: var(--primary-color);
+        font-size: 1.125rem;
+    }
+
+    .notify-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.875rem 1.75rem;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+        color: white;
+        border: none;
+        border-radius: var(--radius-md);
+        font-weight: 500;
+        cursor: pointer;
+        transition: var(--transition);
+        text-decoration: none;
+        margin-top: 1rem;
+    }
+
+    .notify-button:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .estimated-timeline {
+        background: var(--bg-tertiary);
+        border-radius: var(--radius-md);
+        padding: 1rem;
+        margin-top: 1.5rem;
+        text-align: center;
+    }
+
+    .timeline-text {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .timeline-date {
+        color: var(--text-primary);
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .development-banner {
+            padding: 1.5rem;
+        }
+        
+        .development-title {
+            font-size: 1.5rem;
+        }
+        
+        .development-message {
+            font-size: 1rem;
+        }
+    }
+</style>
+
+<div class="feature-container">
+    <div class="development-banner">
+        <div class="development-icon">
+            <i class='bx bx-cog'></i>
+        </div>
+        <h2 class="development-title">Feature in Development</h2>
+        <p class="development-message">
+            We're working hard to bring you advanced skill diagnostics that will help assess your current abilities and identify areas for improvement.
+        </p>
+        
+        <div class="progress-indicator">
+            <div class="progress-dot"></div>
+            <div class="progress-dot"></div>
+            <div class="progress-dot"></div>
+        </div>
+        
+        <div class="estimated-timeline">
+            <div class="timeline-text">Estimated Launch</div>
+            <div class="timeline-date">Coming Soon</div>
+        </div>
+    </div>
+
+    <div class="feature-preview">
+        <h3 class="preview-title">
+            <i class='bx bx-bulb'></i>
+            What to Expect
+        </h3>
+        <ul class="preview-list">
+            <li class="preview-item">
+                <i class='bx bx-check-circle'></i>
+                <span>Comprehensive skill assessment across multiple domains</span>
+            </li>
+            <li class="preview-item">
+                <i class='bx bx-chart-line'></i>
+                <span>Detailed progress tracking and analytics</span>
+            </li>
+            <li class="preview-item">
+                <i class='bx bx-target-lock'></i>
+                <span>Personalized recommendations for skill improvement</span>
+            </li>
+            <li class="preview-item">
+                <i class='bx bx-badge-check'></i>
+                <span>Industry-standard benchmarking and certifications</span>
+            </li>
+            <li class="preview-item">
+                <i class='bx bx-brain'></i>
+                <span>AI-powered learning path optimization</span>
+            </li>
+        </ul>
+        
+        <a href="#" class="notify-button">
+            <i class='bx bx-bell'></i>
+            Notify Me When Ready
+        </a>
+    </div>
+</div>
+
+{% endblock %}

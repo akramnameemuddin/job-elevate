@@ -1,21 +1,23 @@
 from pathlib import Path
 import os
-import environ  # Make sure this is installed
+import environ
 
-env = environ.Env()
-environ.Env.read_env()  # Reads .env if local, or Render env vars
-
+# Set up environment variables
 BASE_DIR = Path(__file__).resolve().parent.parent
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, 'backend', '.env'))
 
 # SECURITY
 SECRET_KEY = env("SECRET_KEY")
-DEBUG = True
+DEBUG = env.bool("DEBUG", default=False)
+
 ALLOWED_HOSTS = [
-    'job-elevate-m96p.onrender.com',  
+    'job-elevate-m96p.onrender.com',
     'jobelevates.akramnaeemuddin.me',
     'localhost',
     '127.0.0.1',
 ]
+
 # EMAIL
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -47,7 +49,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # ✅ Add for static file handling
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -80,7 +82,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 # DATABASE
 DATABASES = {
-    'default': env.db(),  # Uses DATABASE_URL from Render
+    'default': env.db(),  # Uses DATABASE_URL from .env
 }
 
 # STATIC/MEDIA
