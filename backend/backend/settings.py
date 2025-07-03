@@ -12,7 +12,7 @@ SECRET_KEY = env("SECRET_KEY")
 DEBUG = True
 ALLOWED_HOSTS = [
     'job-elevate-m96p.onrender.com',  
-    'job-elevate.akramnaeemuddin.me',
+    'jobelevates.akramnaeemuddin.me',
     'localhost',
     '127.0.0.1',
 ]
