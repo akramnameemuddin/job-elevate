@@ -1,4 +1,4 @@
-# 🔍 Smart Employment Platform
+# 🔍 Smart Competency Platform
 
 > **An AI-powered job matching and upskilling platform that connects job seekers with personalized career opportunities and adaptive learning pathways.**
 
