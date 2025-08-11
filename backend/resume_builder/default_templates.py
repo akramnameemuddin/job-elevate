@@ -43,21 +43,21 @@ DEFAULT_TEMPLATES = [
                 {% if user_profile.linkedin_profile and resume.show_links %}
                 <div class="contact-item">
                     <i class="icon linkedin-icon"></i>
-                    <span>{{ user_profile.linkedin_profile|urlize }}</span>
+                    <span>{{ user_profile.linkedin_profile }}</span>
                 </div>
                 {% endif %}
                 
                 {% if user_profile.github_profile and resume.show_links %}
                 <div class="contact-item">
                     <i class="icon github-icon"></i>
-                    <span>{{ user_profile.github_profile|urlize }}</span>
+                    <span>{{ user_profile.github_profile }}</span>
                 </div>
                 {% endif %}
                 
                 {% if user_profile.portfolio_website and resume.show_links %}
                 <div class="contact-item">
                     <i class="icon web-icon"></i>
-                    <span>{{ user_profile.portfolio_website|urlize }}</span>
+                    <span>{{ user_profile.portfolio_website }}</span>
                 </div>
                 {% endif %}
             </div>
@@ -155,9 +155,9 @@ DEFAULT_TEMPLATES = [
                         <div class="project-description">
                             {{ project.description|linebreaks }}
                         </div>
-                        {% if project.technologies %}
+                        {% if project.skills %}
                         <div class="project-tech">
-                            <strong>Technologies:</strong> {{ project.technologies }}
+                            <strong>Technologies:</strong> {{ project.skills }}
                         </div>
                         {% endif %}
                     </div>
@@ -185,33 +185,35 @@ DEFAULT_TEMPLATES = [
                     {% for cert in certifications %}
                     <div class="cert-item">
                         <h4>{{ cert.name }}</h4>
-                        {% if cert.issuing_organization %}
-                        <p class="cert-org">{{ cert.issuing_organization }}</p>
+                        {% if cert.organization %}
+                        <p class="cert-org">{{ cert.organization }}</p>
                         {% endif %}
-                        {% if cert.date %}
-                        <p class="cert-date">{{ cert.date }}</p>
+                        {% if cert.issue_date %}
+                        <p class="cert-date">{{ cert.issue_date }}</p>
                         {% endif %}
-                        {% if cert.description %}
-                        <p class="cert-description">{{ cert.description }}</p>
+                        {% if cert.skills %}
+                        <p class="cert-description">{{ cert.skills }}</p>
                         {% endif %}
                     </div>
                     {% endfor %}
                 </div>
             </section>
             {% endif %}
+            
             <!-- Achievements Section -->
             {% if resume.show_achievements and achievements_list %}
-                <section class="resume-section">
-                    <h3 class="section-title">Achievements</h3>
-                    <div class="section-content">
-                        <ul class="achievements-list">
-                            {% for achievement in achievements_list %}
-                                <li>{{ achievement }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </section>
-                {% endif %}
+            <section class="resume-section">
+                <h3 class="section-title">Achievements</h3>
+                <div class="section-content">
+                    <ul class="achievements-list">
+                        {% for achievement in achievements_list %}
+                        <li>{{ achievement }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </section>
+            {% endif %}
+            
             <!-- Extracurricular Activities -->
             {% if resume.show_extracurricular and user_profile.extracurricular_activities %}
             <section class="resume-section">
@@ -509,21 +511,21 @@ body {
                 {% if user_profile.linkedin_profile and resume.show_links %}
                 <div class="contact-item">
                     <span class="contact-label">LinkedIn:</span>
-                    <span class="contact-value">{{ user_profile.linkedin_profile|urlize }}</span>
+                    <span class="contact-value">{{ user_profile.linkedin_profile }}</span>
                 </div>
                 {% endif %}
                 
                 {% if user_profile.github_profile and resume.show_links %}
                 <div class="contact-item">
                     <span class="contact-label">GitHub:</span>
-                    <span class="contact-value">{{ user_profile.github_profile|urlize }}</span>
+                    <span class="contact-value">{{ user_profile.github_profile }}</span>
                 </div>
                 {% endif %}
                 
                 {% if user_profile.portfolio_website and resume.show_links %}
                 <div class="contact-item">
                     <span class="contact-label">Website:</span>
-                    <span class="contact-value">{{ user_profile.portfolio_website|urlize }}</span>
+                    <span class="contact-value">{{ user_profile.portfolio_website }}</span>
                 </div>
                 {% endif %}
             </div>
@@ -614,16 +616,11 @@ body {
             <section class="resume-section">
                 <h3 class="section-title">Technical Skills</h3>
                 <div class="section-content">
-                    <table class="skills-table">
-                        <tr>
-                            {% for skill in technical_skills %}
-                                {% if forloop.counter0|divisibleby:3 and not forloop.first %}
-                                    </tr><tr>
-                                {% endif %}
-                                <td class="skill-cell">{{ skill }}</td>
-                            {% endfor %}
-                        </tr>
-                    </table>
+                    <div class="skills-list">
+                        {% for skill in technical_skills %}
+                        <span class="skill-item">{{ skill }}</span>{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </div>
                 </div>
             </section>
             {% endif %}
@@ -639,12 +636,9 @@ body {
                         <div class="project-description">
                             {{ project.description|linebreaks }}
                         </div>
-                        {% if project.tech_list %}
+                        {% if project.skills %}
                         <div class="project-tech">
-                            <span class="tech-label">Technologies:</span>
-                            {% for tech in project.tech_list %}
-                                <span class="badge">{{ tech }}</span>{% if not forloop.last %}, {% endif %}
-                            {% endfor %}
+                            <span class="tech-label">Technologies:</span> {{ project.skills }}
                         </div>
                         {% endif %}
                     </div>
@@ -662,9 +656,8 @@ body {
                         {% for cert in certifications %}
                         <li class="cert-item">
                             <strong>{{ cert.name }}</strong>
-                            {% if cert.issuing_organization %} - {{ cert.issuing_organization }}{% endif %}
-                            {% if cert.date %} ({{ cert.date }}){% endif %}
-                            {% if cert.description %}<br>{{ cert.description }}{% endif %}
+                            {% if cert.organization %} - {{ cert.organization }}{% endif %}
+                            {% if cert.issue_date %} ({{ cert.issue_date }}){% endif %}
                         </li>
                         {% endfor %}
                     </ul>
@@ -673,15 +666,13 @@ body {
             {% endif %}
             
             <!-- Achievements Section -->
-            {% if resume.show_achievements and user_profile.achievements %}
+            {% if resume.show_achievements and achievements_list %}
             <section class="resume-section">
                 <h3 class="section-title">Achievements</h3>
                 <div class="section-content">
                     <ul class="achievements-list">
-                        {% for achievement in user_profile.achievements.split('\n') %}
-                            {% if achievement.strip %}
-                            <li>{{ achievement }}</li>
-                            {% endif %}
+                        {% for achievement in achievements_list %}
+                        <li>{{ achievement }}</li>
                         {% endfor %}
                     </ul>
                 </div>
@@ -862,14 +853,10 @@ body {
 }
 
 /* Skills */
-.skills-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.skill-cell {
-    padding: 0.25rem 0.5rem;
-    border-bottom: 1px dotted var(--border-color);
+.skills-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
 }
 
 /* Projects */
@@ -1345,21 +1332,21 @@ body {
                     {% if user_profile.linkedin_profile and resume.show_links %}
                     <div class="contact-item">
                         <span class="contact-icon">in</span>
-                        <span class="contact-text">{{ user_profile.linkedin_profile|urlize }}</span>
+                        <span class="contact-text">{{ user_profile.linkedin_profile }}</span>
                     </div>
                     {% endif %}
                     
                     {% if user_profile.github_profile and resume.show_links %}
                     <div class="contact-item">
                         <span class="contact-icon">gh</span>
-                        <span class="contact-text">{{ user_profile.github_profile|urlize }}</span>
+                        <span class="contact-text">{{ user_profile.github_profile }}</span>
                     </div>
                     {% endif %}
                     
                     {% if user_profile.portfolio_website and resume.show_links %}
                     <div class="contact-item">
                         <span class="contact-icon">🌐</span>
-                        <span class="contact-text">{{ user_profile.portfolio_website|urlize }}</span>
+                        <span class="contact-text">{{ user_profile.portfolio_website }}</span>
                     </div>
                     {% endif %}
                 </div>
@@ -1398,11 +1385,11 @@ body {
                     {% for cert in certifications %}
                     <li class="cert-item">
                         <div class="cert-name">{{ cert.name }}</div>
-                        {% if cert.issuing_organization %}
-                        <div class="cert-org">{{ cert.issuing_organization }}</div>
+                        {% if cert.organization %}
+                        <div class="cert-org">{{ cert.organization }}</div>
                         {% endif %}
-                        {% if cert.date %}
-                        <div class="cert-date">{{ cert.date }}</div>
+                        {% if cert.issue_date %}
+                        <div class="cert-date">{{ cert.issue_date }}</div>
                         {% endif %}
                     </li>
                     {% endfor %}
@@ -1485,12 +1472,10 @@ body {
                         <div class="project-description">
                             {{ project.description|linebreaks }}
                         </div>
-                        {% if project.technologies %}
+                        {% if project.skills %}
                         <div class="project-tech">
                             <div class="tech-chips">
-                                {% for tech in project.technologies.split(',') %}
-                                <span class="tech-chip">{{ tech.strip() }}</span>
-                                {% endfor %}
+                                <span class="tech-chip">{{ project.skills }}</span>
                             </div>
                         </div>
                         {% endif %}
@@ -1501,14 +1486,12 @@ body {
             {% endif %}
             
             <!-- Achievements Section -->
-            {% if resume.show_achievements and user_profile.achievements %}
+            {% if resume.show_achievements and achievements_list %}
             <section class="main-section achievements-section">
                 <h3 class="main-title">Achievements</h3>
                 <ul class="achievements-list">
-                    {% for achievement in user_profile.achievements.split('\n') %}
-                        {% if achievement.strip %}
-                        <li class="achievement-item">{{ achievement }}</li>
-                        {% endif %}
+                    {% for achievement in achievements_list %}
+                    <li class="achievement-item">{{ achievement }}</li>
                     {% endfor %}
                 </ul>
             </section>
