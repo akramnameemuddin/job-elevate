@@ -7,8 +7,7 @@ DEFAULT_TEMPLATES = [
     {
         "name": "Modern",
         "description": "Clean and minimal design with a touch of color, perfect for tech professionals.",
-        "html_structure": """
-<!DOCTYPE html>
+        "html_structure": """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -21,7 +20,9 @@ DEFAULT_TEMPLATES = [
         <header class="resume-header">
             <div class="name-title">
                 <h1>{{ user_profile.full_name }}</h1>
+                {% if user_profile.job_title %}
                 <h2>{{ user_profile.job_title }}</h2>
+                {% endif %}
             </div>
             
             {% if resume.show_contact %}
@@ -178,6 +179,7 @@ DEFAULT_TEMPLATES = [
             </section>
             {% endif %}
             
+            <!-- Certifications Section -->
             {% if resume.show_certifications and certifications %}
             <section class="resume-section">
                 <h3 class="section-title">Certifications</h3>
@@ -232,15 +234,13 @@ DEFAULT_TEMPLATES = [
         </footer>
     </div>
 </body>
-</html>
-""",
-        "css_structure": """
-/* Modern Resume Template CSS */
+</html>""",
+        "css_structure": """/* Modern Resume Template CSS */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
 
 :root {
-    --primary-color: {{ resume.primary_color }};
-    --secondary-color: {{ resume.secondary_color }};
+    --primary-color: #3b82f6;
+    --secondary-color: #8b5cf6;
     --text-color: #333;
     --light-text: #666;
     --border-color: #ddd;
@@ -256,7 +256,7 @@ DEFAULT_TEMPLATES = [
 }
 
 body {
-    font-family: {{ resume.font_family|default:"'Roboto', sans-serif" }};
+    font-family: 'Roboto', sans-serif;
     font-size: 14px;
     line-height: 1.6;
     color: var(--text-color);
@@ -469,14 +469,12 @@ body {
     .resume-section {
         page-break-inside: avoid;
     }
-}
-"""
+}"""
     },
     {
         "name": "Professional",
         "description": "Traditional and elegant layout for corporate roles and experienced professionals.",
-        "html_structure": """
-<!DOCTYPE html>
+        "html_structure": """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -698,15 +696,11 @@ body {
         </footer>
     </div>
 </body>
-</html>
-""",
-        "css_structure": """
-/* Professional Resume Template CSS */
-@import url('https://fonts.googleapis.com/css2?family=Times+New+Roman:wght@400;700&display=swap');
-
+</html>""",
+        "css_structure": """/* Professional Resume Template CSS */
 :root {
-    --primary-color: {{ resume.primary_color }};
-    --secondary-color: {{ resume.secondary_color }};
+    --primary-color: #2c3e50;
+    --secondary-color: #34495e;
     --text-color: #333;
     --light-text: #666;
     --border-color: #ddd;
@@ -722,7 +716,7 @@ body {
 }
 
 body {
-    font-family: {{ resume.font_family|default:"'Times New Roman', serif" }};
+    font-family: 'Times New Roman', serif;
     font-size: 12px;
     line-height: 1.6;
     color: var(--text-color);
@@ -934,372 +928,17 @@ body {
     .resume-section {
         page-break-inside: avoid;
     }
-}
-"""
+}"""
     },
     {
         "name": "Creative",
         "description": "Bold and distinctive design to showcase your creativity and personality.",
-        "html_structure": """
-<!DOCTYPE html>
+        "html_structure": """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ user_profile.full_name }} - Creative Resume</title>
-    <style>
-        /* Creative Resume Template CSS */
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-
-        :root {
-            --primary-color: {{ resume.primary_color }};
-            --secondary-color: {{ resume.secondary_color }};
-            --text-color: #333;
-            --light-text: #666;
-            --sidebar-bg: #f5f5f5;
-            --main-bg: #ffffff;
-            --accent-color: {{ resume.primary_color }};
-            --border-radius: 8px;
-        }
-
-        /* Reset and base styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: {{ resume.font_family|default:"'Poppins', sans-serif" }};
-            font-size: 14px;
-            line-height: 1.6;
-            color: var(--text-color);
-            background-color: #f9f9f9;
-        }
-
-        /* Container */
-        .resume-container {
-            max-width: 8.5in;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            background-color: var(--main-bg);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Sidebar */
-        .resume-sidebar {
-            background-color: var(--sidebar-bg);
-            padding: 2rem 1.5rem;
-            color: var(--text-color);
-        }
-
-        .profile-container {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .profile-image-placeholder {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background-color: var(--primary-color);
-            margin: 0 auto 1rem;
-        }
-
-        .name {
-            font-size: 22px;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .title {
-            font-size: 16px;
-            font-weight: 500;
-            color: var(--primary-color);
-            margin-bottom: 1rem;
-        }
-
-        .sidebar-section {
-            margin-bottom: 2rem;
-        }
-
-        .sidebar-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--primary-color);
-            margin-bottom: 1rem;
-            position: relative;
-            padding-bottom: 0.5rem;
-        }
-
-        .sidebar-title:after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 50px;
-            height: 3px;
-            background-color: var(--primary-color);
-        }
-
-        /* Contact styles */
-        .contact-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .contact-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .contact-icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 30px;
-            height: 30px;
-            background-color: var(--primary-color);
-            color: white;
-            border-radius: 50%;
-            font-size: 14px;
-        }
-
-        /* Skills styles */
-        .skills-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        .skill-badge {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-
-        /* Education styles */
-        .education-item {
-            margin-bottom: 1rem;
-        }
-
-        .degree {
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-        }
-
-        .university {
-            font-weight: 500;
-            margin-bottom: 0.25rem;
-        }
-
-        .graduation, .gpa {
-            font-size: 12px;
-            color: var(--light-text);
-        }
-
-        /* Certifications styles */
-        .cert-list {
-            list-style: none;
-        }
-
-        .cert-item {
-            margin-bottom: 1rem;
-        }
-
-        .cert-name {
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-        }
-
-        .cert-org, .cert-date {
-            font-size: 12px;
-            color: var(--light-text);
-        }
-
-        /* Main Content */
-        .resume-main {
-            padding: 2rem;
-            background-color: var(--main-bg);
-        }
-
-        .main-section {
-            margin-bottom: 2rem;
-        }
-
-        .main-title {
-            font-size: 20px;
-            font-weight: 600;
-            color: var(--primary-color);
-            margin-bottom: 1.5rem;
-            position: relative;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid var(--primary-color);
-        }
-
-        /* Timeline styles */
-        .timeline {
-            position: relative;
-        }
-
-        .timeline:before {
-            content: '';
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 16px;
-            width: 2px;
-            background-color: var(--primary-color);
-        }
-
-        .timeline-item {
-            display: flex;
-            margin-bottom: 1.5rem;
-            position: relative;
-        }
-
-        .timeline-marker {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background-color: var(--primary-color);
-            flex-shrink: 0;
-            margin-right: 1.5rem;
-            margin-top: 6px;
-            z-index: 1;
-        }
-
-        .timeline-content {
-            flex-grow: 1;
-        }
-
-        .job-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
-        }
-
-        .job-title {
-            font-weight: 600;
-            font-size: 16px;
-        }
-
-        .job-date {
-            font-size: 12px;
-            color: var(--light-text);
-        }
-
-        .job-company {
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-            color: var(--primary-color);
-        }
-
-        /* Projects styles */
-        .projects-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .project-card {
-            border-radius: var(--border-radius);
-            border: 1px solid #eee;
-            padding: 1rem;
-            background-color: white;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .project-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .project-title {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--primary-color);
-        }
-
-        .project-link {
-            display: inline-block;
-            color: var(--primary-color);
-            text-decoration: none;
-            font-size: 12px;
-            margin-bottom: 0.5rem;
-        }
-
-        .tech-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.25rem;
-            margin-top: 0.5rem;
-        }
-
-        .tech-chip {
-            font-size: 10px;
-            background-color: #f0f0f0;
-            padding: 0.1rem 0.5rem;
-            border-radius: 12px;
-        }
-
-        /* Achievements styles */
-        .achievements-list {
-            padding-left: 1.5rem;
-        }
-
-        .achievement-item {
-            margin-bottom: 0.75rem;
-        }
-
-        /* Print styles */
-        @media print {
-            body {
-                background-color: white;
-            }
-            
-            .resume-container {
-                max-width: 100%;
-                box-shadow: none;
-            }
-            
-            .resume-container {
-                page-break-after: always;
-            }
-            
-            .main-section, .sidebar-section {
-                page-break-inside: avoid;
-            }
-        }
-
-        /* Media queries for responsiveness */
-        @media (max-width: 768px) {
-            .resume-container {
-                grid-template-columns: 1fr;
-            }
-            
-            .timeline:before {
-                left: 12px;
-            }
-            
-            .timeline-marker {
-                width: 12px;
-                height: 12px;
-                margin-right: 1rem;
-            }
-            
-            .projects-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
 </head>
 <body class="creative-resume">
     <div class="resume-container">
@@ -1308,7 +947,9 @@ body {
             <div class="profile-container">
                 <div class="profile-image-placeholder"></div>
                 <h1 class="name">{{ user_profile.full_name }}</h1>
+                {% if user_profile.job_title %}
                 <h2 class="title">{{ user_profile.job_title }}</h2>
+                {% endif %}
             </div>
             
             {% if resume.show_contact %}
@@ -1509,7 +1150,355 @@ body {
         </main>
     </div>
 </body>
-</html>
-"""
+</html>""",
+        "css_structure": """/* Creative Resume Template CSS */
+:root {
+    --primary-color: #e74c3c;
+    --secondary-color: #9b59b6;
+    --text-color: #333;
+    --light-text: #666;
+    --sidebar-bg: #f5f5f5;
+    --main-bg: #ffffff;
+    --accent-color: #e74c3c;
+    --border-radius: 8px;
+}
+
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: #f9f9f9;
+}
+
+/* Container */
+.resume-container {
+    max-width: 8.5in;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    background-color: var(--main-bg);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Sidebar */
+.resume-sidebar {
+    background-color: var(--sidebar-bg);
+    padding: 2rem 1.5rem;
+    color: var(--text-color);
+}
+
+.profile-container {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.profile-image-placeholder {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    margin: 0 auto 1rem;
+}
+
+.name {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.title {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.sidebar-section {
+    margin-bottom: 2rem;
+}
+
+.sidebar-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    position: relative;
+    padding-bottom: 0.5rem;
+}
+
+.sidebar-title:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background-color: var(--primary-color);
+}
+
+/* Contact styles */
+.contact-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.contact-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 50%;
+    font-size: 14px;
+}
+
+/* Skills styles */
+.skills-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.skill-badge {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Education styles */
+.education-item {
+    margin-bottom: 1rem;
+}
+
+.degree {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.university {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.graduation, .gpa {
+    font-size: 12px;
+    color: var(--light-text);
+}
+
+/* Certifications styles */
+.cert-list {
+    list-style: none;
+}
+
+.cert-item {
+    margin-bottom: 1rem;
+}
+
+.cert-name {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.cert-org, .cert-date {
+    font-size: 12px;
+    color: var(--light-text);
+}
+
+/* Main Content */
+.resume-main {
+    padding: 2rem;
+    background-color: var(--main-bg);
+}
+
+.main-section {
+    margin-bottom: 2rem;
+}
+
+.main-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+    position: relative;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+/* Timeline styles */
+.timeline {
+    position: relative;
+}
+
+.timeline:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 16px;
+    width: 2px;
+    background-color: var(--primary-color);
+}
+
+.timeline-item {
+    display: flex;
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.timeline-marker {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    flex-shrink: 0;
+    margin-right: 1.5rem;
+    margin-top: 6px;
+    z-index: 1;
+}
+
+.timeline-content {
+    flex-grow: 1;
+}
+
+.job-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.job-title {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.job-date {
+    font-size: 12px;
+    color: var(--light-text);
+}
+
+.job-company {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+}
+
+/* Projects styles */
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.project-card {
+    border-radius: var(--border-radius);
+    border: 1px solid #eee;
+    padding: 1rem;
+    background-color: white;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.project-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.project-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+}
+
+.project-link {
+    display: inline-block;
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 12px;
+    margin-bottom: 0.5rem;
+}
+
+.tech-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+}
+
+.tech-chip {
+    font-size: 10px;
+    background-color: #f0f0f0;
+    padding: 0.1rem 0.5rem;
+    border-radius: 12px;
+}
+
+/* Achievements styles */
+.achievements-list {
+    padding-left: 1.5rem;
+}
+
+.achievement-item {
+    margin-bottom: 0.75rem;
+}
+
+/* Print styles */
+@media print {
+    body {
+        background-color: white;
+    }
+    
+    .resume-container {
+        max-width: 100%;
+        box-shadow: none;
+    }
+    
+    .resume-container {
+        page-break-after: always;
+    }
+    
+    .main-section, .sidebar-section {
+        page-break-inside: avoid;
+    }
+}
+
+/* Media queries for responsiveness */
+@media (max-width: 768px) {
+    .resume-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .timeline:before {
+        left: 12px;
+    }
+    
+    .timeline-marker {
+        width: 12px;
+        height: 12px;
+        margin-right: 1rem;
+    }
+    
+    .projects-grid {
+        grid-template-columns: 1fr;
+    }
+}"""
     }
 ]
