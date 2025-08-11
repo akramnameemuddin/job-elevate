@@ -28,8 +28,6 @@ class Command(BaseCommand):
                     'description': template_data['description'],
                     'html_structure': template_data['html_structure'],
                     'css_structure': template_data.get('css_structure', ''),
-                    'is_default': True,
-                    'is_active': True,
                 }
             )
             
@@ -42,8 +40,6 @@ class Command(BaseCommand):
                 template.description = template_data['description']
                 template.html_structure = template_data['html_structure']
                 template.css_structure = template_data.get('css_structure', '')
-                template.is_default = True
-                template.is_active = True
                 template.save()
                 updated_count += 1
                 self.stdout.write(
@@ -63,6 +59,10 @@ class Command(BaseCommand):
             )
         )
         
+        if created_count > 0 or updated_count > 0:
+            self.stdout.write(
+                self.style.SUCCESS('🎉 Templates are now ready for use!')
+            )
         if created_count > 0 or updated_count > 0:
             self.stdout.write(
                 self.style.SUCCESS('🎉 Templates are now ready for use!')
