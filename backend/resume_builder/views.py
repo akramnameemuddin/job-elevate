@@ -173,6 +173,7 @@ def download_resume(request, resume_id):
     for job in work_experience:
         if job.get('description'):
             job['description'] = job['description'].replace('\n', '<br>')
+    
     # Preprocess contact links
     linkedin_link = f'<a href="{user.linkedin_profile}" target="_blank">{user.linkedin_profile}</a>' if user.linkedin_profile else ''
     github_link = f'<a href="{user.github_profile}" target="_blank">{user.github_profile}</a>' if user.github_profile else ''
@@ -207,28 +208,58 @@ def download_resume(request, resume_id):
         'is_download': True
     })
 
+    # Render HTML template
     html_template = Template(resume.template.html_structure)
     html_string = html_template.render(context)
 
-    html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
-    css = CSS(string=resume.template.css_structure)
-    pdf_file = BytesIO()
-    html.write_pdf(pdf_file, stylesheets=[css])
+    # Create combined HTML with CSS
+    css_template = Template(resume.template.css_structure)
+    css_content = css_template.render(context)
+    
+    full_html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <style>
+        {css_content}
+        </style>
+    </head>
+    <body>
+    {html_string}
+    </body>
+    </html>
+    """
 
-    resume.download_count += 1
-    resume.last_downloaded = timezone.now()
+    # Generate PDF using the correct WeasyPrint API
+    try:
+        from weasyprint import HTML
+        
+        # Create HTML object and generate PDF
+        html_doc = HTML(string=full_html, base_url=request.build_absolute_uri('/'))
+        pdf_content = html_doc.write_pdf()
+        
+        # Update resume metadata
+        resume.download_count += 1
+        resume.last_downloaded = timezone.now()
+        
+        # Save PDF file if needed
+        if not resume.pdf_file:
+            from django.core.files.base import ContentFile
+            filename = f"{user.username}_resume_{resume.id}.pdf"
+            resume.pdf_file.save(filename, ContentFile(pdf_content), save=True)
+        else:
+            resume.save()
 
-    if not resume.pdf_file:
-        from django.core.files.base import ContentFile
-        filename = f"{user.username}_resume_{resume.id}.pdf"
-        resume.pdf_file.save(filename, ContentFile(pdf_file.getvalue()), save=True)
-    else:
-        resume.save()
-
-    pdf_file.seek(0)
-    response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="{user.username}_resume_{resume.id}.pdf"'
-    return response
+        # Return PDF response
+        response = HttpResponse(pdf_content, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{user.username}_resume_{resume.id}.pdf"'
+        return response
+        
+    except Exception as e:
+        # Fallback to error response
+        messages.error(request, f'Error generating PDF: {str(e)}')
+        return redirect('resume_builder:dashboard')
 
 @login_required
 def delete_resume(request, resume_id):
