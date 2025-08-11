@@ -416,7 +416,7 @@ def delete_resume(request, resume_id):
         resume = get_object_or_404(Resume, id=resume_id, user=request.user)
         resume.delete()
         messages.success(request, "Resume deleted successfully!")
-    return redirect('resume_builder:resume_dashboard')
+    return redirect('resume_builder:dashboard')
 
 @login_required
 def change_template(request, resume_id):
