@@ -257,9 +257,16 @@ def download_resume(request, resume_id):
         return response
         
     except Exception as e:
-        # Fallback to error response
-        messages.error(request, f'Error generating PDF: {str(e)}')
-        return redirect('resume_builder:dashboard')
+        # Return JSON error response instead of redirect
+        import logging
+        logging.error(f'PDF generation error: {str(e)}')
+        
+        # Return HTTP error response instead of redirect to avoid URL issues
+        return HttpResponse(
+            f'Error generating PDF: {str(e)}', 
+            status=500, 
+            content_type='text/plain'
+        )
 
 @login_required
 def delete_resume(request, resume_id):
@@ -268,7 +275,7 @@ def delete_resume(request, resume_id):
         resume = get_object_or_404(Resume, id=resume_id, user=request.user)
         resume.delete()
         messages.success(request, "Resume deleted successfully!")
-    return redirect('/resume_builder/')
+    return redirect('resume_builder:resume_dashboard')
 
 @login_required
 def change_template(request, resume_id):
