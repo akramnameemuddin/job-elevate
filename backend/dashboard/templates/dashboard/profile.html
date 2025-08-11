@@ -1,5 +1,6 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
+
 {% block content %}
 <div class="page-header">
     <h1 class="page-title">My Profile</h1>
@@ -24,18 +25,790 @@
         <button class="notification-close"><i class='bx bx-x'></i></button>
     </div>
     {% endfor %}
-
 </div>
 {% endif %}
 
 <div class="profile-container">
+    <!-- Profile Header -->
     <div class="profile-header">
         <div class="profile-header-content">
             <div class="profile-photo-wrapper">
                 <div class="profile-photo-container" id="photo-container">
-                    <img id="profile-photo-preview" class="profile-photo" 
-                        src="{% if user.profile_photo %}{{ user.profile_photo.url }}{% else %}{% static 'default_profile.png' %}{% endif %}" 
-                        alt="{{ user.full_name }}'s Profile Photo">
+                    {% if user.profile_photo %}
+                        <img id="profile-photo-preview" class="profile-photo" 
+                            src="{{ user.profile_photo.url }}" 
+                            alt="{{ user.full_name }}'s Profile Photo">
+                    {% else %}
+                        <div id="profile-photo-preview" class="profile-photo-placeholder">
+                            {{ user.full_name|first|upper|default:"U" }}
+                        </div>
+                    {% endif %}
+                    <div class="photo-upload-overlay">
+                        <i class='bx bx-camera'></i>
+                    </div>
+                </div>
+                <span class="photo-upload-hint">Click to upload</span>
+            </div>
+            <div class="profile-header-info">
+                <h2 class="profile-name">{{ user.full_name|default:"Your Name" }}</h2>
+                <p class="profile-role">{{ user.user_type|title|default:"User" }}</p>
+                <div class="profile-stats">
+                    <div class="profile-stat">
+                        <span class="stat-value">{{ profile_percent|default:"0" }}%</span>
+                        <span class="stat-label">Profile Completion</span>
+                    </div>
+                    <div class="profile-stat">
+                        <span class="stat-value">{{ job_match_count|default:"0" }}</span>
+                        <span class="stat-label">Job Matches</span>
+                    </div>
+                    <div class="profile-stat">
+                        <span class="stat-value">7</span>
+                        <span class="stat-label">Courses</span>
+                    </div>
+                </div>
+        </div>
+    </div>
+
+    <!-- Form Content -->
+    <form method="POST" enctype="multipart/form-data" action="{% url 'dashboard:profile' %}" id="profile-form">
+        {% csrf_token %}
+        <input type="file" name="profile_photo" id="profile-photo-input" accept="image/*" style="display: none;">
+        
+        <!-- Tab Content: Basic Info -->
+        <div class="tab-content active" id="basic-info-content">
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class='bx bx-user-circle'></i>
+                        Personal Details
+                    </h3>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="full_name">Full Name</label>
+                        <div class="input-with-icon">
+                            <i class='bx bx-user'></i>
+                            <input type="text" name="full_name" id="full_name" value="{{ user.full_name|default_if_none:'' }}" placeholder="Enter your full name">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <div class="input-with-icon">
+                            <i class='bx bx-envelope'></i>
+                            <input type="email" id="email" name="email" value="{{ user.email }}" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone_number">Phone Number</label>
+                        <div class="input-with-icon">
+                            <i class='bx bx-phone'></i>
+                            <input type="tel" id="phone_number" name="phone_number" value="{{ user.phone_number|default_if_none:'' }}" placeholder="Enter your phone number">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="user_type">User Type</label>
+                        <div class="input-with-icon">
+                            <i class='bx bx-id-card'></i>
+                            <select id="user_type" name="user_type" required>
+                                <option value="student" {% if user.user_type == 'student' %}selected{% endif %}>Student</option>
+                                <option value="professional" {% if user.user_type == 'professional' %}selected{% endif %}>Professional</option>
+                                <option value="recruiter" {% if user.user_type == 'recruiter' %}selected{% endif %}>Recruiter</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class='bx bx-link-alt'></i>
+                        Social Profiles
+                    </h3>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="linkedin_profile">LinkedIn Profile</label>
+                        <div class="input-with-icon">
+                            <i class='bx bxl-linkedin'></i>
+                            <input type="url" id="linkedin_profile" name="linkedin_profile" value="{{ user.linkedin_profile|default_if_none:'' }}" placeholder="https://linkedin.com/in/yourusername">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="github_profile">GitHub Profile</label>
+                        <div class="input-with-icon">
+                            <i class='bx bxl-github'></i>
+                            <input type="url" id="github_profile" name="github_profile" value="{{ user.github_profile|default_if_none:'' }}" placeholder="https://github.com/yourusername">
+                        </div>
+                    </div>
+                    <div class="form-group span-2">
+                        <label for="portfolio_website">Portfolio Website</label>
+                        <div class="input-with-icon">
+                            <i class='bx bx-globe'></i>
+                            <input type="url" id="portfolio_website" name="portfolio_website" value="{{ user.portfolio_website|default_if_none:'' }}" placeholder="https://yourwebsite.com">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class='bx bx-target-lock'></i>
+                        Career Objective
+                    </h3>
+                </div>
+                <div class="form-group">
+                    <textarea name="objective" id="objective" placeholder="Write a brief description about your career goals..." rows="4">{{ user.objective|default_if_none:'' }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Education & Skills -->
+        <div class="tab-content" id="education-skills-content">
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class='bx bx-book'></i>
+                        Education
+                    </h3>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group span-2">
+                        <label for="university">University/Institution</label>
+                        <div class="input-with-icon">
+                            <i class='bx bx-buildings'></i>
+                            <input type="text" id="university" name="university" value="{{ user.university|default_if_none:'' }}" placeholder="Enter your university">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="degree">Degree</label>
+                        <div class="input-with-icon">
+                            <i class='bx bx-graduation'></i>
+                            <input type="text" id="degree" name="degree" value="{{ user.degree|default_if_none:'' }}" placeholder="Enter your degree">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="graduation_year">Graduation Year</label>
+                        <div class="input-with-icon">
+                            <i class='bx bx-calendar'></i>
+                            <input type="number" id="graduation_year" name="graduation_year" value="{{ user.graduation_year|default_if_none:'' }}" placeholder="2024">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cgpa">CGPA / Grade</label>
+                        <div class="input-with-icon">
+                            <i class='bx bx-bar-chart-alt-2'></i>
+                            <input type="number" step="0.1" id="cgpa" name="cgpa" value="{{ user.cgpa|default_if_none:'' }}" placeholder="3.5">
+                        </div>
+                    </div>
+                    <div class="form-group span-2">
+                        <label for="industry">Industry</label>
+                        <div class="input-with-icon">
+                            <i class='bx bx-briefcase'></i>
+                            <input type="text" id="industry" name="industry" value="{{ user.industry|default_if_none:'' }}" placeholder="e.g., Technology, Healthcare, Finance">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class='bx bx-code-alt'></i>
+                        Technical Skills
+                    </h3>
+                </div>
+                <div class="form-group">
+                    <div class="skills-input">
+                        <textarea id="technical_skills" name="technical_skills" placeholder="Python, JavaScript, React, SQL, AWS..." rows="3">{{ user.technical_skills|default_if_none:'' }}</textarea>
+                        <p class="skills-hint">Separate skills with commas</p>
+                        <div class="skills-tags" id="tech-skills-tags"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class='bx bx-conversation'></i>
+                        Soft Skills
+                    </h3>
+                </div>
+                <div class="form-group">
+                    <div class="skills-input">
+                        <textarea id="soft_skills" name="soft_skills" placeholder="Leadership, Communication, Problem-solving..." rows="3">{{ user.soft_skills|default_if_none:'' }}</textarea>
+                        <p class="skills-hint">Separate skills with commas</p>
+                        <div class="skills-tags" id="soft-skills-tags"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Experience -->
+        <div class="tab-content" id="experience-content">
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class='bx bx-briefcase'></i>
+                        Work Experience
+                    </h3>
+                </div>
+                <div class="form-group">
+                    <textarea name="work_experience" id="work_experience" placeholder="Describe your work experience..." rows="5">{{ user.work_experience|default_if_none:'' }}</textarea>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class='bx bx-star'></i>
+                        Achievements
+                    </h3>
+                </div>
+                <div class="form-group">
+                    <textarea name="achievements" id="achievements" placeholder="List your achievements and awards..." rows="4">{{ user.achievements|default_if_none:'' }}</textarea>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab Content: Projects -->
+        <div class="tab-content" id="projects-content">
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class='bx bx-code-block'></i>
+                        Projects
+                    </h3>
+                </div>
+                <div class="form-group">
+                    <textarea name="projects" id="projects" placeholder="Describe your projects..." rows="5">{{ user.projects|default_if_none:'' }}</textarea>
+                </div>
+            </div>
+            
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class='bx bx-extension'></i>
+                        Extracurricular Activities
+                    </h3>
+                </div>
+                <div class="form-group">
+                    <p class="input-hint">List clubs, volunteer work, and other activities</p>
+                    <textarea id="extracurricular_activities" name="extracurricular_activities" rows="4" placeholder="Describe your extracurricular activities...">{{ user.extracurricular_activities|default_if_none:'' }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class='bx bx-save'></i>
+                Save Profile
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- JavaScript for Profile Management -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize photo upload
+    initializePhotoUpload();
+    
+    // Initialize tabs
+    initializeTabs();
+    
+    // Initialize skills display
+    initializeSkillsDisplay();
+    
+    // Initialize form enhancements
+    initializeFormEnhancements();
+});
+
+function initializePhotoUpload() {
+    const uploadBtn = document.getElementById('upload-photo-btn');
+    const photoInput = document.getElementById('profile-photo-input');
+    const profileImg = document.getElementById('profile-img');
+
+    if (uploadBtn && photoInput) {
+        uploadBtn.addEventListener('click', function() {
+            photoInput.click();
+        });
+
+        photoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (profileImg) {
+                        profileImg.src = e.target.result;
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+}
+
+function initializeTabs() {
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const targetTab = this.getAttribute('data-tab');
+
+            // Remove active class from all tabs and contents
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            // Add active class to clicked tab and corresponding content
+            this.classList.add('active');
+            const targetContent = document.getElementById(targetTab + '-content');
+            if (targetContent) {
+                targetContent.classList.add('active');
+            }
+        });
+    });
+}
+
+function initializeSkillsDisplay() {
+    displaySkillsAsTags('technical_skills', 'tech-skills-tags');
+    displaySkillsAsTags('soft_skills', 'soft-skills-tags');
+
+    // Update tags when typing
+    document.getElementById('technical_skills').addEventListener('input', function() {
+        displaySkillsAsTags('technical_skills', 'tech-skills-tags');
+    });
+
+    document.getElementById('soft_skills').addEventListener('input', function() {
+        displaySkillsAsTags('soft_skills', 'soft-skills-tags');
+    });
+}
+
+function displaySkillsAsTags(textareaId, tagsContainerId) {
+    const textarea = document.getElementById(textareaId);
+    const tagsContainer = document.getElementById(tagsContainerId);
+    
+    if (!textarea || !tagsContainer) return;
+
+    const skills = textarea.value.split(',').map(skill => skill.trim()).filter(skill => skill.length > 0);
+    
+    tagsContainer.innerHTML = '';
+    skills.forEach(skill => {
+        const tag = document.createElement('span');
+        tag.className = 'skill-tag';
+        tag.textContent = skill;
+        tagsContainer.appendChild(tag);
+    });
+}
+
+function initializeFormEnhancements() {
+    // Add form submission handling
+    const form = document.getElementById('profile-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Add loading state
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Saving...';
+                submitBtn.disabled = true;
+            }
+        });
+    }
+
+    // Add input focus effects
+    const inputs = document.querySelectorAll('input, textarea, select');
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.parentElement.classList.add('focused');
+        });
+
+        input.addEventListener('blur', function() {
+            this.parentElement.classList.remove('focused');
+        });
+    });
+}
+</script>
+
+<style>
+/* Profile Page Specific Styles */
+.profile-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius-lg);
+    margin-bottom: var(--spacing-lg);
+    text-align: center;
+    color: white;
+}
+
+.profile-photo-container {
+    position: relative;
+    display: inline-block;
+    margin-bottom: var(--spacing-md);
+}
+
+.profile-photo {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    object-fit: cover;
+    transition: var(--transition-standard);
+}
+
+.upload-overlay {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    transition: var(--transition-standard);
+}
+
+.upload-overlay:hover {
+    background: var(--accent-hover);
+    transform: scale(1.1);
+}
+
+.profile-name {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-xs);
+}
+
+.profile-role {
+    opacity: 0.9;
+    font-size: 1rem;
+}
+
+.profile-tabs {
+    display: flex;
+    background: var(--card-background);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-xs);
+    margin-bottom: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+    overflow-x: auto;
+}
+
+.tab-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: none;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition-standard);
+    white-space: nowrap;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.tab-btn.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+.tab-btn:hover:not(.active) {
+    background: var(--hover-background);
+    color: var(--text-primary);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.content-section {
+    background: var(--card-background);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+}
+
+.section-header {
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 2px solid var(--border-color);
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.section-title i {
+    color: var(--primary-color);
+    font-size: 1.3rem;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group.span-2 {
+    grid-column: span 2;
+}
+
+.form-group label {
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+    font-size: 0.9rem;
+}
+
+.input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-with-icon i {
+    position: absolute;
+    left: var(--spacing-sm);
+    color: var(--text-secondary);
+    z-index: 1;
+    font-size: 1.1rem;
+}
+
+.input-with-icon input,
+.input-with-icon select {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-sm) 40px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    background: var(--input-background);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    transition: var(--transition-standard);
+}
+
+.input-with-icon input:focus,
+.input-with-icon select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+}
+
+.input-with-icon.focused {
+    transform: translateY(-1px);
+}
+
+textarea {
+    width: 100%;
+    padding: var(--spacing-sm);
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    background: var(--input-background);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 80px;
+    transition: var(--transition-standard);
+}
+
+textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+}
+
+.skills-input {
+    position: relative;
+}
+
+.skills-hint {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin: var(--spacing-xs) 0;
+}
+
+.skills-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+    margin-top: var(--spacing-sm);
+}
+
+.skill-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: var(--primary-color);
+    color: white;
+    font-size: 0.8rem;
+    border-radius: var(--border-radius-full);
+    font-weight: 500;
+}
+
+.input-hint {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.form-actions {
+    text-align: center;
+    padding: var(--spacing-lg) 0;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition-standard);
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .profile-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .tab-btn {
+        flex-shrink: 0;
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: 0.8rem;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-group.span-2 {
+        grid-column: span 1;
+    }
+    
+    .profile-photo {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .upload-overlay {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+    
+    .content-section {
+        padding: var(--spacing-md);
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-header {
+        padding: var(--spacing-md);
+    }
+    
+    .profile-name {
+        font-size: 1.3rem;
+    }
+    
+    .section-title {
+        font-size: 1.1rem;
+    }
+    
+    .tab-btn {
+        padding: var(--spacing-xs);
+        font-size: 0.75rem;
+    }
+    
+    .tab-btn i {
+        display: none;
+    }
+}
+</style>
+{% endblock %}
+
+    <!-- Tab Navigation -->
+    <div class="profile-tabs">
+        <button class="tab-button active" data-tab="basic-info">
+            <i class='bx bx-user'></i>
+            <span>Basic Info</span>
+        </button>
+        <button class="tab-button" data-tab="education-skills">
+            <i class='bx bx-book-alt'></i>
+            <span>Education & Skills</span>
+        </button>
+        <button class="tab-button" data-tab="experience">
+            <i class='bx bx-briefcase'></i>
+            <span>Experience</span>
+        </button>
+        <button class="tab-button" data-tab="projects">
+            <i class='bx bx-code-block'></i>
+            <span>Projects</span>
+        </button>
+    </div>
+    <div class="profile-header">
+        <div class="profile-header-content">
+            <div class="profile-photo-wrapper">
+                <div class="profile-photo-container" id="photo-container">
+                    {% if user.profile_photo %}
+                        <img id="profile-photo-preview" class="profile-photo" 
+                            src="{{ user.profile_photo.url }}" 
+                            alt="{{ user.full_name }}'s Profile Photo">
+                    {% else %}
+                        <div id="profile-photo-preview" class="profile-photo" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem; font-weight: bold;">
+                            {{ user.full_name|first|upper|default:"U" }}
+                        </div>
+                    {% endif %}
                     <div class="photo-upload-overlay">
                         <i class='bx bx-camera'></i>
                     </div>
@@ -647,111 +1420,19 @@
         </div>
     </form>
 </div>
-<style>
-    /* Profile page specific styles */
-    .profile-container {
-        max-width: 100%;
-        margin-bottom: 2rem;
+<!-- CSS removed - now using unified base template styles -->
+        padding: 2px 6px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 0.8rem;
+        transition: background-color 0.2s;
     }
 
-    /* Notifications */
-    .notification {
-    background-color: var(--success);
-    color: white;
-    padding: 1rem;
-    border-radius: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    animation: slideIn 0.3s forwards, fadeOut 0.5s 2.5s forwards;
-    margin-bottom: 0.5rem;
-}
-
-/* Keep other variants same */
-.notification.error {
-    background-color: var(--danger);
-}
-
-.notification.warning {
-    background-color: var(--warning);
-}
-
-.notification i {
-    font-size: 1.25rem;
-}
-
-.notification-close {
-    margin-left: auto;
-    background: none;
-    border: none;
-    color: white;
-    cursor: pointer;
-    font-size: 1.25rem;
-    opacity: 0.8;
-    transition: opacity 0.3s;
-}
-
-.notification-close:hover {
-    opacity: 1;
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateX(-10px);
-        opacity: 0;
+    .entry-links .btn-link:hover {
+        background-color: var(--primary-hover);
     }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
 
-@keyframes fadeOut {
-    to {
-        opacity: 0;
-        height: 0;
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-    }
-}
-
-    /* Profile Header */
-    .profile-header {
-        background-color: var(--card-bg);
-        border-radius: 1rem;
-        box-shadow: var(--shadow);
-        margin-bottom: 1.5rem;
-        overflow: hidden;
-    }
-    .entry-header {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 6px; /* Space between title and entry-links */
-}
-
-.entry-links {
-    display: flex;
-    gap: 4px;         /* Space between the Live and GitHub buttons */
-    margin-left: 4px; /* Reduce distance from the title */
-}
-
-.entry-links .btn-link {
-    background-color: #007bff;
-    color: white;
-    padding: 2px 6px; /* 👈 Tighter padding inside buttons */
-    border-radius: 4px;
-    text-decoration: none;
-    font-size: 0.8rem; /* slightly smaller text, optional */
-    transition: background-color 0.2s;
-}
-
-.entry-links .btn-link:hover {
-    background-color: #0056b3;
-}
-
-   .profile-header-content {
+    .profile-header-content {
         padding: 2rem;
         display: flex;
         align-items: center;
@@ -1004,8 +1685,26 @@
         border-radius: 0.5rem;
         font-size: 0.875rem;
         color: var(--text-color);
-        background-color: var(--card-bg);
+        background-color: var(--input-bg);
         transition: var(--transition);
+    }
+
+    /* Dark mode input styling */
+    [data-theme="dark"] input[type="text"],
+    [data-theme="dark"] input[type="email"],
+    [data-theme="dark"] input[type="tel"],
+    [data-theme="dark"] input[type="url"],
+    [data-theme="dark"] input[type="number"],
+    [data-theme="dark"] select,
+    [data-theme="dark"] textarea {
+        background-color: var(--input-bg);
+        border-color: var(--border-color);
+        color: var(--text-color);
+    }
+
+    [data-theme="dark"] input::placeholder,
+    [data-theme="dark"] textarea::placeholder {
+        color: var(--text-light);
     }
 
     select {
@@ -1130,6 +1829,73 @@
             justify-content: space-between;
         }
     }
+    
+    /* Dark theme specific overrides */
+    [data-theme="dark"] .profile-header {
+        background-color: var(--card-bg);
+        border-color: var(--border-color);
+    }
+
+    [data-theme="dark"] .content-section {
+        background-color: var(--card-bg);
+        border-color: var(--border-color);
+    }
+
+    [data-theme="dark"] .tab-content {
+        background-color: var(--card-bg);
+        border-color: var(--border-color);
+    }
+
+    [data-theme="dark"] .entry-card {
+        background-color: var(--card-bg);
+        border-color: var(--border-color);
+    }
+
+    [data-theme="dark"] .modal-content {
+        background-color: var(--card-bg);
+        border-color: var(--border-color);
+    }
+
+    [data-theme="dark"] .profile-photo-container {
+        border-color: var(--border-color);
+    }
+
+    [data-theme="dark"] .btn-add {
+        background-color: var(--primary-color-light);
+        color: var(--primary-color);
+    }
+
+    [data-theme="dark"] .btn-submit {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    [data-theme="dark"] select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23d1d5db' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    }
+
+    [data-theme="dark"] .profile-tabs {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+    }
+
+    [data-theme="dark"] .profile-photo {
+        border-color: var(--border-color);
+    }
+    
+    [data-theme="dark"] .section-header {
+        border-color: var(--border-color);
+    }
+
+    [data-theme="dark"] .skill-tag {
+        background-color: var(--hover-bg);
+        border-color: var(--border-color);
+    }
+
+    [data-theme="dark"] .profile-completion-bar {
+        background-color: var(--hover-bg);
+    }
+
     /* Entry Cards */
 .entry-card {
     background-color: var(--card-bg);
