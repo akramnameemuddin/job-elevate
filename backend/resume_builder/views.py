@@ -152,119 +152,174 @@ def download_resume(request, resume_id):
     resume = get_object_or_404(Resume, id=resume_id, user=request.user)
     user = request.user
 
-    # Prepare projects
-    projects = user.get_projects()
-    for project in projects:
-        if project.get('technologies'):
-            project['tech_list'] = [tech.strip() for tech in project['technologies'].split(',')]
-        else:
-            project['tech_list'] = []
-
-        if project.get('description'):
-            project['description'] = project['description'].replace('\n', '<br>')
-
-    # Process experiences
-    internships = user.get_internships()
-    for internship in internships:
-        if internship.get('description'):
-            internship['description'] = internship['description'].replace('\n', '<br>')
-
-    work_experience = user.get_work_experience()
-    for job in work_experience:
-        if job.get('description'):
-            job['description'] = job['description'].replace('\n', '<br>')
-    
-    # Preprocess contact links
-    linkedin_link = f'<a href="{user.linkedin_profile}" target="_blank">{user.linkedin_profile}</a>' if user.linkedin_profile else ''
-    github_link = f'<a href="{user.github_profile}" target="_blank">{user.github_profile}</a>' if user.github_profile else ''
-    website_link = f'<a href="{user.portfolio_website}" target="_blank">{user.portfolio_website}</a>' if user.portfolio_website else ''
-
-    # Preprocess skills into rows of 3
-    skills = user.get_skills_list()
-    skill_rows = [skills[i:i+3] for i in range(0, len(skills), 3)]
-
-    # Achievements
-    achievements_list = []
-    if hasattr(user, 'achievements') and user.achievements:
-        achievements_list = [a.strip() for a in user.achievements.split('\n') if a.strip()]
-
-    # Extracurricular HTML
-    extracurricular_html = user.extracurricular_activities.replace('\n', '<br>') if user.extracurricular_activities else ''
-
-    context = Context({
-        'resume': resume,
-        'user_profile': user,
-        'projects': projects,
-        'internships': internships,
-        'work_experience': work_experience,
-        'certifications': user.get_certifications(),
-        'technical_skills': skills,
-        'skill_rows': skill_rows,
-        'linkedin_link': linkedin_link,
-        'github_link': github_link,
-        'website_link': website_link,
-        'achievements_list': achievements_list,
-        'extracurricular_html': extracurricular_html,
-        'is_download': True
-    })
-
-    # Render HTML template
-    html_template = Template(resume.template.html_structure)
-    html_string = html_template.render(context)
-
-    # Create combined HTML with CSS
-    css_template = Template(resume.template.css_structure)
-    css_content = css_template.render(context)
-    
-    full_html = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="UTF-8">
-        <style>
-        {css_content}
-        </style>
-    </head>
-    <body>
-    {html_string}
-    </body>
-    </html>
-    """
-
-    # Generate PDF using the correct WeasyPrint API
     try:
-        from weasyprint import HTML
+        # Prepare projects
+        projects = user.get_projects()
+        for project in projects:
+            if project.get('technologies'):
+                project['tech_list'] = [tech.strip() for tech in project['technologies'].split(',')]
+            else:
+                project['tech_list'] = []
+
+            if project.get('description'):
+                project['description'] = project['description'].replace('\n', '<br>')
+
+        # Process experiences
+        internships = user.get_internships()
+        for internship in internships:
+            if internship.get('description'):
+                internship['description'] = internship['description'].replace('\n', '<br>')
+
+        work_experience = user.get_work_experience()
+        for job in work_experience:
+            if job.get('description'):
+                job['description'] = job['description'].replace('\n', '<br>')
         
-        # Create HTML object and generate PDF
-        html_doc = HTML(string=full_html, base_url=request.build_absolute_uri('/'))
-        pdf_content = html_doc.write_pdf()
+        # Preprocess contact links
+        linkedin_link = f'<a href="{user.linkedin_profile}" target="_blank">{user.linkedin_profile}</a>' if user.linkedin_profile else ''
+        github_link = f'<a href="{user.github_profile}" target="_blank">{user.github_profile}</a>' if user.github_profile else ''
+        website_link = f'<a href="{user.portfolio_website}" target="_blank">{user.portfolio_website}</a>' if user.portfolio_website else ''
+
+        # Preprocess skills into rows of 3
+        skills = user.get_skills_list()
+        skill_rows = [skills[i:i+3] for i in range(0, len(skills), 3)]
+
+        # Achievements
+        achievements_list = []
+        if hasattr(user, 'achievements') and user.achievements:
+            achievements_list = [a.strip() for a in user.achievements.split('\n') if a.strip()]
+
+        # Extracurricular HTML
+        extracurricular_html = user.extracurricular_activities.replace('\n', '<br>') if user.extracurricular_activities else ''
+
+        context = Context({
+            'resume': resume,
+            'user_profile': user,
+            'projects': projects,
+            'internships': internships,
+            'work_experience': work_experience,
+            'certifications': user.get_certifications(),
+            'technical_skills': skills,
+            'skill_rows': skill_rows,
+            'linkedin_link': linkedin_link,
+            'github_link': github_link,
+            'website_link': website_link,
+            'achievements_list': achievements_list,
+            'extracurricular_html': extracurricular_html,
+            'is_download': True
+        })
+
+        # Render HTML template with error handling
+        try:
+            html_template = Template(resume.template.html_structure)
+            html_string = html_template.render(context)
+        except Exception as e:
+            return HttpResponse(f'Error rendering HTML template: {str(e)}', status=500)
+
+        # Create combined HTML with CSS
+        try:
+            css_template = Template(resume.template.css_structure)
+            css_content = css_template.render(context)
+        except Exception as e:
+            # Use basic CSS if template CSS fails
+            css_content = """
+            body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; color: #333; }
+            .resume-container { max-width: 8.5in; margin: 0 auto; padding: 1in; }
+            .resume-header { margin-bottom: 1rem; border-bottom: 2px solid #000; padding-bottom: 0.5rem; }
+            .resume-section { margin-bottom: 1rem; }
+            .section-title { font-size: 14px; font-weight: bold; margin-bottom: 0.5rem; }
+            """
         
-        # Update resume metadata
-        resume.download_count += 1
-        resume.last_downloaded = timezone.now()
+        # Create complete HTML document
+        full_html = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{user.full_name} - Resume</title>
+    <style>
+        {css_content}
         
-        # Save PDF file if needed
-        if not resume.pdf_file:
-            from django.core.files.base import ContentFile
-            filename = f"{user.username}_resume_{resume.id}.pdf"
-            resume.pdf_file.save(filename, ContentFile(pdf_content), save=True)
-        else:
+        /* Additional PDF-specific styles */
+        @page {{
+            size: A4;
+            margin: 0.75in;
+        }}
+        
+        body {{
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }}
+        
+        .resume-container {{
+            max-width: 100%;
+            margin: 0;
+            padding: 0;
+        }}
+        
+        .resume-section {{
+            page-break-inside: avoid;
+            margin-bottom: 1rem;
+        }}
+        
+        h1, h2, h3, h4 {{
+            page-break-after: avoid;
+        }}
+    </style>
+</head>
+<body>
+    {html_string}
+</body>
+</html>"""
+
+        # Generate PDF with proper error handling
+        try:
+            from weasyprint import HTML
+            
+            # Create HTML object with proper configuration
+            html_doc = HTML(
+                string=full_html,
+                base_url=request.build_absolute_uri('/')
+            )
+            
+            # Generate PDF with options
+            pdf_content = html_doc.write_pdf(
+                optimize_images=True
+            )
+            
+            # Update resume metadata
+            resume.download_count += 1
+            resume.last_downloaded = timezone.now()
             resume.save()
 
-        # Return PDF response
-        response = HttpResponse(pdf_content, content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="{user.username}_resume_{resume.id}.pdf"'
-        return response
-        
+            # Return PDF response
+            response = HttpResponse(pdf_content, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{user.full_name.replace(" ", "_")}_Resume.pdf"'
+            response['Content-Length'] = len(pdf_content)
+            
+            return response
+            
+        except ImportError:
+            return HttpResponse('WeasyPrint is not properly installed', status=500)
+        except Exception as pdf_error:
+            # If WeasyPrint fails, try alternative approach
+            return HttpResponse(
+                f'PDF generation failed: {str(pdf_error)}. Please try again or contact support.',
+                status=500,
+                content_type='text/plain'
+            )
+            
     except Exception as e:
-        # Return JSON error response instead of redirect
+        # General error handling
         import logging
-        logging.error(f'PDF generation error: {str(e)}')
-        
-        # Return HTTP error response instead of redirect to avoid URL issues
+        logging.error(f'Resume download error: {str(e)}')
         return HttpResponse(
-            f'Error generating PDF: {str(e)}', 
-            status=500, 
+            f'An error occurred while generating your resume: {str(e)}',
+            status=500,
             content_type='text/plain'
         )
 
