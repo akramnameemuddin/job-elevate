@@ -7,7 +7,7 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 import json
 import os
-from weasyprint import HTML, CSS
+# from weasyprint import HTML, CSS  # Temporarily commented out due to library dependency issues
 from io import BytesIO
 
 from accounts.models import User

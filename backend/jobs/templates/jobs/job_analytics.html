@@ -25,7 +25,7 @@
     </button>
     <a href="{% url 'jobs:recommended_jobs' %}" class="btn btn-light">
       <i class='bx bx-star'></i>
-      <span>My Recommendations</span>
+      <span>Recommendations</span>
     </a>
   </div>
 </div>
@@ -34,395 +34,396 @@
 <div class="stats-grid">
   <div class="stat-card">
     <div class="stat-icon blue">
-      <i class='bx bx-briefcase'></i>
+      <i class='bx bx-briefcase-alt'></i>
     </div>
     <div class="stat-info">
-      <div class="stat-label">Total Active Jobs</div>
+      <div class="stat-label">Active Job Listings</div>
       <div class="stat-value">{{ total_jobs|default:"0" }}</div>
       <div class="stat-change">
-        <i class='bx bx-up-arrow-alt'></i> Live data
+        <i class='bx bx-trending-up'></i> Live data
       </div>
     </div>
   </div>
+  
   <div class="stat-card">
-    <div class="stat-icon green">
+    <div class="stat-icon purple">
       <i class='bx bx-code-block'></i>
     </div>
     <div class="stat-info">
-      <div class="stat-label">Skills in Demand</div>
+      <div class="stat-label">Top Skills</div>
       <div class="stat-value">{{ top_skills|length }}</div>
       <div class="stat-change">
-        <i class='bx bx-trending-up'></i> Trending skills
+        <i class='bx bx-trending-up'></i> In demand
       </div>
     </div>
   </div>
+  
   <div class="stat-card">
-    <div class="stat-icon purple">
-      <i class='bx bx-map'></i>
+    <div class="stat-icon green">
+      <i class='bx bx-map-pin'></i>
     </div>
     <div class="stat-info">
-      <div class="stat-label">Active Locations</div>
+      <div class="stat-label">Job Locations</div>
       <div class="stat-value">{{ top_locations|length }}</div>
       <div class="stat-change">
-        <i class='bx bx-location-plus'></i> Hiring markets
+        <i class='bx bx-map'></i> Active markets
       </div>
     </div>
   </div>
+  
   <div class="stat-card">
     <div class="stat-icon amber">
       <i class='bx bx-bulb'></i>
     </div>
     <div class="stat-info">
-      <div class="stat-label">Skill Recommendations</div>
+      <div class="stat-label">Recommendations</div>
       <div class="stat-value">{{ recommended_skills|length }}</div>
       <div class="stat-change">
-        <i class='bx bx-target-lock'></i> For your profile
+        <i class='bx bx-target-lock'></i> For you
       </div>
     </div>
   </div>
 </div>
 
-<!-- Analytics Filter Bar -->
-<div class="advanced-filter-bar">
-  <div class="filter-section">
-    <div class="filter-group">
-      <label for="analytics-view" class="filter-label">
+<!-- Analytics Controls -->
+<div class="analytics-controls">
+  <div class="controls-section">
+    <div class="control-group">
+      <label for="analytics-view" class="control-label">
         <i class='bx bx-bar-chart'></i>
-        Analytics View
+        View Type
       </label>
-      <select id="analytics-view" class="filter-select">
-        <option value="overview">Overview</option>
+      <select id="analytics-view" class="control-select">
+        <option value="overview">Market Overview</option>
         <option value="skills">Skills Analysis</option>
         <option value="locations">Location Trends</option>
         <option value="recommendations">My Recommendations</option>
       </select>
     </div>
     
-    <div class="filter-row">
-      <div class="filter-group">
-        <label for="time-period" class="filter-label">
-          <i class='bx bx-time'></i>
-          Time Period
-        </label>
-        <select id="time-period" class="filter-select">
-          <option value="all">All Time</option>
-          <option value="30">Last 30 Days</option>
-          <option value="7">Last 7 Days</option>
-          <option value="1">Today</option>
-        </select>
-      </div>
-      
-      <div class="filter-group">
-        <label for="job-type-analytics" class="filter-label">
-          <i class='bx bx-briefcase'></i>
-          Job Type Filter
-        </label>
-        <select id="job-type-analytics" class="filter-select">
-          <option value="">All Job Types</option>
-          <option value="full-time">Full Time</option>
-          <option value="part-time">Part Time</option>
-          <option value="contract">Contract</option>
-          <option value="remote">Remote</option>
-          <option value="internship">Internship</option>
-        </select>
-      </div>
-      
-      <div class="filter-actions">
-        <button type="button" id="export-analytics" class="btn-filter-clear">
-          <i class='bx bx-download'></i>
-          Export Data
-        </button>
-        <div class="view-toggle">
-          <button type="button" class="view-btn active" data-view="charts">
-            <i class='bx bx-bar-chart-alt-2'></i>
-          </button>
-          <button type="button" class="view-btn" data-view="tables">
-            <i class='bx bx-table'></i>
-          </button>
-        </div>
-      </div>
+    <div class="control-group">
+      <label for="time-period" class="control-label">
+        <i class='bx bx-time'></i>
+        Time Period
+      </label>
+      <select id="time-period" class="control-select">
+        <option value="all">All Time</option>
+        <option value="30">Last 30 Days</option>
+        <option value="7">Last 7 Days</option>
+        <option value="1">Today</option>
+      </select>
     </div>
+    
+    <div class="control-group">
+      <label for="job-type-analytics" class="control-label">
+        <i class='bx bx-briefcase'></i>
+        Job Type
+      </label>
+      <select id="job-type-analytics" class="control-select">
+        <option value="">All Types</option>
+        <option value="full-time">Full Time</option>
+        <option value="part-time">Part Time</option>
+        <option value="contract">Contract</option>
+        <option value="remote">Remote</option>
+        <option value="internship">Internship</option>
+      </select>
+    </div>
+  </div>
+  
+  <div class="controls-actions">
+    <div class="view-switcher">
+      <button type="button" class="view-toggle active" data-view="charts">
+        <i class='bx bx-bar-chart-alt-2'></i>
+        <span>Charts</span>
+      </button>
+      <button type="button" class="view-toggle" data-view="tables">
+        <i class='bx bx-table'></i>
+        <span>Tables</span>
+      </button>
+    </div>
+    <button class="btn btn-light" id="export-analytics">
+      <i class='bx bx-download'></i>
+      <span>Export Data</span>
+    </button>
   </div>
 </div>
 
-<!-- Charts View -->
-<div class="analytics-container charts-view active" id="analytics-charts">
-  <!-- Skills Analysis Section -->
-  <div class="content-section skills-section">
-    <div class="section-header">
-      <div class="section-title-container">
-        <h2 class="section-title"><i class='bx bx-code-block'></i> Skills Market Analysis</h2>
-        <span class="section-subtitle">Most in-demand skills across all job listings</span>
-      </div>
-      <div class="section-actions">
-        <button class="btn btn-light" id="toggle-skills-chart">
-          <i class='bx bx-bar-chart-alt-2'></i>
-          <span>Toggle Chart</span>
-        </button>
-      </div>
-    </div>
+<!-- Main Analytics Dashboard -->
+<div class="analytics-dashboard">
+  <!-- Charts View -->
+  <div class="dashboard-view charts-view active" id="analytics-charts">
     
-    <div class="analytics-grid">
-      <!-- Skills Chart Card -->
-      <div class="analytics-card chart-card">
-        <div class="card-header">
-          <div class="card-title-container">
-            <h3 class="card-title">Top Skills in Demand</h3>
-            <span class="card-subtitle">Based on current job postings</span>
-          </div>
-          <div class="card-actions">
-            <button class="btn-icon" id="refresh-skills" title="Refresh Skills Data">
-              <i class='bx bx-refresh'></i>
-            </button>
-          </div>
+    <!-- Skills Analytics Section -->
+    <div class="analytics-section">
+      <div class="section-header">
+        <div class="section-info">
+          <h2 class="section-title">
+            <i class='bx bx-code-block'></i>
+            Skills Market Analysis
+          </h2>
+          <p class="section-description">Discover the most in-demand skills across all job listings</p>
         </div>
-        <div class="card-content">
+        <div class="section-actions">
+          <button class="action-btn outline" id="toggle-skills-view">
+            <i class='bx bx-refresh'></i>
+            <span>Refresh</span>
+          </button>
+        </div>
+      </div>
+      
+      <div class="analytics-content">
+        <!-- Skills Chart -->
+        <div class="chart-container-wrapper">
+          <div class="chart-header">
+            <h3 class="chart-title">Top Skills in Demand</h3>
+            <div class="chart-actions">
+              <button class="chart-btn" id="skills-chart-fullscreen">
+                <i class='bx bx-fullscreen'></i>
+              </button>
+            </div>
+          </div>
           <div class="chart-container">
             <canvas id="skillsChart"></canvas>
           </div>
         </div>
+        
+        <!-- Skills List -->
+        <div class="data-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">Skills Breakdown</h3>
+            <span class="panel-subtitle">{{ top_skills|length }} skills tracked</span>
+          </div>
+          <div class="panel-content">
+            {% if top_skills %}
+            <div class="skills-list">
+              {% for skill in top_skills %}
+              <div class="skill-item" data-skill="{{ skill.0 }}">
+                <div class="skill-details">
+                  <div class="skill-name">{{ skill.0|capfirst }}</div>
+                  <div class="skill-meta">{{ skill.1 }} job listing{{ skill.1|pluralize }}</div>
+                </div>
+                <div class="skill-metrics">
+                  <div class="skill-bar">
+                    <div class="skill-fill" style="width: {% if top_skills.0.1 %}{% widthratio skill.1 top_skills.0.1 100 %}{% else %}0{% endif %}%"></div>
+                  </div>
+                  <span class="skill-count">{{ skill.1 }}</span>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+              <div class="empty-icon">
+                <i class='bx bx-code-block'></i>
+              </div>
+              <h3>No Skills Data Available</h3>
+              <p>Skills analytics will appear here as job listings are posted.</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Job Types Analytics Section -->
+    <div class="analytics-section">
+      <div class="section-header">
+        <div class="section-info">
+          <h2 class="section-title">
+            <i class='bx bx-pie-chart-alt-2'></i>
+            Job Type Distribution
+          </h2>
+          <p class="section-description">Understand the current job market composition by employment type</p>
+        </div>
       </div>
       
-      <!-- Skills List Card -->
-      <div class="analytics-card">
-        <div class="card-header">
-          <div class="card-title-container">
-            <h3 class="card-title">Skills Breakdown</h3>
-            <span class="card-subtitle">Detailed demand statistics</span>
-          </div>
-        </div>
-        <div class="card-content">
-          {% if top_skills %}
-          <div class="skills-list">
-            {% for skill in top_skills %}
-            <div class="skill-item" data-skill="{{ skill.0 }}">
-              <div class="skill-info">
-                <div class="skill-name">{{ skill.0|capfirst }}</div>
-                <div class="skill-meta">{{ skill.1 }} job listing{{ skill.1|pluralize }}</div>
-              </div>
-              <div class="skill-stats">
-                <div class="skill-demand-bar">
-                  <div class="demand-fill" style="width: {% widthratio skill.1 top_skills.0.1 100 %}%"></div>
-                </div>
-                <span class="skill-count">{{ skill.1 }}</span>
-              </div>
+      <div class="analytics-content">
+        <!-- Job Types Chart -->
+        <div class="chart-container-wrapper">
+          <div class="chart-header">
+            <h3 class="chart-title">Employment Type Distribution</h3>
+            <div class="chart-actions">
+              <button class="chart-btn" id="job-types-chart-fullscreen">
+                <i class='bx bx-fullscreen'></i>
+              </button>
             </div>
-            {% endfor %}
           </div>
-          {% else %}
-          <div class="empty-state">
-            <div class="empty-icon">
-              <i class='bx bx-code-block'></i>
-            </div>
-            <h3>No Skills Data</h3>
-            <p>Skills data will appear here as jobs are posted.</p>
-          </div>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Job Types Section -->
-  <div class="content-section job-types-section">
-    <div class="section-header">
-      <div class="section-title-container">
-        <h2 class="section-title"><i class='bx bx-pie-chart-alt-2'></i> Job Type Distribution</h2>
-        <span class="section-subtitle">Current job market composition</span>
-      </div>
-    </div>
-    
-    <div class="analytics-grid">
-      <!-- Job Types Chart Card -->
-      <div class="analytics-card chart-card">
-        <div class="card-header">
-          <div class="card-title-container">
-            <h3 class="card-title">Job Types Overview</h3>
-            <span class="card-subtitle">Distribution by employment type</span>
-          </div>
-          <div class="card-actions">
-            <button class="btn-icon" id="refresh-job-types" title="Refresh Job Types Data">
-              <i class='bx bx-refresh'></i>
-            </button>
-          </div>
-        </div>
-        <div class="card-content">
           <div class="chart-container">
             <canvas id="jobTypeChart"></canvas>
           </div>
         </div>
+        
+        <!-- Job Types Stats -->
+        <div class="data-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">Employment Statistics</h3>
+            <span class="panel-subtitle">{{ job_type_distribution|length }} types available</span>
+          </div>
+          <div class="panel-content">
+            {% if job_type_distribution %}
+            <div class="job-types-grid">
+              {% for job_type in job_type_distribution %}
+              <div class="job-type-item">
+                <div class="job-type-icon">
+                  {% if job_type.job_type == 'full-time' %}
+                    <i class='bx bx-briefcase'></i>
+                  {% elif job_type.job_type == 'part-time' %}
+                    <i class='bx bx-time'></i>
+                  {% elif job_type.job_type == 'contract' %}
+                    <i class='bx bx-file-blank'></i>
+                  {% elif job_type.job_type == 'remote' %}
+                    <i class='bx bx-home'></i>
+                  {% else %}
+                    <i class='bx bx-user'></i>
+                  {% endif %}
+                </div>
+                <div class="job-type-details">
+                  <div class="job-type-name">{{ job_type.job_type|capfirst }}</div>
+                  <div class="job-type-count">{{ job_type.count }} position{{ job_type.count|pluralize }}</div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+              <div class="empty-icon">
+                <i class='bx bx-briefcase'></i>
+              </div>
+              <h3>No Job Type Data</h3>
+              <p>Employment type analytics will appear here as positions are posted.</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Geographic Analytics Section -->
+    <div class="analytics-section">
+      <div class="section-header">
+        <div class="section-info">
+          <h2 class="section-title">
+            <i class='bx bx-map'></i>
+            Geographic Opportunities
+          </h2>
+          <p class="section-description">Explore top hiring locations and regional market activity</p>
+        </div>
       </div>
       
-      <!-- Job Types Stats -->
-      <div class="analytics-card">
-        <div class="card-header">
-          <div class="card-title-container">
-            <h3 class="card-title">Employment Types</h3>
-            <span class="card-subtitle">Current opportunities by type</span>
+      <div class="analytics-content full-width">
+        <div class="locations-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">Top Hiring Markets</h3>
+            <span class="panel-subtitle">{{ top_locations|length }} active location{{ top_locations|length|pluralize }}</span>
           </div>
-        </div>
-        <div class="card-content">
-          {% if job_type_distribution %}
-          <div class="job-types-grid">
-            {% for job_type in job_type_distribution %}
-            <div class="job-type-card">
-              <div class="job-type-icon">
-                {% if job_type.job_type == 'full-time' %}
-                  <i class='bx bx-briefcase'></i>
-                {% elif job_type.job_type == 'part-time' %}
-                  <i class='bx bx-time'></i>
-                {% elif job_type.job_type == 'contract' %}
-                  <i class='bx bx-file-blank'></i>
-                {% elif job_type.job_type == 'remote' %}
-                  <i class='bx bx-home'></i>
-                {% else %}
-                  <i class='bx bx-user'></i>
-                {% endif %}
-              </div>
-              <div class="job-type-info">
-                <div class="job-type-name">{{ job_type.job_type|capfirst }}</div>
-                <div class="job-type-count">{{ job_type.count }} position{{ job_type.count|pluralize }}</div>
-              </div>
-            </div>
-            {% endfor %}
-          </div>
-          {% else %}
-          <div class="empty-state">
-            <div class="empty-icon">
-              <i class='bx bx-briefcase'></i>
-            </div>
-            <h3>No Job Types</h3>
-            <p>Job type data will appear here as positions are posted.</p>
-          </div>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Locations Section -->
-  <div class="content-section locations-section">
-    <div class="section-header">
-      <div class="section-title-container">
-        <h2 class="section-title"><i class='bx bx-map'></i> Geographic Opportunities</h2>
-        <span class="section-subtitle">Top hiring locations and market activity</span>
-      </div>
-    </div>
-    
-    <div class="analytics-card">
-      <div class="card-header">
-        <div class="card-title-container">
-          <h3 class="card-title">Top Hiring Locations</h3>
-          <span class="card-subtitle">Cities and regions with most opportunities</span>
-        </div>
-      </div>
-      <div class="card-content">
-        {% if top_locations %}
-        <div class="locations-grid">
-          {% for location, count in top_locations %}
-          <div class="location-item">
-            <div class="location-info">
-              <div class="location-icon">
-                <i class='bx bx-map-pin'></i>
-              </div>
-              <div class="location-details">
-                <div class="location-name">{{ location }}</div>
-                <div class="location-meta">{{ count }} active position{{ count|pluralize }}</div>
-              </div>
-            </div>
-            <div class="location-stats">
-              <div class="location-demand-bar">
-                {% if top_locations and top_locations.0.1 %}
-                <div class="demand-fill" style="width: {% widthratio count top_locations.0.1 100 %}%"></div>
-                {% else %}
-                <div class="demand-fill" style="width: 0%"></div>
-                {% endif %}
-              </div>
-              <span class="location-count">{{ count }}</span>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-        {% else %}
-        <div class="empty-state">
-          <div class="empty-icon">
-            <i class='bx bx-map'></i>
-          </div>
-          <h3>No Location Data</h3>
-          <p>Location data will appear here as jobs are posted.</p>
-        </div>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Tables View -->
-<div class="analytics-container tables-view" id="analytics-tables">
-  <div class="content-section">
-    <div class="section-header">
-      <div class="section-title-container">
-        <h2 class="section-title"><i class='bx bx-table'></i> Detailed Analytics</h2>
-        <span class="section-subtitle">Comprehensive market data in tabular format</span>
-      </div>
-    </div>
-    
-    <!-- Skills Table -->
-    <div class="analytics-card">
-      <div class="card-header">
-        <div class="card-title-container">
-          <h3 class="card-title">Skills Demand Table</h3>
-          <span class="card-subtitle">Complete skills analysis</span>
-        </div>
-      </div>
-      <div class="card-content">
-        <div class="table-container">
-          <table class="analytics-table">
-            <thead>
-              <tr>
-                <th>Skill</th>
-                <th>Demand Count</th>
-                <th>Market Share</th>
-                <th>Trend</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for skill in top_skills %}
-              <tr>
-                <td class="skill-cell">
-                  <i class='bx bx-code-block'></i>
-                  {{ skill.0|capfirst }}
-                </td>
-                <td>{{ skill.1 }}</td>
-                <td>
-                  <div class="market-share-bar">
-                    <div class="share-fill" style="width: {% widthratio skill.1 top_skills.0.1 100 %}%"></div>
-                    <span class="share-text">{% widthratio skill.1 top_skills.0.1 100 %}%</span>
+          <div class="panel-content">
+            {% if top_locations %}
+            <div class="locations-grid">
+              {% for location, count in top_locations %}
+              <div class="location-item">
+                <div class="location-info">
+                  <div class="location-icon">
+                    <i class='bx bx-map-pin'></i>
                   </div>
-                </td>
-                <td>
-                  <span class="trend-indicator positive">
-                    <i class='bx bx-trending-up'></i>
-                    Growing
-                  </span>
-                </td>
-              </tr>
+                  <div class="location-details">
+                    <div class="location-name">{{ location }}</div>
+                    <div class="location-meta">{{ count }} active opening{{ count|pluralize }}</div>
+                  </div>
+                </div>
+                <div class="location-metrics">
+                  <div class="location-bar">
+                    <div class="location-fill" style="width: {% if top_locations.0.1 %}{% widthratio count top_locations.0.1 100 %}{% else %}0{% endif %}%"></div>
+                  </div>
+                  <span class="location-count">{{ count }}</span>
+                </div>
+              </div>
               {% endfor %}
-            </tbody>
-          </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+              <div class="empty-icon">
+                <i class='bx bx-map'></i>
+              </div>
+              <h3>No Location Data Available</h3>
+              <p>Geographic analytics will appear here as job listings are posted with location data.</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tables View -->
+  <div class="dashboard-view tables-view" id="analytics-tables">
+    <div class="analytics-section">
+      <div class="section-header">
+        <div class="section-info">
+          <h2 class="section-title">
+            <i class='bx bx-table'></i>
+            Detailed Analytics Tables
+          </h2>
+          <p class="section-description">Comprehensive market data in structured tabular format</p>
+        </div>
+      </div>
+      
+      <div class="table-panel">
+        <div class="panel-header">
+          <h3 class="panel-title">Skills Demand Analysis</h3>
+          <span class="panel-subtitle">Complete breakdown of skill requirements</span>
+        </div>
+        <div class="panel-content">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th class="table-header">Skill</th>
+                  <th class="table-header">Demand Count</th>
+                  <th class="table-header">Market Share</th>
+                  <th class="table-header">Trend</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for skill in top_skills %}
+                <tr class="table-row">
+                  <td class="table-cell skill-cell">
+                    <i class='bx bx-code-block'></i>
+                    <span>{{ skill.0|capfirst }}</span>
+                  </td>
+                  <td class="table-cell">{{ skill.1 }}</td>
+                  <td class="table-cell">
+                    <div class="progress-bar">
+                      <div class="progress-fill" style="width: {% if top_skills.0.1 %}{% widthratio skill.1 top_skills.0.1 100 %}{% else %}0{% endif %}%"></div>
+                      <span class="progress-text">{% if top_skills.0.1 %}{% widthratio skill.1 top_skills.0.1 100 %}{% else %}0{% endif %}%</span>
+                    </div>
+                  </td>
+                  <td class="table-cell">
+                    <span class="trend-badge positive">
+                      <i class='bx bx-trending-up'></i>
+                      Growing
+                    </span>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Skill Recommendations Section -->
+<!-- Personalized Skill Recommendations -->
 {% if recommended_skills %}
-<div class="content-section recommendations-section">
+<div class="recommendations-section">
   <div class="section-header">
-    <div class="section-title-container">
-      <h2 class="section-title"><i class='bx bx-bulb'></i> Personalized Skill Recommendations</h2>
-      <span class="section-subtitle">Skills that could enhance your career prospects</span>
+    <div class="section-info">
+      <h2 class="section-title">
+        <i class='bx bx-bulb'></i>
+        Personalized Skill Recommendations
+      </h2>
+      <p class="section-description">Skills that could significantly enhance your career prospects based on market demand</p>
     </div>
   </div>
   
@@ -433,32 +434,32 @@
         <div class="recommendation-icon">
           <i class='bx bx-trending-up'></i>
         </div>
-        <div class="recommendation-priority">High Priority</div>
+        <div class="recommendation-priority">High Impact</div>
       </div>
-      <div class="recommendation-content">
-        <h4 class="recommendation-skill">{{ skill.skill|capfirst }}</h4>
+      <div class="recommendation-body">
+        <h3 class="recommendation-skill">{{ skill.skill|capfirst }}</h3>
         <p class="recommendation-description">
-          Currently in demand across {{ skill.demand_count }} active job listing{{ skill.demand_count|pluralize }}
+          Currently in demand across <strong>{{ skill.demand_count }}</strong> active job listing{{ skill.demand_count|pluralize }}
         </p>
         <div class="recommendation-stats">
-          <div class="stat-item">
+          <div class="stat-badge">
             <i class='bx bx-briefcase'></i>
-            <span>{{ skill.demand_count }} jobs</span>
+            <span>{{ skill.demand_count }} job{{ skill.demand_count|pluralize }}</span>
           </div>
-          <div class="stat-item">
+          <div class="stat-badge">
             <i class='bx bx-trending-up'></i>
             <span>Growing demand</span>
           </div>
         </div>
       </div>
       <div class="recommendation-actions">
-        <button class="btn btn-primary btn-sm">
+        <button class="recommendation-btn primary">
           <i class='bx bx-plus'></i>
-          Add to Profile
+          <span>Add to Profile</span>
         </button>
-        <button class="btn btn-outline btn-sm">
+        <button class="recommendation-btn secondary">
           <i class='bx bx-search'></i>
-          Find Courses
+          <span>Find Courses</span>
         </button>
       </div>
     </div>
@@ -467,66 +468,504 @@
 </div>
 {% endif %}
 
-<!-- Enhanced CSS following recommended_jobs.html patterns -->
+<!-- Modern Professional CSS -->
 <style>
-/* ...existing styles from recommended_jobs.html... */
-
-/* Analytics-specific enhancements */
-.analytics-container {
-  width: 100%;
+/* CSS Variables */
+:root {
+  --primary-color: #667eea;
+  --text-color: #1f2937;
+  --text-light: #6b7280;
+  --card-bg: #ffffff;
+  --border-color: #e5e7eb;
+  --hover-bg: #f9fafb;
 }
 
-.analytics-container.tables-view {
-  display: none;
+[data-theme="dark"] {
+  --text-color: #f3f4f6;
+  --text-light: #9ca3af;
+  --card-bg: #1f2937;
+  --border-color: #374151;
+  --hover-bg: #374151;
 }
 
-.analytics-container.charts-view.active {
-  display: block;
-}
-
-.analytics-container.tables-view.active {
-  display: block;
-}
-
-.analytics-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+/* Page Header Styles */
+.page-header {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  padding: 1.5rem 2rem;
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   gap: 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.header-content {
+  flex: 1;
+}
+
+.page-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: var(--text-color);
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-light);
+}
+
+.breadcrumb-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.breadcrumb-link:hover {
+  color: var(--text-color);
+  text-decoration: underline;
+}
+
+.breadcrumb-separator {
+  margin: 0 0.25rem;
+  color: var(--text-light);
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.btn-light {
+  background: var(--hover-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.btn-light:hover {
+  background: var(--primary-color);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+}
+
+/* Quick Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
   margin-bottom: 2rem;
 }
 
-.analytics-card {
+.stat-card {
   background: var(--card-bg);
-  border: 2px solid var(--border-color);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   transition: all 0.3s ease;
-  height: fit-content;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.analytics-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
   border-color: var(--primary-color);
 }
 
-.chart-card {
-  grid-column: span 2;
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+  flex-shrink: 0;
+}
+
+.stat-icon.blue {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+.stat-icon.purple {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+.stat-icon.green {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.stat-icon.amber {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.stat-info {
+  flex: 1;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-light);
+  margin-bottom: 0.25rem;
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-color);
+  margin-bottom: 0.25rem;
+}
+
+.stat-change {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-light);
+}
+
+.stat-change i {
+  font-size: 0.875rem;
+}
+
+/* Market Overview Cards */
+.market-overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.overview-card {
+  background: var(--card-bg);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.overview-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.card-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  color: white;
+  flex-shrink: 0;
+}
+
+.overview-card.primary .card-icon {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.overview-card.success .card-icon {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.overview-card.warning .card-icon {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.overview-card.info .card-icon {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.card-content {
+  flex: 1;
+}
+
+.card-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-color);
+  margin-bottom: 0.25rem;
+}
+
+.card-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-light);
+  margin-bottom: 0.5rem;
+}
+
+.card-trend {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.card-trend.positive {
+  color: #10b981;
+}
+
+/* Analytics Controls */
+.analytics-controls {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.controls-section {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.control-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.control-select {
+  padding: 0.625rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  background: var(--card-bg);
+  color: var(--text-color);
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+  min-width: 140px;
+}
+
+.control-select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.controls-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.view-switcher {
+  display: flex;
+  background: var(--hover-bg);
+  border-radius: 0.5rem;
+  padding: 0.25rem;
+}
+
+.view-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: none;
+  color: var(--text-light);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.view-toggle.active {
+  background: var(--primary-color);
+  color: white;
+}
+
+/* Analytics Dashboard */
+.analytics-dashboard {
+  margin-bottom: 2rem;
+}
+
+.dashboard-view {
+  display: none;
+}
+
+.dashboard-view.active {
+  display: block;
+}
+
+.analytics-section {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  overflow: hidden;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.section-header {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--hover-bg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-info h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.section-description {
+  color: var(--text-light);
+  font-size: 0.875rem;
+}
+
+.analytics-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.analytics-content.full-width {
+  grid-template-columns: 1fr;
+}
+
+/* Chart Components */
+.chart-container-wrapper {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.chart-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--hover-bg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chart-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-color);
 }
 
 .chart-container {
   position: relative;
-  height: 350px;
-  width: 100%;
-  padding: 1rem 0;
+  height: 400px;
+  padding: 1.5rem;
 }
 
+.chart-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: var(--hover-bg);
+  color: var(--text-light);
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.chart-btn:hover {
+  background: var(--primary-color);
+  color: white;
+}
+
+/* Data Panels */
+.data-panel, .locations-panel, .table-panel {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.panel-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--hover-bg);
+}
+
+.panel-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 0.25rem;
+}
+
+.panel-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-light);
+}
+
+.panel-content {
+  padding: 1.5rem;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+/* Skills List */
 .skills-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  max-height: 400px;
-  overflow-y: auto;
+  gap: 0.75rem;
 }
 
 .skill-item {
@@ -535,101 +974,102 @@
   align-items: center;
   padding: 1rem;
   background: var(--hover-bg);
-  border-radius: var(--radius-md);
+  border-radius: 0.5rem;
   transition: all 0.3s ease;
   cursor: pointer;
 }
 
 .skill-item:hover {
-  background: var(--primary-color);
+  background: #667eea;
   color: white;
-  transform: translateX(8px);
+  transform: translateX(4px);
 }
 
-.skill-info {
+.skill-details {
   flex: 1;
 }
 
 .skill-name {
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.875rem;
   margin-bottom: 0.25rem;
 }
 
 .skill-meta {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   opacity: 0.7;
 }
 
-.skill-stats {
+.skill-metrics {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
 
-.skill-demand-bar {
-  width: 80px;
-  height: 6px;
-  background: var(--border-color);
-  border-radius: 3px;
+.skill-bar {
+  width: 60px;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
   overflow: hidden;
 }
 
-.demand-fill {
+.skill-fill {
   height: 100%;
-  background: var(--primary-color);
-  border-radius: 3px;
-  transition: width 0.3s ease;
+  background: #667eea;
+  border-radius: 2px;
+  transition: all 0.3s ease;
 }
 
-.skill-item:hover .demand-fill {
+.skill-item:hover .skill-fill {
   background: white;
 }
 
 .skill-count {
   font-weight: 600;
-  font-size: 0.875rem;
-  min-width: 2rem;
+  font-size: 0.75rem;
+  min-width: 24px;
   text-align: center;
 }
 
+/* Job Types Grid */
 .job-types-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
 }
 
-.job-type-card {
+.job-type-item {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 1.25rem;
+  padding: 1rem;
   background: var(--hover-bg);
-  border-radius: var(--radius-md);
+  border-radius: 0.5rem;
   transition: all 0.3s ease;
 }
 
-.job-type-card:hover {
-  background: var(--primary-color);
+.job-type-item:hover {
+  background: #10b981;
   color: white;
   transform: translateY(-2px);
 }
 
 .job-type-icon {
-  width: 3rem;
-  height: 3rem;
-  border-radius: 50%;
-  background: var(--primary-color);
+  width: 40px;
+  height: 40px;
+  border-radius: 0.5rem;
+  background: #10b981;
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
   font-size: 1.25rem;
 }
 
-.job-type-card:hover .job-type-icon {
+.job-type-item:hover .job-type-icon {
   background: white;
-  color: var(--primary-color);
+  color: #10b981;
 }
 
 .job-type-name {
@@ -638,16 +1078,15 @@
 }
 
 .job-type-count {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   opacity: 0.7;
 }
 
+/* Locations Grid */
 .locations-grid {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  max-height: 500px;
-  overflow-y: auto;
+  gap: 0.75rem;
 }
 
 .location-item {
@@ -656,14 +1095,14 @@
   align-items: center;
   padding: 1rem;
   background: var(--hover-bg);
-  border-radius: var(--radius-md);
+  border-radius: 0.5rem;
   transition: all 0.3s ease;
 }
 
 .location-item:hover {
-  background: var(--success-color);
+  background: #f59e0b;
   color: white;
-  transform: translateX(8px);
+  transform: translateX(4px);
 }
 
 .location-info {
@@ -674,19 +1113,19 @@
 }
 
 .location-icon {
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: var(--success-color);
+  background: #f59e0b;
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
 }
 
 .location-item:hover .location-icon {
   background: white;
-  color: var(--success-color);
+  color: #f59e0b;
 }
 
 .location-name {
@@ -695,156 +1134,73 @@
 }
 
 .location-meta {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   opacity: 0.7;
 }
 
-.location-stats {
+.location-metrics {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
 
-.location-demand-bar {
-  width: 80px;
-  height: 6px;
-  background: var(--border-color);
-  border-radius: 3px;
+.location-bar {
+  width: 60px;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
   overflow: hidden;
 }
 
-.location-item:hover .demand-fill {
+.location-fill {
+  height: 100%;
+  background: #f59e0b;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.location-item:hover .location-fill {
   background: white;
 }
 
 .location-count {
   font-weight: 600;
-  font-size: 0.875rem;
-  min-width: 2rem;
+  font-size: 0.75rem;
+  min-width: 24px;
   text-align: center;
 }
 
-.recommendations-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 1.5rem;
-}
-
-.recommendation-card {
-  background: var(--card-bg);
-  border: 2px solid var(--border-color);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.recommendation-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--warning-color);
-}
-
-.recommendation-header {
-  padding: 1.5rem 1.5rem 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.recommendation-icon {
-  width: 3rem;
-  height: 3rem;
-  border-radius: 50%;
-  background: var(--warning-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1.25rem;
-}
-
-.recommendation-priority {
-  background: rgba(245, 158, 11, 0.1);
-  color: var(--warning-color);
-  padding: 0.25rem 0.75rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.recommendation-content {
-  padding: 1.5rem;
-}
-
-.recommendation-skill {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-  color: var(--text-color);
-}
-
-.recommendation-description {
-  color: var(--text-light);
-  margin-bottom: 1rem;
-  line-height: 1.5;
-}
-
-.recommendation-stats {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: var(--text-light);
-}
-
-.stat-item i {
-  color: var(--warning-color);
-}
-
-.recommendation-actions {
-  padding: 1.5rem;
-  border-top: 1px solid var(--border-color);
-  background: var(--hover-bg);
-  display: flex;
-  gap: 0.75rem;
-}
-
-.table-container {
+/* Data Tables */
+.table-wrapper {
   overflow-x: auto;
-  border-radius: var(--radius-lg);
+  border-radius: 0.5rem;
   border: 1px solid var(--border-color);
 }
 
-.analytics-table {
+.data-table {
   width: 100%;
   border-collapse: collapse;
   background: var(--card-bg);
 }
 
-.analytics-table th {
+.table-header {
   background: var(--hover-bg);
   color: var(--text-color);
   font-weight: 600;
   text-align: left;
-  padding: 1.25rem 1rem;
+  padding: 1rem;
   font-size: 0.875rem;
-  border-bottom: 2px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
 }
 
-.analytics-table td {
-  padding: 1.25rem 1rem;
+.table-row:hover {
+  background: var(--hover-bg);
+}
+
+.table-cell {
+  padding: 1rem;
   border-bottom: 1px solid var(--border-color);
   color: var(--text-color);
-}
-
-.analytics-table tr:hover {
-  background: var(--hover-bg);
 }
 
 .skill-cell {
@@ -855,70 +1211,267 @@
 }
 
 .skill-cell i {
-  color: var(--primary-color);
+  color: #667eea;
 }
 
-.market-share-bar {
+.progress-bar {
   position: relative;
-  width: 100px;
-  height: 20px;
+  width: 80px;
+  height: 16px;
   background: var(--border-color);
-  border-radius: 10px;
+  border-radius: 8px;
   overflow: hidden;
 }
 
-.share-fill {
+.progress-fill {
   height: 100%;
-  background: var(--primary-color);
-  border-radius: 10px;
+  background: #667eea;
+  border-radius: 8px;
   transition: width 0.3s ease;
 }
 
-.share-text {
+.progress-text {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 0.75rem;
+  font-size: 0.625rem;
   font-weight: 600;
   color: white;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-.trend-indicator {
+.trend-badge {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.875rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
   font-weight: 500;
 }
 
-.trend-indicator.positive {
-  color: var(--success-color);
+.trend-badge.positive {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
 }
 
-.trend-indicator.negative {
-  color: var(--danger-color);
+/* Recommendations Section */
+.recommendations-section {
+  margin-bottom: 2rem;
 }
 
-/* Responsive adjustments */
-@media (max-width: 1024px) {
-  .analytics-grid {
+.recommendations-section .section-header {
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border-color);
+  padding: 2rem;
+  border-radius: 1rem 1rem 0 0;
+}
+
+.recommendations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  padding: 2rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-top: none;
+  border-radius: 0 0 1rem 1rem;
+}
+
+.recommendation-card {
+  background: var(--card-bg);
+  border: 2px solid var(--border-color);
+  border-radius: 1rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.recommendation-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  border-color: #f59e0b;
+}
+
+.recommendation-header {
+  padding: 1.5rem 1.5rem 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.recommendation-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 0.75rem;
+  background: #f59e0b;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.recommendation-priority {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.recommendation-body {
+  padding: 1.5rem;
+}
+
+.recommendation-skill {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 0.75rem;
+}
+
+.recommendation-description {
+  color: var(--text-light);
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.recommendation-stats {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.stat-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-light);
+}
+
+.stat-badge i {
+  color: #f59e0b;
+}
+
+.recommendation-actions {
+  padding: 1.5rem;
+  border-top: 1px solid var(--border-color);
+  background: var(--hover-bg);
+  display: flex;
+  gap: 0.75rem;
+}
+
+.recommendation-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.recommendation-btn.primary {
+  background: #667eea;
+  color: white;
+}
+
+.recommendation-btn.primary:hover {
+  background: #5a67d8;
+}
+
+.recommendation-btn.secondary {
+  background: var(--card-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.recommendation-btn.secondary:hover {
+  background: var(--hover-bg);
+}
+
+/* Empty States */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.empty-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1rem;
+  background: var(--hover-bg);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: var(--text-light);
+}
+
+.empty-state h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  color: var(--text-light);
+  font-size: 0.875rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .analytics-content {
     grid-template-columns: 1fr;
   }
+}
+
+@media (max-width: 1024px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
   
-  .chart-card {
-    grid-column: span 1;
+  .header-actions {
+    justify-content: flex-start;
+    margin-top: 1rem;
+  }
+  
+  .analytics-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .controls-section {
+    justify-content: center;
   }
 }
 
 @media (max-width: 768px) {
-  .chart-container {
-    height: 280px;
+  .page-header {
+    padding: 1rem;
   }
   
-  .job-types-grid {
+  .page-title {
+    font-size: 1.5rem;
+  }
+  
+  .stats-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .chart-container {
+    height: 300px;
   }
   
   .recommendations-grid {
@@ -929,50 +1482,167 @@
     flex-direction: column;
   }
   
-  .location-info {
+  .section-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.5rem;
+    gap: 1rem;
+    padding: 1rem;
   }
   
-  .location-stats {
-    align-self: flex-end;
+  .analytics-content,
+  .panel-content {
+    padding: 1rem;
   }
 }
 
 @media (max-width: 480px) {
-  .skill-stats,
-  .location-stats {
-    flex-direction: column;
-    gap: 0.5rem;
+  .page-title {
+    font-size: 1.25rem;
   }
   
-  .skill-demand-bar,
-  .location-demand-bar {
-    width: 60px;
+  .stat-card {
+    flex-direction: column;
+    text-align: center;
   }
+  
+  .header-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .btn {
+    justify-content: center;
+  }
+  
+  .breadcrumb {
+    flex-wrap: wrap;
+  }
+}
+
+/* Loading States */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid #667eea;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Notification Styles */
+.notification {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: all 0.3s ease;
+}
+
+.notification.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.notification.success {
+  border-color: #10b981;
+}
+
+.notification.error {
+  border-color: #ef4444;
+}
+
+.notification.info {
+  border-color: #3b82f6;
 }
 </style>
 
 <!-- Enhanced JavaScript with Chart.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
 <script>
+// Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize all functionality
-    initViewToggle();
-    initAnalyticsFilters();
-    initCharts();
-    initRefreshButtons();
-    initSkillRecommendations();
-    
-    // Set theme
-    const theme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', theme);
+    // Add a small delay to ensure Chart.js is fully loaded
+    setTimeout(function() {
+        console.log('DOM loaded, checking Chart.js...');
+        
+        // Check if Chart.js is loaded
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js library failed to load');
+            // Show error message on charts
+            const chartContainers = document.querySelectorAll('#skillsChart, #jobTypeChart');
+            chartContainers.forEach(canvas => {
+                if (canvas) {
+                    canvas.parentElement.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class='bx bx-error'></i>
+                            </div>
+                            <h3>Chart Library Error</h3>
+                            <p>Chart.js failed to load. Please refresh the page.</p>
+                            <button onclick="location.reload()" class="btn btn-light" style="margin-top: 1rem;">
+                                <i class='bx bx-refresh'></i> Refresh Page
+                            </button>
+                        </div>
+                    `;
+                }
+            });
+            return;
+        }
+        
+        console.log('Chart.js loaded successfully, version:', Chart.version);
+        
+        // Initialize all functionality
+        initializeAnalytics();
+    }, 100); // Small delay to ensure Chart.js is fully loaded
 });
 
-// Initialize view toggle
+function initializeAnalytics() {
+    // Initialize view toggle
+    initViewToggle();
+    
+    // Initialize charts
+    initCharts();
+    
+    // Initialize controls
+    initControls();
+    
+    // Initialize interactions
+    initInteractions();
+    
+    // Set initial theme
+    const theme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+}
+
+// View Toggle Functionality
 function initViewToggle() {
-    const viewButtons = document.querySelectorAll('.view-btn');
+    const viewButtons = document.querySelectorAll('.view-toggle');
     const chartsView = document.getElementById('analytics-charts');
     const tablesView = document.getElementById('analytics-tables');
     
@@ -980,88 +1650,95 @@ function initViewToggle() {
         button.addEventListener('click', function() {
             const view = this.dataset.view;
             
+            // Update button states
             viewButtons.forEach(btn => btn.classList.remove('active'));
             this.classList.add('active');
             
+            // Switch views
             if (view === 'charts') {
-                chartsView.classList.add('active');
-                tablesView.classList.remove('active');
+                chartsView.style.display = 'block';
+                tablesView.style.display = 'none';
             } else {
-                chartsView.classList.remove('active');
-                tablesView.classList.add('active');
+                chartsView.style.display = 'none';
+                tablesView.style.display = 'block';
             }
             
+            // Save preference
             localStorage.setItem('analyticsView', view);
         });
     });
     
-    // Load saved view
+    // Load saved view preference
     const savedView = localStorage.getItem('analyticsView') || 'charts';
-    document.querySelector(`[data-view="${savedView}"]`).click();
-}
-
-// Initialize analytics filters
-function initAnalyticsFilters() {
-    const analyticsView = document.getElementById('analytics-view');
-    const timePeriod = document.getElementById('time-period');
-    const jobTypeFilter = document.getElementById('job-type-analytics');
-    const exportBtn = document.getElementById('export-analytics');
-    
-    if (analyticsView) {
-        analyticsView.addEventListener('change', function() {
-            filterAnalyticsData();
-        });
-    }
-    
-    if (timePeriod) {
-        timePeriod.addEventListener('change', function() {
-            filterAnalyticsData();
-        });
-    }
-    
-    if (jobTypeFilter) {
-        jobTypeFilter.addEventListener('change', function() {
-            filterAnalyticsData();
-        });
-    }
-    
-    if (exportBtn) {
-        exportBtn.addEventListener('click', function() {
-            exportAnalyticsData();
-        });
+    const savedButton = document.querySelector(`[data-view="${savedView}"]`);
+    if (savedButton) {
+        savedButton.click();
     }
 }
 
-// Initialize charts
+// Chart Initialization
 function initCharts() {
-    const chartColors = [
-        '#667eea', '#764ba2', '#f093fb', '#f5576c',
-        '#4facfe', '#00f2fe', '#43e97b', '#38f9d7',
-        '#ffecd2', '#fcb69f', '#a8edea', '#fed6e3'
-    ];
+    console.log('Initializing charts...');
     
-    // Skills Chart
+    // Initialize Skills Chart
+    initSkillsChart();
+    
+    // Initialize Job Types Chart
+    initJobTypesChart();
+}
+
+function initSkillsChart() {
     const skillsCtx = document.getElementById('skillsChart');
-    if (skillsCtx) {
-        const skillsLabels = [];
-        const skillsValues = [];
+    if (!skillsCtx) {
+        console.error('Skills chart canvas not found');
+        return;
+    }
+    
+    console.log('Initializing skills chart...');
+    
+    try {
+        // Prepare data from Django template
+        const skillsData = [];
+        {% if top_skills %}
+            {% for skill in top_skills %}
+                skillsData.push({
+                    label: '{{ skill.0|capfirst|escapejs }}',
+                    value: {{ skill.1|default:0 }}
+                });
+            {% endfor %}
+        {% endif %}
         
-        {% for skill in top_skills %}
-            skillsLabels.push('{{ skill.0|capfirst }}');
-            skillsValues.push({{ skill.1 }});
-        {% endfor %}
+        console.log('Skills data:', skillsData);
         
-        new Chart(skillsCtx.getContext('2d'), {
+        if (skillsData.length === 0) {
+            skillsCtx.parentElement.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class='bx bx-code-block'></i>
+                    </div>
+                    <h3>No Skills Data</h3>
+                    <p>Skills analytics will appear here as job listings are posted.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // Create chart with proper error handling
+        const chart = new Chart(skillsCtx.getContext('2d'), {
             type: 'bar',
             data: {
-                labels: skillsLabels,
+                labels: skillsData.map(item => item.label),
                 datasets: [{
-                    label: 'Job Listings',
-                    data: skillsValues,
-                    backgroundColor: chartColors.slice(0, skillsLabels.length),
+                    label: 'Job Listings Requiring This Skill',
+                    data: skillsData.map(item => item.value),
+                    backgroundColor: [
+                        '#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe',
+                        '#43e97b', '#38f9d7', '#ffecd2', '#fcb69f'
+                    ].slice(0, skillsData.length),
                     borderColor: 'transparent',
                     borderRadius: 8,
                     borderSkipped: false,
+                    borderWidth: 0
                 }]
             },
             options: {
@@ -1069,53 +1746,143 @@ function initCharts() {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: false },
+                    legend: { 
+                        display: false 
+                    },
                     tooltip: {
-                        backgroundColor: 'rgba(45, 55, 72, 0.9)',
+                        backgroundColor: 'rgba(45, 55, 72, 0.95)',
                         titleColor: 'white',
                         bodyColor: 'white',
                         borderColor: '#667eea',
                         borderWidth: 1,
                         cornerRadius: 8,
+                        padding: 12,
+                        displayColors: false,
+                        callbacks: {
+                            title: function(context) {
+                                return context[0].label;
+                            },
+                            label: function(context) {
+                                const value = context.raw;
+                                return value + ' job listing' + (value !== 1 ? 's' : '') + ' require this skill';
+                            }
+                        }
                     }
                 },
                 scales: {
                     x: {
                         beginAtZero: true,
-                        grid: { color: 'rgba(0, 0, 0, 0.05)' },
-                        ticks: { color: '#718096' }
+                        grid: { 
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
+                        },
+                        ticks: { 
+                            color: '#718096',
+                            font: {
+                                size: 12
+                            }
+                        },
+                        border: {
+                            display: false
+                        }
                     },
                     y: {
-                        grid: { display: false },
-                        ticks: { color: '#2d3748', font: { weight: '600' } }
+                        grid: { 
+                            display: false 
+                        },
+                        ticks: { 
+                            color: '#2d3748',
+                            font: { 
+                                weight: '600',
+                                size: 13
+                            }
+                        },
+                        border: {
+                            display: false
+                        }
                     }
                 },
-                animation: { duration: 2000, easing: 'easeOutQuart' }
+                animation: { 
+                    duration: 2000, 
+                    easing: 'easeOutQuart' 
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                }
             }
         });
+        
+        console.log('Skills chart created successfully');
+        
+    } catch (error) {
+        console.error('Error creating skills chart:', error);
+        skillsCtx.parentElement.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class='bx bx-code-block'></i>
+                </div>
+                <h3>Chart Loading Error</h3>
+                <p>Unable to load skills chart. Error: ${error.message}</p>
+                <button onclick="location.reload()" class="btn btn-light" style="margin-top: 1rem;">
+                    <i class='bx bx-refresh'></i> Refresh Page
+                </button>
+            </div>
+        `;
+    }
+}
+
+function initJobTypesChart() {
+    const jobTypeCtx = document.getElementById('jobTypeChart');
+    if (!jobTypeCtx) {
+        console.error('Job types chart canvas not found');
+        return;
     }
     
-    // Job Type Chart
-    const jobTypeCtx = document.getElementById('jobTypeChart');
-    if (jobTypeCtx) {
-        const jobTypeLabels = [];
-        const jobTypeValues = [];
+    console.log('Initializing job types chart...');
+    
+    try {
+        // Prepare data from Django template
+        const jobTypeData = [];
+        {% if job_type_distribution %}
+            {% for job_type in job_type_distribution %}
+                jobTypeData.push({
+                    label: '{{ job_type.job_type|capfirst|escapejs }}',
+                    value: {{ job_type.count|default:0 }}
+                });
+            {% endfor %}
+        {% endif %}
         
-        {% for job_type in job_type_distribution %}
-            jobTypeLabels.push('{{ job_type.job_type|capfirst }}');
-            jobTypeValues.push({{ job_type.count }});
-        {% endfor %}
+        console.log('Job type data:', jobTypeData);
         
-        new Chart(jobTypeCtx.getContext('2d'), {
+        if (jobTypeData.length === 0) {
+            jobTypeCtx.parentElement.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class='bx bx-pie-chart-alt-2'></i>
+                    </div>
+                    <h3>No Job Type Data</h3>
+                    <p>Employment type analytics will appear here as positions are posted.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // Create chart with proper error handling
+        const chart = new Chart(jobTypeCtx.getContext('2d'), {
             type: 'doughnut',
             data: {
-                labels: jobTypeLabels,
+                labels: jobTypeData.map(item => item.label),
                 datasets: [{
-                    data: jobTypeValues,
-                    backgroundColor: chartColors.slice(0, jobTypeLabels.length),
+                    data: jobTypeData.map(item => item.value),
+                    backgroundColor: [
+                        '#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe',
+                        '#43e97b', '#38f9d7', '#ffecd2', '#fcb69f'
+                    ].slice(0, jobTypeData.length),
                     borderColor: '#ffffff',
                     borderWidth: 3,
-                    hoverOffset: 8
+                    hoverOffset: 12,
+                    hoverBorderWidth: 4
                 }]
             },
             options: {
@@ -1127,102 +1894,274 @@ function initCharts() {
                         position: 'bottom',
                         labels: {
                             padding: 20,
-                            boxWidth: 12,
-                            font: { size: 13, weight: '600' },
-                            color: '#2d3748'
+                            boxWidth: 16,
+                            boxHeight: 16,
+                            font: { 
+                                size: 13, 
+                                weight: '600' 
+                            },
+                            color: '#2d3748',
+                            usePointStyle: true,
+                            pointStyle: 'circle'
                         }
                     },
                     tooltip: {
-                        backgroundColor: 'rgba(45, 55, 72, 0.9)',
+                        backgroundColor: 'rgba(45, 55, 72, 0.95)',
                         titleColor: 'white',
                         bodyColor: 'white',
                         borderColor: '#667eea',
                         borderWidth: 1,
                         cornerRadius: 8,
+                        padding: 12,
+                        displayColors: true,
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.raw;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return context.label + ': ' + value + ' position' + (value !== 1 ? 's' : '') + ' (' + percentage + '%)';
+                            }
+                        }
                     }
                 },
-                animation: { animateRotate: true, animateScale: true, duration: 2000 }
+                animation: { 
+                    animateRotate: true, 
+                    animateScale: true, 
+                    duration: 2000,
+                    easing: 'easeOutQuart'
+                },
+                interaction: {
+                    intersect: false
+                }
             }
         });
+        
+        console.log('Job types chart created successfully');
+        
+    } catch (error) {
+        console.error('Error creating job types chart:', error);
+        jobTypeCtx.parentElement.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class='bx bx-pie-chart-alt-2'></i>
+                </div>
+                <h3>Chart Loading Error</h3>
+                <p>Unable to load job types chart. Error: ${error.message}</p>
+                <button onclick="location.reload()" class="btn btn-light" style="margin-top: 1rem;">
+                    <i class='bx bx-refresh'></i> Refresh Page
+                </button>
+            </div>
+        `;
     }
 }
 
-// Initialize refresh buttons
-function initRefreshButtons() {
-    const refreshBtns = document.querySelectorAll('[id^="refresh-"]');
-    const refreshAnalytics = document.getElementById('refresh-analytics');
+// Controls Initialization
+function initControls() {
+    const analyticsView = document.getElementById('analytics-view');
+    const timePeriod = document.getElementById('time-period');
+    const jobTypeFilter = document.getElementById('job-type-analytics');
+    const exportBtn = document.getElementById('export-analytics');
+    const refreshBtn = document.getElementById('refresh-analytics');
     
-    refreshBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const icon = this.querySelector('i');
-            icon.style.animation = 'spin 1s linear infinite';
-            
-            setTimeout(() => {
-                icon.style.animation = '';
-                showNotification('Data refreshed successfully!', 'success');
-            }, 1000);
+    // Analytics view change
+    if (analyticsView) {
+        analyticsView.addEventListener('change', function() {
+            handleFilterChange();
         });
-    });
+    }
     
-    if (refreshAnalytics) {
-        refreshAnalytics.addEventListener('click', function() {
-            window.location.reload();
+    // Time period change
+    if (timePeriod) {
+        timePeriod.addEventListener('change', function() {
+            handleFilterChange();
+        });
+    }
+    
+    // Job type filter change
+    if (jobTypeFilter) {
+        jobTypeFilter.addEventListener('change', function() {
+            handleFilterChange();
+        });
+    }
+    
+    // Export functionality
+    if (exportBtn) {
+        exportBtn.addEventListener('click', function() {
+            exportAnalyticsData();
+        });
+    }
+    
+    // Refresh functionality
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function() {
+            refreshAnalyticsData();
         });
     }
 }
 
-// Initialize skill recommendations
-function initSkillRecommendations() {
-    const addSkillBtns = document.querySelectorAll('.recommendation-card .btn-primary');
-    
+// Interactions Initialization
+function initInteractions() {
+    // Skill recommendation interactions
+    const addSkillBtns = document.querySelectorAll('.recommendation-btn.primary');
     addSkillBtns.forEach(btn => {
         btn.addEventListener('click', function() {
             const skillName = this.closest('.recommendation-card').querySelector('.recommendation-skill').textContent;
             
-            // Simulate adding skill to profile
-            this.innerHTML = '<i class="bx bx-check"></i> Added';
-            this.classList.remove('btn-primary');
-            this.classList.add('btn-success');
+            // Update button state
+            this.innerHTML = '<i class="bx bx-check"></i><span>Added</span>';
+            this.style.background = '#10b981';
             this.disabled = true;
             
             showNotification(`${skillName} added to your profile!`, 'success');
         });
     });
-}
-
-// Filter analytics data
-function filterAnalyticsData() {
-    const view = document.getElementById('analytics-view').value;
-    const period = document.getElementById('time-period').value;
-    const jobType = document.getElementById('job-type-analytics').value;
     
-    // Simulate filtering (in real app, make API call)
-    console.log('Filtering analytics:', { view, period, jobType });
-    showNotification('Filters applied successfully!', 'info');
+    // Find courses buttons
+    const findCourseBtns = document.querySelectorAll('.recommendation-btn.secondary');
+    findCourseBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const skillName = this.closest('.recommendation-card').querySelector('.recommendation-skill').textContent;
+            showNotification(`Searching for ${skillName} courses...`, 'info');
+            // Here you would redirect to learning platform
+        });
+    });
+    
+    // Interactive skill items
+    const skillItems = document.querySelectorAll('.skill-item');
+    skillItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const skillName = this.dataset.skill;
+            if (skillName) {
+                showNotification(`Viewing details for ${skillName}`, 'info');
+                // Here you would show detailed skill analytics
+            }
+        });
+    });
+    
+    // Chart fullscreen functionality
+    const fullscreenBtns = document.querySelectorAll('[id$="-fullscreen"]');
+    fullscreenBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const chartContainer = this.closest('.chart-container-wrapper');
+            if (chartContainer) {
+                toggleFullscreen(chartContainer);
+            }
+        });
+    });
 }
 
-// Export analytics data
-function exportAnalyticsData() {
-    // Simulate export functionality
-    showNotification('Analytics data exported successfully!', 'success');
+// Utility Functions
+function handleFilterChange() {
+    const view = document.getElementById('analytics-view')?.value || 'overview';
+    const period = document.getElementById('time-period')?.value || 'all';
+    const jobType = document.getElementById('job-type-analytics')?.value || '';
+    
+    // Show loading state
+    showLoadingState(true);
+    
+    // Simulate API call (in real implementation, make actual API call)
+    setTimeout(() => {
+        showLoadingState(false);
+        showNotification('Analytics filters applied successfully!', 'success');
+    }, 1000);
+    
+    console.log('Filter changed:', { view, period, jobType });
 }
 
-// Utility functions
-function showNotification(message, type = 'info') {
-    // Use the same notification system as recommended_jobs.html
-    let notificationsContainer = document.querySelector('.notifications');
-    if (!notificationsContainer) {
-        const container = document.createElement('div');
-        container.className = 'notifications';
-        const pageHeader = document.querySelector('.page-header');
-        if (pageHeader) {
-            pageHeader.parentNode.insertBefore(container, pageHeader.nextSibling);
-            notificationsContainer = container;
-        }
+function refreshAnalyticsData() {
+    const refreshBtn = document.getElementById('refresh-analytics');
+    const icon = refreshBtn?.querySelector('i');
+    
+    if (icon) {
+        icon.style.animation = 'spin 1s linear infinite';
     }
     
+    showLoadingState(true);
+    
+    // Simulate refresh (in real implementation, make API call)
+    setTimeout(() => {
+        if (icon) {
+            icon.style.animation = '';
+        }
+        showLoadingState(false);
+        showNotification('Analytics data refreshed successfully!', 'success');
+    }, 2000);
+}
+
+function exportAnalyticsData() {
+    showNotification('Preparing analytics export...', 'info');
+    
+    try {
+        // Create comprehensive CSV content
+        let csvContent = "data:text/csv;charset=utf-8,";
+        
+        // Add skills data
+        csvContent += "Skills Analytics\n";
+        csvContent += "Skill,Job Count\n";
+        {% for skill in top_skills %}
+        csvContent += "{{ skill.0|escapejs }},{{ skill.1 }}\n";
+        {% endfor %}
+        
+        csvContent += "\n\nJob Type Distribution\n";
+        csvContent += "Job Type,Count\n";
+        {% for job_type in job_type_distribution %}
+        csvContent += "{{ job_type.job_type|escapejs }},{{ job_type.count }}\n";
+        {% endfor %}
+        
+        csvContent += "\n\nTop Locations\n";
+        csvContent += "Location,Job Count\n";
+        {% for location, count in top_locations %}
+        csvContent += "{{ location|escapejs }},{{ count }}\n";
+        {% endfor %}
+        
+        // Create and trigger download
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "job_analytics_" + new Date().toISOString().split('T')[0] + ".csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showNotification('Analytics data exported successfully!', 'success');
+    } catch (error) {
+        console.error('Export error:', error);
+        showNotification('Error exporting data. Please try again.', 'error');
+    }
+}
+
+function toggleFullscreen(element) {
+    if (!document.fullscreenElement) {
+        element.requestFullscreen().catch(err => {
+            console.log(`Error attempting to enable fullscreen: ${err.message}`);
+        });
+    } else {
+        document.exitFullscreen();
+    }
+}
+
+function showLoadingState(show) {
+    const dashboard = document.querySelector('.analytics-dashboard');
+    if (dashboard) {
+        if (show) {
+            dashboard.classList.add('loading');
+        } else {
+            dashboard.classList.remove('loading');
+        }
+    }
+}
+
+function showNotification(message, type = 'info') {
+    // Remove existing notifications
+    const existingNotifications = document.querySelectorAll('.notification');
+    existingNotifications.forEach(notification => {
+        notification.remove();
+    });
+    
+    // Create new notification
     const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
+    notification.className = `notification ${type}`;
+    
     let icon = 'bx-info-circle';
     if (type === 'success') icon = 'bx-check-circle';
     if (type === 'error') icon = 'bx-error';
@@ -1230,34 +2169,54 @@ function showNotification(message, type = 'info') {
     
     notification.innerHTML = `
         <i class='bx ${icon}'></i>
-        <p>${message}</p>
-        <button class="notification-close"><i class='bx bx-x'></i></button>
+        <span>${message}</span>
+        <button class="notification-close" onclick="this.parentElement.remove()">
+            <i class='bx bx-x'></i>
+        </button>
     `;
     
-    notificationsContainer.appendChild(notification);
-    setTimeout(() => hideNotification(notification), 5000);
+    document.body.appendChild(notification);
     
-    notification.querySelector('.notification-close').addEventListener('click', function() {
-        hideNotification(notification);
-    });
-}
-
-function hideNotification(notification) {
-    notification.style.opacity = '0';
-    notification.style.transform = 'translateY(-20px)';
+    // Show notification
     setTimeout(() => {
-        if (notification.parentNode) notification.remove();
-    }, 300);
+        notification.classList.add('show');
+    }, 100);
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 300);
+        }
+    }, 5000);
 }
 
-// Add spin animation for refresh buttons
+// Add necessary CSS for animations
 const style = document.createElement('style');
 style.textContent = `
     @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
+    
+    .notification-close {
+        background: none;
+        border: none;
+        color: inherit;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.3s ease;
+    }
+    
+    .notification-close:hover {
+        opacity: 1;
+    }
 `;
 document.head.appendChild(style);
 </script>
+
 {% endblock %}

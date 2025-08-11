@@ -492,6 +492,7 @@ def job_analytics(request):
             })
     
     context = {
+        'total_jobs': Job.objects.filter(status='Open').count(),
         'top_skills': top_skills,
         'job_type_distribution': job_type_counts,
         'top_locations': top_locations,
