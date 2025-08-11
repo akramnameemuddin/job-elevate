@@ -276,21 +276,115 @@ def download_resume(request, resume_id):
 </body>
 </html>"""
 
-        # Generate PDF with proper error handling
+        # Try WeasyPrint first, then fallback to ReportLab
+        pdf_content = None
+        
+        # Method 1: Try WeasyPrint
         try:
-            from weasyprint import HTML
+            import weasyprint
+            html_doc = weasyprint.HTML(string=full_html, base_url=request.build_absolute_uri('/'))
+            pdf_content = html_doc.write_pdf()
+        except Exception as weasy_error:
+            print(f"WeasyPrint failed: {weasy_error}")
             
-            # Create HTML object with proper configuration
-            html_doc = HTML(
-                string=full_html,
-                base_url=request.build_absolute_uri('/')
-            )
-            
-            # Generate PDF with options
-            pdf_content = html_doc.write_pdf(
-                optimize_images=True
-            )
-            
+            # Method 2: Fallback to ReportLab
+            try:
+                from reportlab.pdfgen import canvas
+                from reportlab.lib.pagesizes import letter, A4
+                from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+                from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+                from reportlab.lib.units import inch
+                from io import BytesIO
+                import html2text
+                
+                # Convert HTML to plain text for ReportLab
+                converter = html2text.HTML2Text()
+                converter.ignore_links = True
+                plain_text = converter.handle(html_string)
+                
+                buffer = BytesIO()
+                doc = SimpleDocTemplate(buffer, pagesize=A4)
+                styles = getSampleStyleSheet()
+                story = []
+                
+                # Add title
+                title_style = ParagraphStyle(
+                    'CustomTitle',
+                    parent=styles['Heading1'],
+                    fontSize=18,
+                    textColor='#333333',
+                    spaceAfter=12,
+                    alignment=1  # Center alignment
+                )
+                story.append(Paragraph(f"{user.full_name} - Resume", title_style))
+                story.append(Spacer(1, 12))
+                
+                # Add content paragraphs
+                for line in plain_text.split('\n'):
+                    if line.strip():
+                        if line.startswith('#'):
+                            # Headers
+                            story.append(Paragraph(line.replace('#', '').strip(), styles['Heading2']))
+                        else:
+                            # Regular text
+                            story.append(Paragraph(line.strip(), styles['Normal']))
+                        story.append(Spacer(1, 6))
+                
+                doc.build(story)
+                pdf_content = buffer.getvalue()
+                buffer.close()
+                
+            except Exception as reportlab_error:
+                print(f"ReportLab failed: {reportlab_error}")
+                
+                # Method 3: Last resort - basic text-based PDF
+                try:
+                    from reportlab.pdfgen import canvas
+                    from io import BytesIO
+                    
+                    buffer = BytesIO()
+                    p = canvas.Canvas(buffer, pagesize=A4)
+                    width, height = A4
+                    
+                    # Simple text-based resume
+                    y_position = height - 100
+                    p.setFont("Helvetica-Bold", 16)
+                    p.drawString(100, y_position, f"{user.full_name}")
+                    
+                    y_position -= 30
+                    p.setFont("Helvetica", 12)
+                    if user.email:
+                        p.drawString(100, y_position, f"Email: {user.email}")
+                        y_position -= 20
+                    
+                    if user.phone_number:
+                        p.drawString(100, y_position, f"Phone: {user.phone_number}")
+                        y_position -= 20
+                    
+                    if user.objective:
+                        y_position -= 20
+                        p.setFont("Helvetica-Bold", 14)
+                        p.drawString(100, y_position, "Objective:")
+                        y_position -= 20
+                        p.setFont("Helvetica", 12)
+                        # Simple text wrapping
+                        objective_lines = [user.objective[i:i+80] for i in range(0, len(user.objective), 80)]
+                        for line in objective_lines:
+                            p.drawString(100, y_position, line)
+                            y_position -= 15
+                    
+                    p.save()
+                    pdf_content = buffer.getvalue()
+                    buffer.close()
+                    
+                except Exception as final_error:
+                    return HttpResponse(
+                        f'All PDF generation methods failed. Final error: {str(final_error)}',
+                        status=500,
+                        content_type='text/plain'
+                    )
+        
+        if pdf_content:
             # Update resume metadata
             resume.download_count += 1
             resume.last_downloaded = timezone.now()
@@ -302,16 +396,8 @@ def download_resume(request, resume_id):
             response['Content-Length'] = len(pdf_content)
             
             return response
-            
-        except ImportError:
-            return HttpResponse('WeasyPrint is not properly installed', status=500)
-        except Exception as pdf_error:
-            # If WeasyPrint fails, try alternative approach
-            return HttpResponse(
-                f'PDF generation failed: {str(pdf_error)}. Please try again or contact support.',
-                status=500,
-                content_type='text/plain'
-            )
+        else:
+            return HttpResponse('PDF generation failed', status=500)
             
     except Exception as e:
         # General error handling
