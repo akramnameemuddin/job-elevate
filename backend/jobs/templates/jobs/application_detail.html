@@ -24,7 +24,7 @@
             <i class='bx bx-link-external'></i>
             <span>View Job</span>
         </a>
-        <button id="copy-application-url" class="btn btn-outline" title="Copy Application URL">
+        <button id="copy-application-url" class="btn btn-outline-primary" title="Copy Application URL">
             <i class='bx bx-copy'></i>
             <span>Copy Link</span>
         </button>
@@ -263,7 +263,7 @@
                                 <a href="{{ application.resume.url }}" class="btn btn-primary" target="_blank">
                                     <i class='bx bx-download'></i> Download
                                 </a>
-                                <button class="btn btn-outline" onclick="previewResume('{{ application.resume.url }}')">
+                                <button class="btn btn-outline-primary" onclick="previewResume('{{ application.resume.url }}')">
                                     <i class='bx bx-show'></i> Preview
                                 </button>
                             </div>
@@ -289,7 +289,7 @@
                 <span class="section-subtitle">Messages between you and the employer</span>
             </div>
             <div class="message-actions">
-                <button class="btn btn-outline" onclick="scrollToMessageForm()">
+                <button class="btn btn-outline-primary" onclick="scrollToMessageForm()">
                     <i class='bx bx-send'></i>
                     <span>Send Message</span>
                 </button>
@@ -361,7 +361,7 @@
                 </div>
                 
                 <div class="form-actions">
-                    <button type="button" class="btn btn-outline" onclick="clearMessageForm()">
+                    <button type="button" class="btn btn-light" onclick="clearMessageForm()">
                         <i class='bx bx-x'></i>
                         Clear
                     </button>
@@ -450,250 +450,165 @@
     </div>
 </div>
 
-<!-- Enhanced CSS Styles -->
+<!-- Application Detail Specific Styles -->
 <style>
-/* Modern Application Detail Page Styles - Based on recommended_jobs.html */
-:root {
-  /* Light mode variables */
-  --primary-color: #4361ee;
-  --primary-light: rgba(67, 97, 238, 0.1);
-  --primary-dark: #3a56d4;
-  --secondary-color: #7c3aed;
-  --success-color: #10b981;
-  --warning-color: #f59e0b;
-  --danger-color: #ef4444;
-  --info-color: #3b82f6;
-  --gray-50: #f9fafb;
-  --gray-100: #f3f4f6;
-  --gray-200: #e5e7eb;
-  --gray-300: #d1d5db;
-  --gray-400: #9ca3af;
-  --gray-500: #6b7280;
-  --gray-600: #4b5563;
-  --gray-700: #374151;
-  --gray-800: #1f2937;
-  --gray-900: #111827;
-  --card-bg: #ffffff;
-  --bg-main: #ffffff;
-  --bg-secondary: #f8fafc;
-  --text-color: #111827;
-  --text-light: #6b7280;
-  --border-color: #e5e7eb;
-  --hover-bg: #f3f4f6;
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
+/* Application Detail Page Styles - Using base.html theme variables */
+
+/* Application Detail Stats - Using base theme */
+.application-detail-container .stats-grid {
+  margin-bottom: var(--spacing-xl);
 }
 
-[data-theme="dark"] {
-  /* Dark mode variables */
-  --primary-color: #4f6ef7;
-  --primary-light: rgba(79, 110, 247, 0.15);
-  --primary-dark: #4361ee;
-  --success-color: #34d399;
-  --warning-color: #fbbf24;
-  --danger-color: #f87171;
-  --info-color: #60a5fa;
-  --gray-50: #18202f;
-  --gray-100: #1f2937;
-  --gray-200: #374151;
-  --gray-300: #4b5563;
-  --gray-400: #6b7280;
-  --gray-500: #9ca3af;
-  --gray-600: #d1d5db;
-  --gray-700: #e5e7eb;
-  --gray-800: #f3f4f6;
-  --gray-900: #f9fafb;
-  --card-bg: #111827;
-  --bg-main: #0f172a;
-  --bg-secondary: #1e293b;
-  --text-color: #f1f5f9;
-  --text-light: #cbd5e1;
-  --border-color: #334155;
-  --hover-bg: #1e293b;
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+.application-detail-container .stat-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Enhanced Stats Grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.stat-card {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-xl);
-  padding: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  transition: all 0.3s ease;
-  box-shadow: var(--shadow);
-}
-
-.stat-card:hover {
+.application-detail-container .stat-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
 }
 
-.stat-icon {
-  width: 3.5rem;
-  height: 3.5rem;
-  border-radius: var(--radius-lg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  color: white;
-  flex-shrink: 0;
+.application-detail-container .stat-icon.blue {
+  background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+}
+.application-detail-container .stat-icon.purple {
+  background: linear-gradient(135deg, var(--secondary-color), var(--secondary-hover));
+}
+.application-detail-container .stat-icon.green {
+  background: linear-gradient(135deg, var(--success-color), var(--success-hover));
+}
+.application-detail-container .stat-icon.amber {
+  background: linear-gradient(135deg, var(--warning-color), var(--warning-hover));
+}
+.application-detail-container .stat-icon.red {
+  background: linear-gradient(135deg, var(--danger-color), var(--danger-hover));
 }
 
-.stat-icon.blue { background: linear-gradient(135deg, var(--primary-color), var(--info-color)); }
-.stat-icon.purple { background: linear-gradient(135deg, var(--secondary-color), #a855f7); }
-.stat-icon.green { background: linear-gradient(135deg, var(--success-color), #059669); }
-.stat-icon.amber { background: linear-gradient(135deg, var(--warning-color), #d97706); }
-.stat-icon.red { background: linear-gradient(135deg, var(--danger-color), #dc2626); }
-
-.stat-info {
-  flex: 1;
-}
-
-.stat-label {
-  font-size: 0.875rem;
-  color: var(--text-light);
-  margin-bottom: 0.25rem;
-}
-
-.stat-value {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-color);
-  margin-bottom: 0.25rem;
-}
-
-.stat-change {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  font-size: 0.75rem;
-  color: var(--text-light);
-}
-
-/* Main Container */
+/* Main Container - Using base theme */
 .application-detail-container {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: var(--spacing-xl);
 }
 
-/* Enhanced Content Sections */
-.content-section {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  box-shadow: var(--shadow);
-  transition: all 0.3s ease;
+/* Content Sections - Using base card system */
+.application-detail-container .content-section {
+  /* Inherits from base .card styles */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.content-section:hover {
+.application-detail-container .content-section:hover {
+  transform: translateY(-1px);
   box-shadow: var(--shadow-lg);
 }
 
-.section-header {
-  background: var(--bg-secondary);
-  padding: 1.5rem 2rem;
+.application-detail-container .section-header {
+  background: var(--hover-bg);
+  padding: var(--spacing-lg) var(--spacing-xl);
   border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.section-title-container {
+.application-detail-container .section-title-container {
   flex: 1;
 }
 
-.section-title {
+.application-detail-container .section-title {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  font-size: 1.25rem;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-xl);
   font-weight: 600;
-  color: var(--text-color);
-  margin: 0 0 0.25rem 0;
+  color: var(--heading-color);
+  margin: 0 0 var(--spacing-xs) 0;
 }
 
-.section-subtitle {
-  font-size: 0.875rem;
+.application-detail-container .section-subtitle {
+  font-size: var(--font-size-sm);
   color: var(--text-light);
 }
 
-/* Application Status Badge */
+/* Application Status Badge - Using base badge system */
 .application-status-badge {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing);
   border-radius: var(--radius-lg);
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   border: 1px solid;
 }
 
-.status-applied { background: rgba(59, 130, 246, 0.1); color: var(--info-color); border-color: var(--info-color); }
-.status-reviewed { background: rgba(139, 69, 19, 0.1); color: var(--warning-color); border-color: var(--warning-color); }
-.status-interview { background: rgba(245, 158, 11, 0.1); color: var(--warning-color); border-color: var(--warning-color); }
-.status-accepted { background: rgba(16, 185, 129, 0.1); color: var(--success-color); border-color: var(--success-color); }
-.status-rejected { background: rgba(239, 68, 68, 0.1); color: var(--danger-color); border-color: var(--danger-color); }
+.status-applied {
+  background: var(--info-light);
+  color: var(--info-color);
+  border-color: var(--info-color);
+}
+.status-reviewed {
+  background: var(--warning-light);
+  color: var(--warning-color);
+  border-color: var(--warning-color);
+}
+.status-interview {
+  background: var(--warning-light);
+  color: var(--warning-color);
+  border-color: var(--warning-color);
+}
+.status-accepted {
+  background: var(--success-light);
+  color: var(--success-color);
+  border-color: var(--success-color);
+}
+.status-rejected {
+  background: var(--danger-light);
+  color: var(--danger-color);
+  border-color: var(--danger-color);
+}
 
-/* Application Summary Card */
+/* Application Summary Card - Using base spacing */
 .application-summary-card {
-  padding: 2rem;
+  padding: var(--spacing-xl);
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: var(--spacing-xl);
 }
 
 .job-info-header {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 2rem;
+  gap: var(--spacing-xl);
   align-items: start;
 }
 
 .job-title {
-  font-size: 1.75rem;
+  font-size: var(--font-size-3xl);
   font-weight: 700;
-  color: var(--text-color);
-  margin: 0 0 1rem 0;
-  line-height: 1.3;
+  color: var(--heading-color);
+  margin: 0 0 var(--spacing) 0;
+  line-height: var(--line-height-tight);
 }
 
 .job-meta-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
+  gap: var(--spacing);
 }
 
 .job-detail-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--spacing-sm);
   color: var(--text-light);
-  font-size: 0.95rem;
+  font-size: var(--font-size-sm);
 }
 
 .job-detail-item i {
-  font-size: 1.1rem;
+  font-size: var(--font-size-lg);
   color: var(--primary-color);
-  min-width: 1.1rem;
+  min-width: var(--font-size-lg);
 }
 
 /* Mini Timeline */
@@ -1038,35 +953,10 @@
   padding: 1.5rem 2rem 2rem;
 }
 
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-color);
-  margin-bottom: 0.5rem;
-}
-
-.form-control {
-  width: 100%;
-  padding: 1rem;
-  border: 2px solid var(--border-color);
-  border-radius: var(--radius-md);
-  background: var(--card-bg);
-  color: var(--text-color);
-  font-size: 0.95rem;
-  transition: all 0.3s ease;
-  resize: vertical;
+/* Form customizations for application detail page */
+.application-detail-container .form-control {
+  /* Inherits from base form styles */
   min-height: 120px;
-}
-
-.form-control:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px var(--primary-light);
 }
 
 .form-help {
@@ -1185,50 +1075,14 @@
   color: var(--primary-color);
 }
 
-/* Button Enhancements */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  border-radius: var(--radius-md);
-  font-size: 0.875rem;
-  font-weight: 500;
-  text-decoration: none;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
+/* Button customizations for application detail page */
+.application-detail-container .btn {
+  /* Inherits from base button styles */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.btn-primary {
-  background: var(--primary-color);
-  color: white;
-}
-
-.btn-primary:hover {
-  background: var(--primary-dark);
+.application-detail-container .btn:hover {
   transform: translateY(-1px);
-}
-
-.btn-outline {
-  background: transparent;
-  color: var(--primary-color);
-  border: 2px solid var(--primary-color);
-}
-
-.btn-outline:hover {
-  background: var(--primary-color);
-  color: white;
-}
-
-.btn-light {
-  background: var(--bg-secondary);
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-}
-
-.btn-light:hover {
-  background: var(--hover-bg);
 }
 
 /* Message Actions */
@@ -1237,84 +1091,59 @@
   gap: 1rem;
 }
 
-/* Responsive Design */
-@media (max-width: 1024px) {
+/* Application Detail Responsive Adjustments */
+@media (max-width: 992px) {
   .job-info-header {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: var(--spacing-lg);
   }
-  
+
   .documents-grid {
     grid-template-columns: 1fr;
-  }
-  
-  .job-meta-grid {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   }
 }
 
 @media (max-width: 768px) {
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-  }
-  
-  .stat-card {
-    padding: 1rem;
-  }
-  
-  .section-header {
+  .application-detail-container .section-header {
     flex-direction: column;
     align-items: stretch;
-    gap: 1rem;
+    gap: var(--spacing);
   }
-  
+
   .message-bubble {
     max-width: 90%;
   }
-  
+
   .timeline {
-    padding-left: 1.5rem;
+    padding-left: var(--spacing-lg);
   }
-  
+
   .timeline-item {
-    padding-left: 1.5rem;
+    padding-left: var(--spacing-lg);
   }
-  
+
   .timeline-marker {
-    left: -1.5rem;
-    width: 1.5rem;
-    height: 1.5rem;
-  }
-  
-  .form-actions {
-    flex-direction: column;
+    left: calc(-1 * var(--spacing-lg));
+    width: var(--spacing-lg);
+    height: var(--spacing-lg);
   }
 }
 
-@media (max-width: 480px) {
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .stat-card {
-    padding: 1rem;
-  }
-  
+@media (max-width: 576px) {
   .application-summary-card,
   .timeline-container,
   .messages-thread {
-    padding: 1rem;
+    padding: var(--spacing);
   }
-  
+
   .documents-grid {
-    padding: 1rem;
+    padding: var(--spacing);
   }
-  
+
   .job-meta-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .message-bubble {
     max-width: 95%;
   }
@@ -1339,22 +1168,7 @@
   to { opacity: 1; transform: translateX(0); }
 }
 
-/* Dark mode specific adjustments */
-[data-theme="dark"] .message-content {
-  background: var(--hover-bg);
-}
-
-[data-theme="dark"] .message-sent .message-content {
-  background: rgba(79, 110, 247, 0.2);
-}
-
-[data-theme="dark"] .timeline-content {
-  background: var(--hover-bg);
-}
-
-[data-theme="dark"] .document-card {
-  background: var(--hover-bg);
-}
+/* Application detail styles complete - using base theme system */
 </style>
 
 <!-- Enhanced JavaScript -->

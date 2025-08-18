@@ -1,102 +1,18 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
 {% block content %}
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resume Builder Dashboard</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        /* ==== Resume Builder Dashboard Styles ==== */
-:root {
-  /* Main Colors */
-  --primary: #4f46e5;
-  --primary-light: #6366f1;
-  --primary-dark: #4338ca;
-  --secondary: #14b8a6;
-  --secondary-light: #5eead4;
-  --secondary-dark: #0d9488;
-  
-  /* Neutrals */
-  --gray-50: #f9fafb;
-  --gray-100: #f3f4f6;
-  --gray-200: #e5e7eb;
-  --gray-300: #d1d5db;
-  --gray-400: #9ca3af;
-  --gray-500: #6b7280;
-  --gray-600: #4b5563;
-  --gray-700: #374151;
-  --gray-800: #1f2937;
-  --gray-900: #111827;
-  
-  /* Contextual */
-  --success: #10b981;
-  --success-light: #d1fae5;
-  --warning: #f59e0b;
-  --warning-light: #fef3c7;
-  --danger: #ef4444;
-  --danger-light: #fee2e2;
-  --info: #3b82f6;
-  --info-light: #dbeafe;
+<style>
+/* Resume Builder Dashboard Styles - Using base theme variables */
 
-  /* UI Elements */
-  --background: var(--gray-50);
-  --card-bg: #ffffff;
-  --text-color: var(--gray-800);
-  --text-light: var(--gray-500);
-  --border-color: var(--gray-200);
-  --border-radius-sm: 0.375rem;
-  --border-radius: 0.5rem;
-  --border-radius-lg: 0.75rem;
-  --border-radius-xl: 1rem;
-  
-  /* Typography */
-  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  
-  /* Animation */
-  --transition-fast: all 0.2s ease;
-  --transition: all 0.3s ease;
-}
-
-/* Dark Mode Variables */
-[data-theme="dark"] {
-  --background: var(--gray-900);
-  --card-bg: var(--gray-800);
-  --text-color: var(--gray-100);
-  --text-light: var(--gray-400);
-  --border-color: var(--gray-700);
-}
-
-/* Base Styles */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: var(--font-sans);
-  background-color: var(--background);
-  color: var(--text-color);
-  line-height: 1.5;
-}
-
-/* ==== Resume Dashboard Layout ==== */
+/* Resume Dashboard Layout - Using base theme */
 .resume-dashboard-container {
   max-width: 1280px;
-  margin: 0 ;
-  padding: 0 0rem;
+  margin: 0 auto;
+  padding: 0;
 }
 
-.content-section {
-  margin-bottom: 2.5rem;
+.resume-dashboard-container .content-section {
+  margin-bottom: var(--spacing-xl);
   animation: fadeIn 0.5s ease-in-out;
 }
 
@@ -105,208 +21,74 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ==== Page Header ==== */
-.page-header {
-  margin-bottom: 2rem;
+/* Page Header customizations */
+.resume-dashboard-container .page-header {
+  margin-bottom: var(--spacing-lg);
 }
 
-.page-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  color: var(--text-color);
+.resume-dashboard-container .page-title {
+  position: relative;
 }
 
-.page-title::after {
+.resume-dashboard-container .page-title::after {
   content: '';
   position: absolute;
-  bottom: -0.5rem;
+  bottom: -var(--spacing-sm);
   left: 0;
-  width: 3rem;
-  height: 0.25rem;
-  background: linear-gradient(to right, var(--primary), var(--secondary));
-  border-radius: 999px;
+  width: var(--spacing-2xl);
+  height: var(--spacing-xs);
+  background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+  border-radius: var(--radius-full);
 }
 
-        .breadcrumb {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--text-light);
-            font-size: 0.875rem;
-        }
+/* Breadcrumb inherits from base styles */
 
-        .breadcrumb-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .breadcrumb-link {
-            color: var(--text-light);
-            text-decoration: none;
-            transition: var(--transition);
-        }
-
-        .breadcrumb-link:hover {
-            color: var(--primary-color);
-        }
-/* ==== Section Headers ==== */
-.section-header {
+/* Section Headers - Using base theme */
+.resume-dashboard-container .section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--spacing-lg);
   border-bottom: 1px solid var(--border-color);
-  padding-bottom: 1rem;
+  padding-bottom: var(--spacing);
 }
 
-.section-title {
-  font-size: 1.25rem;
+.resume-dashboard-container .section-title {
+  font-size: var(--font-size-xl);
   font-weight: 600;
-  color: var(--text-color);
+  color: var(--heading-color);
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--spacing-sm);
 }
 
-.section-title i {
-  color: var(--primary);
-  font-size: 1.25rem;
+.resume-dashboard-container .section-title i {
+  color: var(--primary-color);
+  font-size: var(--font-size-xl);
 }
 
-/* ==== Buttons ==== */
-.btn-add {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background-color: var(--primary);
-  color: white;
-  border: none;
-  border-radius: var(--border-radius);
-  padding: 0.625rem 1.25rem;
-  font-weight: 500;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: var(--transition-fast);
-  text-decoration: none;
-  box-shadow: var(--shadow-sm);
+/* Button customizations - Using base button system */
+.resume-dashboard-container .btn {
+  /* Inherits from base button styles */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.btn-add:hover {
-  background-color: var(--primary-dark);
+.resume-dashboard-container .btn:hover {
   transform: translateY(-1px);
-  box-shadow: var(--shadow);
 }
 
-.btn-add i {
-  font-size: 1.125rem;
-}
-
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  background-color: var(--primary);
-  color: white;
-  border: none;
-  border-radius: var(--border-radius);
-  padding: 0.75rem 1.5rem;
-  font-weight: 500;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: var(--transition-fast);
-  text-decoration: none;
-  box-shadow: var(--shadow-sm);
-}
-
-.btn-primary:hover {
-  background-color: var(--primary-dark);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow);
-}
-
-.btn-action {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--border-radius);
-  font-size: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: var(--transition-fast);
-  text-decoration: none;
-}
-
-.btn-edit {
-  background-color: var(--info-light);
-  color: var(--info);
-}
-
-.btn-edit:hover {
-  background-color: var(--info);
-  color: white;
-}
-
-.btn-preview {
-  background-color: var(--gray-100);
-  color: var(--gray-600);
-}
-
-.btn-preview:hover {
-  background-color: var(--gray-200);
-  color: var(--gray-800);
-}
-
-.btn-download {
-  background-color: var(--success-light);
-  color: var(--success);
-}
-
-.btn-download:hover {
-  background-color: var(--success);
-  color: white;
-}
-
-.btn-delete {
-  background-color: var(--danger-light);
-  color: var(--danger);
-  border: none;
-}
-
-.btn-delete:hover {
-  background-color: var(--danger);
-  color: white;
-}
-
-.btn-cancel {
-  background-color: var(--gray-100);
-  color: var(--gray-700);
-  border: none;
-  border-radius: var(--border-radius);
-  padding: 0.625rem 1.25rem;
-  font-weight: 500;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: var(--transition-fast);
-}
-
-.btn-cancel:hover {
-  background-color: var(--gray-200);
-}
+/* Action buttons use base button system with size variants */
 
 /* ==== Resume Cards ==== */
 .resume-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
+  gap: var(--spacing-lg);
 }
 
 .resume-card {
   background-color: var(--card-bg);
-  border-radius: var(--border-radius-lg);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
   overflow: hidden;
   transition: var(--transition);
@@ -321,7 +103,7 @@ body {
 }
 
 .resume-card-header {
-  padding: 1.25rem;
+  padding: var(--spacing);
   border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
@@ -329,7 +111,7 @@ body {
 }
 
 .resume-card-header h4 {
-  font-size: 1.125rem;
+  font-size: var(--font-size-lg);
   font-weight: 600;
   color: var(--text-color);
   display: -webkit-box;
@@ -337,32 +119,33 @@ body {
   line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  margin: 0;
 }
 
 .resume-template-badge {
-  background-color: var(--primary-light);
-  color: white;
-  font-size: 0.75rem;
-  padding: 0.25rem 0.75rem;
-  border-radius: 999px;
+  background-color: var(--primary-color);
+  color: var(--white);
+  font-size: var(--font-size-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-full);
   font-weight: 500;
 }
 
 .resume-card-body {
-  padding: 1.25rem;
+  padding: var(--spacing);
 }
 
 .resume-stats {
   display: flex;
-  gap: 1rem;
+  gap: var(--spacing);
   flex-wrap: wrap;
 }
 
 .resume-stat {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
   color: var(--text-light);
 }
 
@@ -371,10 +154,10 @@ body {
 }
 
 .resume-card-actions {
-  padding: 1.25rem;
+  padding: var(--spacing);
   border-top: 1px solid var(--border-color);
   display: flex;
-  gap: 0.5rem;
+  gap: var(--spacing-sm);
   flex-wrap: wrap;
 }
 
@@ -382,7 +165,7 @@ body {
 .template-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1.5rem;
+  gap: var(--spacing-lg);
 }
 
 .template-card {
@@ -429,42 +212,42 @@ body {
 }
 
 .template-info {
-  padding: 1.25rem;
+  padding: var(--spacing);
 }
 
 .template-info h4 {
-  font-size: 1.125rem;
+  font-size: var(--font-size-lg);
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--spacing-sm);
   color: var(--text-color);
 }
 
 .template-info p {
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   color: var(--text-light);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  margin-bottom: 1rem;
+  margin-bottom: var(--spacing);
 }
 
 .template-actions {
-  padding: 0 1.25rem 1.25rem 1.25rem;
+  padding: 0 var(--spacing) var(--spacing) var(--spacing);
 }
 
 /* ==== Tips Section ==== */
 .tips-container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 1.5rem;
+  gap: var(--spacing-lg);
 }
 
 .tip-card {
   background-color: var(--card-bg);
-  border-radius: var(--border-radius-lg);
-  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
   box-shadow: var(--shadow);
   border: 1px solid var(--border-color);
   transition: var(--transition);
@@ -700,11 +483,11 @@ body {
   .section-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 1rem;
+    gap: var(--spacing);
   }
-  
+
   .page-header {
-    margin-bottom: 1.5rem;
+    margin-bottom: var(--spacing-lg);
   }
   
   .page-title {
@@ -716,9 +499,9 @@ body {
 .wizard-progress {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 2rem;
+  margin-bottom: var(--spacing-xl);
   position: relative;
-  padding: 0 1rem;
+  padding: 0 var(--spacing);
 }
 
 .wizard-progress::before {
@@ -1007,16 +790,16 @@ body {
                     </div>
                 </div>
                 <div class="resume-card-actions">
-                    <a href="{% url 'resume_builder:edit_resume' resume.id %}" class="btn-action btn-edit">
+                    <a href="{% url 'resume_builder:edit_resume' resume.id %}" class="btn btn-sm btn-primary">
                         <i class="fas fa-pencil-alt"></i> Edit
                     </a>
-                    <a href="{% url 'resume_builder:preview_resume' resume.id %}" class="btn-action btn-preview">
+                    <a href="{% url 'resume_builder:preview_resume' resume.id %}" class="btn btn-sm btn-light">
                         <i class="fas fa-eye"></i> Preview
                     </a>
-                    <a href="{% url 'resume_builder:download_resume' resume.id %}" class="btn-action btn-download">
+                    <a href="{% url 'resume_builder:download_resume' resume.id %}" class="btn btn-sm btn-success">
                         <i class="fas fa-download"></i> Download
                     </a>
-                    <button class="btn-action btn-delete" data-resume-id="{{ resume.id }}">
+                    <button class="btn btn-sm btn-danger" data-resume-id="{{ resume.id }}">
                         <i class="fas fa-trash-alt"></i> Delete
                     </button>
                 </div>
@@ -1028,7 +811,7 @@ body {
             <img src="{% static 'images/empty-resume.png' %}" alt="No Resumes" class="empty-state-image">
             <h3>No Resumes Created Yet</h3>
             <p>Create your first resume to get started with your job search.</p>
-            <button id="browse-templates-btn" class="btn-primary">Browse All Templates</button>
+            <button id="browse-templates-btn" class="btn btn-primary">Browse All Templates</button>
         </div>
         {% endif %}
     </section>
@@ -1054,7 +837,7 @@ body {
                         <p>{{ template.description }}</p>
                     </div>
                     <div class="template-actions">
-                        <a href="{% url 'resume_builder:create_resume' %}?template_id={{ template.id }}" class="btn-primary use-template-btn">Use Template</a>
+                        <a href="{% url 'resume_builder:create_resume' %}?template_id={{ template.id }}" class="btn btn-primary use-template-btn">Use Template</a>
                     </div>
                 </div>
             {% empty %}
@@ -1131,7 +914,7 @@ body {
                 <button class="btn-cancel">Cancel</button>
                 <form id="delete-resume-form" method="post" action="">
                     {% csrf_token %}
-                    <button type="submit" class="btn-action btn-delete">Delete</button>
+                    <button type="submit" class="btn btn-danger">Delete</button>
                 </form>
             </div>
         </div>
@@ -1226,7 +1009,7 @@ body {
         // ====== Modal System ======
         const modalDialog = document.getElementById('delete-resume-modal');
         const modalClose = modalDialog.querySelector('.btn-close');
-        const deleteButtons = document.querySelectorAll('.btn-delete:not(.modal-footer .btn-delete)');
+        const deleteButtons = document.querySelectorAll('.btn-danger:not(.modal-footer .btn-danger)');
         const cancelButton = modalDialog.querySelector('.modal-footer .btn-cancel');
         const deleteForm = document.getElementById('delete-resume-form');
         
@@ -1278,7 +1061,7 @@ body {
         }
         
         // Preview buttons
-        const previewButtons = document.querySelectorAll('.btn-preview');
+        const previewButtons = document.querySelectorAll('.btn-light');
         previewButtons.forEach(button => {
             button.addEventListener('click', function(e) {
                 // Allow default navigation
@@ -1287,7 +1070,7 @@ body {
         });
         
         // Download buttons
-        const downloadButtons = document.querySelectorAll('.btn-download');
+        const downloadButtons = document.querySelectorAll('.btn-success');
         downloadButtons.forEach(button => {
             button.addEventListener('click', function(e) {
                 // Allow default navigation

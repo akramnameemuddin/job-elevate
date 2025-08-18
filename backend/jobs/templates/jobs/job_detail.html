@@ -3,14 +3,14 @@
 
 {% block title %}{{ job.title }} at {{ job.company }} | JobMatch{% endblock %}
 
-{% block content %}z
+{% block content %}
 <div class="main-content">
     <!-- Notification area -->
     {% if messages %}
     <div class="notification-area">
         {% for message in messages %}
         <div class="notification {% if message.tags %}{{ message.tags }}{% endif %}">
-            <i class='bx 
+            <i class='bx
                 {% if message.tags == "success" %}bx-check-circle
                 {% elif message.tags == "error" %}bx-error
                 {% elif message.tags == "warning" %}bx-error-circle
@@ -23,12 +23,24 @@
     </div>
     {% endif %}
 
-    <!-- Breadcrumb -->
-    <!-- Breadcrumb -->
-    <div class="breadcrumb">
-        <a href="{% url 'jobs:job_listings' %}" class="breadcrumb-link">Jobs</a>
-        <span class="breadcrumb-separator"><i class='bx bx-chevron-right'></i></span>
-        <span class="breadcrumb-item active">{{ job.title }}</span>
+    <!-- Page Header with Breadcrumb -->
+    <div class="page-header">
+        <div class="breadcrumb">
+            <div class="breadcrumb-item">
+                <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">
+                    <i class='bx bx-home'></i>
+                    Home
+                </a>
+                <i class='bx bx-chevron-right'></i>
+            </div>
+            <div class="breadcrumb-item">
+                <a href="{% url 'jobs:job_listings' %}" class="breadcrumb-link">Jobs</a>
+                <i class='bx bx-chevron-right'></i>
+            </div>
+            <div class="breadcrumb-item">
+                <span>{{ job.title }}</span>
+            </div>
+        </div>
     </div>
 
 
@@ -837,28 +849,59 @@
         transform: rotate(90deg) translateY(-3px);
     }
 
-    /* Notification Area */
+    /* Enhanced Notification Area */
     .notification-area {
-        margin-bottom: 1rem;
+        position: fixed;
+        top: 80px;
+        right: var(--spacing);
+        left: var(--spacing);
+        z-index: var(--z-tooltip);
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: var(--spacing-sm);
+        pointer-events: none;
+        max-width: 500px;
+        margin: 0 auto;
     }
 
     .notification {
         display: flex;
         align-items: flex-start;
-        padding: 0.75rem;
-        border-radius: var(--radius-md);
+        padding: var(--spacing) var(--spacing-lg);
+        border-radius: var(--radius-lg);
         background: var(--card-bg);
-        box-shadow: var(--card-shadow);
         border: 1px solid var(--border-color);
-        animation: slideIn 0.3s ease;
+        box-shadow: var(--shadow-lg);
+        animation: slideInFromTop 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        pointer-events: auto;
+        position: relative;
+        backdrop-filter: blur(10px);
     }
 
-    @keyframes slideIn {
-        from { transform: translateY(-20px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
+    @keyframes slideInFromTop {
+        from {
+            transform: translateY(-100px) scale(0.95);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideOutToTop {
+        from {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+        to {
+            transform: translateY(-100px) scale(0.95);
+            opacity: 0;
+        }
+    }
+
+    .notification.removing {
+        animation: slideOutToTop 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
 
     .notification i {
@@ -1714,24 +1757,28 @@ document.addEventListener('DOMContentLoaded', function() {
         const closeBtn = notification.querySelector('.close-btn');
         if (closeBtn) {
             closeBtn.addEventListener('click', function() {
-                notification.style.opacity = '0';
-                setTimeout(() => {
-                    notification.remove();
-                }, 300);
+                removeNotification(notification);
             });
         }
-        
+
         // Auto remove after 5 seconds
         setTimeout(() => {
             if (notification.parentNode) {
-                notification.style.opacity = '0';
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.remove();
-                    }
-                }, 300);
+                removeNotification(notification);
             }
         }, 5000);
+    }
+
+    // Enhanced notification removal with animation
+    function removeNotification(notification) {
+        if (!notification || !notification.parentNode) return;
+
+        notification.classList.add('removing');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 300);
     }
     
     // Get CSRF token from cookies
@@ -1801,10 +1848,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.notification .close-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const notification = this.parentNode;
-            notification.style.opacity = '0';
-            setTimeout(() => {
-                notification.remove();
-            }, 300);
+            removeNotification(notification);
         });
     });
 });

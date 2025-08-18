@@ -4,20 +4,33 @@
 {% csrf_token %}
 <!-- Page Header -->
 <div class="page-header">
-  <div class="header-content">
-    <h1 class="page-title">Job Listings</h1>
-    <div class="breadcrumb">
-      <span class="breadcrumb-item"><a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Dashboard</a></span>
-      <span class="breadcrumb-separator"><i class='bx bx-chevron-right'></i></span>
-      <span class="breadcrumb-item">Job Listings</span>
+  <div class="breadcrumb">
+    <div class="breadcrumb-item">
+      <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">
+        <i class='bx bx-home'></i>
+        Home
+      </a>
+      <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item">
+      <span>Job Listings</span>
     </div>
   </div>
-  <div class="header-actions">
-    <a href="{% url 'jobs:search_jobs' %}" class="btn btn-light">
+
+  <div class="page-title-section">
+    <h1 class="page-title">
+      <i class='bx bx-briefcase'></i>
+      Job Listings
+    </h1>
+    <p class="page-subtitle">Discover opportunities that match your skills and career goals</p>
+  </div>
+
+  <div class="page-actions">
+    <a href="{% url 'jobs:search_jobs' %}" class="btn btn-outline-primary">
       <i class='bx bx-search'></i>
       <span>Advanced Search</span>
     </a>
-    <a href="{% url 'jobs:job_analytics' %}" class="btn btn-light">
+    <a href="{% url 'jobs:job_analytics' %}" class="btn btn-outline-primary">
       <i class='bx bx-line-chart'></i>
       <span>Job Market Trends</span>
     </a>
@@ -1505,20 +1518,24 @@ function initSingleBookmarkButton(button) {
                 // Show notification
                 showNotification(data.message, data.bookmarked ? 'success' : 'info');
                 
-                // If we're on the bookmarked tab and bookmark was removed, remove the row
+                // Handle bookmarked tab updates
                 const bookmarkedTab = document.querySelector('.tab-button[data-tab="bookmarked"]');
-                if (bookmarkedTab && bookmarkedTab.classList.contains('active') && !data.bookmarked) {
-                    // Remove the job row from bookmarked tab
+                const isOnBookmarkedTab = bookmarkedTab && bookmarkedTab.classList.contains('active');
+
+                if (!data.bookmarked) {
+                    // Job was unbookmarked - remove from bookmarked tab if present
                     const jobRow = document.querySelector(`#bookmarked-content .job-row[data-job-id="${jobId}"]`);
                     if (jobRow) {
                         jobRow.style.opacity = '0';
                         jobRow.style.transform = 'translateX(-100%)';
                         setTimeout(() => {
                             jobRow.remove();
-                            // Check if bookmarked tab is now empty
                             checkBookmarkedTabEmpty();
                         }, 300);
                     }
+                } else {
+                    // Job was bookmarked - add to bookmarked tab if not present
+                    refreshBookmarkedTab(jobId);
                 }
             } else {
                 showNotification(data.message || 'Error updating bookmark', 'error');
@@ -1571,7 +1588,7 @@ function updateAllBookmarkButtons(jobId, isBookmarked) {
 function checkBookmarkedTabEmpty() {
     const bookmarkedContent = document.getElementById('bookmarked-content');
     const jobRows = bookmarkedContent.querySelectorAll('.job-row');
-    
+
     if (jobRows.length === 0) {
         bookmarkedContent.innerHTML = `
             <div class="empty-state">
@@ -1582,6 +1599,52 @@ function checkBookmarkedTabEmpty() {
             </div>
         `;
     }
+}
+
+// Refresh bookmarked tab by fetching updated data
+function refreshBookmarkedTab(newJobId = null) {
+    const bookmarkedContent = document.getElementById('bookmarked-content');
+    if (!bookmarkedContent) return;
+
+    // Show loading state
+    const loadingHtml = `
+        <div class="loading-state" style="text-align: center; padding: 2rem;">
+            <div class="spinner"></div>
+            <p>Updating bookmarks...</p>
+        </div>
+    `;
+
+    // If there's an empty state, replace it with loading
+    const emptyState = bookmarkedContent.querySelector('.empty-state');
+    if (emptyState) {
+        bookmarkedContent.innerHTML = loadingHtml;
+    }
+
+    // Fetch updated bookmarked jobs
+    fetch('/jobs/bookmarked-jobs-partial/', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            bookmarkedContent.innerHTML = data.html;
+            // Reinitialize bookmark buttons for the new content
+            setTimeout(() => {
+                initBookmarkButtons();
+            }, 100);
+        } else {
+            console.error('Failed to refresh bookmarked tab');
+        }
+    })
+    .catch(error => {
+        console.error('Error refreshing bookmarked tab:', error);
+        // Fallback: just reload the page
+        window.location.reload();
+    });
 }
 
 // Show notification
