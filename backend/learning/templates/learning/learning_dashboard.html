@@ -15,168 +15,147 @@
 </div>
 
 <style>
-    .pending-modules-container {
-        background: var(--bg-primary);
+    /* Learning Dashboard Styles - Using base theme */
+    .learning-dashboard-container .pending-modules-container {
+        background: var(--card-bg);
         border-radius: var(--radius-xl);
-        padding: 2rem;
-        margin-bottom: 2rem;
+        padding: var(--spacing-xl);
+        margin-bottom: var(--spacing-xl);
         box-shadow: var(--shadow-sm);
-        border: 1px solid var(--border-light);
+        border: 1px solid var(--border-color);
     }
 
-    .section-title {
+    .learning-dashboard-container .section-title {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
-        font-size: 1.5rem;
+        gap: var(--spacing-sm);
+        font-size: var(--font-size-2xl);
         font-weight: 600;
-        color: var(--text-primary);
-        margin-bottom: 1.5rem;
+        color: var(--heading-color);
+        margin-bottom: var(--spacing-lg);
     }
 
-    .section-title i {
+    .learning-dashboard-container .section-title i {
         color: var(--primary-color);
-        font-size: 1.75rem;
+        font-size: var(--font-size-3xl);
     }
 
-    .modules-grid {
+    .learning-dashboard-container .modules-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-        gap: 1.5rem;
+        gap: var(--spacing-lg);
     }
 
-    .module-card {
-        background: var(--bg-primary);
+    .learning-dashboard-container .module-card {
+        background: var(--card-bg);
         border-radius: var(--radius-lg);
-        padding: 1.5rem;
+        padding: var(--spacing-lg);
         box-shadow: var(--shadow-sm);
-        border: 1px solid var(--border-light);
+        border: 1px solid var(--border-color);
         transition: var(--transition);
         position: relative;
         overflow: hidden;
     }
 
-    .module-card.pending {
+    .learning-dashboard-container .module-card.pending {
         border-left: 4px solid var(--warning-color);
     }
 
-    .module-card.in-progress {
+    .learning-dashboard-container .module-card.in-progress {
         border-left: 4px solid var(--primary-color);
     }
 
-    .module-card:hover {
+    .learning-dashboard-container .module-card:hover {
         transform: translateY(-2px);
         box-shadow: var(--shadow-lg);
     }
 
-    .module-header {
+    .learning-dashboard-container .module-header {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        margin-bottom: 1rem;
+        margin-bottom: var(--spacing);
     }
 
-    .module-title {
-        font-size: 1.25rem;
+    .learning-dashboard-container .module-title {
+        font-size: var(--font-size-xl);
         font-weight: 600;
-        color: var(--text-primary);
-        margin-bottom: 0.5rem;
+        color: var(--heading-color);
+        margin-bottom: var(--spacing-sm);
     }
 
-    .module-status {
-        padding: 0.375rem 0.75rem;
+    .learning-dashboard-container .module-status {
+        /* Uses base badge system */
+        padding: var(--spacing-xs) var(--spacing-sm);
         border-radius: 9999px;
-        font-size: 0.75rem;
+        font-size: var(--font-size-xs);
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.025em;
     }
 
-    .module-status.pending {
-        background: #fef3c7;
-        color: #92400e;
+    .learning-dashboard-container .module-status.pending {
+        background: var(--warning-light);
+        color: var(--warning-color);
     }
 
-    .module-status.in-progress {
-        background: #dbeafe;
-        color: #1e40af;
+    .learning-dashboard-container .module-status.in-progress {
+        background: var(--primary-light);
+        color: var(--primary-color);
     }
 
-    .module-description {
-        color: var(--text-secondary);
-        margin-bottom: 1rem;
-        line-height: 1.5;
+    .learning-dashboard-container .module-description {
+        color: var(--text-light);
+        margin-bottom: var(--spacing);
+        line-height: var(--line-height);
     }
 
-    .module-progress {
-        background: var(--bg-tertiary);
+    .learning-dashboard-container .module-progress {
+        background: var(--border-light);
         border-radius: 9999px;
         height: 8px;
-        margin: 1rem 0;
+        margin: var(--spacing) 0;
         overflow: hidden;
     }
 
-    .progress-fill {
+    .learning-dashboard-container .progress-fill {
         height: 100%;
         background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
         border-radius: 9999px;
         transition: width 0.5s ease;
     }
 
-    .module-meta {
+    .learning-dashboard-container .module-meta {
         display: flex;
         justify-content: space-between;
-        font-size: 0.875rem;
-        color: var(--text-secondary);
-        margin-top: 1rem;
+        font-size: var(--font-size-sm);
+        color: var(--text-light);
+        margin-top: var(--spacing);
     }
 
-    .pending-message {
-        background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
-        border: 1px solid #f59e0b;
+    .learning-dashboard-container .pending-message {
+        background: var(--warning-light);
+        border: 1px solid var(--warning-color);
         border-radius: var(--radius-md);
-        padding: 1rem;
-        margin-top: 1rem;
+        padding: var(--spacing);
+        margin-top: var(--spacing);
         text-align: center;
-        color: #92400e;
+        color: var(--warning-color);
         font-weight: 500;
     }
 
-    .pending-message i {
-        color: #f59e0b;
-        margin-right: 0.5rem;
+    .learning-dashboard-container .pending-message i {
+        color: var(--warning-color);
+        margin-right: var(--spacing-sm);
     }
 
-    .action-button {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.75rem 1.5rem;
-        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-        color: white;
-        border: none;
-        border-radius: var(--radius-md);
-        font-weight: 500;
-        cursor: pointer;
-        transition: var(--transition);
-        text-decoration: none;
-        margin-top: 1rem;
+    /* Action buttons use base button system */
+    .learning-dashboard-container .btn {
+        margin-top: var(--spacing);
     }
 
-    .action-button:hover {
+    .learning-dashboard-container .btn:hover {
         transform: translateY(-1px);
-        box-shadow: var(--shadow-md);
-    }
-
-    .action-button.disabled {
-        background: var(--bg-tertiary);
-        color: var(--text-secondary);
-        cursor: not-allowed;
-    }
-
-    .action-button.disabled:hover {
-        transform: none;
-        box-shadow: none;
     }
 
     @media (max-width: 768px) {
@@ -216,7 +195,7 @@
                     <i class='bx bx-info-circle'></i>
                     This module is not yet added to your learning plan
                 </div>
-                <button class="action-button disabled">
+                <button class="btn btn-light" disabled>
                     <i class='bx bx-lock'></i>
                     Not Available
                 </button>
@@ -244,7 +223,7 @@
                     <i class='bx bx-info-circle'></i>
                     This module is not yet added to your learning plan
                 </div>
-                <button class="action-button disabled">
+                <button class="btn btn-light" disabled>
                     <i class='bx bx-lock'></i>
                     Not Available
                 </button>
@@ -272,7 +251,7 @@
                     <i class='bx bx-info-circle'></i>
                     This module is not yet added to your learning plan
                 </div>
-                <button class="action-button disabled">
+                <button class="btn btn-light" disabled>
                     <i class='bx bx-lock'></i>
                     Not Available
                 </button>
@@ -300,7 +279,7 @@
                     <i class='bx bx-info-circle'></i>
                     This module is not yet added to your learning plan
                 </div>
-                <button class="action-button disabled">
+                <button class="btn btn-light" disabled>
                     <i class='bx bx-lock'></i>
                     Not Available
                 </button>

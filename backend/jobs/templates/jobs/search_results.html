@@ -3,115 +3,138 @@
 {% block title %}Search Results{% endblock %}
 
 {% block content %}
-<div class="main-content">
+<div class="job-search-container">
     <!-- Page Header -->
+    <div class="page-header">
         <div class="breadcrumb">
-            <span class="breadcrumb-item">
+            <div class="breadcrumb-item">
+                <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">
+                    <i class='bx bx-home'></i>
+                    Home
+                </a>
+                <i class='bx bx-chevron-right'></i>
+            </div>
+            <div class="breadcrumb-item">
                 <a href="{% url 'jobs:job_listings' %}" class="breadcrumb-link">
                     Jobs
                 </a>
-            </span>
-            <i class='bx bx-chevron-right breadcrumb-separator'></i>
-            <span class="breadcrumb-item active">Search Results</span>
+                <i class='bx bx-chevron-right'></i>
+            </div>
+            <div class="breadcrumb-item">
+                <span>Search Results</span>
+            </div>
         </div>
+
         <div class="page-title-section">
             <h1 class="page-title">
+                <i class='bx bx-search'></i>
+                Job Search Results
                 {% if query %}
                     <span class="query-highlight">for "{{ query }}"</span>
                 {% endif %}
             </h1>
+            {% if query or location or job_type %}
+                <p class="page-subtitle">
+                    Found {{ jobs.count }} job{{ jobs.count|pluralize }} matching your criteria
+                </p>
+            {% endif %}
+        </div>
     </div>
 
     <!-- Search Form Section -->
     <div class="search-section">
-        <div class="search-card">
-            <div class="search-header">
-                <h2 class="search-title">
+        <div class="card search-card">
+            <div class="card-header">
+                <h3 class="card-title">
                     <i class='bx bx-filter-alt'></i>
                     Refine Your Search
-                </h2>
-                <p class="search-subtitle">Narrow down results to find exactly what you're looking for</p>
+                </h3>
+                <p class="card-subtitle">Narrow down results to find exactly what you're looking for</p>
             </div>
-            
-            <form action="{% url 'jobs:search_jobs' %}" method="GET" class="search-form">
-                <div class="search-grid">
-                    <div class="search-input-group">
-                        <label class="input-label">Job Title or Keywords</label>
-                        <div class="input-wrapper">
-                            <i class='bx bx-search input-icon'></i>
-                            <input type="text" name="q" placeholder="e.g. Software Engineer, Marketing Manager" value="{{ query }}" class="search-input">
+
+            <div class="card-body">
+                <form action="{% url 'jobs:search_jobs' %}" method="GET" class="search-form">
+                    <div class="search-grid">
+                        <div class="search-input-group">
+                            <label class="form-label">Job Title or Keywords</label>
+                            <div class="input-wrapper">
+                                <i class='bx bx-search input-icon'></i>
+                                <input type="text" name="q" placeholder="e.g. Software Engineer, Marketing Manager" value="{{ query }}" class="form-control search-input">
+                            </div>
+                        </div>
+
+                        <div class="search-input-group">
+                            <label class="form-label">Location</label>
+                            <div class="input-wrapper">
+                                <i class='bx bx-map input-icon'></i>
+                                <input type="text" name="location" placeholder="e.g. New York, Remote" value="{{ location }}" class="form-control search-input">
+                            </div>
+                        </div>
+
+                        <div class="search-input-group">
+                            <label class="form-label">Job Type</label>
+                            <div class="input-wrapper">
+                                <i class='bx bx-briefcase input-icon'></i>
+                                <select name="job_type" class="form-control search-select">
+                                    <option value="">All Job Types</option>
+                                    {% for value, label in job_types.items %}
+                                        <option value="{{ value }}" {% if job_type == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="search-button-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class='bx bx-search-alt-2'></i>
+                                <span>Search Jobs</span>
+                            </button>
+                            <button type="button" class="btn btn-light" onclick="clearForm()">
+                                <i class='bx bx-x'></i>
+                                <span>Clear</span>
+                            </button>
                         </div>
                     </div>
-                    
-                    <div class="search-input-group">
-                        <label class="input-label">Location</label>
-                        <div class="input-wrapper">
-                            <i class='bx bx-map input-icon'></i>
-                            <input type="text" name="location" placeholder="e.g. New York, Remote" value="{{ location }}" class="search-input">
-                        </div>
-                    </div>
-                    
-                    <div class="search-input-group">
-                        <label class="input-label">Job Type</label>
-                        <div class="input-wrapper">
-                            <i class='bx bx-briefcase input-icon'></i>
-                            <select name="job_type" class="search-select">
-                                <option value="">All Job Types</option>
-                                {% for value, label in job_types.items %}
-                                    <option value="{{ value }}" {% if job_type == value %}selected{% endif %}>{{ label }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="search-button-group">
-                        <button type="submit" class="search-btn primary">
-                            <i class='bx bx-search-alt-2'></i>
-                            <span>Search Jobs</span>
-                        </button>
-                        <button type="button" class="search-btn secondary" onclick="clearForm()">
-                            <i class='bx bx-x'></i>
-                            <span>Clear</span>
-                        </button>
-                    </div>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
 
     <!-- Results Section -->
     <div class="results-section">
-        <!-- Results Header -->
-        <div class="results-header">
-            <div class="results-info">
-                <h3 class="results-title">
-                    <i class='bx bx-list-ul'></i>
-                    Job Results
-                </h3>
-                <div class="results-stats">
-                    <span class="results-count">{{ jobs|length }}</span>
-                    <span class="results-text">job{{ jobs|length|pluralize }} found</span>
-                    {% if query or location or job_type %}
-                        <span class="results-filters">with current filters</span>
-                    {% endif %}
-                </div>
-            </div>
-            
-            {% if jobs %}
-                <div class="results-actions">
-                    <button class="view-toggle-btn active" data-view="list">
+        <div class="card">
+            <!-- Results Header -->
+            <div class="card-header">
+                <div class="results-info">
+                    <h3 class="card-title">
                         <i class='bx bx-list-ul'></i>
-                    </button>
-                    <button class="view-toggle-btn" data-view="grid">
-                        <i class='bx bx-grid-alt'></i>
-                    </button>
+                        Job Results
+                    </h3>
+                    <div class="results-stats">
+                        <span class="results-count">{{ jobs|length }}</span>
+                        <span class="results-text">job{{ jobs|length|pluralize }} found</span>
+                        {% if query or location or job_type %}
+                            <span class="results-filters">with current filters</span>
+                        {% endif %}
+                    </div>
                 </div>
-            {% endif %}
-        </div>
 
-        <!-- Job Results -->
-        {% if jobs %}
-            <div class="jobs-container" id="jobsContainer">
+                {% if jobs %}
+                    <div class="results-actions">
+                        <button class="btn btn-sm btn-light view-toggle-btn active" data-view="list">
+                            <i class='bx bx-list-ul'></i>
+                        </button>
+                        <button class="btn btn-sm btn-light view-toggle-btn" data-view="grid">
+                            <i class='bx bx-grid-alt'></i>
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Job Results -->
+            <div class="card-body">
+                {% if jobs %}
+                    <div class="jobs-container" id="jobsContainer">
                 {% for job in jobs %}
                     <div class="job-card" data-job-id="{{ job.id }}">
                         <div class="job-card-main">
@@ -263,6 +286,8 @@
                 </div>
             </div>
         {% endif %}
+            </div>
+        </div>
     </div>
 </div>
 
@@ -396,230 +421,67 @@
 </script>
 
 <style>
-    /* Job Search Results Styles - Matching job_detail.html design */
+    /* Job Search Results Styles - Using base theme */
 
-    /* Main Content Layout - matching job_detail.html */
-    .main-content {
-        margin-left: 133px;
-        padding: 3rem 1.5rem 2rem 32px;
-        min-height: 116vh;
-        transition: var(--transition);
-        background-color: var(--bg-primary);
-    }
-
-    /* Page Header Styles - simplified to match job_detail */
-    .page-header {
-        margin-bottom: 1.5rem;
-        background: var(--card-bg);
-        padding: 1.5rem;
-        border-radius: 12px;
-        box-shadow: var(--shadow);
-        border: 1px solid var(--border-color);
-    }
-
-    .breadcrumb {
-        display: flex;
-        align-items: center;
-        margin-bottom: 1rem;
-        font-size: 0.9rem;
-        color: var(--text-muted);
-    }
-
-    .breadcrumb-link {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: var(--primary-color);
-        text-decoration: none;
-        font-weight: 500;
-        transition: var(--transition);
-    }
-
-    .breadcrumb-link:hover {
-        color: var(--primary-hover);
-    }
-
-    .breadcrumb-separator {
-        margin: 0 0.75rem;
-        color: var(--text-muted);
-    }
-
-    .breadcrumb-item.active {
-        color: var(--text-color);
-        font-weight: 500;
-    }
-
-    .page-title-section {
+    /* Job Search specific customizations */
+    .job-search-container .page-title-section {
         text-align: center;
     }
 
-    .page-title {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.75rem;
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: var(--heading-color);
-        margin-bottom: 0.5rem;
-    }
-
-    .page-title i {
-        color: var(--primary-color);
-    }
-
-    .query-highlight {
+    .job-search-container .query-highlight {
         color: var(--primary-color);
         font-weight: 600;
     }
 
-    .page-subtitle {
-        color: var(--text-muted);
-        font-size: 1rem;
-        margin: 0;
+    /* Search Section - Using base card system */
+    .job-search-container .search-section {
+        margin-bottom: var(--spacing-lg);
     }
 
-    /* Search Section - simplified styling */
-    .search-section {
-        margin-bottom: 1.5rem;
+    /* Search card inherits from base card styles */
+
+    .job-search-container .search-form {
+        padding: var(--spacing-lg);
     }
 
-    .search-card {
-        background: var(--card-bg);
-        border-radius: 12px;
-        box-shadow: var(--shadow);
-        border: 1px solid var(--border-color);
-        overflow: hidden;
-    }
-
-    .search-header {
-        background-color: var(--card-header-bg);
-        color: var(--heading-color);
-        padding: 1.25rem;
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .search-title {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-    }
-
-    .search-title i {
-        color: var(--primary-color);
-    }
-
-    .search-subtitle {
-        margin: 0;
-        color: var(--text-muted);
-        font-size: 0.95rem;
-    }
-
-    .search-form {
-        padding: 1.5rem;
-    }
-
-    .search-grid {
+    .job-search-container .search-grid {
         display: grid;
         grid-template-columns: 2fr 1.5fr 1.2fr auto auto;
-        gap: 1rem;
+        gap: var(--spacing);
         align-items: end;
     }
 
-    .search-input-group {
+    .job-search-container .search-input-group {
         display: flex;
         flex-direction: column;
     }
 
-    .input-label {
-        font-weight: 500;
-        color: var(--heading-color);
-        margin-bottom: 0.5rem;
-        font-size: 0.9rem;
-    }
-
-    .input-wrapper {
+    .job-search-container .input-wrapper {
         position: relative;
         display: flex;
         align-items: center;
     }
 
-    .input-icon {
+    .job-search-container .input-icon {
         position: absolute;
-        left: 0.75rem;
+        left: var(--spacing-sm);
         color: var(--text-muted);
-        font-size: 1.1rem;
+        font-size: var(--font-size-lg);
         z-index: 1;
     }
 
-    .search-input,
-    .search-select {
-        width: 100%;
-        padding: 0.75rem 0.75rem 0.75rem 2.5rem;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        font-size: 0.95rem;
-        background: var(--input-bg);
-        color: var(--text-color);
-        transition: var(--transition);
-        font-family: inherit;
+    .job-search-container .search-input,
+    .job-search-container .search-select {
+        /* Inherits from base form-control styles */
+        padding-left: 2.5rem;
     }
 
-    .search-input:focus,
-    .search-select:focus {
-        outline: none;
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 2px var(--primary-color-light);
-    }
-
-    .search-input::placeholder {
-        color: var(--text-muted);
-    }
-
-    .search-button-group {
+    .job-search-container .search-button-group {
         display: flex;
-        gap: 0.5rem;
+        gap: var(--spacing-sm);
     }
 
-    .search-btn {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.75rem 1.25rem;
-        border-radius: 8px;
-        font-weight: 500;
-        font-size: 0.95rem;
-        border: 1px solid transparent;
-        cursor: pointer;
-        transition: var(--transition);
-        white-space: nowrap;
-    }
-
-    .search-btn.primary {
-        background: var(--primary-color);
-        color: white;
-        border-color: var(--primary-color);
-    }
-
-    .search-btn.primary:hover {
-        background: var(--primary-hover);
-        transform: translateY(-1px);
-        box-shadow: var(--shadow);
-    }
-
-    .search-btn.secondary {
-        background: var(--light-bg);
-        color: var(--text-color);
-        border-color: var(--border-color);
-    }
-
-    .search-btn.secondary:hover {
-        background: var(--hover-bg);
-        border-color: var(--text-muted);
-    }
+    /* Search buttons use base button system */
 
     /* Results Section - matching job_detail card structure */
     .results-section {
