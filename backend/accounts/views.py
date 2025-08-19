@@ -601,7 +601,7 @@ def forgot_password(request):
                         return JsonResponse({
                             'success': True, 
                             'message': 'Password reset successfully! You can now login with your new password.',
-                            'redirect_url': '/accounts/login/'
+                            'redirect_url': '/login/'
                         })
                     messages.success(request, "Password reset successfully! You can now login.")
                     return redirect('accounts:login')

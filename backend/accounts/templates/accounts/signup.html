@@ -6,974 +6,1177 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sign Up - JobElevate</title>
-    <!-- ==== "Inter" FONT-FAMILY FROM FONTS.GOOGLE.COM  ==== -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- ====  REMIXICON CDN ==== -->
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet" />
+    <meta name="description" content="Create your JobElevate account and start your career journey today. Join thousands of professionals who've elevated their careers.">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
+    <!-- Animations -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
     <style>
-      /* ==== ROOT RESET ==== */
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: "Inter", sans-serif;
-      }
-      *::before,
-      *::after {
-        box-sizing: border-box;
-      }
+        /* Modern CSS Variables */
+        :root {
+            --primary-color: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --primary-light: #dbeafe;
+            --secondary-color: #8b5cf6;
+            --accent-color: #06b6d4;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
 
-      /* ==== CSS VARIABLES ==== */
-      :root {
-        --primary-color: #335eea;
-        --secondary-color: #764ba2;
-        --btn-hover-color: #2b50c7;
-        --lg-heading: #161c2d;
-        --text-content: #869ab8;
-        --fixed-header-height: 4.5rem;
-        --box-shadow: 0 10px 30px rgba(57, 108, 248, 0.1);
-        --success-color: #10b981;
-        --error-color: #ef4444;
-        --warning-color: #f59e0b;
-      }
+            --white: #ffffff;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
 
-      body {
-        width: 100%;
-        min-height: 100vh;
-        overflow-x: hidden;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        position: relative;
-      }
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-size-xs: 0.75rem;
+            --font-size-sm: 0.875rem;
+            --font-size-base: 1rem;
+            --font-size-lg: 1.125rem;
+            --font-size-xl: 1.25rem;
+            --font-size-2xl: 1.5rem;
+            --font-size-3xl: 1.875rem;
+            --font-size-4xl: 2.25rem;
+            --font-size-5xl: 3rem;
 
-      body::before {
-        content: '';
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
-        opacity: 0.3;
-        z-index: -1;
-      }
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-2xl: 3rem;
+            --spacing-3xl: 4rem;
 
-      a {
-        text-decoration: none;
-      }
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 
-      button {
-        cursor: pointer;
-      }
+            --radius-sm: 0.25rem;
+            --radius: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-2xl: 1.5rem;
+            --radius-full: 9999px;
 
-      /* ==== HEADER ==== */
-      .header {
-        height: var(--fixed-header-height);
-        padding: 0 2rem;
-        background-color: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(20px);
-        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        z-index: 100;
-      }
+            --transition-fast: 150ms ease-in-out;
+            --transition: 300ms ease-in-out;
+            --transition-slow: 500ms ease-in-out;
 
-      .nav {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        max-width: 1600px;
-        margin: 0 auto;
-      }
-
-      .logo h2 {
-        font-size: 28px;
-        font-weight: 700;
-        color: var(--primary-color);
-      }
-
-      .nav_menu_list {
-        display: flex;
-        align-items: center;
-        list-style: none;
-        gap: 2rem;
-      }
-
-      .nav_menu_item .nav_menu_link {
-        font-size: 16px;
-        font-weight: 500;
-        color: var(--lg-heading);
-        text-transform: capitalize;
-        transition: color 0.3s ease;
-      }
-
-      .nav_menu_link:hover {
-        color: var(--primary-color);
-      }
-
-      .toggle_btn {
-        font-size: 20px;
-        color: var(--lg-heading);
-        background: transparent;
-        border: none;
-        display: none;
-      }
-
-      /* ==== MAIN CONTAINER ==== */
-      .main-container {
-        display: flex;
-        min-height: 100vh;
-        padding-top: var(--fixed-header-height);
-      }
-
-      /* ==== IMAGE SIDE ==== */
-      .image-side {
-        width: 45%;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-        backdrop-filter: blur(10px);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        padding: 2rem;
-        position: relative;
-        overflow: hidden;
-      }
-      .image-side::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
-        opacity: 0.3;
-      }
-      .image-side img {
-        max-width: 65%;
-        height: auto;
-        filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.2));
-        z-index: 1;
-      }
-      .image-side .welcome-text {
-        margin-top: 2rem;
-        text-align: center;
-        z-index: 1;
-      }
-      .welcome-text h3 {
-        font-size: 28px;
-        color: white;
-        margin-bottom: 1rem;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-      }
-      .welcome-text p {
-        font-size: 16px;
-        color: rgba(255, 255, 255, 0.9);
-        max-width: 400px;
-        line-height: 1.6;
-        text-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
-      }
-
-      /* ==== FORM SIDE ==== */
-      .form-side {
-        width: 55%;
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        padding: 2rem;
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(10px);
-        overflow-y: auto;
-        max-height: calc(100vh - var(--fixed-header-height));
-      }
-
-      /* ==== FORM CONTAINER ==== */
-      .form-container {
-        width: 100%;
-        max-width: 500px;
-        padding: 3rem;
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(20px);
-        border-radius: 20px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        position: relative;
-        overflow: hidden;
-        margin: 2rem 0;
-      }
-
-      .form-container::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-      }
-
-      .form-container .title {
-        font-size: 30px;
-        font-weight: 700;
-        color: var(--lg-heading);
-        margin-bottom: 0.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-
-      .form-container .subtitle {
-        font-size: 16px;
-        color: var(--text-content);
-        margin-bottom: 2rem;
-      }
-
-      /* ==== FORM SECTIONS ==== */
-      .signup-form, .otp-section {
-        display: none;
-        animation: fadeInSlide 0.5s ease-out;
-      }
-
-      .signup-form.active, .otp-section.active {
-        display: block;
-      }
-
-      @keyframes fadeInSlide {
-        from {
-          opacity: 0;
-          transform: translateX(20px);
+            --z-dropdown: 1000;
+            --z-sticky: 1020;
+            --z-fixed: 1030;
+            --z-modal: 1040;
+            --z-tooltip: 1050;
         }
-        to {
-          opacity: 1;
-          transform: translateX(0);
+
+        /* Base Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-      }
 
-      /* ==== INPUT STYLES ==== */
-      .input-box {
-        margin-bottom: 1.5rem;
-        position: relative;
-      }
-
-      .form-row {
-        display: flex;
-        gap: 1rem;
-        flex-wrap: nowrap;
-      }
-
-      .form-row .input-box {
-        flex: 1;
-        min-width: 0;
-        width: calc(50% - 0.5rem);
-      }
-
-      .input-box.full-width {
-        width: 100%;
-      }
-
-      .input-box label {
-        display: block;
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--lg-heading);
-        margin-bottom: 0.5rem;
-      }
-
-      .input-box input,
-      .input-box select {
-        width: 100%;
-        height: 55px;
-        padding: 0 1rem;
-        font-size: 15px;
-        border: 2px solid rgba(225, 229, 238, 0.5);
-        border-radius: 12px;
-        transition: all 0.3s ease;
-        background-color: rgba(248, 249, 250, 0.8);
-        backdrop-filter: blur(5px);
-      }
-
-      .input-box input:focus,
-      .input-box select:focus {
-        border-color: var(--primary-color);
-        background-color: rgba(255, 255, 255, 0.95);
-        box-shadow: 0 0 0 4px rgba(51, 94, 234, 0.1);
-        outline: none;
-        transform: translateY(-2px);
-      }
-
-      .toggle-password {
-        position: absolute;
-        right: 1rem;
-        top: 60%;
-        transform: translateY(-50%);
-        cursor: pointer;
-        color: var(--text-content);
-        transition: all 0.3s ease;
-        font-size: 18px;
-      }
-
-      .toggle-password:hover {
-        color: var(--primary-color);
-        transform: translateY(-50%) scale(1.1);
-      }
-
-      /* ==== DYNAMIC FIELDS ==== */
-      .dynamic-fields {
-        display: none;
-        margin-top: 1.5rem;
-        padding-top: 1.5rem;
-        border-top: 2px solid rgba(225, 229, 238, 0.3);
-        animation: slideDown 0.3s ease-out;
-      }
-
-      .dynamic-fields.active {
-        display: block;
-      }
-
-      @keyframes slideDown {
-        from {
-          opacity: 0;
-          max-height: 0;
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
         }
-        to {
-          opacity: 1;
-          max-height: 500px;
+
+        body {
+            font-family: var(--font-family);
+            line-height: 1.6;
+            color: var(--gray-800);
+            background: var(--white);
+            overflow-x: hidden;
         }
-      }
 
-      .dynamic-fields-title {
-        font-size: 18px;
-        color: var(--lg-heading);
-        margin-bottom: 1.5rem;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-
-      /* ==== BUTTON STYLES ==== */
-      .button {
-        margin-top: 2rem;
-      }
-
-      .button input,
-      .button button,
-      .verify-button {
-        width: 100%;
-        height: 55px;
-        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-        color: #fff;
-        font-size: 16px;
-        font-weight: 600;
-        border-radius: 12px;
-        border: none;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 8px 25px rgba(51, 94, 234, 0.3);
-        position: relative;
-        overflow: hidden;
-      }
-
-      .button input::before,
-      .button button::before,
-      .verify-button::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-        transition: left 0.5s ease;
-      }
-
-      .button input:hover,
-      .button button:hover,
-      .verify-button:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 12px 35px rgba(51, 94, 234, 0.4);
-      }
-
-      .button input:hover::before,
-      .button button:hover::before,
-      .verify-button:hover::before {
-        left: 100%;
-      }
-
-      .button input:disabled,
-      .button button:disabled,
-      .verify-button:disabled {
-        opacity: 0.7;
-        cursor: not-allowed;
-        transform: none;
-      }
-
-      /* ==== ALERT STYLES ==== */
-      .alert {
-        padding: 1rem;
-        margin-bottom: 1.5rem;
-        border-radius: 12px;
-        text-align: center;
-        font-size: 14px;
-        border: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        animation: slideInAlert 0.3s ease-out;
-      }
-
-      @keyframes slideInAlert {
-        from {
-          opacity: 0;
-          transform: translateY(-10px);
+        /* Typography */
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: var(--spacing);
         }
-        to {
-          opacity: 1;
-          transform: translateY(0);
+
+        h1 { font-size: var(--font-size-5xl); }
+        h2 { font-size: var(--font-size-4xl); }
+        h3 { font-size: var(--font-size-3xl); }
+        h4 { font-size: var(--font-size-2xl); }
+        h5 { font-size: var(--font-size-xl); }
+        h6 { font-size: var(--font-size-lg); }
+
+        p {
+            margin-bottom: var(--spacing);
+            color: var(--gray-600);
         }
-      }
 
-      .alert.success {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.1));
-        color: var(--success-color);
-        border-left: 4px solid var(--success-color);
-      }
-
-      .alert.error {
-        background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.1));
-        color: var(--error-color);
-        border-left: 4px solid var(--error-color);
-      }
-
-      /* ==== OTP SECTION ==== */
-      .otp-icon {
-        width: 60px;
-        height: 60px;
-        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-        border-radius: 50%;
-        margin: 0 auto 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        color: white;
-        box-shadow: 0 10px 30px rgba(51, 94, 234, 0.3);
-      }
-
-      .otp-title {
-        font-size: 24px;
-        color: var(--lg-heading);
-        margin-bottom: 0.5rem;
-        font-weight: 700;
-        text-align: center;
-      }
-
-      .otp-subtitle {
-        color: var(--text-content);
-        margin-bottom: 2rem;
-        line-height: 1.6;
-        text-align: center;
-      }
-
-      .email-highlight {
-        color: var(--primary-color);
-        font-weight: 600;
-      }
-
-      .otp-input {
-        width: 100%;
-        height: 60px;
-        padding: 0 1rem;
-        font-size: 1.5rem;
-        text-align: center;
-        border: 2px solid rgba(225, 229, 238, 0.5);
-        border-radius: 12px;
-        letter-spacing: 0.5rem;
-        transition: all 0.3s ease;
-        background-color: rgba(248, 249, 250, 0.8);
-        backdrop-filter: blur(5px);
-        margin-bottom: 1.5rem;
-      }
-
-      .otp-input:focus {
-        outline: none;
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 4px rgba(51, 94, 234, 0.1);
-        background-color: rgba(255, 255, 255, 0.95);
-        transform: translateY(-2px);
-      }
-
-      .resend-section {
-        padding: 1.5rem 0;
-        border-top: 2px solid rgba(225, 229, 238, 0.3);
-        margin-top: 1.5rem;
-        text-align: center;
-      }
-
-      .resend-text {
-        color: var(--text-content);
-        margin-bottom: 1rem;
-        font-size: 14px;
-      }
-
-      .resend-button {
-        background: none;
-        border: 2px solid var(--primary-color);
-        color: var(--primary-color);
-        padding: 0.75rem 2rem;
-        border-radius: 10px;
-        cursor: pointer;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        font-size: 14px;
-      }
-
-      .resend-button:hover {
-        background: var(--primary-color);
-        color: white;
-        transform: translateY(-2px);
-      }
-
-      .resend-button:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        transform: none;
-      }
-
-      .timer {
-        color: var(--error-color);
-        font-weight: 600;
-        margin-top: 1rem;
-        font-size: 14px;
-      }
-
-      .back-to-form {
-        margin-top: 1.5rem;
-        text-align: center;
-      }
-
-      .back-to-form button {
-        color: var(--text-content);
-        text-decoration: none;
-        font-weight: 500;
-        border: none;
-        background: none;
-        cursor: pointer;
-        font-size: 14px;
-        transition: all 0.3s ease;
-      }
-
-      .back-to-form button:hover {
-        text-decoration: underline;
-        color: var(--primary-color);
-      }
-
-      /* ==== LINKS ==== */
-      .login-link {
-        margin-top: 2rem;
-        text-align: center;
-        font-size: 15px;
-        color: var(--text-content);
-      }
-
-      .login-link a {
-        color: var(--primary-color);
-        font-weight: 600;
-        transition: all 0.3s ease;
-      }
-
-      .login-link a:hover {
-        text-decoration: underline;
-        color: var(--btn-hover-color);
-      }
-
-      /* ==== LOADING SPINNER ==== */
-      .loading {
-        opacity: 0.7;
-        pointer-events: none;
-      }
-
-      .spinner {
-        display: none;
-        width: 20px;
-        height: 20px;
-        border: 2px solid transparent;
-        border-top: 2px solid #fff;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        margin-right: 0.5rem;
-      }
-
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-
-      /* ==== STEP INDICATORS ==== */
-      .step-indicator {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-bottom: 2rem;
-        gap: 1rem;
-      }
-
-      .step-dot {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background-color: rgba(225, 229, 238, 0.5);
-        transition: all 0.3s ease;
-        position: relative;
-      }
-
-      .step-dot.active {
-        background-color: var(--primary-color);
-        transform: scale(1.3);
-        box-shadow: 0 0 0 4px rgba(51, 94, 234, 0.2);
-      }
-
-      .step-dot.completed {
-        background-color: var(--success-color);
-      }
-
-      .step-line {
-        width: 30px;
-        height: 2px;
-        background-color: rgba(225, 229, 238, 0.5);
-        transition: all 0.3s ease;
-      }
-
-      .step-line.active {
-        background-color: var(--primary-color);
-      }
-
-      /* ==== MEDIA QUERIES ==== */
-      @media screen and (max-width: 1024px) {
-        .image-side {
-          width: 40%;
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: var(--transition-fast);
         }
-        .form-side {
-          width: 60%;
-        }
-      }
 
-      @media screen and (max-width: 768px) {
-        .toggle_btn {
-          display: block;
+        ul, ol {
+            list-style: none;
         }
-        
+
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 var(--spacing);
+        }
+
+        @media (min-width: 640px) {
+            .container { padding: 0 var(--spacing-lg); }
+        }
+
+        @media (min-width: 1024px) {
+            .container { padding: 0 var(--spacing-xl); }
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--gray-200);
+            z-index: var(--z-fixed);
+            transition: var(--transition);
+        }
+
+        .header.scrolled {
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing) 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-size: var(--font-size-2xl);
+            font-weight: 800;
+            color: var(--primary-color);
+        }
+
+        .logo i {
+            font-size: var(--font-size-3xl);
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-2xl);
+        }
+
+        .nav-link {
+            font-weight: 500;
+            color: var(--gray-700);
+            transition: var(--transition-fast);
+            position: relative;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-color);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-color);
+            transition: var(--transition-fast);
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing);
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: var(--font-size-2xl);
+            color: var(--gray-700);
+            cursor: pointer;
+        }
+
+        /* Main Container */
         .main-container {
-          flex-direction: column;
+            display: flex;
+            min-height: 100vh;
+            padding-top: 80px;
+            background: var(--white);
         }
-        
+
+        /* Image Side */
         .image-side {
-          width: 100%;
-          height: auto;
-          padding: 3rem 2rem;
-          min-height: 40vh;
+            width: 45%;
+            background: var(--gray-50);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: var(--spacing-3xl);
+            position: relative;
+            overflow: hidden;
         }
-        
+
+        .image-side::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
+            z-index: 1;
+        }
+
+        .image-side img {
+            max-width: 70%;
+            height: auto;
+            z-index: 2;
+            position: relative;
+            filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.1));
+        }
+
+        .welcome-text {
+            margin-top: var(--spacing-2xl);
+            text-align: center;
+            z-index: 2;
+            position: relative;
+        }
+
+        .welcome-text h3 {
+            font-size: var(--font-size-3xl);
+            color: var(--gray-900);
+            margin-bottom: var(--spacing);
+            font-weight: 700;
+        }
+
+        .welcome-text p {
+            font-size: var(--font-size-lg);
+            color: var(--gray-600);
+            max-width: 400px;
+            line-height: 1.6;
+        }
+
+        /* Form Side */
         .form-side {
-          width: 100%;
-          padding: 2rem 1.5rem;
+            width: 55%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: var(--spacing-xl);
+            background: var(--white);
+            overflow-y: auto;
+            max-height: calc(100vh - 80px);
         }
-        
+
+        /* Form Container */
         .form-container {
-          padding: 2rem;
-          margin: 1rem 0;
+            width: 100%;
+            max-width: 520px;
+            padding: var(--spacing-2xl);
+            background: var(--white);
+            border-radius: var(--radius-2xl);
+            box-shadow: var(--shadow-xl);
+            border: 1px solid var(--gray-200);
+            position: relative;
+            overflow: hidden;
+            margin: var(--spacing) 0;
+        }
+
+        .form-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        }
+
+        .form-container .title {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: var(--spacing-xs);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .form-container .subtitle {
+            font-size: var(--font-size-sm);
+            color: var(--gray-600);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        /* Button Components */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing) var(--spacing-xl);
+            border-radius: var(--radius-lg);
+            font-weight: 600;
+            font-size: var(--font-size-base);
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: var(--white);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .btn-secondary {
+            background: var(--white);
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary-color);
+            color: var(--white);
+            transform: translateY(-2px);
+        }
+
+        /* Form Sections */
+        .signup-form, .otp-section {
+            display: none;
+            animation: fadeInSlide 0.5s ease-out;
+        }
+
+        .signup-form.active, .otp-section.active {
+            display: block;
+        }
+
+        @keyframes fadeInSlide {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Input Styles */
+        .input-box {
+            margin-bottom: var(--spacing);
+            position: relative;
         }
 
         .form-row {
-        flex-direction: column;
-        gap: 1rem;
-        flex-wrap: nowrap;
-      }
-
-      .form-row .input-box {
-        min-width: auto;
-        width: 100%;
-      }
-        .nav_menu_list {
-          display: none;
-        }
-      }
-
-      @media screen and (max-width: 480px) {
-        .logo h2 {
-          font-size: 24px;
-        }
-        
-        .header {
-          padding: 0 1.5rem;
-        }
-        
-        .form-container {
-          padding: 1.5rem;
-        }
-        
-        .form-container .title {
-          font-size: 26px;
-        }
-        
-        .welcome-text h3 {
-          font-size: 24px;
+            display: flex;
+            gap: var(--spacing);
+            flex-wrap: nowrap;
         }
 
-        .image-side {
-          padding: 2rem 1.5rem;
+        .form-row .input-box {
+            flex: 1;
+            min-width: 0;
+            width: calc(50% - 0.5rem);
         }
-      }
+
+        .input-box.full-width {
+            width: 100%;
+        }
+
+        .input-box label {
+            display: block;
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .input-box input,
+        .input-box select {
+            width: 100%;
+            height: 48px;
+            padding: 0 var(--spacing);
+            font-size: var(--font-size-sm);
+            border: 2px solid var(--gray-300);
+            border-radius: var(--radius-lg);
+            transition: all var(--transition);
+            background-color: var(--white);
+            color: var(--gray-900);
+        }
+
+        .input-box input:focus,
+        .input-box select:focus {
+            border-color: var(--primary-color);
+            background-color: var(--white);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            outline: none;
+            transform: translateY(-2px);
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: var(--spacing);
+            top: 60%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--gray-500);
+            transition: all var(--transition);
+            font-size: var(--font-size-lg);
+        }
+
+        .toggle-password:hover {
+            color: var(--primary-color);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        /* Dynamic Fields */
+        .dynamic-fields {
+            display: none;
+            margin-top: var(--spacing);
+            padding-top: var(--spacing);
+            border-top: 1px solid var(--gray-200);
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .dynamic-fields.active {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+            }
+            to {
+                opacity: 1;
+                max-height: 500px;
+            }
+        }
+
+        .dynamic-fields-title {
+            font-size: var(--font-size-base);
+            color: var(--gray-900);
+            margin-bottom: var(--spacing);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        /* Button Styles */
+        .button {
+            margin-top: var(--spacing-lg);
+        }
+
+        .button input,
+        .button button,
+        .verify-button {
+            width: 100%;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: var(--white);
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            border-radius: var(--radius-lg);
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition);
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .button input::before,
+        .button button::before,
+        .verify-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .button input:hover,
+        .button button:hover,
+        .verify-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .button input:hover::before,
+        .button button:hover::before,
+        .verify-button:hover::before {
+            left: 100%;
+        }
+
+        .button input:disabled,
+        .button button:disabled,
+        .verify-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: var(--spacing);
+            margin-bottom: var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            text-align: center;
+            font-size: var(--font-size-sm);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            animation: slideInAlert 0.3s ease-out;
+        }
+
+        @keyframes slideInAlert {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .alert.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        /* OTP Section */
+        .otp-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 50%;
+            margin: 0 auto var(--spacing-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-2xl);
+            color: var(--white);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .otp-title {
+            font-size: var(--font-size-2xl);
+            color: var(--gray-900);
+            margin-bottom: var(--spacing-sm);
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .otp-subtitle {
+            color: var(--gray-600);
+            margin-bottom: var(--spacing-2xl);
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .email-highlight {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .otp-input {
+            width: 100%;
+            height: 60px;
+            padding: 0 var(--spacing);
+            font-size: var(--font-size-2xl);
+            text-align: center;
+            border: 2px solid var(--gray-300);
+            border-radius: var(--radius-lg);
+            letter-spacing: 0.5rem;
+            transition: all var(--transition);
+            background-color: var(--white);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .otp-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            background-color: var(--white);
+            transform: translateY(-2px);
+        }
+
+        .resend-section {
+            padding: var(--spacing-lg) 0;
+            border-top: 2px solid var(--gray-200);
+            margin-top: var(--spacing-lg);
+            text-align: center;
+        }
+
+        .resend-text {
+            color: var(--gray-600);
+            margin-bottom: var(--spacing);
+            font-size: var(--font-size-sm);
+        }
+
+        .resend-button {
+            background: none;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: var(--spacing) var(--spacing-xl);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all var(--transition);
+            font-size: var(--font-size-sm);
+        }
+
+        .resend-button:hover {
+            background: var(--primary-color);
+            color: var(--white);
+            transform: translateY(-2px);
+        }
+
+        .resend-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .timer {
+            color: var(--danger-color);
+            font-weight: 600;
+            margin-top: var(--spacing);
+            font-size: var(--font-size-sm);
+        }
+
+        .back-to-form {
+            margin-top: var(--spacing-lg);
+            text-align: center;
+        }
+
+        .back-to-form button {
+            color: var(--gray-600);
+            text-decoration: none;
+            font-weight: 500;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: var(--font-size-sm);
+            transition: all var(--transition);
+        }
+
+        .back-to-form button:hover {
+            text-decoration: underline;
+            color: var(--primary-color);
+        }
+
+        /* Links */
+        .login-link {
+            margin-top: var(--spacing-lg);
+            text-align: center;
+            font-size: var(--font-size-sm);
+            color: var(--gray-600);
+        }
+
+        .login-link a {
+            color: var(--primary-color);
+            font-weight: 600;
+            transition: all var(--transition);
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+            color: var(--primary-dark);
+        }
+
+        /* Loading Spinner */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid var(--white);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: var(--spacing-sm);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Step Indicators */
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: var(--spacing-lg);
+            gap: var(--spacing);
+        }
+
+        .step-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--gray-300);
+            transition: all var(--transition);
+            position: relative;
+        }
+
+        .step-dot.active {
+            background-color: var(--primary-color);
+            transform: scale(1.3);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+        }
+
+        .step-dot.completed {
+            background-color: var(--success-color);
+        }
+
+        .step-line {
+            width: 30px;
+            height: 2px;
+            background-color: var(--gray-300);
+            transition: all var(--transition);
+        }
+
+        .step-line.active {
+            background-color: var(--primary-color);
+        }
+
+        /* Media Queries */
+        @media screen and (max-width: 1024px) {
+            .image-side {
+                width: 40%;
+            }
+            .form-side {
+                width: 60%;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .nav-menu {
+                position: fixed;
+                top: 80px;
+                left: 0;
+                right: 0;
+                background: rgba(255, 255, 255, 0.98);
+                backdrop-filter: blur(20px);
+                padding: var(--spacing-xl);
+                box-shadow: var(--shadow-xl);
+                transform: translateY(-100%);
+                opacity: 0;
+                transition: all 0.3s ease;
+                z-index: var(--z-modal);
+            }
+
+            .nav-menu.active {
+                transform: translateY(0);
+                opacity: 1;
+            }
+
+            .nav-menu a {
+                display: block;
+                padding: var(--spacing) 0;
+                border-bottom: 1px solid var(--gray-200);
+                font-size: var(--font-size-lg);
+            }
+
+            .main-container {
+                flex-direction: column;
+            }
+
+            .image-side {
+                width: 100%;
+                height: auto;
+                padding: var(--spacing-3xl) var(--spacing-2xl);
+                min-height: 40vh;
+            }
+
+            .form-side {
+                width: 100%;
+                padding: var(--spacing-2xl) var(--spacing-lg);
+            }
+
+            .form-container {
+                padding: var(--spacing-2xl);
+                margin: var(--spacing) 0;
+            }
+
+            .form-row {
+                flex-direction: column;
+                gap: var(--spacing);
+                flex-wrap: nowrap;
+            }
+
+            .form-row .input-box {
+                min-width: auto;
+                width: 100%;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .container {
+                padding: 0 var(--spacing-sm);
+            }
+
+            .logo {
+                font-size: var(--font-size-xl);
+            }
+
+            .form-container {
+                padding: var(--spacing-lg);
+            }
+
+            .form-container .title {
+                font-size: var(--font-size-2xl);
+            }
+
+            .welcome-text h3 {
+                font-size: var(--font-size-2xl);
+            }
+
+            .image-side {
+                padding: var(--spacing-2xl) var(--spacing-lg);
+            }
+        }
+
+        /* Reduced motion preferences */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
     </style>
   </head>
   <body>
-    <!-- ==== HEADER ==== -->
-    <header class="header">
-      <nav class="nav">
-        <div class="logo">
-          <h2>JobElevate.</h2>
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="container">
+            <nav class="nav">
+                <div class="logo">
+                    <i class='bx bxs-briefcase-alt'></i>
+                    JobElevate
+                </div>
+
+                <div class="nav-menu" id="nav-menu">
+                    <a href="/" class="nav-link">Home</a>
+                    <a href="/login/" class="nav-link">Login</a>
+                </div>
+
+                <div class="nav-actions">
+                    <a href="/login/" class="btn btn-secondary">Login</a>
+                </div>
+
+                <button class="mobile-menu-toggle" id="mobile-menu-toggle">
+                    <i class='bx bx-menu'></i>
+                </button>
+            </nav>
         </div>
-        <ul class="nav_menu_list">
-          <li class="nav_menu_item">
-            <a href="/" class="nav_menu_link">Home</a>
-          </li>
-          <li class="nav_menu_item">
-            <a href="/login/" class="nav_menu_link">Login</a>
-          </li>
-        </ul>
-        <button class="toggle_btn">
-          <i class="ri-menu-line"></i>
-        </button>
-      </nav>
     </header>
 
-    <!-- ==== MAIN CONTAINER ==== -->
+    <!-- Main Container -->
     <div class="main-container">
-      <!-- ==== IMAGE SIDE ==== -->
-      <div class="image-side">
-        <img src="{% static 'images/6368592.jpg' %}" alt="JobElevate Signup">
-        <div class="welcome-text">
-          <h3>Join JobElevate Today!</h3>
-          <p>Create your account and start your journey towards finding the perfect job or talent. Connect with opportunities that match your skills and ambitions.</p>
+        <!-- Image Side -->
+        <div class="image-side" data-aos="fade-right" data-aos-duration="1000">
+            <img src="{% static 'images/19209.jpg' %}" alt="Join JobElevate Team">
+            <div class="welcome-text">
+                <h3>Join JobElevate Today!</h3>
+                <p>Create your account and start your journey towards finding the perfect job or talent. Connect with opportunities that match your skills and ambitions in a world-class platform.</p>
+            </div>
         </div>
-      </div>
 
-      <!-- ==== FORM SIDE ==== -->
-      <div class="form-side">
-        <div class="form-container">
-          <!-- Display Django Messages -->
-          {% if messages %}
-            {% for message in messages %}
-              <div class="alert {% if message.tags == 'error' %}error{% else %}{{ message.tags }}{% endif %}">
-                <i class="ri-{% if message.tags == 'error' %}error-warning{% elif message.tags == 'success' %}check-double{% else %}information{% endif %}-line"></i>
-                {{ message }}
-              </div>
-            {% endfor %}
-          {% endif %}
+        <!-- Form Side -->
+        <div class="form-side">
+            <div class="form-container" data-aos="fade-left" data-aos-duration="1000" data-aos-delay="200">
+                <!-- Display Django Messages -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert {% if message.tags == 'error' %}error{% else %}{{ message.tags }}{% endif %}">
+                            <i class='bx bx-{% if message.tags == 'error' %}error-circle{% elif message.tags == 'success' %}check-circle{% else %}info-circle{% endif %}'></i>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
 
-          <!-- Step Indicator -->
-          <div class="step-indicator">
-            <div class="step-dot active" id="step1-dot"></div>
-            <div class="step-line" id="step1-line"></div>
-            <div class="step-dot" id="step2-dot"></div>
-          </div>
-
-          <!-- Registration Form -->
-          <div id="signup-form" class="signup-form active">
-            <h1 class="title">
-              <i class="ri-user-add-line"></i>
-              Create Account
-            </h1>
-            <p class="subtitle">Join our community and unlock your career potential</p>
-
-            <form id="registrationForm" method="post">
-              {% csrf_token %}
-              <input type="hidden" name="step" value="1">
-
-              <!-- Basic Information -->
-              <div class="form-row">
-                <div class="input-box">
-                  <label for="full_name">Full Name *</label>
-                  <input type="text" id="full_name" name="full_name" required value="{{ form_data.full_name|default:'' }}">
+                <!-- Step Indicator -->
+                <div class="step-indicator">
+                    <div class="step-dot active" id="step1-dot"></div>
+                    <div class="step-line" id="step1-line"></div>
+                    <div class="step-dot" id="step2-dot"></div>
                 </div>
-                <div class="input-box">
-                  <label for="username">Username *</label>
-                  <input type="text" id="username" name="username" required value="{{ form_data.username|default:'' }}">
-                </div>
-              </div>
 
-              <div class="form-row">
-                <div class="input-box">
-                  <label for="email">Email Address *</label>
-                  <input type="email" id="email" name="email" required value="{{ form_data.email|default:'' }}">
-                </div>
-                <div class="input-box">
-                  <label for="phone_number">Phone Number *</label>
-                  <input type="tel" id="phone_number" name="phone_number" required value="{{ form_data.phone_number|default:'' }}">
-                </div>
-              </div>
+                <!-- Registration Form -->
+                <div id="signup-form" class="signup-form active">
+                    <h1 class="title">
+                        <i class='bx bx-user-plus'></i>
+                        Create Account
+                    </h1>
+                    <p class="subtitle">Join our community and unlock your career potential</p>
 
-              <div class="form-row">
-                <div class="input-box">
-                  <label for="password">Password *</label>
-                  <input type="password" id="password" name="password" required>
-                  <i class="toggle-password ri-eye-off-line" onclick="togglePassword('password')"></i>
-                </div>
-                <div class="input-box">
-                  <label for="confirm_password">Confirm Password *</label>
-                  <input type="password" id="confirm_password" name="confirm_password" required>
-                  <i class="toggle-password ri-eye-off-line" onclick="togglePassword('confirm_password')"></i>
-                </div>
-              </div>
+                    <form id="registrationForm" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="step" value="1">
 
-              <div class="input-box full-width">
-                <label for="user_type">I am a *</label>
-                <select id="user_type" name="user_type" required onchange="showDynamicFields()">
-                  <option value="">Select your role</option>
-                  <option value="student" {% if form_data.user_type == 'student' %}selected{% endif %}>Student</option>
-                  <option value="professional" {% if form_data.user_type == 'professional' %}selected{% endif %}>Professional</option>
-                  <option value="recruiter" {% if form_data.user_type == 'recruiter' %}selected{% endif %}>Recruiter</option>
-                </select>
-              </div>
+                        <!-- Basic Information -->
+                        <div class="form-row">
+                            <div class="input-box">
+                                <label for="full_name">Full Name *</label>
+                                <input type="text" id="full_name" name="full_name" required value="{{ form_data.full_name|default:'' }}" placeholder="Enter your full name">
+                            </div>
+                            <div class="input-box">
+                                <label for="username">Username *</label>
+                                <input type="text" id="username" name="username" required value="{{ form_data.username|default:'' }}" placeholder="Choose a username">
+                            </div>
+                        </div>
 
-              <!-- Dynamic Fields for Student -->
-              <div id="student-fields" class="dynamic-fields">
-                <h3 class="dynamic-fields-title">
-                  <i class="ri-graduation-cap-line"></i>
-                  Student Information
-                </h3>
-                <div class="form-row">
-                  <div class="input-box">
-                    <label for="university">University</label>
-                    <input type="text" id="university" name="university" value="{{ form_data.university|default:'' }}">
-                  </div>
-                  <div class="input-box">
-                    <label for="degree">Degree</label>
-                    <input type="text" id="degree" name="degree" value="{{ form_data.degree|default:'' }}">
-                  </div>
-                </div>
-                <div class="input-box full-width">
-                  <label for="graduation_year">Expected Graduation Year</label>
-                  <input type="number" id="graduation_year" name="graduation_year" min="2020" max="2035" value="{{ form_data.graduation_year|default:'' }}">
-                </div>
-              </div>
+                        <div class="form-row">
+                            <div class="input-box">
+                                <label for="email">Email Address *</label>
+                                <input type="email" id="email" name="email" required value="{{ form_data.email|default:'' }}" placeholder="Enter your email">
+                            </div>
+                            <div class="input-box">
+                                <label for="phone_number">Phone Number *</label>
+                                <input type="tel" id="phone_number" name="phone_number" required value="{{ form_data.phone_number|default:'' }}" placeholder="Enter your phone">
+                            </div>
+                        </div>
 
-              <!-- Dynamic Fields for Professional -->
-              <div id="professional-fields" class="dynamic-fields">
-                <h3 class="dynamic-fields-title">
-                  <i class="ri-briefcase-line"></i>
-                  Professional Information
-                </h3>
-                <div class="form-row">
-                  <div class="input-box">
-                    <label for="job_title">Current Job Title</label>
-                    <input type="text" id="job_title" name="job_title" value="{{ form_data.job_title|default:'' }}">
-                  </div>
-                  <div class="input-box">
-                    <label for="organization">Organization</label>
-                    <input type="text" id="organization" name="organization" value="{{ form_data.organization|default:'' }}">
-                  </div>
-                </div>
-                <div class="input-box full-width">
-                  <label for="experience">Years of Experience</label>
-                  <input type="number" id="experience" name="experience" min="0" max="50" value="{{ form_data.experience|default:'' }}">
-                </div>
-              </div>
+                        <div class="form-row">
+                            <div class="input-box">
+                                <label for="password">Password *</label>
+                                <input type="password" id="password" name="password" required placeholder="Create a password">
+                                <i class="toggle-password bx bx-hide" onclick="togglePassword('password')"></i>
+                            </div>
+                            <div class="input-box">
+                                <label for="confirm_password">Confirm Password *</label>
+                                <input type="password" id="confirm_password" name="confirm_password" required placeholder="Confirm your password">
+                                <i class="toggle-password bx bx-hide" onclick="togglePassword('confirm_password')"></i>
+                            </div>
+                        </div>
 
-              <!-- Dynamic Fields for Recruiter -->
-              <div id="recruiter-fields" class="dynamic-fields">
-                <h3 class="dynamic-fields-title">
-                  <i class="ri-building-line"></i>
-                  Company Information
-                </h3>
-                <div class="form-row">
-                  <div class="input-box">
-                    <label for="company_name">Company Name</label>
-                    <input type="text" id="company_name" name="company_name" value="{{ form_data.company_name|default:'' }}">
-                  </div>
-                  <div class="input-box">
-                    <label for="company_website">Company Website</label>
-                    <input type="url" id="company_website" name="company_website" value="{{ form_data.company_website|default:'' }}">
-                  </div>
-                </div>
-                <div class="input-box full-width">
-                  <label for="company_description">Company Description</label>
-                  <input type="text" id="company_description" name="company_description" value="{{ form_data.company_description|default:'' }}">
-                </div>
-              </div>
+                        <div class="input-box full-width">
+                            <label for="user_type">I am a *</label>
+                            <select id="user_type" name="user_type" required onchange="showDynamicFields()">
+                                <option value="">Select your role</option>
+                                <option value="student" {% if form_data.user_type == 'student' %}selected{% endif %}>Student</option>
+                                <option value="professional" {% if form_data.user_type == 'professional' %}selected{% endif %}>Professional</option>
+                                <option value="recruiter" {% if form_data.user_type == 'recruiter' %}selected{% endif %}>Recruiter</option>
+                            </select>
+                        </div>
 
-              <div class="button">
-                <input type="submit" value="Create Account">
-              </div>
-            </form>
+                        <!-- Dynamic Fields for Student -->
+                        <div id="student-fields" class="dynamic-fields">
+                            <h3 class="dynamic-fields-title">
+                                <i class='bx bx-graduation'></i>
+                                Student Information
+                            </h3>
+                            <div class="form-row">
+                                <div class="input-box">
+                                    <label for="university">University</label>
+                                    <input type="text" id="university" name="university" value="{{ form_data.university|default:'' }}" placeholder="Your university">
+                                </div>
+                                <div class="input-box">
+                                    <label for="degree">Degree</label>
+                                    <input type="text" id="degree" name="degree" value="{{ form_data.degree|default:'' }}" placeholder="Your degree program">
+                                </div>
+                            </div>
+                            <div class="input-box full-width">
+                                <label for="graduation_year">Expected Graduation Year</label>
+                                <input type="number" id="graduation_year" name="graduation_year" min="2020" max="2035" value="{{ form_data.graduation_year|default:'' }}" placeholder="2024">
+                            </div>
+                        </div>
 
-            <div class="login-link">
-              Already have an account? <a href="/login/">Sign in here</a>
+                        <!-- Dynamic Fields for Professional -->
+                        <div id="professional-fields" class="dynamic-fields">
+                            <h3 class="dynamic-fields-title">
+                                <i class='bx bx-briefcase'></i>
+                                Professional Information
+                            </h3>
+                            <div class="form-row">
+                                <div class="input-box">
+                                    <label for="job_title">Current Job Title</label>
+                                    <input type="text" id="job_title" name="job_title" value="{{ form_data.job_title|default:'' }}" placeholder="Your current position">
+                                </div>
+                                <div class="input-box">
+                                    <label for="organization">Organization</label>
+                                    <input type="text" id="organization" name="organization" value="{{ form_data.organization|default:'' }}" placeholder="Your company">
+                                </div>
+                            </div>
+                            <div class="input-box full-width">
+                                <label for="experience">Years of Experience</label>
+                                <input type="number" id="experience" name="experience" min="0" max="50" value="{{ form_data.experience|default:'' }}" placeholder="5">
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Fields for Recruiter -->
+                        <div id="recruiter-fields" class="dynamic-fields">
+                            <h3 class="dynamic-fields-title">
+                                <i class='bx bx-buildings'></i>
+                                Company Information
+                            </h3>
+                            <div class="form-row">
+                                <div class="input-box">
+                                    <label for="company_name">Company Name</label>
+                                    <input type="text" id="company_name" name="company_name" value="{{ form_data.company_name|default:'' }}" placeholder="Your company name">
+                                </div>
+                                <div class="input-box">
+                                    <label for="company_website">Company Website</label>
+                                    <input type="url" id="company_website" name="company_website" value="{{ form_data.company_website|default:'' }}" placeholder="https://company.com">
+                                </div>
+                            </div>
+                            <div class="input-box full-width">
+                                <label for="company_description">Company Description</label>
+                                <input type="text" id="company_description" name="company_description" value="{{ form_data.company_description|default:'' }}" placeholder="Brief description of your company">
+                            </div>
+                        </div>
+
+                        <div class="button">
+                            <input type="submit" value="Create Account">
+                        </div>
+                    </form>
+
+                    <div class="login-link">
+                        Already have an account? <a href="/login/">Sign in here</a>
+                    </div>
+                </div>
+
+                <!-- OTP Verification Section -->
+                <div id="otp-section" class="otp-section">
+                    <div class="otp-icon">
+                        <i class='bx bx-mail-send'></i>
+                    </div>
+                    <h2 class="otp-title">Verify Your Email</h2>
+                    <p class="otp-subtitle">
+                        We've sent a 6-digit verification code to<br>
+                        <span class="email-highlight" id="verification-email"></span>
+                    </p>
+
+                    <form id="otpForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="step" value="2">
+
+                        <div class="otp-input-group">
+                            <input type="text" id="email_otp" name="email_otp" class="otp-input" maxlength="6" placeholder="000000" required>
+                        </div>
+
+                        <button type="submit" class="verify-button">
+                            <span id="verify-btn-text">Verify Email</span>
+                        </button>
+                    </form>
+
+                    <div class="resend-section">
+                        <p class="resend-text">Didn't receive the code?</p>
+                        <button type="button" id="resend-btn" class="resend-button" onclick="resendOTP()">
+                            Resend Code
+                        </button>
+                        <div id="timer" class="timer" style="display: none;"></div>
+                    </div>
+
+                    <div class="back-to-form">
+                        <button type="button" onclick="backToForm()">
+                            <i class='bx bx-arrow-back'></i> Back to registration
+                        </button>
+                    </div>
+                </div>
             </div>
-          </div>
-
-          <!-- OTP Verification Section -->
-          <div id="otp-section" class="otp-section">
-            <div class="otp-icon">
-              <i class="ri-mail-check-line"></i>
-            </div>
-            <h2 class="otp-title">Verify Your Email</h2>
-            <p class="otp-subtitle">
-              We've sent a 6-digit verification code to<br>
-              <span class="email-highlight" id="verification-email"></span>
-            </p>
-
-            <form id="otpForm">
-              {% csrf_token %}
-              <input type="hidden" name="step" value="2">
-              
-              <div class="otp-input-group">
-                <input type="text" id="email_otp" name="email_otp" class="otp-input" maxlength="6" placeholder="000000" required>
-              </div>
-
-              <button type="submit" class="verify-button">
-                <span id="verify-btn-text">Verify Email</span>
-              </button>
-            </form>
-
-            <div class="resend-section">
-              <p class="resend-text">Didn't receive the code?</p>
-              <button type="button" id="resend-btn" class="resend-button" onclick="resendOTP()">
-                Resend Code
-              </button>
-              <div id="timer" class="timer" style="display: none;"></div>
-            </div>
-
-            <div class="back-to-form">
-              <button type="button" onclick="backToForm()">
-                <i class="ri-arrow-left-line"></i> Back to registration
-              </button>
-            </div>
-          </div>
         </div>
-      </div>
     </div>
 
     <script>
-      // Toggle password visibility
-      function togglePassword(fieldId) {
-        const field = document.getElementById(fieldId);
-        const icon = field.nextElementSibling;
-        
-        if (field.type === 'password') {
-          field.type = 'text';
-          icon.classList.remove('ri-eye-off-line');
-          icon.classList.add('ri-eye-line');
-        } else {
-          field.type = 'password';
-          icon.classList.remove('ri-eye-line');
-          icon.classList.add('ri-eye-off-line');
+        // Toggle password visibility
+        function togglePassword(fieldId) {
+            const field = document.getElementById(fieldId);
+            const icon = field.nextElementSibling;
+
+            if (field.type === 'password') {
+                field.type = 'text';
+                icon.classList.remove('bx-hide');
+                icon.classList.add('bx-show');
+            } else {
+                field.type = 'password';
+                icon.classList.remove('bx-show');
+                icon.classList.add('bx-hide');
+            }
         }
-      }
 
       // Show dynamic fields based on user type
       function showDynamicFields() {
@@ -1371,6 +1574,20 @@
           isSubmitting = false;
         }, 3000);
       });
+
+      // Initialize AOS animations
+      document.addEventListener('DOMContentLoaded', function() {
+        if (typeof AOS !== 'undefined') {
+          AOS.init({
+            duration: 1000,
+            once: true,
+            offset: 100
+          });
+        }
+      });
     </script>
+
+    <!-- AOS Animation Script -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
   </body>
 </html>
