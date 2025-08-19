@@ -6,805 +6,1028 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login - JobElevate</title>
-    <!-- ==== "Inter" FONT-FAMILY FROM FONTS.GOOGLE.COM  ==== -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- ====  REMIXICON CDN ==== -->
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet" />
+    <meta name="description" content="Login to your JobElevate account and continue your career journey. Access personalized job matches and career tools.">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
+    <!-- Animations - Disabled for login page stability -->
+    <!-- <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet"> -->
+
     <style>
-      /* ==== ROOT RESET ==== */
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: "Inter", sans-serif;
-      }
-      *::before,
-      *::after {
-        box-sizing: border-box;
-      }
-      /* ==== CSS VARIABLES ==== */
-      :root {
-        --primary-color: #335eea;
-        --btn-hover-color: #2b50c7;
-        --lg-heading: #161c2d;
-        --text-content: #869ab8;
-        --fixed-header-height: 4.5rem;
-        --box-shadow: 0 10px 30px rgba(57, 108, 248, 0.1);
-        --success-color: #10b981;
-        --error-color: #ef4444;
-        --warning-color: #f59e0b;
-      }
-      body {
-        width: 100%;
-        height: 100vh;
-        overflow-x: hidden;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      }
-      a {
-        text-decoration: none;
-      }
-      button {
-        cursor: pointer;
-      }
-      /* ==== HEADER ==== */
-      .header {
-        height: var(--fixed-header-height);
-        padding: 0 2rem;
-        background-color: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        z-index: 100;
-      }
-      .nav {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        max-width: 1600px;
-        margin: 0 auto;
-      }
-      .logo h2 {
-        font-size: 28px;
-        font-weight: 700;
-        color: var(--primary-color);
-      }
-      .nav_menu_list {
-        display: flex;
-        align-items: center;
-        list-style: none;
-      }
-      .nav_menu_list .nav_menu_item {
-        margin: 0 1.5rem;
-      }
-      .nav_menu_item .nav_menu_link {
-        font-size: 16px;
-        font-weight: 500;
-        color: var(--lg-heading);
-        text-transform: capitalize;
-        transition: color 0.3s ease;
-      }
-      .nav_menu_link:hover {
-        color: var(--primary-color);
-      }
-      .toggle_btn {
-        font-size: 20px;
-        color: var(--lg-heading);
-        background: transparent;
-        border: none;
-        display: none;
-      }
-      .close_btn {
-        display: none;
-        background: transparent;
-        border: none;
-      }
+        /* Modern CSS Variables */
+        :root {
+            --primary-color: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --primary-light: #dbeafe;
+            --secondary-color: #8b5cf6;
+            --accent-color: #06b6d4;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
 
-      /* ==== MAIN CONTAINER ==== */
-      .main-container {
-        display: flex;
-        min-height: 100vh;
-        padding-top: var(--fixed-header-height);
-      }
+            --white: #ffffff;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
 
-      /* ==== IMAGE SIDE ==== */
-      .image-side {
-        width: 45%;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-        backdrop-filter: blur(10px);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        padding: 2rem;
-        position: relative;
-        overflow: hidden;
-      }
-      .image-side::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
-        opacity: 0.3;
-      }
-      .image-side img {
-        max-width: 65%;
-        height: auto;
-        filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.2));
-        z-index: 1;
-      }
-      .image-side .welcome-text {
-        margin-top: 2rem;
-        text-align: center;
-        z-index: 1;
-      }
-      .welcome-text h3 {
-        font-size: 28px;
-        color: white;
-        margin-bottom: 1rem;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-      }
-      .welcome-text p {
-        font-size: 16px;
-        color: rgba(255, 255, 255, 0.9);
-        max-width: 400px;
-        line-height: 1.6;
-        text-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
-      }
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-size-xs: 0.75rem;
+            --font-size-sm: 0.875rem;
+            --font-size-base: 1rem;
+            --font-size-lg: 1.125rem;
+            --font-size-xl: 1.25rem;
+            --font-size-2xl: 1.5rem;
+            --font-size-3xl: 1.875rem;
+            --font-size-4xl: 2.25rem;
+            --font-size-5xl: 3rem;
 
-      /* ==== FORM SIDE ==== */
-      .form-side {
-        width: 55%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 2rem;
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-      }
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-2xl: 3rem;
+            --spacing-3xl: 4rem;
 
-      /* ==== FORM CONTAINER ==== */
-      .form-container {
-        width: 100%;
-        max-width: 450px;
-        padding: 3rem;
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(20px);
-        border-radius: 20px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        position: relative;
-        overflow: hidden;
-      }
-      .form-container::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, var(--primary-color), #764ba2);
-      }
-      .form-container .title {
-        font-size: 30px;
-        font-weight: 700;
-        color: var(--lg-heading);
-        margin-bottom: 0.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-      .form-container .subtitle {
-        font-size: 16px;
-        color: var(--text-content);
-        margin-bottom: 2.5rem;
-      }
-      .step {
-        display: none;
-        animation: fadeInSlide 0.5s ease-out;
-      }
-      .step.active {
-        display: block;
-      }
-      @keyframes fadeInSlide {
-        from {
-          opacity: 0;
-          transform: translateX(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateX(0);
-        }
-      }
-      .input-box {
-        margin-bottom: 1.8rem;
-        position: relative;
-      }
-      .input-box label {
-        display: block;
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--lg-heading);
-        margin-bottom: 0.5rem;
-      }
-      .input-box input {
-        width: 100%;
-        height: 55px;
-        padding: 0 1rem;
-        font-size: 15px;
-        border: 2px solid rgba(225, 229, 238, 0.5);
-        border-radius: 12px;
-        transition: all 0.3s ease;
-        background-color: rgba(248, 249, 250, 0.8);
-        backdrop-filter: blur(5px);
-      }
-      .input-box input:focus {
-        border-color: var(--primary-color);
-        background-color: rgba(255, 255, 255, 0.9);
-        box-shadow: 0 0 0 4px rgba(51, 94, 234, 0.1);
-        outline: none;
-        transform: translateY(-2px);
-      }
-      .input-box .toggle-password {
-        position: absolute;
-        right: 1rem;
-        top: 60%;
-        transform: translateY(-50%);
-        cursor: pointer;
-        color: var(--text-content);
-        transition: all 0.3s ease;
-        font-size: 18px;
-      }
-      .input-box .toggle-password:hover {
-        color: var(--primary-color);
-        transform: translateY(-50%) scale(1.1);
-      }
-      .forgot-password {
-        text-align: right;
-        margin-bottom: 1.5rem;
-      }
-      .forgot-password button {
-        font-size: 14px;
-        color: var(--primary-color);
-        font-weight: 500;
-        background: none;
-        border: none;
-        cursor: pointer;
-        transition: all 0.3s ease;
-      }
-      .forgot-password button:hover {
-        text-decoration: underline;
-        color: var(--btn-hover-color);
-      }
-      .button {
-        margin-top: 1rem;
-      }
-      .button input, .button button {
-        width: 100%;
-        height: 55px;
-        background: linear-gradient(135deg, var(--primary-color), #764ba2);
-        color: #fff;
-        font-size: 16px;
-        font-weight: 600;
-        border-radius: 12px;
-        border: none;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 8px 25px rgba(51, 94, 234, 0.3);
-        position: relative;
-        overflow: hidden;
-      }
-      .button input::before, .button button::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-        transition: left 0.5s ease;
-      }
-      .button input:hover, .button button:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 12px 35px rgba(51, 94, 234, 0.4);
-      }
-      .button input:hover::before, .button button:hover::before {
-        left: 100%;
-      }
-      .signup-link, .back-to-login {
-        margin-top: 2rem;
-        text-align: center;
-        font-size: 15px;
-        color: var(--text-content);
-      }
-      .signup-link a, .back-to-login a, .back-to-login button {
-        color: var(--primary-color);
-        font-weight: 600;
-        background: none;
-        border: none;
-        cursor: pointer;
-        transition: all 0.3s ease;
-      }
-      .signup-link a:hover, .back-to-login a:hover, .back-to-login button:hover {
-        text-decoration: underline;
-        color: var(--btn-hover-color);
-      }
-      .alert {
-        padding: 1rem;
-        margin-bottom: 1.5rem;
-        border-radius: 12px;
-        text-align: center;
-        font-size: 14px;
-        border: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        animation: slideInAlert 0.3s ease-out;
-      }
-      @keyframes slideInAlert {
-        from {
-          opacity: 0;
-          transform: translateY(-10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      .alert.success {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
-        color: var(--success-color);
-        border-left: 4px solid var(--success-color);
-      }
-      .alert.error {
-        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
-        color: var(--error-color);
-        border-left: 4px solid var(--error-color);
-      }
-      .resend-otp {
-        text-align: center;
-        margin-top: 1rem;
-      }
-      .resend-otp button {
-        background: none;
-        border: none;
-        color: var(--primary-color);
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-size: 14px;
-      }
-      .resend-otp button:hover {
-        color: var(--btn-hover-color);
-        text-decoration: underline;
-      }
-      .step-indicator {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-bottom: 2rem;
-        gap: 1rem;
-      }
-      .step-dot {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background-color: #e5e7eb;
-        transition: all 0.3s ease;
-        position: relative;
-      }
-      .step-dot.active {
-        background-color: var(--primary-color);
-        transform: scale(1.2);
-      }
-      .step-dot.completed {
-        background-color: var(--success-color);
-      }
-      .step-line {
-        width: 30px;
-        height: 2px;
-        background-color: #e5e7eb;
-        transition: all 0.3s ease;
-      }
-      .step-line.active {
-        background-color: var(--primary-color);
-      }
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 
-      /* ==== LOADING SPINNER ==== */
-      .loading {
-        display: none;
-        width: 20px;
-        height: 20px;
-        border: 2px solid transparent;
-        border-top: 2px solid #fff;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        margin-right: 0.5rem;
-      }
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
+            --radius-sm: 0.25rem;
+            --radius: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-2xl: 1.5rem;
+            --radius-full: 9999px;
 
-      /* ==== MEDIA QUERIES ==== */
-      @media screen and (max-width: 1024px) {
-        .image-side {
-          width: 40%;
+            --transition-fast: 150ms ease-in-out;
+            --transition: 300ms ease-in-out;
+            --transition-slow: 500ms ease-in-out;
+
+            --z-dropdown: 1000;
+            --z-sticky: 1020;
+            --z-fixed: 1030;
+            --z-modal: 1040;
+            --z-tooltip: 1050;
         }
-        .form-side {
-          width: 60%;
+
+        /* Base Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-      }
-      
-      @media screen and (max-width: 768px) {
-        .toggle_btn {
-          display: block;
+
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
         }
-        .nav_menu {
-          position: fixed;
-          width: 93%;
-          height: 100%;
-          top: 2.5%;
-          right: -100%;
-          background-color: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(10px);
-          padding: 3rem;
-          border-radius: 10px;
-          box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
-          z-index: 50;
-          transition: 0.4s;
+
+        body {
+            font-family: var(--font-family);
+            line-height: 1.6;
+            color: var(--gray-800);
+            background: var(--white);
+            overflow-x: hidden;
+            min-height: 100vh;
         }
-        .nav_menu_list {
-          flex-direction: column;
-          align-items: flex-start;
-          margin-top: 4rem;
+        /* Typography */
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: var(--spacing);
         }
-        .nav_menu_list .nav_menu_item {
-          margin: 1rem 0;
+
+        h1 { font-size: var(--font-size-5xl); }
+        h2 { font-size: var(--font-size-4xl); }
+        h3 { font-size: var(--font-size-3xl); }
+        h4 { font-size: var(--font-size-2xl); }
+        h5 { font-size: var(--font-size-xl); }
+        h6 { font-size: var(--font-size-lg); }
+
+        p {
+            margin-bottom: var(--spacing);
+            color: var(--gray-600);
         }
-        .close_btn {
-          display: block;
-          position: absolute;
-          right: 10%;
-          font-size: 25px;
-          color: var(--lg-heading);
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: var(--transition-fast);
         }
-        .close_btn:hover {
-          color: var(--primary-color);
+
+        ul, ol {
+            list-style: none;
         }
-        .show {
-          right: 3% !important;
+
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
         }
-        
-        .main-container {
-          flex-direction: column;
+
+        button {
+            cursor: pointer;
         }
-        .image-side {
-          width: 100%;
-          height: auto;
-          padding: 3rem 2rem;
+
+        /* Container */
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 var(--spacing);
+            width: 100%;
         }
-        .form-side {
-          width: 100%;
-          padding: 2rem 1.5rem;
+
+        @media (min-width: 640px) {
+            .container { padding: 0 var(--spacing-lg); }
         }
-        .form-container {
-          padding: 2rem;
+
+        @media (min-width: 1024px) {
+            .container { padding: 0 var(--spacing-xl); }
         }
-      }
-      
-      @media screen and (max-width: 480px) {
-        .logo h2 {
-          font-size: 24px;
-        }
+
+        /* Header */
         .header {
-          padding: 0 1.5rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--gray-200);
+            z-index: var(--z-fixed);
+            transition: var(--transition);
         }
-        .form-container {
-          padding: 1.5rem;
+
+        .nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing) 0;
         }
-        .form-container .title {
-          font-size: 26px;
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-size: var(--font-size-2xl);
+            font-weight: 800;
+            color: var(--primary-color);
         }
+
+        .logo i {
+            font-size: var(--font-size-3xl);
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-2xl);
+        }
+
+        .nav-link {
+            font-weight: 500;
+            color: var(--gray-700);
+            transition: var(--transition-fast);
+            position: relative;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-color);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-color);
+            transition: var(--transition-fast);
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing);
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: var(--font-size-2xl);
+            color: var(--gray-700);
+            cursor: pointer;
+        }
+
+        /* Main Container */
+        .main-container {
+            display: flex;
+            min-height: calc(100vh - 80px);
+            margin-top: 80px;
+            background: var(--white);
+            width: 100%;
+            position: relative;
+        }
+
+
+
+        /* Image Side */
+        .image-side {
+            width: 45%;
+            background: var(--gray-50);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: var(--spacing-3xl);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .image-side::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
+            z-index: 1;
+        }
+
+        .image-side img {
+            max-width: 70%;
+            height: auto;
+            z-index: 2;
+            position: relative;
+            filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.1));
+        }
+
+        .welcome-text {
+            margin-top: var(--spacing-2xl);
+            text-align: center;
+            z-index: 2;
+            position: relative;
+        }
+
         .welcome-text h3 {
-          font-size: 24px;
+            font-size: var(--font-size-3xl);
+            color: var(--gray-900);
+            margin-bottom: var(--spacing);
+            font-weight: 700;
         }
-      }
+
+        .welcome-text p {
+            font-size: var(--font-size-lg);
+            color: var(--gray-600);
+            max-width: 400px;
+            line-height: 1.6;
+        }
+
+        /* Form Side */
+        .form-side {
+            width: 55%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: var(--spacing-2xl);
+            background: var(--white);
+        }
+
+        /* Form Container */
+        .form-container {
+            width: 100%;
+            max-width: 450px;
+            padding: var(--spacing-3xl);
+            background: var(--white);
+            border-radius: var(--radius-2xl);
+            box-shadow: var(--shadow-xl);
+            border: 1px solid var(--gray-200);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        }
+
+        .form-container .title {
+            font-size: var(--font-size-3xl);
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: var(--spacing-sm);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .form-container .subtitle {
+            font-size: var(--font-size-base);
+            color: var(--gray-600);
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .step {
+            display: none;
+            animation: fadeInSlide 0.5s ease-out;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        @keyframes fadeInSlide {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .input-box {
+            margin-bottom: var(--spacing-lg);
+            position: relative;
+        }
+
+        .input-box label {
+            display: block;
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .input-box input {
+            width: 100%;
+            height: 55px;
+            padding: 0 var(--spacing);
+            font-size: var(--font-size-base);
+            border: 2px solid var(--gray-300);
+            border-radius: var(--radius-lg);
+            transition: all var(--transition);
+            background-color: var(--white);
+            color: var(--gray-900);
+        }
+
+        .input-box input:focus {
+            border-color: var(--primary-color);
+            background-color: var(--white);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            outline: none;
+            transform: translateY(-2px);
+        }
+
+        .input-box .toggle-password {
+            position: absolute;
+            right: var(--spacing);
+            top: 60%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--gray-500);
+            transition: all var(--transition);
+            font-size: var(--font-size-lg);
+        }
+
+        .input-box .toggle-password:hover {
+            color: var(--primary-color);
+            transform: translateY(-50%) scale(1.1);
+        }
+        .forgot-password {
+            text-align: right;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .forgot-password button {
+            font-size: var(--font-size-sm);
+            color: var(--primary-color);
+            font-weight: 500;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .forgot-password button:hover {
+            text-decoration: underline;
+            color: var(--primary-dark);
+        }
+
+        .button {
+            margin-top: var(--spacing);
+        }
+
+        .button input, .button button {
+            width: 100%;
+            height: 55px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: var(--white);
+            font-size: var(--font-size-base);
+            font-weight: 600;
+            border-radius: var(--radius-lg);
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition);
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .button input::before, .button button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .button input:hover, .button button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .button input:hover::before, .button button:hover::before {
+            left: 100%;
+        }
+
+        .signup-link, .back-to-login {
+            margin-top: var(--spacing-2xl);
+            text-align: center;
+            font-size: var(--font-size-base);
+            color: var(--gray-600);
+        }
+
+        .signup-link a, .back-to-login a, .back-to-login button {
+            color: var(--primary-color);
+            font-weight: 600;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .signup-link a:hover, .back-to-login a:hover, .back-to-login button:hover {
+            text-decoration: underline;
+            color: var(--primary-dark);
+        }
+        .alert {
+            padding: var(--spacing);
+            margin-bottom: var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            text-align: center;
+            font-size: var(--font-size-sm);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            animation: slideInAlert 0.3s ease-out;
+        }
+
+        @keyframes slideInAlert {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .alert.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .resend-otp {
+            text-align: center;
+            margin-top: var(--spacing);
+        }
+
+        .resend-otp button {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            font-size: var(--font-size-sm);
+        }
+
+        .resend-otp button:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: var(--spacing-2xl);
+            gap: var(--spacing);
+        }
+
+        .step-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--gray-300);
+            transition: all var(--transition);
+            position: relative;
+        }
+
+        .step-dot.active {
+            background-color: var(--primary-color);
+            transform: scale(1.2);
+        }
+
+        .step-dot.completed {
+            background-color: var(--success-color);
+        }
+
+        .step-line {
+            width: 30px;
+            height: 2px;
+            background-color: var(--gray-300);
+            transition: all var(--transition);
+        }
+
+        .step-line.active {
+            background-color: var(--primary-color);
+        }
+
+        /* Loading Spinner */
+        .loading {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid var(--white);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: var(--spacing-sm);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Button Components */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing) var(--spacing-xl);
+            border-radius: var(--radius-lg);
+            font-weight: 600;
+            font-size: var(--font-size-base);
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: var(--white);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .btn-secondary {
+            background: var(--white);
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary-color);
+            color: var(--white);
+            transform: translateY(-2px);
+        }
+
+        /* Media Queries */
+        @media screen and (max-width: 1024px) {
+            .image-side {
+                width: 40%;
+            }
+            .form-side {
+                width: 60%;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .nav-menu {
+                position: fixed;
+                top: 80px;
+                left: 0;
+                right: 0;
+                background: rgba(255, 255, 255, 0.98);
+                backdrop-filter: blur(20px);
+                padding: var(--spacing-xl);
+                box-shadow: var(--shadow-xl);
+                transform: translateY(-100%);
+                opacity: 0;
+                transition: all 0.3s ease;
+                z-index: var(--z-modal);
+            }
+
+            .nav-menu.active {
+                transform: translateY(0);
+                opacity: 1;
+            }
+
+            .nav-menu a {
+                display: block;
+                padding: var(--spacing) 0;
+                border-bottom: 1px solid var(--gray-200);
+                font-size: var(--font-size-lg);
+            }
+
+            .main-container {
+                flex-direction: column;
+            }
+
+            .image-side {
+                width: 100%;
+                height: auto;
+                padding: var(--spacing-3xl) var(--spacing-2xl);
+            }
+
+            .form-side {
+                width: 100%;
+                padding: var(--spacing-2xl) var(--spacing-lg);
+            }
+
+            .form-container {
+                padding: var(--spacing-2xl);
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .container {
+                padding: 0 var(--spacing-sm);
+            }
+
+            .logo {
+                font-size: var(--font-size-xl);
+            }
+
+            .form-container {
+                padding: var(--spacing-lg);
+            }
+
+            .form-container .title {
+                font-size: var(--font-size-2xl);
+            }
+
+            .welcome-text h3 {
+                font-size: var(--font-size-2xl);
+            }
+        }
+
+        /* Reduced motion preferences */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
     </style>
   </head>
   <body>
-    <!-- ==== HEADER ==== -->
-    <header class="header">
-      <nav class="nav">
-        <div class="logo">
-          <h2>JobElevate.</h2>
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="container">
+            <nav class="nav">
+                <div class="logo">
+                    <i class='bx bxs-briefcase-alt'></i>
+                    JobElevate
+                </div>
+
+                <div class="nav-menu" id="nav-menu">
+                    <a href="/" class="nav-link">Home</a>
+                    <a href="/signup/" class="nav-link">Sign Up</a>
+                </div>
+
+                <div class="nav-actions">
+                    <a href="/signup/" class="btn btn-primary">Get Started</a>
+                </div>
+
+                <button class="mobile-menu-toggle" id="mobile-menu-toggle">
+                    <i class='bx bx-menu'></i>
+                </button>
+            </nav>
         </div>
-        <div class="nav_menu" id="nav_menu">
-          <button class="close_btn" id="close_btn">
-            <i class="ri-close-fill"></i>
-          </button>
-          <ul class="nav_menu_list">
-            <li class="nav_menu_item">
-              <a href="/" class="nav_menu_link">Home</a>
-            </li>
-            <li class="nav_menu_item">
-              <a href="/signup/" class="nav_menu_link">Signup</a>
-            </li>
-            <li class="nav_menu_item">
-              <a href="#" class="nav_menu_link">Services</a>
-            </li>
-            <li class="nav_menu_item">
-              <a href="#" class="nav_menu_link">Contact</a>
-            </li>
-          </ul>
-        </div>
-        <button class="toggle_btn" id="toggle_btn">
-          <i class="ri-menu-line"></i>
-        </button>
-      </nav>
     </header>
 
-    <!-- ==== MAIN CONTAINER ==== -->
+    <!-- Main Container -->
     <div class="main-container">
-      <!-- ==== IMAGE SIDE ==== -->
-      <div class="image-side">
-        <img src="{% static 'images/6310507.jpg' %}" alt="Team Illustration" />
-        <div class="welcome-text">
-          <h3>Welcome to JobElevate</h3>
-          <p>Unlock your career potential and connect with top employers in your industry.</p>
-        </div>
-      </div>
-      
-      <!-- ==== FORM SIDE ==== -->
-      <div class="form-side">
-        <div class="form-container">
-          <!-- Login Step -->
-          <div class="step active" id="login-step">
-            <div class="title">
-              <i class="ri-login-circle-line"></i>
-              Login
+
+
+        <!-- Image Side -->
+        <div class="image-side">
+            <img src="{% static 'images/login.jpg' %}" alt="Welcome to JobElevate" />
+            <div class="welcome-text">
+                <h3>Welcome Back to JobElevate</h3>
+                <p>Continue your career journey and unlock new opportunities with our AI-powered platform.</p>
             </div>
-            <div class="subtitle">Welcome back! Please login to your account.</div>
-            
-            {% if messages %}
-              {% for message in messages %}
-                <div class="alert {% if message.tags %}{{ message.tags }}{% endif %}">
-                  {% if message.tags == 'success' %}
-                    <i class="ri-check-circle-line"></i>
-                  {% elif message.tags == 'error' %}
-                    <i class="ri-error-warning-line"></i>
-                  {% endif %}
-                  {{ message }}
+        </div>
+
+        <!-- Form Side -->
+        <div class="form-side">
+            <div class="form-container">
+                <!-- Login Step -->
+                <div class="step active" id="login-step">
+                    <div class="title">
+                        <i class='bx bx-log-in'></i>
+                        Login
+                    </div>
+                    <div class="subtitle">Welcome back! Please login to your account.</div>
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert {% if message.tags %}{{ message.tags }}{% endif %}">
+                                {% if message.tags == 'success' %}
+                                    <i class='bx bx-check-circle'></i>
+                                {% elif message.tags == 'error' %}
+                                    <i class='bx bx-error-circle'></i>
+                                {% endif %}
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <div id="login-message-container"></div>
+
+                    <form action="{% url 'accounts:login' %}" method="POST" id="login-form">
+                        {% csrf_token %}
+                        <div class="input-box">
+                            <label for="email">Email Address</label>
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                placeholder="Enter your email"
+                                required
+                            />
+                        </div>
+                        <div class="input-box">
+                            <label for="password">Password</label>
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                placeholder="Enter your password"
+                                required
+                            />
+                            <i
+                                class="bx bx-hide toggle-password"
+                                onclick="togglePassword('password')"
+                            ></i>
+                        </div>
+
+                        <div class="forgot-password">
+                            <button type="button" onclick="showForgotPassword()">Forgot password?</button>
+                        </div>
+
+                        <div class="button">
+                            <button type="submit">
+                                <span class="loading" id="login-loading"></span>
+                                Login
+                            </button>
+                        </div>
+
+                        <div class="signup-link">
+                            Don't have an account? <a href="/signup/">Sign up</a>
+                        </div>
+                    </form>
                 </div>
-              {% endfor %}
-            {% endif %}
-            
-            <div id="login-message-container"></div>
-            
-            <form action="{% url 'accounts:login' %}" method="POST" id="login-form">
-              {% csrf_token %}
-              <div class="input-box">
-                <label for="email">Email Address</label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  placeholder="Enter your email"
-                  required
-                />
-              </div>
-              <div class="input-box">
-                <label for="password">Password</label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  placeholder="Enter your password"
-                  required
-                />
-                <i
-                  class="ri-eye-line toggle-password"
-                  onclick="togglePassword('password')"
-                ></i>
-              </div>
-              
-              <div class="forgot-password">
-                <button type="button" onclick="showForgotPassword()">Forgot password?</button>
-              </div>
-              
-              <div class="button">
-                <button type="submit">
-                  <span class="loading" id="login-loading"></span>
-                  Login
-                </button>
-              </div>
-              
-              <div class="signup-link">
-                Don't have an account? <a href="/signup/">Sign up</a>
-              </div>
-            </form>
-          </div>
 
-          <!-- Forgot Password Step 1: Enter Email -->
-          <div class="step" id="forgot-step1">
-            <div class="step-indicator">
-              <div class="step-dot active"></div>
-              <div class="step-line"></div>
-              <div class="step-dot"></div>
-              <div class="step-line"></div>
-              <div class="step-dot"></div>
-            </div>
-            
-            <div class="title">
-              <i class="ri-lock-password-line"></i>
-              Forgot Password
-            </div>
-            <div class="subtitle">Enter your email address to receive a password reset code.</div>
-            
-            <div id="forgot-message-container1"></div>
-            
-            <form id="forgot-password-form-step1">
-              {% csrf_token %}
-              <input type="hidden" name="step" value="1">
-              <div class="input-box">
-                <label for="forgot-email">Email Address</label>
-                <input
-                  type="email"
-                  id="forgot-email"
-                  name="email"
-                  placeholder="Enter your email"
-                  required
-                />
-              </div>
-              
-              <div class="button">
-                <button type="submit">
-                  <span class="loading" id="forgot-loading1"></span>
-                  Send Reset Code
-                </button>
-              </div>
-              
-              <div class="back-to-login">
-                <button type="button" onclick="showLogin()">
-                  <i class="ri-arrow-left-line"></i>
-                  Back to Login
-                </button>
-              </div>
-            </form>
-          </div>
+                <!-- Forgot Password Step 1: Enter Email -->
+                <div class="step" id="forgot-step1">
+                    <div class="step-indicator">
+                        <div class="step-dot active"></div>
+                        <div class="step-line"></div>
+                        <div class="step-dot"></div>
+                        <div class="step-line"></div>
+                        <div class="step-dot"></div>
+                    </div>
 
-          <!-- Forgot Password Step 2: Enter OTP -->
-          <div class="step" id="forgot-step2">
-            <div class="step-indicator">
-              <div class="step-dot completed"></div>
-              <div class="step-line active"></div>
-              <div class="step-dot active"></div>
-              <div class="step-line"></div>
-              <div class="step-dot"></div>
-            </div>
-            
-            <div class="title">
-              <i class="ri-shield-check-line"></i>
-              Verify OTP
-            </div>
-            <div class="subtitle">Enter the 6-digit code sent to your email.</div>
-            
-            <div id="forgot-message-container2"></div>
-            
-            <form id="forgot-password-form-step2">
-              {% csrf_token %}
-              <input type="hidden" name="step" value="2">
-              <div class="input-box">
-                <label for="otp">Verification Code</label>
-                <input
-                  type="text"
-                  id="otp"
-                  name="otp"
-                  placeholder="Enter 6-digit code"
-                  maxlength="6"
-                  required
-                />
-              </div>
-              
-              <div class="button">
-                <button type="submit">
-                  <span class="loading" id="forgot-loading2"></span>
-                  Verify Code
-                </button>
-              </div>
-              
-              <div class="resend-otp">
-                <button type="button" id="resend-reset-otp-btn">
-                  <i class="ri-refresh-line"></i>
-                  Resend Code
-                </button>
-              </div>
-              
-              <div class="back-to-login">
-                <button type="button" onclick="showLogin()">
-                  <i class="ri-arrow-left-line"></i>
-                  Back to Login
-                </button>
-              </div>
-            </form>
-          </div>
+                    <div class="title">
+                        <i class='bx bx-lock'></i>
+                        Forgot Password
+                    </div>
+                    <div class="subtitle">Enter your email address to receive a password reset code.</div>
 
-          <!-- Forgot Password Step 3: Reset Password -->
-          <div class="step" id="forgot-step3">
-            <div class="step-indicator">
-              <div class="step-dot completed"></div>
-              <div class="step-line active"></div>
-              <div class="step-dot completed"></div>
-              <div class="step-line active"></div>
-              <div class="step-dot active"></div>
+                    <div id="forgot-message-container1"></div>
+
+                    <form id="forgot-password-form-step1">
+                        {% csrf_token %}
+                        <input type="hidden" name="step" value="1">
+                        <div class="input-box">
+                            <label for="forgot-email">Email Address</label>
+                            <input
+                                type="email"
+                                id="forgot-email"
+                                name="email"
+                                placeholder="Enter your email"
+                                required
+                            />
+                        </div>
+
+                        <div class="button">
+                            <button type="submit">
+                                <span class="loading" id="forgot-loading1"></span>
+                                Send Reset Code
+                            </button>
+                        </div>
+
+                        <div class="back-to-login">
+                            <button type="button" onclick="showLogin()">
+                                <i class='bx bx-arrow-back'></i>
+                                Back to Login
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Forgot Password Step 2: Enter OTP -->
+                <div class="step" id="forgot-step2">
+                    <div class="step-indicator">
+                        <div class="step-dot completed"></div>
+                        <div class="step-line active"></div>
+                        <div class="step-dot active"></div>
+                        <div class="step-line"></div>
+                        <div class="step-dot"></div>
+                    </div>
+
+                    <div class="title">
+                        <i class='bx bx-shield-check'></i>
+                        Verify OTP
+                    </div>
+                    <div class="subtitle">Enter the 6-digit code sent to your email.</div>
+
+                    <div id="forgot-message-container2"></div>
+
+                    <form id="forgot-password-form-step2">
+                        {% csrf_token %}
+                        <input type="hidden" name="step" value="2">
+                        <div class="input-box">
+                            <label for="otp">Verification Code</label>
+                            <input
+                                type="text"
+                                id="otp"
+                                name="otp"
+                                placeholder="Enter 6-digit code"
+                                maxlength="6"
+                                required
+                            />
+                        </div>
+
+                        <div class="button">
+                            <button type="submit">
+                                <span class="loading" id="forgot-loading2"></span>
+                                Verify Code
+                            </button>
+                        </div>
+
+                        <div class="resend-otp">
+                            <button type="button" id="resend-reset-otp-btn">
+                                <i class='bx bx-refresh'></i>
+                                Resend Code
+                            </button>
+                        </div>
+
+                        <div class="back-to-login">
+                            <button type="button" onclick="showLogin()">
+                                <i class='bx bx-arrow-back'></i>
+                                Back to Login
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Forgot Password Step 3: Reset Password -->
+                <div class="step" id="forgot-step3">
+                    <div class="step-indicator">
+                        <div class="step-dot completed"></div>
+                        <div class="step-line active"></div>
+                        <div class="step-dot completed"></div>
+                        <div class="step-line active"></div>
+                        <div class="step-dot active"></div>
+                    </div>
+
+                    <div class="title">
+                        <i class='bx bx-key'></i>
+                        Reset Password
+                    </div>
+                    <div class="subtitle">Enter your new password.</div>
+
+                    <div id="forgot-message-container3"></div>
+
+                    <form id="forgot-password-form-step3">
+                        {% csrf_token %}
+                        <input type="hidden" name="step" value="3">
+                        <div class="input-box">
+                            <label for="new_password">New Password</label>
+                            <input
+                                type="password"
+                                id="new_password"
+                                name="new_password"
+                                placeholder="Enter new password"
+                                required
+                            />
+                            <i
+                                class="bx bx-hide toggle-password"
+                                onclick="togglePassword('new_password')"
+                            ></i>
+                        </div>
+
+                        <div class="input-box">
+                            <label for="confirm_password">Confirm Password</label>
+                            <input
+                                type="password"
+                                id="confirm_password"
+                                name="confirm_password"
+                                placeholder="Confirm new password"
+                                required
+                            />
+                            <i
+                                class="bx bx-hide toggle-password"
+                                onclick="togglePassword('confirm_password')"
+                            ></i>
+                        </div>
+
+                        <div class="button">
+                            <button type="submit">
+                                <span class="loading" id="forgot-loading3"></span>
+                                Reset Password
+                            </button>
+                        </div>
+
+                        <div class="back-to-login">
+                            <button type="button" onclick="showLogin()">
+                                <i class='bx bx-arrow-back'></i>
+                                Back to Login
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            
-            <div class="title">
-              <i class="ri-key-2-line"></i>
-              Reset Password
-            </div>
-            <div class="subtitle">Enter your new password.</div>
-            
-            <div id="forgot-message-container3"></div>
-            
-            <form id="forgot-password-form-step3">
-              {% csrf_token %}
-              <input type="hidden" name="step" value="3">
-              <div class="input-box">
-                <label for="new_password">New Password</label>
-                <input
-                  type="password"
-                  id="new_password"
-                  name="new_password"
-                  placeholder="Enter new password"
-                  required
-                />
-                <i
-                  class="ri-eye-line toggle-password"
-                  onclick="togglePassword('new_password')"
-                ></i>
-              </div>
-              
-              <div class="input-box">
-                <label for="confirm_password">Confirm Password</label>
-                <input
-                  type="password"
-                  id="confirm_password"
-                  name="confirm_password"
-                  placeholder="Confirm new password"
-                  required
-                />
-                <i
-                  class="ri-eye-line toggle-password"
-                  onclick="togglePassword('confirm_password')"
-                ></i>
-              </div>
-              
-              <div class="button">
-                <button type="submit">
-                  <span class="loading" id="forgot-loading3"></span>
-                  Reset Password
-                </button>
-              </div>
-              
-              <div class="back-to-login">
-                <button type="button" onclick="showLogin()">
-                  <i class="ri-arrow-left-line"></i>
-                  Back to Login
-                </button>
-              </div>
-            </form>
-          </div>
         </div>
-      </div>
     </div>
 
     <script>
@@ -813,12 +1036,12 @@
       const eyeIcon = passwordField.nextElementSibling;
       if (passwordField.type === "password") {
         passwordField.type = "text";
-        eyeIcon.classList.remove("ri-eye-line");
-        eyeIcon.classList.add("ri-eye-off-line");
+        eyeIcon.classList.remove("bx-hide");
+        eyeIcon.classList.add("bx-show");
       } else {
         passwordField.type = "password";
-        eyeIcon.classList.remove("ri-eye-off-line");
-        eyeIcon.classList.add("ri-eye-line");
+        eyeIcon.classList.remove("bx-show");
+        eyeIcon.classList.add("bx-hide");
       }
     }
 
@@ -889,13 +1112,13 @@
           const csrfToken = getCsrfToken();
 
           if (!csrfToken) {
-            container.innerHTML = `<div class="alert error"><i class="ri-error-warning-line"></i> CSRF token not found. Please refresh the page.</div>`;
+            container.innerHTML = `<div class="alert error"><i class="bx bx-error-circle"></i> CSRF token not found. Please refresh the page.</div>`;
             showLoading('forgot-loading1', false);
             return;
           }
 
           try {
-            const response = await fetch('forgot-password/', {
+            const response = await fetch('/login/forgot-password/', {
               method: 'POST',
               body: formData,
               headers: {
@@ -911,7 +1134,7 @@
             const data = await response.json();
             container.innerHTML = `
               <div class="alert ${data.success ? 'success' : 'error'}">
-                <i class="ri-${data.success ? 'check-circle-line' : 'error-warning-line'}"></i>
+                <i class="bx bx-${data.success ? 'check-circle' : 'error-circle'}"></i>
                 ${data.message}
               </div>
             `;
@@ -925,7 +1148,7 @@
             }
           } catch (error) {
             console.error('Network error:', error);
-            container.innerHTML = `<div class="alert error"><i class="ri-error-warning-line"></i> Network error. Please try again.</div>`;
+            container.innerHTML = `<div class="alert error"><i class="bx bx-error-circle"></i> Network error. Please try again.</div>`;
           } finally {
             showLoading('forgot-loading1', false);
           }
@@ -945,13 +1168,13 @@
           const csrfToken = getCsrfToken();
 
           if (!csrfToken) {
-            container.innerHTML = `<div class="alert error"><i class="ri-error-warning-line"></i> CSRF token not found. Please refresh the page.</div>`;
+            container.innerHTML = `<div class="alert error"><i class="bx bx-error-circle"></i> CSRF token not found. Please refresh the page.</div>`;
             showLoading('forgot-loading2', false);
             return;
           }
 
           try {
-            const response = await fetch('/forgot-password/', {
+            const response = await fetch('/login/forgot-password/', {
               method: 'POST',
               body: formData,
               headers: {
@@ -967,7 +1190,7 @@
             const data = await response.json();
             container.innerHTML = `
               <div class="alert ${data.success ? 'success' : 'error'}">
-                <i class="ri-${data.success ? 'check-circle-line' : 'error-warning-line'}"></i>
+                <i class="bx bx-${data.success ? 'check-circle' : 'error-circle'}"></i>
                 ${data.message}
               </div>
             `;
@@ -981,7 +1204,7 @@
             }
           } catch (error) {
             console.error('Network error:', error);
-            container.innerHTML = `<div class="alert error"><i class="ri-error-warning-line"></i> Network error. Please try again.</div>`;
+            container.innerHTML = `<div class="alert error"><i class="bx bx-error-circle"></i> Network error. Please try again.</div>`;
           } finally {
             showLoading('forgot-loading2', false);
           }
@@ -1001,13 +1224,13 @@
           const csrfToken = getCsrfToken();
 
           if (!csrfToken) {
-            container.innerHTML = `<div class="alert error"><i class="ri-error-warning-line"></i> CSRF token not found. Please refresh the page.</div>`;
+            container.innerHTML = `<div class="alert error"><i class="bx bx-error-circle"></i> CSRF token not found. Please refresh the page.</div>`;
             showLoading('forgot-loading3', false);
             return;
           }
 
           try {
-            const response = await fetch('/forgot-password/', {
+            const response = await fetch('/login/forgot-password/', {
               method: 'POST',
               body: formData,
               headers: {
@@ -1023,7 +1246,7 @@
             const data = await response.json();
             container.innerHTML = `
               <div class="alert ${data.success ? 'success' : 'error'}">
-                <i class="ri-${data.success ? 'check-circle-line' : 'error-warning-line'}"></i>
+                <i class="bx bx-${data.success ? 'check-circle' : 'error-circle'}"></i>
                 ${data.message}
               </div>
             `;
@@ -1039,7 +1262,7 @@
             }
           } catch (error) {
             console.error('Network error:', error);
-            container.innerHTML = `<div class="alert error"><i class="ri-error-warning-line"></i> Network error. Please try again.</div>`;
+            container.innerHTML = `<div class="alert error"><i class="bx bx-error-circle"></i> Network error. Please try again.</div>`;
           } finally {
             showLoading('forgot-loading3', false);
           }
@@ -1056,15 +1279,15 @@
           const csrfToken = getCsrfToken();
 
           if (!csrfToken) {
-            container.innerHTML = `<div class="alert error"><i class="ri-error-warning-line"></i> CSRF token not found. Please refresh the page.</div>`;
+            container.innerHTML = `<div class="alert error"><i class="bx bx-error-circle"></i> CSRF token not found. Please refresh the page.</div>`;
             return;
           }
 
           button.disabled = true;
-          button.innerHTML = '<i class="ri-loader-4-line"></i> Sending...';
+          button.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Sending...';
 
           try {
-            const response = await fetch('/accounts/resend-reset-otp/', {
+            const response = await fetch('/resend-reset-otp/', {
               method: 'POST',
               headers: {
                 'X-CSRFToken': csrfToken,
@@ -1080,7 +1303,7 @@
             const data = await response.json();
             container.innerHTML = `
               <div class="alert ${data.success ? 'success' : 'error'}">
-                <i class="ri-${data.success ? 'check-circle-line' : 'error-warning-line'}"></i>
+                <i class="bx bx-${data.success ? 'check-circle' : 'error-circle'}"></i>
                 ${data.message}
               </div>
             `;
@@ -1088,7 +1311,7 @@
             if (data.success) {
               let countdown = 30;
               const timer = setInterval(() => {
-                button.innerHTML = `<i class="ri-time-line"></i> Resend in ${countdown--}s`;
+                button.innerHTML = `<i class="bx bx-time"></i> Resend in ${countdown--}s`;
                 if (countdown < 0) {
                   clearInterval(timer);
                   button.disabled = false;
@@ -1101,7 +1324,7 @@
             }
           } catch (error) {
             console.error('Network error:', error);
-            container.innerHTML = `<div class="alert error"><i class="ri-error-warning-line"></i> Network error. Please try again.</div>`;
+            container.innerHTML = `<div class="alert error"><i class="bx bx-error-circle"></i> Network error. Please try again.</div>`;
             button.disabled = false;
             button.innerHTML = originalText;
           }
@@ -1144,7 +1367,21 @@
         if (/[^A-Za-z0-9]/.test(password)) strength++;
         return strength;
       }
+
+      // AOS animations disabled for login page stability
+      // document.addEventListener('DOMContentLoaded', function() {
+      //   if (typeof AOS !== 'undefined') {
+      //     AOS.init({
+      //       duration: 1000,
+      //       once: true,
+      //       offset: 100
+      //     });
+      //   }
+      // });
     });
   </script>
+
+  <!-- AOS Animation Script - Disabled for login page stability -->
+  <!-- <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script> -->
   </body>
 </html>
