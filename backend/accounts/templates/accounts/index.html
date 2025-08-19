@@ -283,12 +283,12 @@
             cursor: pointer;
         }
 
-        /* Hero Section - World-Class Design */
+        /* Hero Section - Clean White Design */
         .hero {
             min-height: 100vh;
             display: flex;
             align-items: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--white);
             position: relative;
             overflow: hidden;
             padding-top: 80px;
@@ -302,29 +302,9 @@
             right: 0;
             bottom: 0;
             background:
-                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(59, 130, 246, 0.2) 0%, transparent 50%);
+                radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.03) 0%, transparent 50%);
             z-index: 1;
-        }
-
-        .hero::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E") repeat;
-            z-index: 1;
-            animation: backgroundMove 20s ease-in-out infinite;
-        }
-
-        @keyframes backgroundMove {
-            0%, 100% { transform: translateX(0) translateY(0); }
-            25% { transform: translateX(-10px) translateY(-10px); }
-            50% { transform: translateX(10px) translateY(10px); }
-            75% { transform: translateX(-5px) translateY(5px); }
         }
 
         .hero-content {
@@ -345,35 +325,21 @@
             font-weight: 800;
             line-height: 1.1;
             margin-bottom: var(--spacing-lg);
-            color: var(--white);
-            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            animation: titleGlow 3s ease-in-out infinite alternate;
-        }
-
-        @keyframes titleGlow {
-            from { text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); }
-            to { text-shadow: 0 4px 30px rgba(255, 255, 255, 0.2), 0 0 40px rgba(59, 130, 246, 0.3); }
+            color: var(--gray-900);
         }
 
         .hero-title .highlight {
-            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            animation: shimmer 2s ease-in-out infinite;
-        }
-
-        @keyframes shimmer {
-            0% { background-position: -200% center; }
-            100% { background-position: 200% center; }
         }
 
         .hero-subtitle {
             font-size: var(--font-size-xl);
-            color: rgba(255, 255, 255, 0.9);
+            color: var(--gray-600);
             margin-bottom: var(--spacing-2xl);
             line-height: 1.6;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
 
         .hero-actions {
@@ -394,23 +360,12 @@
             position: relative;
             width: 500px;
             height: 400px;
-            background: rgba(255, 255, 255, 0.1);
+            background: var(--white);
             border-radius: var(--radius-2xl);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid var(--gray-200);
             overflow: hidden;
             animation: float 6s ease-in-out infinite;
-        }
-
-        .hero-visual::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: conic-gradient(from 0deg, transparent, rgba(59, 130, 246, 0.3), transparent);
-            animation: rotate 10s linear infinite;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
         }
 
         .hero-visual img {
@@ -418,9 +373,8 @@
             z-index: 2;
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            border-radius: var(--radius-xl);
-            filter: brightness(1.1) contrast(1.1);
+            object-fit: contain;
+            padding: var(--spacing);
         }
 
         @keyframes float {
@@ -433,62 +387,7 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Floating Elements */
-        .floating-elements {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            pointer-events: none;
-            z-index: 1;
-        }
 
-        .floating-element {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            animation: floatRandom 15s ease-in-out infinite;
-        }
-
-        .floating-element:nth-child(1) {
-            width: 80px;
-            height: 80px;
-            top: 20%;
-            left: 10%;
-            animation-delay: 0s;
-        }
-
-        .floating-element:nth-child(2) {
-            width: 60px;
-            height: 60px;
-            top: 60%;
-            right: 15%;
-            animation-delay: 2s;
-        }
-
-        .floating-element:nth-child(3) {
-            width: 100px;
-            height: 100px;
-            bottom: 20%;
-            left: 20%;
-            animation-delay: 4s;
-        }
-
-        .floating-element:nth-child(4) {
-            width: 40px;
-            height: 40px;
-            top: 30%;
-            right: 30%;
-            animation-delay: 6s;
-        }
-
-        @keyframes floatRandom {
-            0%, 100% { transform: translateY(0px) translateX(0px) rotate(0deg); }
-            25% { transform: translateY(-30px) translateX(20px) rotate(90deg); }
-            50% { transform: translateY(-60px) translateX(-10px) rotate(180deg); }
-            75% { transform: translateY(-20px) translateX(-30px) rotate(270deg); }
-        }
 
         /* Trust Indicators */
         .trust-indicators {
@@ -503,32 +402,24 @@
             display: flex;
             align-items: center;
             gap: var(--spacing-sm);
-            color: rgba(255, 255, 255, 0.8);
+            color: var(--gray-600);
             font-size: var(--font-size-sm);
+            background: var(--gray-50);
+            padding: var(--spacing-sm) var(--spacing);
+            border-radius: var(--radius-full);
+            border: 1px solid var(--gray-200);
         }
 
         .trust-item i {
-            color: #ffd700;
+            color: var(--primary-color);
             font-size: var(--font-size-lg);
         }
 
-        /* Features Section - Enhanced */
+        /* Features Section - Clean White */
         .features {
             padding: var(--spacing-3xl) 0;
-            background: linear-gradient(180deg, var(--white) 0%, var(--gray-50) 100%);
+            background: var(--white);
             position: relative;
-            overflow: hidden;
-        }
-
-        .features::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='a' gradientUnits='userSpaceOnUse' x1='100' y1='33' x2='100' y2='-3'%3E%3Cstop offset='0' stop-color='%233b82f6' stop-opacity='0.05'/%3E%3Cstop offset='1' stop-color='%233b82f6' stop-opacity='0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M100 30c0-16.569-13.431-30-30-30s-30 13.431-30 30 13.431 30 30 30 30-13.431 30-30z' fill='url(%23a)'/%3E%3C/svg%3E") repeat;
-            opacity: 0.3;
         }
 
         .section-header {
@@ -709,52 +600,71 @@
             transform: translateX(4px);
         }
 
-        /* How It Works Section */
+        /* How It Works Section - 6 Steps */
         .how-it-works {
             padding: var(--spacing-3xl) 0;
-            background: var(--white);
+            background: var(--gray-50);
             position: relative;
         }
 
         .steps-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: var(--spacing-2xl);
             margin-top: var(--spacing-3xl);
         }
 
         .step-card {
+            background: var(--white);
+            border-radius: var(--radius-2xl);
+            padding: var(--spacing-2xl);
             text-align: center;
             position: relative;
-            padding: var(--spacing-xl);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--gray-200);
+            transition: all 0.3s ease;
+        }
+
+        .step-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .step-image {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto var(--spacing-lg);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            background: var(--white);
+            border: 2px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .step-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: var(--spacing-sm);
         }
 
         .step-number {
-            width: 80px;
-            height: 80px;
+            position: absolute;
+            top: -15px;
+            right: var(--spacing-lg);
+            width: 40px;
+            height: 40px;
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto var(--spacing-lg);
-            font-size: var(--font-size-2xl);
+            font-size: var(--font-size-lg);
             font-weight: 800;
             color: var(--white);
-            position: relative;
-            z-index: 2;
-        }
-
-        .step-number::before {
-            content: '';
-            position: absolute;
-            top: -10px;
-            left: -10px;
-            right: -10px;
-            bottom: -10px;
-            border: 2px dashed var(--primary-light);
-            border-radius: 50%;
-            animation: rotate 10s linear infinite;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
         }
 
         .step-title {
@@ -769,24 +679,12 @@
             line-height: 1.6;
         }
 
-        /* Stats Section - Enhanced */
+        /* Stats Section - Clean White */
         .stats {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: var(--white);
+            background: var(--gray-50);
+            color: var(--gray-900);
             padding: var(--spacing-3xl) 0;
             position: relative;
-            overflow: hidden;
-        }
-
-        .stats::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E") repeat;
-            animation: backgroundMove 15s ease-in-out infinite;
         }
 
         .stats-grid {
@@ -800,13 +698,13 @@
 
         .stat-item {
             padding: var(--spacing-xl);
-            background: rgba(255, 255, 255, 0.1);
+            background: var(--white);
             border-radius: var(--radius-2xl);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid var(--gray-200);
             transition: all 0.4s ease;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         }
 
         .stat-item::before {
@@ -826,7 +724,7 @@
 
         .stat-item:hover {
             transform: translateY(-8px) scale(1.05);
-            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
         }
 
         .stat-number {
@@ -834,7 +732,7 @@
             font-weight: 900;
             margin-bottom: var(--spacing-sm);
             display: block;
-            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -861,7 +759,7 @@
         /* Testimonials Section */
         .testimonials {
             padding: var(--spacing-3xl) 0;
-            background: linear-gradient(180deg, var(--gray-50) 0%, var(--white) 100%);
+            background: var(--white);
         }
 
         .testimonials-grid {
@@ -934,11 +832,104 @@
             font-size: var(--font-size-sm);
         }
 
+        /* Platform Showcase Section */
+        .platform-showcase {
+            padding: var(--spacing-3xl) 0;
+            background: var(--white);
+        }
+
+        .showcase-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-3xl);
+            align-items: center;
+            margin-top: var(--spacing-3xl);
+        }
+
+        .showcase-content h3 {
+            font-size: var(--font-size-3xl);
+            font-weight: 700;
+            margin-bottom: var(--spacing);
+            color: var(--gray-900);
+        }
+
+        .showcase-content p {
+            font-size: var(--font-size-lg);
+            color: var(--gray-600);
+            line-height: 1.6;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .showcase-features {
+            list-style: none;
+            padding: 0;
+        }
+
+        .showcase-features li {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing);
+            color: var(--gray-700);
+        }
+
+        .showcase-features li i {
+            color: var(--success-color);
+            font-size: var(--font-size-lg);
+        }
+
+        .showcase-image {
+            position: relative;
+            border-radius: var(--radius-2xl);
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            background: var(--white);
+        }
+
+        .showcase-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Gallery Section */
+        .gallery {
+            padding: var(--spacing-3xl) 0;
+            background: var(--gray-50);
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-xl);
+            margin-top: var(--spacing-3xl);
+        }
+
+        .gallery-item {
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
         /* CTA Section */
         .cta {
-            background: var(--gray-50);
+            background: var(--white);
             padding: var(--spacing-3xl) 0;
             text-align: center;
+            border-top: 1px solid var(--gray-200);
         }
 
         .cta-content {
@@ -997,6 +988,20 @@
 
         /* Mobile Responsive */
         @media (max-width: 768px) {
+            .showcase-grid {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-xl);
+            }
+
+            .gallery-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: var(--spacing);
+            }
+
+            .steps-container {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-lg);
+            }
             .nav-menu {
                 position: fixed;
                 top: 80px;
@@ -1092,6 +1097,19 @@
         @media (max-width: 480px) {
             .container {
                 padding: 0 var(--spacing-sm);
+            }
+
+            .gallery-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .step-image {
+                width: 80px;
+                height: 80px;
+            }
+
+            .showcase-content h3 {
+                font-size: var(--font-size-2xl);
             }
 
             .hero-title {
@@ -1232,13 +1250,7 @@
                 </div>
             </div>
 
-            <!-- Floating Elements -->
-            <div class="floating-elements">
-                <div class="floating-element"></div>
-                <div class="floating-element"></div>
-                <div class="floating-element"></div>
-                <div class="floating-element"></div>
-            </div>
+
         </div>
     </section>
 
@@ -1335,39 +1347,81 @@
         </div>
     </section>
 
-    <!-- How It Works Section -->
+    <!-- How It Works Section - 6 Steps -->
     <section class="how-it-works">
         <div class="container">
             <div class="section-header" data-aos="fade-up">
-                <div class="section-badge">Simple Process</div>
-                <h2 class="section-title">How JobElevate Works</h2>
+                <div class="section-badge">Complete Process</div>
+                <h2 class="section-title">Your Journey to Career Success</h2>
                 <p class="section-subtitle">
-                    Get started in just three simple steps and transform your career journey
+                    Follow our comprehensive 6-step process to transform your career and achieve your professional goals
                 </p>
             </div>
 
             <div class="steps-container">
                 <div class="step-card" data-aos="fade-up" data-aos-delay="100">
                     <div class="step-number">1</div>
+                    <div class="step-image">
+                        <img src="{% static 'images/step-1-2x-ea6fb41bef4535b8a9a9e4a182d94d6e.webp' %}" alt="Create Profile">
+                    </div>
                     <h3 class="step-title">Create Your Profile</h3>
                     <p class="step-description">
-                        Sign up and complete your professional profile with your skills, experience, and career goals.
+                        Build a comprehensive professional profile showcasing your skills, experience, and career aspirations.
                     </p>
                 </div>
 
                 <div class="step-card" data-aos="fade-up" data-aos-delay="200">
                     <div class="step-number">2</div>
-                    <h3 class="step-title">Get Matched</h3>
+                    <div class="step-image">
+                        <img src="{% static 'images/step-2-2x-05d891ddc8ee5ca06d2d365ab4578bd3.webp' %}" alt="Skill Assessment">
+                    </div>
+                    <h3 class="step-title">Take Skill Assessments</h3>
                     <p class="step-description">
-                        Our AI analyzes your profile and matches you with relevant job opportunities and learning resources.
+                        Complete comprehensive assessments to identify your strengths and areas for improvement.
                     </p>
                 </div>
 
                 <div class="step-card" data-aos="fade-up" data-aos-delay="300">
                     <div class="step-number">3</div>
-                    <h3 class="step-title">Elevate Your Career</h3>
+                    <div class="step-image">
+                        <img src="{% static 'images/step-3-2x-97e08972f3bff08cb47fb3b4edf763a5.webp' %}" alt="AI Matching">
+                    </div>
+                    <h3 class="step-title">Get AI-Powered Matches</h3>
                     <p class="step-description">
-                        Apply to jobs, complete assessments, and connect with professionals to advance your career.
+                        Our advanced AI analyzes your profile and matches you with perfect job opportunities.
+                    </p>
+                </div>
+
+                <div class="step-card" data-aos="fade-up" data-aos-delay="400">
+                    <div class="step-number">4</div>
+                    <div class="step-image">
+                        <img src="{% static 'images/step-4-2x-dbf7e7a915ec905787f7528f95e8ae59.webp' %}" alt="Build Resume">
+                    </div>
+                    <h3 class="step-title">Build Professional Resume</h3>
+                    <p class="step-description">
+                        Create ATS-optimized resumes using our intelligent builder and expert templates.
+                    </p>
+                </div>
+
+                <div class="step-card" data-aos="fade-up" data-aos-delay="500">
+                    <div class="step-number">5</div>
+                    <div class="step-image">
+                        <img src="{% static 'images/step-5-2x-0f8ebb2f64c37ba6c3d525986a92c124.webp' %}" alt="Apply Jobs">
+                    </div>
+                    <h3 class="step-title">Apply to Dream Jobs</h3>
+                    <p class="step-description">
+                        Apply to curated job opportunities that match your skills and career goals.
+                    </p>
+                </div>
+
+                <div class="step-card" data-aos="fade-up" data-aos-delay="600">
+                    <div class="step-number">6</div>
+                    <div class="step-image">
+                        <img src="{% static 'images/step-6-2x-374144d376e49ad88e8b57cc38beac03.webp' %}" alt="Career Success">
+                    </div>
+                    <h3 class="step-title">Achieve Career Success</h3>
+                    <p class="step-description">
+                        Land your dream job and continue growing with our ongoing career development resources.
                     </p>
                 </div>
             </div>
@@ -1378,8 +1432,8 @@
     <section class="stats">
         <div class="container">
             <div class="section-header" data-aos="fade-up" style="margin-bottom: var(--spacing-3xl);">
-                <h2 class="section-title" style="color: var(--white);">Trusted by Professionals Worldwide</h2>
-                <p class="section-subtitle" style="color: rgba(255, 255, 255, 0.9);">
+                <h2 class="section-title">Trusted by Professionals Worldwide</h2>
+                <p class="section-subtitle">
                     Join thousands of professionals who have transformed their careers with JobElevate
                 </p>
             </div>
@@ -1412,6 +1466,71 @@
                     </div>
                     <span class="stat-number">95%</span>
                     <span class="stat-label">Success Rate</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Platform Showcase Section -->
+    <section class="platform-showcase">
+        <div class="container">
+            <div class="showcase-grid">
+                <div class="showcase-content" data-aos="fade-right">
+                    <h3>Powerful Resume Builder</h3>
+                    <p>Create professional, ATS-optimized resumes with our intelligent builder. Choose from expert-designed templates and get real-time feedback to make your resume stand out.</p>
+                    <ul class="showcase-features">
+                        <li><i class='bx bx-check-circle'></i> ATS-Optimized Templates</li>
+                        <li><i class='bx bx-check-circle'></i> Real-time Content Suggestions</li>
+                        <li><i class='bx bx-check-circle'></i> Professional Formatting</li>
+                        <li><i class='bx bx-check-circle'></i> Multiple Export Formats</li>
+                    </ul>
+                </div>
+                <div class="showcase-image" data-aos="fade-left">
+                    <img src="{% static 'images/header-process-2x.webp' %}" alt="Resume Builder Process">
+                </div>
+            </div>
+
+            <div class="showcase-grid" style="margin-top: var(--spacing-3xl);">
+                <div class="showcase-image" data-aos="fade-right">
+                    <img src="{% static 'images/process-infographic-2x.webp' %}" alt="Career Process Infographic">
+                </div>
+                <div class="showcase-content" data-aos="fade-left">
+                    <h3>Complete Career Ecosystem</h3>
+                    <p>From skill assessment to job placement, our comprehensive platform guides you through every step of your career journey with AI-powered insights and personalized recommendations.</p>
+                    <ul class="showcase-features">
+                        <li><i class='bx bx-check-circle'></i> AI-Powered Job Matching</li>
+                        <li><i class='bx bx-check-circle'></i> Skill Gap Analysis</li>
+                        <li><i class='bx bx-check-circle'></i> Learning Path Recommendations</li>
+                        <li><i class='bx bx-check-circle'></i> Career Analytics Dashboard</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section class="gallery">
+        <div class="container">
+            <div class="section-header" data-aos="fade-up">
+                <div class="section-badge">Platform Features</div>
+                <h2 class="section-title">Explore Our Platform</h2>
+                <p class="section-subtitle">
+                    Discover the tools and features that make JobElevate the ultimate career advancement platform
+                </p>
+            </div>
+
+            <div class="gallery-grid">
+                <div class="gallery-item" data-aos="fade-up" data-aos-delay="100">
+                    <img src="{% static 'images/19209.jpg' %}" alt="Professional Development">
+                </div>
+                <div class="gallery-item" data-aos="fade-up" data-aos-delay="200">
+                    <img src="{% static 'images/6310507.jpg' %}" alt="Career Growth">
+                </div>
+                <div class="gallery-item" data-aos="fade-up" data-aos-delay="300">
+                    <img src="{% static 'images/6368592.jpg' %}" alt="Job Search">
+                </div>
+                <div class="gallery-item" data-aos="fade-up" data-aos-delay="400">
+                    <img src="{% static 'images/9848264.jpg' %}" alt="Team Collaboration">
                 </div>
             </div>
         </div>
