@@ -973,21 +973,43 @@
         // ====== Modal System ======
         const modalDialog = document.getElementById('delete-resume-modal');
         const modalClose = modalDialog.querySelector('.btn-close');
-        const deleteButtons = document.querySelectorAll('.btn-danger:not(.modal-footer .btn-danger)');
         const cancelButton = modalDialog.querySelector('.modal-footer .btn-cancel');
         const deleteForm = document.getElementById('delete-resume-form');
-        
-        // Show modal when delete button is clicked
-        deleteButtons.forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                const resumeId = this.getAttribute('data-resume-id');
-                if (resumeId) {
-                    deleteForm.action = `/resume_builder/delete/${resumeId}/`;
-                    modalDialog.style.display = 'block';
-                }
+
+        // Function to attach delete button listeners (for dynamic content)
+        function attachDeleteListeners() {
+            const deleteButtons = document.querySelectorAll('.btn-outline-danger[data-resume-id]');
+            deleteButtons.forEach(button => {
+                // Remove existing listeners to prevent duplicates
+                button.removeEventListener('click', handleDeleteClick);
+                button.addEventListener('click', handleDeleteClick);
             });
-        });
+        }
+
+        // Delete button click handler
+        function handleDeleteClick(e) {
+            e.preventDefault();
+            const resumeId = this.getAttribute('data-resume-id');
+            console.log('Delete button clicked for resume ID:', resumeId); // Debug log
+
+            if (!resumeId) {
+                console.error('No resume ID found on delete button');
+                return;
+            }
+
+            // Try to use modal first
+            if (modalDialog && deleteForm) {
+                deleteForm.action = `/resume_builder/delete/${resumeId}/`;
+                modalDialog.style.display = 'block';
+            } else {
+                // Fallback to confirm dialog if modal is not available
+                console.warn('Modal not available, using fallback delete method');
+                fallbackDelete(resumeId);
+            }
+        }
+
+        // Initialize delete button listeners
+        attachDeleteListeners();
         
         // Close modal when close button is clicked
         if (modalClose) {
@@ -1001,6 +1023,41 @@
             cancelButton.addEventListener('click', function() {
                 modalDialog.style.display = 'none';
             });
+        }
+
+        // Close modal when clicking outside of it
+        if (modalDialog) {
+            modalDialog.addEventListener('click', function(e) {
+                if (e.target === modalDialog) {
+                    modalDialog.style.display = 'none';
+                }
+            });
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && modalDialog && modalDialog.style.display === 'block') {
+                modalDialog.style.display = 'none';
+            }
+        });
+
+        // Fallback: If modal fails, use confirm dialog
+        function fallbackDelete(resumeId) {
+            if (confirm('Are you sure you want to delete this resume? This action cannot be undone.')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/resume_builder/delete/${resumeId}/`;
+
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = csrfToken;
+                form.appendChild(csrfInput);
+
+                document.body.appendChild(form);
+                form.submit();
+            }
         }
         
         // ====== Template Selection ======
