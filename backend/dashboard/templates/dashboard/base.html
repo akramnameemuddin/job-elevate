@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -10,10 +10,17 @@
     <meta name="apple-mobile-web-app-title" content="JobElevate">
     <meta name="mobile-web-app-capable" content="yes">
     <title>JobElevate</title>
+
+    <!-- Immediate Theme Loading - Prevents Flash -->
+    <script>
+        (function() {
+            const storedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', storedTheme);
+        })();
+    </script>
+
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-    <link rel="apple-touch-icon" sizes="180x180" href="/static/icons/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/static/icons/favicon-16x16.png">
+    <link rel="icon" type="image/svg+xml" href="/static/icons/favicon.svg">
     <link rel="manifest" href="/static/manifest.json">
     <style>
         /* ==== JobElevate Unified Design System (Accounts Template Standard) ==== */
@@ -128,51 +135,53 @@
         }
 
         [data-theme="dark"] {
-            /* Primary Colors - Dark Theme with Subtle Blue Accent */
-            --primary-color: #6b7280;
-            --primary-hover: #9ca3af;
-            --primary-light: rgba(107, 114, 128, 0.1);
-            --primary-dark: #4b5563;
+            /* Professional Dark Mode - GitHub/VS Code Inspired */
 
-            /* Secondary Colors - Dark Theme with Subtle Purple Accent */
-            --secondary-color: #8b5cf6;
-            --secondary-hover: #a78bfa;
-            --secondary-light: rgba(139, 92, 246, 0.1);
-            --secondary-dark: #7c3aed;
+            /* Primary Colors - Professional Blue */
+            --primary-color: #58a6ff;
+            --primary-hover: #79c0ff;
+            --primary-light: rgba(88, 166, 255, 0.15);
+            --primary-dark: #388bfd;
 
-            /* Status Colors */
-            --success-color: #34d399;
-            --success-hover: #10b981;
-            --success-light: rgba(52, 211, 153, 0.1);
-            --warning-color: #fbbf24;
-            --warning-hover: #f59e0b;
-            --warning-light: rgba(251, 191, 36, 0.1);
-            --danger-color: #f87171;
-            --danger-hover: #ef4444;
-            --danger-light: rgba(248, 113, 113, 0.1);
-            --info-color: #22d3ee;
-            --info-hover: #06b6d4;
-            --info-light: rgba(34, 211, 238, 0.1);
+            /* Secondary Colors - Professional Purple */
+            --secondary-color: #a5a5ff;
+            --secondary-hover: #b8b8ff;
+            --secondary-light: rgba(165, 165, 255, 0.15);
+            --secondary-dark: #8e8eff;
 
-            /* Background Colors - Pure Dark Theme */
-            --background-color: #0f0f0f;
-            --card-bg: #1a1a1a;
-            --sidebar-bg: #1a1a1a;
-            --sidebar-active: rgba(107, 114, 128, 0.15);
-            --hover-bg: #2a2a2a;
-            --input-bg: #2a2a2a;
+            /* Status Colors - Professional Dark Theme */
+            --success-color: #3fb950;
+            --success-hover: #56d364;
+            --success-light: rgba(63, 185, 80, 0.15);
+            --warning-color: #d29922;
+            --warning-hover: #e2a336;
+            --warning-light: rgba(210, 153, 34, 0.15);
+            --danger-color: #f85149;
+            --danger-hover: #ff6b6b;
+            --danger-light: rgba(248, 81, 73, 0.15);
+            --info-color: #58a6ff;
+            --info-hover: #79c0ff;
+            --info-light: rgba(88, 166, 255, 0.15);
 
-            /* Text Colors - High Contrast for Dark Theme */
-            --text-color: #ffffff;
-            --text-light: #d1d5db;
-            --text-muted: #9ca3af;
-            --text-inverse: #0f0f0f;
-            --heading-color: #ffffff;
+            /* Background Colors - Professional Dark Gray */
+            --background-color: #0d1117;
+            --card-bg: #161b22;
+            --sidebar-bg: #161b22;
+            --sidebar-active: rgba(88, 166, 255, 0.12);
+            --hover-bg: #21262d;
+            --input-bg: #21262d;
 
-            /* Border Colors - Subtle Dark Theme Borders */
-            --border-color: #3a3a3a;
-            --border-light: #4a4a4a;
-            --border-dark: #5a5a5a;
+            /* Text Colors - Professional Contrast */
+            --text-color: #f0f6fc;
+            --text-light: #8b949e;
+            --text-muted: #656d76;
+            --text-inverse: #0d1117;
+            --heading-color: #f0f6fc;
+
+            /* Border Colors - Professional Dark Borders */
+            --border-color: #30363d;
+            --border-light: #21262d;
+            --border-dark: #8b949e;
 
             /* Shadows */
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
