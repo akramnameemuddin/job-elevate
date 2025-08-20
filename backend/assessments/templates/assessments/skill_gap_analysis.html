@@ -1,0 +1,1259 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Skill Gap Analysis{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<div class="breadcrumb">
+    <div class="breadcrumb-item">
+        <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item">
+        <a href="{% url 'assessments:assessment' %}" class="breadcrumb-link">Assessments</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item">
+        <span>Skill Gap Analysis</span>
+    </div>
+</div>
+
+<!-- Analysis Header -->
+<div class="analysis-header">
+    <div class="header-content">
+        <h1>Your Skill Gap Analysis</h1>
+        <p>Comprehensive analysis of your current skills vs. market demands and career goals</p>
+        <div class="analysis-meta">
+            <div class="meta-item">
+                <i class='bx bx-calendar'></i>
+                <span>Last Updated: March 15, 2024</span>
+            </div>
+            <div class="meta-item">
+                <i class='bx bx-target-lock'></i>
+                <span>Target Role: Senior Full-Stack Developer</span>
+            </div>
+        </div>
+    </div>
+    <div class="header-actions">
+        <button class="btn btn-outline-primary">
+            <i class='bx bx-refresh'></i>
+            Refresh Analysis
+        </button>
+        <button class="btn btn-primary">
+            <i class='bx bx-edit'></i>
+            Update Goals
+        </button>
+    </div>
+</div>
+
+<!-- Overall Progress -->
+<div class="overall-progress">
+    <div class="progress-card">
+        <div class="progress-header">
+            <h3>Career Readiness Score</h3>
+            <div class="score-badge">78%</div>
+        </div>
+        <div class="progress-visual">
+            <div class="progress-circle-large">
+                <svg viewBox="0 0 140 140">
+                    <circle cx="70" cy="70" r="60" class="progress-bg"></circle>
+                    <circle cx="70" cy="70" r="60" class="progress-fill" style="stroke-dasharray: 294, 377;"></circle>
+                </svg>
+                <div class="progress-center">
+                    <span class="progress-number">78</span>
+                    <span class="progress-label">%</span>
+                    <span class="progress-status">Good</span>
+                </div>
+            </div>
+        </div>
+        <div class="progress-breakdown">
+            <div class="breakdown-item">
+                <span class="breakdown-label">Technical Skills</span>
+                <div class="breakdown-bar">
+                    <div class="breakdown-fill" style="width: 85%;"></div>
+                </div>
+                <span class="breakdown-value">85%</span>
+            </div>
+            <div class="breakdown-item">
+                <span class="breakdown-label">Soft Skills</span>
+                <div class="breakdown-bar">
+                    <div class="breakdown-fill" style="width: 72%;"></div>
+                </div>
+                <span class="breakdown-value">72%</span>
+            </div>
+            <div class="breakdown-item">
+                <span class="breakdown-label">Industry Knowledge</span>
+                <div class="breakdown-bar">
+                    <div class="breakdown-fill" style="width: 68%;"></div>
+                </div>
+                <span class="breakdown-value">68%</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="insights-card">
+        <h3>Key Insights</h3>
+        <div class="insights-list">
+            <div class="insight-item positive">
+                <i class='bx bx-trending-up'></i>
+                <div class="insight-content">
+                    <h4>Strong Frontend Skills</h4>
+                    <p>Your React and JavaScript skills are above market average</p>
+                </div>
+            </div>
+            <div class="insight-item warning">
+                <i class='bx bx-error-circle'></i>
+                <div class="insight-content">
+                    <h4>DevOps Gap Identified</h4>
+                    <p>Docker and Kubernetes skills need improvement for senior roles</p>
+                </div>
+            </div>
+            <div class="insight-item info">
+                <i class='bx bx-info-circle'></i>
+                <div class="insight-content">
+                    <h4>Leadership Potential</h4>
+                    <p>Consider developing team management and mentoring skills</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Skill Categories Analysis -->
+<div class="skill-categories">
+    <h2>Detailed Skill Analysis</h2>
+    
+    <div class="categories-tabs">
+        <button class="tab-button active" data-category="technical">Technical Skills</button>
+        <button class="tab-button" data-category="soft">Soft Skills</button>
+        <button class="tab-button" data-category="industry">Industry Knowledge</button>
+        <button class="tab-button" data-category="tools">Tools & Technologies</button>
+    </div>
+    
+    <div class="category-content active" id="technical">
+        <div class="skills-grid">
+            <div class="skill-analysis-card">
+                <div class="skill-header">
+                    <div class="skill-icon">
+                        <i class='bx bx-code-alt'></i>
+                    </div>
+                    <div class="skill-info">
+                        <h4>Frontend Development</h4>
+                        <div class="skill-level expert">Expert</div>
+                    </div>
+                    <div class="skill-score">92%</div>
+                </div>
+                <div class="skill-details">
+                    <div class="skill-breakdown">
+                        <div class="skill-item">
+                            <span>React.js</span>
+                            <div class="skill-bar">
+                                <div class="skill-fill" style="width: 95%;"></div>
+                            </div>
+                            <span>95%</span>
+                        </div>
+                        <div class="skill-item">
+                            <span>JavaScript (ES6+)</span>
+                            <div class="skill-bar">
+                                <div class="skill-fill" style="width: 90%;"></div>
+                            </div>
+                            <span>90%</span>
+                        </div>
+                        <div class="skill-item">
+                            <span>CSS/SCSS</span>
+                            <div class="skill-bar">
+                                <div class="skill-fill" style="width: 88%;"></div>
+                            </div>
+                            <span>88%</span>
+                        </div>
+                        <div class="skill-item">
+                            <span>TypeScript</span>
+                            <div class="skill-bar">
+                                <div class="skill-fill" style="width: 85%;"></div>
+                            </div>
+                            <span>85%</span>
+                        </div>
+                    </div>
+                    <div class="market-comparison">
+                        <div class="comparison-header">
+                            <i class='bx bx-bar-chart-alt-2'></i>
+                            <span>Market Comparison</span>
+                        </div>
+                        <div class="comparison-item">
+                            <span>Your Level</span>
+                            <span class="comparison-value high">Above Average</span>
+                        </div>
+                        <div class="comparison-item">
+                            <span>Market Demand</span>
+                            <span class="comparison-value high">Very High</span>
+                        </div>
+                        <div class="comparison-item">
+                            <span>Salary Impact</span>
+                            <span class="comparison-value high">+15%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="skill-analysis-card">
+                <div class="skill-header">
+                    <div class="skill-icon">
+                        <i class='bx bx-server'></i>
+                    </div>
+                    <div class="skill-info">
+                        <h4>Backend Development</h4>
+                        <div class="skill-level intermediate">Intermediate</div>
+                    </div>
+                    <div class="skill-score">75%</div>
+                </div>
+                <div class="skill-details">
+                    <div class="skill-breakdown">
+                        <div class="skill-item">
+                            <span>Node.js</span>
+                            <div class="skill-bar">
+                                <div class="skill-fill" style="width: 80%;"></div>
+                            </div>
+                            <span>80%</span>
+                        </div>
+                        <div class="skill-item">
+                            <span>Python/Django</span>
+                            <div class="skill-bar">
+                                <div class="skill-fill" style="width: 75%;"></div>
+                            </div>
+                            <span>75%</span>
+                        </div>
+                        <div class="skill-item">
+                            <span>RESTful APIs</span>
+                            <div class="skill-bar">
+                                <div class="skill-fill" style="width: 78%;"></div>
+                            </div>
+                            <span>78%</span>
+                        </div>
+                        <div class="skill-item">
+                            <span>GraphQL</span>
+                            <div class="skill-bar">
+                                <div class="skill-fill" style="width: 60%;"></div>
+                            </div>
+                            <span>60%</span>
+                        </div>
+                    </div>
+                    <div class="market-comparison">
+                        <div class="comparison-header">
+                            <i class='bx bx-bar-chart-alt-2'></i>
+                            <span>Market Comparison</span>
+                        </div>
+                        <div class="comparison-item">
+                            <span>Your Level</span>
+                            <span class="comparison-value medium">Average</span>
+                        </div>
+                        <div class="comparison-item">
+                            <span>Market Demand</span>
+                            <span class="comparison-value high">High</span>
+                        </div>
+                        <div class="comparison-item">
+                            <span>Improvement Needed</span>
+                            <span class="comparison-value medium">GraphQL, Microservices</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="skill-analysis-card gap">
+                <div class="skill-header">
+                    <div class="skill-icon">
+                        <i class='bx bx-cog'></i>
+                    </div>
+                    <div class="skill-info">
+                        <h4>DevOps & Infrastructure</h4>
+                        <div class="skill-level beginner">Beginner</div>
+                    </div>
+                    <div class="skill-score">45%</div>
+                </div>
+                <div class="skill-details">
+                    <div class="gap-indicator">
+                        <i class='bx bx-error-circle'></i>
+                        <span>Critical Gap Identified</span>
+                    </div>
+                    <div class="skill-breakdown">
+                        <div class="skill-item">
+                            <span>Docker</span>
+                            <div class="skill-bar">
+                                <div class="skill-fill" style="width: 40%;"></div>
+                            </div>
+                            <span>40%</span>
+                        </div>
+                        <div class="skill-item">
+                            <span>Kubernetes</span>
+                            <div class="skill-bar">
+                                <div class="skill-fill" style="width: 25%;"></div>
+                            </div>
+                            <span>25%</span>
+                        </div>
+                        <div class="skill-item">
+                            <span>CI/CD Pipelines</span>
+                            <div class="skill-bar">
+                                <div class="skill-fill" style="width: 50%;"></div>
+                            </div>
+                            <span>50%</span>
+                        </div>
+                        <div class="skill-item">
+                            <span>AWS/Cloud Services</span>
+                            <div class="skill-bar">
+                                <div class="skill-fill" style="width: 35%;"></div>
+                            </div>
+                            <span>35%</span>
+                        </div>
+                    </div>
+                    <div class="improvement-plan">
+                        <div class="plan-header">
+                            <i class='bx bx-target-lock'></i>
+                            <span>Recommended Action</span>
+                        </div>
+                        <p>Complete "Cloud Computing & DevOps" pathway to reach senior level requirements</p>
+                        <button class="btn btn-primary btn-sm">Start Learning</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="category-content" id="soft">
+        <div class="skills-grid">
+            <div class="skill-analysis-card">
+                <div class="skill-header">
+                    <div class="skill-icon">
+                        <i class='bx bx-group'></i>
+                    </div>
+                    <div class="skill-info">
+                        <h4>Communication</h4>
+                        <div class="skill-level intermediate">Intermediate</div>
+                    </div>
+                    <div class="skill-score">78%</div>
+                </div>
+                <div class="skill-details">
+                    <div class="soft-skill-items">
+                        <div class="soft-skill-item">
+                            <span>Written Communication</span>
+                            <div class="rating">
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bx-star'></i>
+                            </div>
+                        </div>
+                        <div class="soft-skill-item">
+                            <span>Presentation Skills</span>
+                            <div class="rating">
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bx-star'></i>
+                                <i class='bx bx-star'></i>
+                            </div>
+                        </div>
+                        <div class="soft-skill-item">
+                            <span>Active Listening</span>
+                            <div class="rating">
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bx-star'></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="skill-analysis-card">
+                <div class="skill-header">
+                    <div class="skill-icon">
+                        <i class='bx bx-brain'></i>
+                    </div>
+                    <div class="skill-info">
+                        <h4>Problem Solving</h4>
+                        <div class="skill-level expert">Expert</div>
+                    </div>
+                    <div class="skill-score">88%</div>
+                </div>
+                <div class="skill-details">
+                    <div class="soft-skill-items">
+                        <div class="soft-skill-item">
+                            <span>Analytical Thinking</span>
+                            <div class="rating">
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bxs-star'></i>
+                            </div>
+                        </div>
+                        <div class="soft-skill-item">
+                            <span>Creative Solutions</span>
+                            <div class="rating">
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bx-star'></i>
+                            </div>
+                        </div>
+                        <div class="soft-skill-item">
+                            <span>Debugging Skills</span>
+                            <div class="rating">
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bxs-star'></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="skill-analysis-card gap">
+                <div class="skill-header">
+                    <div class="skill-icon">
+                        <i class='bx bx-user-check'></i>
+                    </div>
+                    <div class="skill-info">
+                        <h4>Leadership</h4>
+                        <div class="skill-level beginner">Beginner</div>
+                    </div>
+                    <div class="skill-score">52%</div>
+                </div>
+                <div class="skill-details">
+                    <div class="gap-indicator">
+                        <i class='bx bx-info-circle'></i>
+                        <span>Growth Opportunity</span>
+                    </div>
+                    <div class="soft-skill-items">
+                        <div class="soft-skill-item">
+                            <span>Team Management</span>
+                            <div class="rating">
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bx-star'></i>
+                                <i class='bx bx-star'></i>
+                                <i class='bx bx-star'></i>
+                            </div>
+                        </div>
+                        <div class="soft-skill-item">
+                            <span>Mentoring</span>
+                            <div class="rating">
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bx-star'></i>
+                                <i class='bx bx-star'></i>
+                            </div>
+                        </div>
+                        <div class="soft-skill-item">
+                            <span>Decision Making</span>
+                            <div class="rating">
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bxs-star'></i>
+                                <i class='bx bx-star'></i>
+                                <i class='bx bx-star'></i>
+                                <i class='bx bx-star'></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="improvement-plan">
+                        <div class="plan-header">
+                            <i class='bx bx-target-lock'></i>
+                            <span>Development Suggestion</span>
+                        </div>
+                        <p>Consider taking leadership courses and seeking mentorship opportunities</p>
+                        <button class="btn btn-primary btn-sm">Explore Courses</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Plan -->
+<div class="action-plan">
+    <h2>Personalized Development Plan</h2>
+    <div class="plan-timeline">
+        <div class="timeline-item">
+            <div class="timeline-marker priority-high">1</div>
+            <div class="timeline-content">
+                <h4>Immediate Priority (Next 30 days)</h4>
+                <div class="timeline-actions">
+                    <div class="action-item">
+                        <i class='bx bx-play-circle'></i>
+                        <span>Complete Docker Fundamentals course</span>
+                        <button class="btn btn-sm btn-primary">Start</button>
+                    </div>
+                    <div class="action-item">
+                        <i class='bx bx-book-open'></i>
+                        <span>Practice GraphQL with personal project</span>
+                        <button class="btn btn-sm btn-outline-primary">Plan</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="timeline-item">
+            <div class="timeline-marker priority-medium">2</div>
+            <div class="timeline-content">
+                <h4>Short Term (Next 3 months)</h4>
+                <div class="timeline-actions">
+                    <div class="action-item">
+                        <i class='bx bx-cloud'></i>
+                        <span>AWS Cloud Practitioner certification</span>
+                        <button class="btn btn-sm btn-outline-primary">Schedule</button>
+                    </div>
+                    <div class="action-item">
+                        <i class='bx bx-group'></i>
+                        <span>Join leadership development program</span>
+                        <button class="btn btn-sm btn-outline-primary">Explore</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="timeline-item">
+            <div class="timeline-marker priority-low">3</div>
+            <div class="timeline-content">
+                <h4>Long Term (6+ months)</h4>
+                <div class="timeline-actions">
+                    <div class="action-item">
+                        <i class='bx bx-cog'></i>
+                        <span>Master Kubernetes orchestration</span>
+                        <button class="btn btn-sm btn-outline-primary">Plan</button>
+                    </div>
+                    <div class="action-item">
+                        <i class='bx bx-user-check'></i>
+                        <span>Lead a development team</span>
+                        <button class="btn btn-sm btn-outline-primary">Prepare</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Skill Gap Analysis Styles */
+.analysis-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.header-content h1 {
+    color: var(--heading-color);
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.header-content p {
+    color: var(--text-light);
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+
+.analysis-meta {
+    display: flex;
+    gap: 2rem;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-light);
+    font-size: 0.875rem;
+}
+
+.meta-item i {
+    color: var(--primary-color);
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.overall-progress {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.progress-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.progress-header h3 {
+    color: var(--heading-color);
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.score-badge {
+    background: var(--success-color);
+    color: var(--white);
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-weight: 600;
+    font-size: 1.125rem;
+}
+
+.progress-visual {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.progress-circle-large {
+    position: relative;
+    width: 140px;
+    height: 140px;
+}
+
+.progress-circle-large svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.progress-bg {
+    fill: none;
+    stroke: var(--border-color);
+    stroke-width: 8;
+}
+
+.progress-fill {
+    fill: none;
+    stroke: var(--success-color);
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dasharray 1s ease;
+}
+
+.progress-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.progress-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--heading-color);
+}
+
+.progress-label {
+    font-size: 1.25rem;
+    color: var(--text-light);
+}
+
+.progress-status {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--success-color);
+    font-weight: 600;
+    margin-top: 0.25rem;
+}
+
+.progress-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.breakdown-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.breakdown-label {
+    min-width: 120px;
+    font-size: 0.875rem;
+    color: var(--text-color);
+}
+
+.breakdown-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--border-color);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.breakdown-fill {
+    height: 100%;
+    background: var(--primary-color);
+    border-radius: 3px;
+    transition: width 1s ease;
+}
+
+.breakdown-value {
+    min-width: 40px;
+    text-align: right;
+    font-weight: 600;
+    color: var(--heading-color);
+    font-size: 0.875rem;
+}
+
+.insights-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+}
+
+.insights-card h3 {
+    color: var(--heading-color);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+.insights-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.insight-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: var(--radius-md);
+}
+
+.insight-item.positive {
+    background: var(--success-light);
+    border-left: 4px solid var(--success-color);
+}
+
+.insight-item.warning {
+    background: var(--warning-light);
+    border-left: 4px solid var(--warning-color);
+}
+
+.insight-item.info {
+    background: var(--info-light);
+    border-left: 4px solid var(--info-color);
+}
+
+.insight-item i {
+    font-size: 1.5rem;
+    margin-top: 0.125rem;
+}
+
+.insight-item.positive i {
+    color: var(--success-color);
+}
+
+.insight-item.warning i {
+    color: var(--warning-color);
+}
+
+.insight-item.info i {
+    color: var(--info-color);
+}
+
+.insight-content h4 {
+    color: var(--heading-color);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.insight-content p {
+    color: var(--text-color);
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.skill-categories {
+    margin-bottom: 3rem;
+}
+
+.skill-categories h2 {
+    color: var(--heading-color);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+}
+
+.categories-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tab-button {
+    padding: 1rem 1.5rem;
+    background: transparent;
+    border: none;
+    color: var(--text-light);
+    font-weight: 500;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: var(--transition);
+}
+
+.tab-button:hover {
+    color: var(--text-color);
+    background: var(--hover-bg);
+}
+
+.tab-button.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+.category-content {
+    display: none;
+}
+
+.category-content.active {
+    display: block;
+}
+
+.skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+}
+
+.skill-analysis-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    transition: var(--transition);
+}
+
+.skill-analysis-card.gap {
+    border-color: var(--warning-color);
+    background: var(--warning-light);
+}
+
+.skill-analysis-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.skill-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.skill-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--primary-color);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--white);
+    font-size: 1.5rem;
+}
+
+.skill-info {
+    flex: 1;
+}
+
+.skill-info h4 {
+    color: var(--heading-color);
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.skill-level {
+    padding: 0.125rem 0.5rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.skill-level.expert {
+    background: var(--success-light);
+    color: var(--success-color);
+}
+
+.skill-level.intermediate {
+    background: var(--warning-light);
+    color: var(--warning-color);
+}
+
+.skill-level.beginner {
+    background: var(--danger-light);
+    color: var(--danger-color);
+}
+
+.skill-score {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--heading-color);
+}
+
+.gap-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--warning-color);
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: var(--warning-light);
+    border-radius: var(--radius-md);
+}
+
+.skill-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.skill-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.skill-item span:first-child {
+    min-width: 120px;
+    font-size: 0.875rem;
+    color: var(--text-color);
+}
+
+.skill-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--border-color);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.skill-fill {
+    height: 100%;
+    background: var(--primary-color);
+    border-radius: 3px;
+    transition: width 1s ease;
+}
+
+.skill-item span:last-child {
+    min-width: 40px;
+    text-align: right;
+    font-weight: 600;
+    color: var(--heading-color);
+    font-size: 0.875rem;
+}
+
+.market-comparison {
+    background: var(--hover-bg);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+}
+
+.comparison-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-color);
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.comparison-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.comparison-item span:first-child {
+    color: var(--text-light);
+}
+
+.comparison-value {
+    font-weight: 600;
+}
+
+.comparison-value.high {
+    color: var(--success-color);
+}
+
+.comparison-value.medium {
+    color: var(--warning-color);
+}
+
+.comparison-value.low {
+    color: var(--danger-color);
+}
+
+.soft-skill-items {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.soft-skill-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.soft-skill-item span {
+    color: var(--text-color);
+    font-size: 0.875rem;
+}
+
+.rating {
+    display: flex;
+    gap: 0.125rem;
+}
+
+.rating i {
+    color: var(--warning-color);
+    font-size: 1rem;
+}
+
+.improvement-plan {
+    background: var(--info-light);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+}
+
+.plan-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--info-color);
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.improvement-plan p {
+    color: var(--text-color);
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+.action-plan {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+}
+
+.action-plan h2 {
+    color: var(--heading-color);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+}
+
+.plan-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.timeline-item {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.timeline-marker {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--white);
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.timeline-marker.priority-high {
+    background: var(--danger-color);
+}
+
+.timeline-marker.priority-medium {
+    background: var(--warning-color);
+}
+
+.timeline-marker.priority-low {
+    background: var(--info-color);
+}
+
+.timeline-content {
+    flex: 1;
+}
+
+.timeline-content h4 {
+    color: var(--heading-color);
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.timeline-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.action-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--hover-bg);
+    border-radius: var(--radius-md);
+}
+
+.action-item i {
+    color: var(--primary-color);
+    font-size: 1.25rem;
+}
+
+.action-item span {
+    flex: 1;
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .overall-progress {
+        grid-template-columns: 1fr;
+    }
+    
+    .skills-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .analysis-header {
+        flex-direction: column;
+        gap: 2rem;
+    }
+    
+    .header-actions {
+        align-self: stretch;
+    }
+    
+    .analysis-meta {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .categories-tabs {
+        flex-wrap: wrap;
+    }
+    
+    .timeline-item {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .timeline-marker {
+        align-self: flex-start;
+    }
+}
+</style>
+
+<script>
+// Skill Gap Analysis JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    // Tab switching
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.addEventListener('click', function() {
+            const category = this.dataset.category;
+            
+            // Update active tab
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Update active content
+            document.querySelectorAll('.category-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(category).classList.add('active');
+        });
+    });
+    
+    // Animate progress circles and bars
+    setTimeout(() => {
+        // Progress circle
+        const progressCircle = document.querySelector('.progress-fill');
+        const score = 78;
+        const circumference = 2 * Math.PI * 60;
+        const offset = circumference - (score / 100) * circumference;
+        progressCircle.style.strokeDasharray = `${circumference - offset}, ${circumference}`;
+        
+        // Breakdown bars
+        document.querySelectorAll('.breakdown-fill').forEach(bar => {
+            const width = bar.style.width;
+            bar.style.width = '0%';
+            setTimeout(() => {
+                bar.style.width = width;
+            }, 100);
+        });
+        
+        // Skill bars
+        document.querySelectorAll('.skill-fill').forEach(bar => {
+            const width = bar.style.width;
+            bar.style.width = '0%';
+            setTimeout(() => {
+                bar.style.width = width;
+            }, 100);
+        });
+    }, 500);
+    
+    // Action buttons
+    document.querySelectorAll('.btn-primary').forEach(button => {
+        button.addEventListener('click', function() {
+            const action = this.textContent.trim();
+            console.log(`Action clicked: ${action}`);
+            // Handle specific actions
+        });
+    });
+});
+</script>
+
+{% endblock %}

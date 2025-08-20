@@ -1,0 +1,709 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Assessment Results{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<div class="breadcrumb">
+    <div class="breadcrumb-item">
+        <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item">
+        <a href="{% url 'assessments:assessment' %}" class="breadcrumb-link">Assessments</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item">
+        <span>Results</span>
+    </div>
+</div>
+
+<!-- Results Header -->
+<div class="results-header">
+    <div class="results-celebration">
+        <div class="celebration-icon">
+            <i class='bx bx-trophy'></i>
+        </div>
+        <h1>Congratulations!</h1>
+        <p>You've completed the Full-Stack Development Assessment</p>
+    </div>
+    
+    <div class="overall-score">
+        <div class="score-circle">
+            <svg viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r="50" class="score-bg"></circle>
+                <circle cx="60" cy="60" r="50" class="score-fill" style="stroke-dasharray: 251, 314;"></circle>
+            </svg>
+            <div class="score-text">
+                <span class="score-number">82</span>
+                <span class="score-label">%</span>
+            </div>
+        </div>
+        <div class="score-details">
+            <div class="score-grade">Grade: B+</div>
+            <div class="score-status">
+                <i class='bx bx-check-circle'></i>
+                <span>Passed</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Skill Breakdown -->
+<div class="skill-breakdown">
+    <h2>Skill Performance Breakdown</h2>
+    
+    <div class="skills-grid">
+        <div class="skill-card">
+            <div class="skill-header">
+                <div class="skill-icon frontend">
+                    <i class='bx bx-code-alt'></i>
+                </div>
+                <div class="skill-info">
+                    <h3>Frontend Development</h3>
+                    <p>HTML, CSS, JavaScript, React</p>
+                </div>
+            </div>
+            <div class="skill-score">
+                <div class="score-bar">
+                    <div class="score-fill" style="width: 88%;"></div>
+                </div>
+                <span class="score-value">88%</span>
+            </div>
+            <div class="skill-details">
+                <div class="detail-item">
+                    <span>Questions Answered:</span>
+                    <span>8/9</span>
+                </div>
+                <div class="detail-item">
+                    <span>Time Spent:</span>
+                    <span>12 min</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="skill-card">
+            <div class="skill-header">
+                <div class="skill-icon backend">
+                    <i class='bx bx-server'></i>
+                </div>
+                <div class="skill-info">
+                    <h3>Backend Development</h3>
+                    <p>Node.js, Python, APIs, Authentication</p>
+                </div>
+            </div>
+            <div class="skill-score">
+                <div class="score-bar">
+                    <div class="score-fill" style="width: 75%;"></div>
+                </div>
+                <span class="score-value">75%</span>
+            </div>
+            <div class="skill-details">
+                <div class="detail-item">
+                    <span>Questions Answered:</span>
+                    <span>6/8</span>
+                </div>
+                <div class="detail-item">
+                    <span>Time Spent:</span>
+                    <span>15 min</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="skill-card">
+            <div class="skill-header">
+                <div class="skill-icon database">
+                    <i class='bx bx-data'></i>
+                </div>
+                <div class="skill-info">
+                    <h3>Database Management</h3>
+                    <p>SQL, NoSQL, Database Design</p>
+                </div>
+            </div>
+            <div class="skill-score">
+                <div class="score-bar">
+                    <div class="score-fill" style="width: 83%;"></div>
+                </div>
+                <span class="score-value">83%</span>
+            </div>
+            <div class="skill-details">
+                <div class="detail-item">
+                    <span>Questions Answered:</span>
+                    <span>5/6</span>
+                </div>
+                <div class="detail-item">
+                    <span>Time Spent:</span>
+                    <span>8 min</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="skill-card">
+            <div class="skill-header">
+                <div class="skill-icon tools">
+                    <i class='bx bx-wrench'></i>
+                </div>
+                <div class="skill-info">
+                    <h3>Development Tools</h3>
+                    <p>Git, Docker, Testing, CI/CD</p>
+                </div>
+            </div>
+            <div class="skill-score">
+                <div class="score-bar">
+                    <div class="score-fill" style="width: 67%;"></div>
+                </div>
+                <span class="score-value">67%</span>
+            </div>
+            <div class="skill-details">
+                <div class="detail-item">
+                    <span>Questions Answered:</span>
+                    <span>4/6</span>
+                </div>
+                <div class="detail-item">
+                    <span>Time Spent:</span>
+                    <span>10 min</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recommendations -->
+<div class="recommendations-section">
+    <h2>Personalized Recommendations</h2>
+    
+    <div class="recommendations-grid">
+        <div class="recommendation-card">
+            <div class="recommendation-header">
+                <i class='bx bx-book-open'></i>
+                <h3>Improve Development Tools</h3>
+            </div>
+            <p>Your weakest area is Development Tools (67%). Consider taking these courses:</p>
+            <ul>
+                <li>Advanced Git & Version Control</li>
+                <li>Docker Containerization Fundamentals</li>
+                <li>CI/CD Pipeline Implementation</li>
+            </ul>
+            <button class="btn btn-primary">
+                <i class='bx bx-play'></i>
+                Start Learning
+            </button>
+        </div>
+
+        <div class="recommendation-card">
+            <div class="recommendation-header">
+                <i class='bx bx-briefcase'></i>
+                <h3>Matching Job Opportunities</h3>
+            </div>
+            <p>Based on your skills, you're qualified for these positions:</p>
+            <ul>
+                <li>Frontend Developer (95% match)</li>
+                <li>Full-Stack Developer (82% match)</li>
+                <li>React Developer (90% match)</li>
+            </ul>
+            <button class="btn btn-primary">
+                <i class='bx bx-search'></i>
+                View Jobs
+            </button>
+        </div>
+
+        <div class="recommendation-card">
+            <div class="recommendation-header">
+                <i class='bx bx-target-lock'></i>
+                <h3>Skill Development Plan</h3>
+            </div>
+            <p>Follow this 30-day plan to reach expert level:</p>
+            <ul>
+                <li>Week 1-2: Master Docker & Containerization</li>
+                <li>Week 3: Advanced Git Workflows</li>
+                <li>Week 4: Testing & Quality Assurance</li>
+            </ul>
+            <button class="btn btn-primary">
+                <i class='bx bx-calendar'></i>
+                Create Plan
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Certificate Section -->
+<div class="certificate-section">
+    <div class="certificate-card">
+        <div class="certificate-header">
+            <div class="certificate-icon">
+                <i class='bx bx-award'></i>
+            </div>
+            <div class="certificate-info">
+                <h3>Digital Certificate Earned</h3>
+                <p>Full-Stack Development Assessment - Level B+</p>
+                <div class="certificate-meta">
+                    <span>Issued: {{ today|date:"F d, Y" }}</span>
+                    <span>Valid: Lifetime</span>
+                </div>
+            </div>
+        </div>
+        <div class="certificate-actions">
+            <button class="btn btn-outline-primary">
+                <i class='bx bx-download'></i>
+                Download PDF
+            </button>
+            <button class="btn btn-primary">
+                <i class='bx bx-share'></i>
+                Share Certificate
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="results-actions">
+    <button class="btn btn-outline-primary">
+        <i class='bx bx-refresh'></i>
+        Retake Assessment
+    </button>
+    <button class="btn btn-primary">
+        <i class='bx bx-home'></i>
+        Back to Dashboard
+    </button>
+</div>
+
+<style>
+/* Results Page Styles */
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: var(--white);
+    padding: 3rem 2rem;
+    border-radius: var(--radius-lg);
+    margin-bottom: 2rem;
+}
+
+.results-celebration {
+    text-align: left;
+}
+
+.celebration-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: var(--warning-color);
+}
+
+.results-celebration h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.results-celebration p {
+    font-size: 1.125rem;
+    opacity: 0.9;
+}
+
+.overall-score {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.score-circle {
+    position: relative;
+    width: 120px;
+    height: 120px;
+}
+
+.score-circle svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.score-bg {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.2);
+    stroke-width: 8;
+}
+
+.score-fill {
+    fill: none;
+    stroke: var(--warning-color);
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dasharray 1s ease;
+}
+
+.score-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.score-number {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.score-label {
+    font-size: 1rem;
+    opacity: 0.8;
+}
+
+.score-details {
+    text-align: center;
+}
+
+.score-grade {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.score-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.score-status i {
+    color: var(--success-color);
+    font-size: 1.25rem;
+}
+
+.skill-breakdown {
+    margin-bottom: 3rem;
+}
+
+.skill-breakdown h2 {
+    color: var(--heading-color);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+}
+
+.skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.skill-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    transition: var(--transition);
+}
+
+.skill-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.skill-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.skill-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--white);
+}
+
+.skill-icon.frontend {
+    background: var(--info-color);
+}
+
+.skill-icon.backend {
+    background: var(--success-color);
+}
+
+.skill-icon.database {
+    background: var(--warning-color);
+}
+
+.skill-icon.tools {
+    background: var(--danger-color);
+}
+
+.skill-info h3 {
+    color: var(--heading-color);
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.skill-info p {
+    color: var(--text-light);
+    font-size: 0.875rem;
+}
+
+.skill-score {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.score-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.score-bar .score-fill {
+    height: 100%;
+    background: var(--primary-color);
+    border-radius: 4px;
+    transition: width 1s ease;
+}
+
+.score-value {
+    font-weight: 600;
+    color: var(--heading-color);
+    min-width: 40px;
+    text-align: right;
+}
+
+.skill-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.875rem;
+}
+
+.detail-item span:first-child {
+    color: var(--text-light);
+}
+
+.detail-item span:last-child {
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.recommendations-section {
+    margin-bottom: 3rem;
+}
+
+.recommendations-section h2 {
+    color: var(--heading-color);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+}
+
+.recommendations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+
+.recommendation-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+}
+
+.recommendation-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.recommendation-header i {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+}
+
+.recommendation-header h3 {
+    color: var(--heading-color);
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.recommendation-card p {
+    color: var(--text-color);
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.recommendation-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.5rem 0;
+}
+
+.recommendation-card li {
+    color: var(--text-light);
+    font-size: 0.875rem;
+    padding: 0.25rem 0;
+    position: relative;
+    padding-left: 1rem;
+}
+
+.recommendation-card li::before {
+    content: '•';
+    color: var(--primary-color);
+    position: absolute;
+    left: 0;
+}
+
+.certificate-section {
+    margin-bottom: 3rem;
+}
+
+.certificate-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.certificate-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.certificate-icon {
+    width: 64px;
+    height: 64px;
+    background: var(--warning-color);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: var(--white);
+}
+
+.certificate-info h3 {
+    color: var(--heading-color);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.certificate-info p {
+    color: var(--text-color);
+    margin-bottom: 0.75rem;
+}
+
+.certificate-meta {
+    display: flex;
+    gap: 2rem;
+    font-size: 0.875rem;
+    color: var(--text-light);
+}
+
+.certificate-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.results-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .results-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 2rem;
+    }
+    
+    .skills-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .recommendations-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .certificate-card {
+        flex-direction: column;
+        gap: 2rem;
+        text-align: center;
+    }
+    
+    .certificate-actions {
+        justify-content: center;
+    }
+    
+    .results-actions {
+        flex-direction: column;
+    }
+}
+</style>
+
+<script>
+// Results page animations
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate score circle
+    setTimeout(() => {
+        const scoreCircle = document.querySelector('.score-fill');
+        const score = 82; // 82%
+        const circumference = 2 * Math.PI * 50; // radius = 50
+        const offset = circumference - (score / 100) * circumference;
+        scoreCircle.style.strokeDasharray = `${circumference - offset}, ${circumference}`;
+    }, 500);
+    
+    // Animate skill bars
+    setTimeout(() => {
+        document.querySelectorAll('.score-bar .score-fill').forEach(bar => {
+            const width = bar.style.width;
+            bar.style.width = '0%';
+            setTimeout(() => {
+                bar.style.width = width;
+            }, 100);
+        });
+    }, 1000);
+    
+    // Certificate sharing
+    document.querySelector('.certificate-actions .btn-primary').addEventListener('click', function() {
+        if (navigator.share) {
+            navigator.share({
+                title: 'My JobElevate Certificate',
+                text: 'I just earned a Full-Stack Development certificate!',
+                url: window.location.href
+            });
+        } else {
+            // Fallback for browsers without Web Share API
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                alert('Certificate link copied to clipboard!');
+            });
+        }
+    });
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,1135 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Resume Wizard{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<div class="breadcrumb">
+    <div class="breadcrumb-item">
+        <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item">
+        <a href="{% url 'resume_builder:dashboard' %}" class="breadcrumb-link">Resume Builder</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item">
+        <span>Resume Wizard</span>
+    </div>
+</div>
+
+<!-- Wizard Container -->
+<div class="wizard-container">
+    <!-- Progress Header -->
+    <div class="wizard-header">
+        <div class="wizard-progress">
+            <div class="progress-steps">
+                <div class="step active completed" data-step="1">
+                    <div class="step-number">1</div>
+                    <div class="step-label">Template</div>
+                </div>
+                <div class="step active completed" data-step="2">
+                    <div class="step-number">2</div>
+                    <div class="step-label">Personal Info</div>
+                </div>
+                <div class="step active current" data-step="3">
+                    <div class="step-number">3</div>
+                    <div class="step-label">Experience</div>
+                </div>
+                <div class="step" data-step="4">
+                    <div class="step-number">4</div>
+                    <div class="step-label">Education</div>
+                </div>
+                <div class="step" data-step="5">
+                    <div class="step-number">5</div>
+                    <div class="step-label">Skills</div>
+                </div>
+                <div class="step" data-step="6">
+                    <div class="step-number">6</div>
+                    <div class="step-label">Review</div>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 50%;"></div>
+            </div>
+        </div>
+        
+        <div class="wizard-actions">
+            <button class="btn btn-outline-primary" id="save-draft">
+                <i class='bx bx-save'></i>
+                Save Draft
+            </button>
+            <button class="btn btn-outline-primary" id="preview-resume">
+                <i class='bx bx-show'></i>
+                Preview
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="wizard-content">
+        <!-- Form Section -->
+        <div class="wizard-form">
+            <!-- Step 3: Experience -->
+            <div class="step-content active" id="step-3">
+                <div class="step-header">
+                    <h2>Work Experience</h2>
+                    <p>Add your professional experience, starting with your most recent position</p>
+                </div>
+
+                <div class="experience-list" id="experience-list">
+                    <!-- Experience Item 1 -->
+                    <div class="experience-item">
+                        <div class="experience-header">
+                            <h3>Experience #1</h3>
+                            <div class="item-actions">
+                                <button class="btn-icon" title="Move up">
+                                    <i class='bx bx-chevron-up'></i>
+                                </button>
+                                <button class="btn-icon" title="Move down">
+                                    <i class='bx bx-chevron-down'></i>
+                                </button>
+                                <button class="btn-icon delete" title="Delete">
+                                    <i class='bx bx-trash'></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="job-title-1">Job Title *</label>
+                                <input type="text" id="job-title-1" value="Senior Frontend Developer" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="company-1">Company *</label>
+                                <input type="text" id="company-1" value="TechCorp Solutions" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="location-1">Location</label>
+                                <input type="text" id="location-1" value="San Francisco, CA">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="employment-type-1">Employment Type</label>
+                                <select id="employment-type-1">
+                                    <option value="full-time" selected>Full-time</option>
+                                    <option value="part-time">Part-time</option>
+                                    <option value="contract">Contract</option>
+                                    <option value="freelance">Freelance</option>
+                                    <option value="internship">Internship</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="start-date-1">Start Date *</label>
+                                <input type="month" id="start-date-1" value="2022-03" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="end-date-1">End Date</label>
+                                <input type="month" id="end-date-1" value="">
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="current-job-1" checked>
+                                    <label for="current-job-1">I currently work here</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description-1">Job Description</label>
+                            <div class="description-toolbar">
+                                <button type="button" class="toolbar-btn" data-action="bold">
+                                    <i class='bx bx-bold'></i>
+                                </button>
+                                <button type="button" class="toolbar-btn" data-action="italic">
+                                    <i class='bx bx-italic'></i>
+                                </button>
+                                <button type="button" class="toolbar-btn" data-action="bullet">
+                                    <i class='bx bx-list-ul'></i>
+                                </button>
+                                <button type="button" class="toolbar-btn ai-assist" data-action="ai-improve">
+                                    <i class='bx bx-magic-wand'></i>
+                                    AI Improve
+                                </button>
+                            </div>
+                            <textarea id="description-1" rows="6" placeholder="Describe your responsibilities and achievements...">• Led development of responsive web applications using React.js and TypeScript
+• Collaborated with cross-functional teams to deliver high-quality user experiences
+• Implemented modern frontend architectures resulting in 40% performance improvement
+• Mentored junior developers and conducted code reviews
+• Worked closely with UX/UI designers to translate mockups into functional interfaces</textarea>
+                        </div>
+
+                        <div class="skills-tags">
+                            <label>Key Skills Used</label>
+                            <div class="tags-container">
+                                <span class="skill-tag">React.js</span>
+                                <span class="skill-tag">TypeScript</span>
+                                <span class="skill-tag">JavaScript</span>
+                                <span class="skill-tag">CSS/SCSS</span>
+                                <span class="skill-tag">Git</span>
+                                <input type="text" class="tag-input" placeholder="Add skill...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Experience Item 2 -->
+                    <div class="experience-item">
+                        <div class="experience-header">
+                            <h3>Experience #2</h3>
+                            <div class="item-actions">
+                                <button class="btn-icon" title="Move up">
+                                    <i class='bx bx-chevron-up'></i>
+                                </button>
+                                <button class="btn-icon" title="Move down">
+                                    <i class='bx bx-chevron-down'></i>
+                                </button>
+                                <button class="btn-icon delete" title="Delete">
+                                    <i class='bx bx-trash'></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="job-title-2">Job Title *</label>
+                                <input type="text" id="job-title-2" value="Frontend Developer" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="company-2">Company *</label>
+                                <input type="text" id="company-2" value="StartupXYZ" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="location-2">Location</label>
+                                <input type="text" id="location-2" value="Remote">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="employment-type-2">Employment Type</label>
+                                <select id="employment-type-2">
+                                    <option value="full-time" selected>Full-time</option>
+                                    <option value="part-time">Part-time</option>
+                                    <option value="contract">Contract</option>
+                                    <option value="freelance">Freelance</option>
+                                    <option value="internship">Internship</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="start-date-2">Start Date *</label>
+                                <input type="month" id="start-date-2" value="2020-06" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="end-date-2">End Date</label>
+                                <input type="month" id="end-date-2" value="2022-02">
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="current-job-2">
+                                    <label for="current-job-2">I currently work here</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description-2">Job Description</label>
+                            <div class="description-toolbar">
+                                <button type="button" class="toolbar-btn" data-action="bold">
+                                    <i class='bx bx-bold'></i>
+                                </button>
+                                <button type="button" class="toolbar-btn" data-action="italic">
+                                    <i class='bx bx-italic'></i>
+                                </button>
+                                <button type="button" class="toolbar-btn" data-action="bullet">
+                                    <i class='bx bx-list-ul'></i>
+                                </button>
+                                <button type="button" class="toolbar-btn ai-assist" data-action="ai-improve">
+                                    <i class='bx bx-magic-wand'></i>
+                                    AI Improve
+                                </button>
+                            </div>
+                            <textarea id="description-2" rows="6" placeholder="Describe your responsibilities and achievements...">• Developed and maintained web applications using HTML, CSS, and JavaScript
+• Collaborated with backend developers to integrate APIs and services
+• Participated in agile development processes and sprint planning
+• Contributed to code reviews and maintained coding standards
+• Assisted in troubleshooting and debugging application issues</textarea>
+                        </div>
+
+                        <div class="skills-tags">
+                            <label>Key Skills Used</label>
+                            <div class="tags-container">
+                                <span class="skill-tag">HTML</span>
+                                <span class="skill-tag">CSS</span>
+                                <span class="skill-tag">JavaScript</span>
+                                <span class="skill-tag">jQuery</span>
+                                <span class="skill-tag">Bootstrap</span>
+                                <input type="text" class="tag-input" placeholder="Add skill...">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="add-section">
+                    <button class="btn btn-outline-primary" id="add-experience">
+                        <i class='bx bx-plus'></i>
+                        Add Another Experience
+                    </button>
+                </div>
+
+                <div class="ai-suggestions">
+                    <div class="suggestions-header">
+                        <i class='bx bx-bulb'></i>
+                        <h4>AI Suggestions</h4>
+                    </div>
+                    <div class="suggestion-item">
+                        <i class='bx bx-check-circle'></i>
+                        <span>Consider quantifying your achievements with specific metrics</span>
+                    </div>
+                    <div class="suggestion-item">
+                        <i class='bx bx-info-circle'></i>
+                        <span>Use action verbs to start each bullet point (Led, Developed, Implemented)</span>
+                    </div>
+                    <div class="suggestion-item">
+                        <i class='bx bx-star'></i>
+                        <span>Highlight technologies that match your target job requirements</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Preview Section -->
+        <div class="wizard-preview">
+            <div class="preview-header">
+                <h3>Live Preview</h3>
+                <div class="preview-controls">
+                    <button class="preview-btn active" data-template="modern">Modern</button>
+                    <button class="preview-btn" data-template="classic">Classic</button>
+                    <button class="preview-btn" data-template="creative">Creative</button>
+                </div>
+            </div>
+            
+            <div class="preview-container">
+                <div class="resume-preview" id="resume-preview">
+                    <!-- Modern Template Preview -->
+                    <div class="resume-template modern">
+                        <div class="resume-header">
+                            <h1>John Smith</h1>
+                            <div class="contact-info">
+                                <span>john.smith@email.com</span>
+                                <span>•</span>
+                                <span>(555) 123-4567</span>
+                                <span>•</span>
+                                <span>San Francisco, CA</span>
+                            </div>
+                        </div>
+                        
+                        <div class="resume-section">
+                            <h2>Professional Experience</h2>
+                            
+                            <div class="experience-entry">
+                                <div class="entry-header">
+                                    <div class="entry-title">
+                                        <h3>Senior Frontend Developer</h3>
+                                        <span class="company">TechCorp Solutions</span>
+                                    </div>
+                                    <div class="entry-date">Mar 2022 - Present</div>
+                                </div>
+                                <div class="entry-location">San Francisco, CA</div>
+                                <ul class="entry-description">
+                                    <li>Led development of responsive web applications using React.js and TypeScript</li>
+                                    <li>Collaborated with cross-functional teams to deliver high-quality user experiences</li>
+                                    <li>Implemented modern frontend architectures resulting in 40% performance improvement</li>
+                                    <li>Mentored junior developers and conducted code reviews</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="experience-entry">
+                                <div class="entry-header">
+                                    <div class="entry-title">
+                                        <h3>Frontend Developer</h3>
+                                        <span class="company">StartupXYZ</span>
+                                    </div>
+                                    <div class="entry-date">Jun 2020 - Feb 2022</div>
+                                </div>
+                                <div class="entry-location">Remote</div>
+                                <ul class="entry-description">
+                                    <li>Developed and maintained web applications using HTML, CSS, and JavaScript</li>
+                                    <li>Collaborated with backend developers to integrate APIs and services</li>
+                                    <li>Participated in agile development processes and sprint planning</li>
+                                    <li>Contributed to code reviews and maintained coding standards</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="preview-actions">
+                <button class="btn btn-outline-primary">
+                    <i class='bx bx-download'></i>
+                    Download PDF
+                </button>
+                <button class="btn btn-outline-primary">
+                    <i class='bx bx-fullscreen'></i>
+                    Full Preview
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Footer -->
+    <div class="wizard-footer">
+        <button class="btn btn-outline-primary" id="prev-step">
+            <i class='bx bx-chevron-left'></i>
+            Previous: Personal Info
+        </button>
+        
+        <div class="step-indicator">
+            Step 3 of 6
+        </div>
+        
+        <button class="btn btn-primary" id="next-step">
+            Next: Education
+            <i class='bx bx-chevron-right'></i>
+        </button>
+    </div>
+</div>
+
+<style>
+/* Resume Wizard Styles */
+.wizard-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.wizard-header {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.wizard-progress {
+    flex: 1;
+}
+
+.progress-steps {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1rem;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    opacity: 0.5;
+    transition: var(--transition);
+}
+
+.step.active {
+    opacity: 1;
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--border-color);
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.step.completed .step-number {
+    background: var(--success-color);
+    color: var(--white);
+}
+
+.step.current .step-number {
+    background: var(--primary-color);
+    color: var(--white);
+}
+
+.step-label {
+    font-size: 0.875rem;
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+.step.active .step-label {
+    color: var(--text-color);
+}
+
+.progress-bar {
+    height: 4px;
+    background: var(--border-color);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--primary-color);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.wizard-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.wizard-content {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.wizard-form {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+}
+
+.step-content {
+    display: none;
+}
+
+.step-content.active {
+    display: block;
+}
+
+.step-header {
+    margin-bottom: 2rem;
+}
+
+.step-header h2 {
+    color: var(--heading-color);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.step-header p {
+    color: var(--text-light);
+    font-size: 1rem;
+}
+
+.experience-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.experience-item {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    background: var(--hover-bg);
+}
+
+.experience-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.experience-header h3 {
+    color: var(--heading-color);
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.item-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-icon {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-icon:hover {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-icon.delete:hover {
+    color: var(--danger-color);
+    border-color: var(--danger-color);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    color: var(--text-color);
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--card-bg);
+    color: var(--text-color);
+    font-size: 0.875rem;
+    transition: var(--transition);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
+
+.checkbox-group label {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-light);
+}
+
+.description-toolbar {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.toolbar-btn {
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    border-radius: var(--radius-sm);
+    color: var(--text-light);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.toolbar-btn:hover {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.toolbar-btn.ai-assist {
+    background: var(--primary-color);
+    color: var(--white);
+    border-color: var(--primary-color);
+}
+
+.toolbar-btn.ai-assist:hover {
+    background: var(--primary-dark);
+}
+
+.skills-tags {
+    margin-top: 1rem;
+}
+
+.skills-tags label {
+    display: block;
+    color: var(--text-color);
+    font-weight: 500;
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+}
+
+.tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.skill-tag {
+    background: var(--primary-light);
+    color: var(--primary-color);
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.skill-tag:hover {
+    background: var(--primary-color);
+    color: var(--white);
+}
+
+.tag-input {
+    border: none;
+    background: transparent;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-color);
+    min-width: 120px;
+}
+
+.tag-input:focus {
+    outline: none;
+}
+
+.add-section {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.ai-suggestions {
+    background: var(--info-light);
+    border: 1px solid var(--info-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+}
+
+.suggestions-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--info-color);
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.suggestions-header i {
+    font-size: 1.25rem;
+}
+
+.suggestion-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.875rem;
+    color: var(--text-color);
+}
+
+.suggestion-item:last-child {
+    margin-bottom: 0;
+}
+
+.suggestion-item i {
+    color: var(--info-color);
+    margin-top: 0.125rem;
+    flex-shrink: 0;
+}
+
+.wizard-preview {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    height: fit-content;
+    position: sticky;
+    top: 2rem;
+}
+
+.preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.preview-header h3 {
+    color: var(--heading-color);
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.preview-controls {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.preview-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    color: var(--text-light);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.preview-btn:hover {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.preview-btn.active {
+    background: var(--primary-color);
+    color: var(--white);
+    border-color: var(--primary-color);
+}
+
+.preview-container {
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.resume-template {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: #333;
+}
+
+.resume-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.resume-header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+.contact-info {
+    font-size: 0.75rem;
+    color: #666;
+}
+
+.resume-section {
+    margin-bottom: 1.5rem;
+}
+
+.resume-section h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.experience-entry {
+    margin-bottom: 1.25rem;
+}
+
+.entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.25rem;
+}
+
+.entry-title h3 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.125rem;
+}
+
+.company {
+    font-size: 0.75rem;
+    color: #666;
+    font-style: italic;
+}
+
+.entry-date {
+    font-size: 0.75rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.entry-location {
+    font-size: 0.75rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.entry-description {
+    margin: 0;
+    padding-left: 1rem;
+}
+
+.entry-description li {
+    margin-bottom: 0.25rem;
+    font-size: 0.75rem;
+    line-height: 1.3;
+}
+
+.preview-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.wizard-footer {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.step-indicator {
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .wizard-content {
+        grid-template-columns: 1fr 350px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .wizard-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .wizard-preview {
+        position: static;
+    }
+}
+
+@media (max-width: 768px) {
+    .wizard-header {
+        flex-direction: column;
+        gap: 2rem;
+    }
+    
+    .progress-steps {
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .wizard-footer {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .preview-controls {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+</style>
+
+<script>
+// Resume Wizard JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    let currentStep = 3;
+    
+    // Step navigation
+    function updateStep(step) {
+        currentStep = step;
+        
+        // Update progress
+        const progressFill = document.querySelector('.progress-fill');
+        const progressPercent = (step / 6) * 100;
+        progressFill.style.width = `${progressPercent}%`;
+        
+        // Update step indicators
+        document.querySelectorAll('.step').forEach((stepEl, index) => {
+            const stepNumber = index + 1;
+            stepEl.classList.remove('current', 'completed');
+            
+            if (stepNumber < step) {
+                stepEl.classList.add('completed');
+            } else if (stepNumber === step) {
+                stepEl.classList.add('current');
+            }
+        });
+        
+        // Update step content
+        document.querySelectorAll('.step-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        document.getElementById(`step-${step}`).classList.add('active');
+        
+        // Update navigation buttons
+        const prevBtn = document.getElementById('prev-step');
+        const nextBtn = document.getElementById('next-step');
+        
+        prevBtn.disabled = step === 1;
+        nextBtn.textContent = step === 6 ? 'Finish Resume' : `Next: ${getStepName(step + 1)}`;
+    }
+    
+    function getStepName(step) {
+        const stepNames = {
+            1: 'Template',
+            2: 'Personal Info',
+            3: 'Experience',
+            4: 'Education',
+            5: 'Skills',
+            6: 'Review'
+        };
+        return stepNames[step] || '';
+    }
+    
+    // Navigation buttons
+    document.getElementById('prev-step').addEventListener('click', function() {
+        if (currentStep > 1) {
+            updateStep(currentStep - 1);
+        }
+    });
+    
+    document.getElementById('next-step').addEventListener('click', function() {
+        if (currentStep < 6) {
+            updateStep(currentStep + 1);
+        } else {
+            // Finish resume
+            console.log('Finish resume');
+        }
+    });
+    
+    // Add experience
+    document.getElementById('add-experience').addEventListener('click', function() {
+        const experienceList = document.getElementById('experience-list');
+        const newIndex = experienceList.children.length + 1;
+        
+        // Create new experience item (simplified for demo)
+        const newItem = document.createElement('div');
+        newItem.className = 'experience-item';
+        newItem.innerHTML = `
+            <div class="experience-header">
+                <h3>Experience #${newIndex}</h3>
+                <div class="item-actions">
+                    <button class="btn-icon" title="Move up">
+                        <i class='bx bx-chevron-up'></i>
+                    </button>
+                    <button class="btn-icon" title="Move down">
+                        <i class='bx bx-chevron-down'></i>
+                    </button>
+                    <button class="btn-icon delete" title="Delete">
+                        <i class='bx bx-trash'></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Add form fields here -->
+        `;
+        
+        experienceList.appendChild(newItem);
+    });
+    
+    // Delete experience items
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.btn-icon.delete')) {
+            const experienceItem = e.target.closest('.experience-item');
+            if (confirm('Are you sure you want to delete this experience?')) {
+                experienceItem.remove();
+            }
+        }
+    });
+    
+    // AI assistance
+    document.querySelectorAll('.ai-assist').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const textarea = this.closest('.form-group').querySelector('textarea');
+            console.log('AI improve description:', textarea.value);
+            // Implement AI improvement logic
+            alert('AI improvement would enhance the description here');
+        });
+    });
+    
+    // Template switching
+    document.querySelectorAll('.preview-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const template = this.dataset.template;
+            
+            // Update active button
+            document.querySelectorAll('.preview-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Switch template (simplified for demo)
+            console.log(`Switch to ${template} template`);
+        });
+    });
+    
+    // Auto-save functionality
+    let saveTimeout;
+    document.addEventListener('input', function(e) {
+        if (e.target.matches('input, textarea, select')) {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                console.log('Auto-saving...');
+                // Implement auto-save logic
+            }, 2000);
+        }
+    });
+    
+    // Save draft
+    document.getElementById('save-draft').addEventListener('click', function() {
+        console.log('Save draft');
+        alert('Draft saved successfully!');
+    });
+    
+    // Preview resume
+    document.getElementById('preview-resume').addEventListener('click', function() {
+        console.log('Preview resume');
+        // Open full preview modal
+    });
+});
+</script>
+
+{% endblock %}

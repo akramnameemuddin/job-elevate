@@ -17,21 +17,22 @@
   </div>
 </div>
 
-<!-- Page Title -->
+<!-- Page Header -->
 <div class="page-content-header">
-  <h1 class="page-title">Market Insights</h1>
-</div>
-
-<!-- Page Actions -->
-<div class="page-actions">
-  <button class="btn btn-outline-primary" id="refresh-analytics">
-    <i class='bx bx-refresh'></i>
-    Refresh Data
-  </button>
-  <a href="{% url 'jobs:recommended_jobs' %}" class="btn btn-outline-primary">
-    <i class='bx bx-star'></i>
-    Recommendations
-  </a>
+  <div class="header-content">
+    <h1 class="page-title">Market Insights</h1>
+    <p class="page-description">Comprehensive analytics and trends in the job market</p>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-outline-primary" id="refresh-analytics">
+      <i class='bx bx-refresh'></i>
+      Refresh Data
+    </button>
+    <a href="{% url 'jobs:recommended_jobs' %}" class="btn btn-outline-primary">
+      <i class='bx bx-star'></i>
+      Recommendations
+    </a>
+  </div>
 </div>
 
 <!-- Quick Stats -->
@@ -474,36 +475,27 @@
 
 <!-- Modern Professional CSS -->
 <style>
-/* CSS Variables */
-:root {
-  --primary-color: #667eea;
-  --text-color: #1f2937;
-  --text-light: #6b7280;
-  --card-bg: #ffffff;
-  --border-color: #e5e7eb;
-  --hover-bg: #f9fafb;
-}
-
-[data-theme="dark"] {
-  --text-color: #f3f4f6;
-  --text-light: #9ca3af;
-  --card-bg: #1f2937;
-  --border-color: #374151;
-  --hover-bg: #374151;
+/* Analytics Specific Variables */
+.analytics-dashboard {
+  --analytics-primary: #667eea;
+  --analytics-success: #10b981;
+  --analytics-warning: #f59e0b;
+  --analytics-danger: #ef4444;
+  --analytics-info: #3b82f6;
 }
 
 /* Page Header Styles */
-.page-header {
+.page-content-header {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 1rem;
-  padding: 1.5rem 2rem;
+  border-radius: var(--radius-lg);
+  padding: 2rem;
   margin-bottom: 2rem;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 2rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-sm);
 }
 
 .header-content {
@@ -513,8 +505,21 @@
 .page-title {
   font-size: 1.875rem;
   font-weight: 700;
-  margin-bottom: 0.75rem;
-  color: var(--text-color);
+  margin-bottom: 0.5rem;
+  color: var(--heading-color);
+}
+
+.page-description {
+  color: var(--text-light);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: flex-start;
 }
 
 .breadcrumb {
@@ -548,32 +553,30 @@
   align-items: flex-start;
 }
 
-.btn {
+/* Button Styles - Use existing theme variables */
+.analytics-dashboard .btn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   font-weight: 500;
   text-decoration: none;
-  transition: all 0.3s ease;
-  border: none;
+  transition: var(--transition);
+  border: 1px solid var(--border-color);
   cursor: pointer;
   font-size: 0.875rem;
   white-space: nowrap;
-}
-
-.btn-light {
-  background: var(--hover-bg);
+  background: var(--card-bg);
   color: var(--text-color);
-  border: 1px solid var(--border-color);
 }
 
-.btn-light:hover {
+.analytics-dashboard .btn:hover {
   background: var(--primary-color);
-  color: white;
+  color: var(--white);
+  border-color: var(--primary-color);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+  box-shadow: var(--shadow-md);
 }
 
 /* Quick Stats Grid */
@@ -1503,23 +1506,69 @@
   .page-title {
     font-size: 1.25rem;
   }
-  
+
+  .page-description {
+    font-size: 0.875rem;
+  }
+
   .stat-card {
     flex-direction: column;
     text-align: center;
+    padding: 1rem;
   }
-  
+
   .header-actions {
     flex-direction: column;
     gap: 0.75rem;
+    width: 100%;
   }
-  
-  .btn {
+
+  .analytics-dashboard .btn {
     justify-content: center;
+    width: 100%;
   }
-  
+
   .breadcrumb {
     flex-wrap: wrap;
+  }
+
+  .analytics-section {
+    padding: 1rem;
+  }
+
+  .section-title {
+    font-size: 1.125rem;
+  }
+
+  .chart-container-wrapper {
+    height: 250px;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .data-table {
+    min-width: 500px;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .header-actions,
+  .view-toggle,
+  .notification {
+    display: none !important;
+  }
+
+  .analytics-dashboard {
+    background: white !important;
+    color: black !important;
+  }
+
+  .chart-container-wrapper {
+    break-inside: avoid;
   }
 }
 
@@ -1627,21 +1676,73 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeAnalytics() {
+    // Load URL parameters and set filters
+    loadUrlParameters();
+
     // Initialize view toggle
     initViewToggle();
-    
+
     // Initialize charts
     initCharts();
-    
+
     // Initialize controls
     initControls();
-    
+
     // Initialize interactions
     initInteractions();
-    
+
     // Set initial theme
     const theme = localStorage.getItem('theme') || 'light';
     document.documentElement.setAttribute('data-theme', theme);
+
+    // Add keyboard shortcuts
+    initKeyboardShortcuts();
+}
+
+function loadUrlParameters() {
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // Set filter values from URL
+    const view = urlParams.get('view');
+    const period = urlParams.get('period');
+    const jobType = urlParams.get('job_type');
+
+    if (view) {
+        const viewSelect = document.getElementById('analytics-view');
+        if (viewSelect) viewSelect.value = view;
+    }
+
+    if (period) {
+        const periodSelect = document.getElementById('time-period');
+        if (periodSelect) periodSelect.value = period;
+    }
+
+    if (jobType) {
+        const jobTypeSelect = document.getElementById('job-type-analytics');
+        if (jobTypeSelect) jobTypeSelect.value = jobType;
+    }
+}
+
+function initKeyboardShortcuts() {
+    document.addEventListener('keydown', function(e) {
+        // Ctrl/Cmd + R for refresh
+        if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+            e.preventDefault();
+            refreshAnalyticsData();
+        }
+
+        // Ctrl/Cmd + E for export
+        if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+            e.preventDefault();
+            exportAnalyticsData();
+        }
+
+        // Escape to close notifications
+        if (e.key === 'Escape') {
+            const notifications = document.querySelectorAll('.notification');
+            notifications.forEach(notification => notification.remove());
+        }
+    });
 }
 
 // View Toggle Functionality
@@ -1697,23 +1798,25 @@ function initSkillsChart() {
         console.error('Skills chart canvas not found');
         return;
     }
-    
+
     console.log('Initializing skills chart...');
-    
-    try {
-        // Prepare data from Django template
-        const skillsData = [];
+
+    // Prepare data from Django template
+    const skillsData = [
         {% if top_skills %}
             {% for skill in top_skills %}
-                skillsData.push({
+                {
                     label: '{{ skill.0|capfirst|escapejs }}',
                     value: {{ skill.1|default:0 }}
-                });
+                }{% if not forloop.last %},{% endif %}
             {% endfor %}
         {% endif %}
-        
+    ];
+
+    try {
+
         console.log('Skills data:', skillsData);
-        
+
         if (skillsData.length === 0) {
             skillsCtx.parentElement.innerHTML = `
                 <div class="empty-state">
@@ -1722,6 +1825,9 @@ function initSkillsChart() {
                     </div>
                     <h3>No Skills Data</h3>
                     <p>Skills analytics will appear here as job listings are posted.</p>
+                    <button onclick="location.reload()" class="btn btn-outline-primary" style="margin-top: 1rem;">
+                        <i class='bx bx-refresh'></i> Refresh Data
+                    </button>
                 </div>
             `;
             return;
@@ -1842,23 +1948,25 @@ function initJobTypesChart() {
         console.error('Job types chart canvas not found');
         return;
     }
-    
+
     console.log('Initializing job types chart...');
-    
-    try {
-        // Prepare data from Django template
-        const jobTypeData = [];
+
+    // Prepare data from Django template
+    const jobTypeData = [
         {% if job_type_distribution %}
             {% for job_type in job_type_distribution %}
-                jobTypeData.push({
+                {
                     label: '{{ job_type.job_type|capfirst|escapejs }}',
                     value: {{ job_type.count|default:0 }}
-                });
+                }{% if not forloop.last %},{% endif %}
             {% endfor %}
         {% endif %}
-        
+    ];
+
+    try {
+
         console.log('Job type data:', jobTypeData);
-        
+
         if (jobTypeData.length === 0) {
             jobTypeCtx.parentElement.innerHTML = `
                 <div class="empty-state">
@@ -1867,6 +1975,9 @@ function initJobTypesChart() {
                     </div>
                     <h3>No Job Type Data</h3>
                     <p>Employment type analytics will appear here as positions are posted.</p>
+                    <button onclick="location.reload()" class="btn btn-outline-primary" style="margin-top: 1rem;">
+                        <i class='bx bx-refresh'></i> Refresh Data
+                    </button>
                 </div>
             `;
             return;
@@ -2059,17 +2170,55 @@ function handleFilterChange() {
     const view = document.getElementById('analytics-view')?.value || 'overview';
     const period = document.getElementById('time-period')?.value || 'all';
     const jobType = document.getElementById('job-type-analytics')?.value || '';
-    
+
     // Show loading state
     showLoadingState(true);
-    
+
+    // Update URL parameters for better UX
+    const url = new URL(window.location);
+    url.searchParams.set('view', view);
+    url.searchParams.set('period', period);
+    if (jobType) {
+        url.searchParams.set('job_type', jobType);
+    } else {
+        url.searchParams.delete('job_type');
+    }
+
+    // Update browser history without reload
+    window.history.pushState({}, '', url);
+
     // Simulate API call (in real implementation, make actual API call)
     setTimeout(() => {
         showLoadingState(false);
         showNotification('Analytics filters applied successfully!', 'success');
+
+        // Refresh charts with new data
+        refreshCharts();
     }, 1000);
-    
+
     console.log('Filter changed:', { view, period, jobType });
+}
+
+function refreshCharts() {
+    // Destroy existing charts and recreate them
+    const skillsCanvas = document.getElementById('skillsChart');
+    const jobTypeCanvas = document.getElementById('jobTypeChart');
+
+    if (skillsCanvas) {
+        const existingChart = Chart.getChart(skillsCanvas);
+        if (existingChart) {
+            existingChart.destroy();
+        }
+        initSkillsChart();
+    }
+
+    if (jobTypeCanvas) {
+        const existingChart = Chart.getChart(jobTypeCanvas);
+        if (existingChart) {
+            existingChart.destroy();
+        }
+        initJobTypesChart();
+    }
 }
 
 function refreshAnalyticsData() {
@@ -2094,30 +2243,56 @@ function refreshAnalyticsData() {
 
 function exportAnalyticsData() {
     showNotification('Preparing analytics export...', 'info');
-    
+
     try {
         // Create comprehensive CSV content
         let csvContent = "data:text/csv;charset=utf-8,";
-        
+
+        // Add header
+        csvContent += "JobElevate Analytics Export\n";
+        csvContent += "Generated: " + new Date().toLocaleString() + "\n\n";
+
+        // Extract data from charts if available
+        const skillsChart = Chart.getChart('skillsChart');
+        const jobTypeChart = Chart.getChart('jobTypeChart');
+
         // Add skills data
         csvContent += "Skills Analytics\n";
         csvContent += "Skill,Job Count\n";
-        {% for skill in top_skills %}
-        csvContent += "{{ skill.0|escapejs }},{{ skill.1 }}\n";
-        {% endfor %}
-        
+
+        if (skillsChart && skillsChart.data.labels) {
+            skillsChart.data.labels.forEach((label, index) => {
+                const value = skillsChart.data.datasets[0].data[index] || 0;
+                csvContent += `"${label}",${value}\n`;
+            });
+        } else {
+            // Fallback to template data
+            {% for skill in top_skills %}
+            csvContent += "{{ skill.0|escapejs }},{{ skill.1 }}\n";
+            {% endfor %}
+        }
+
         csvContent += "\n\nJob Type Distribution\n";
         csvContent += "Job Type,Count\n";
-        {% for job_type in job_type_distribution %}
-        csvContent += "{{ job_type.job_type|escapejs }},{{ job_type.count }}\n";
-        {% endfor %}
-        
+
+        if (jobTypeChart && jobTypeChart.data.labels) {
+            jobTypeChart.data.labels.forEach((label, index) => {
+                const value = jobTypeChart.data.datasets[0].data[index] || 0;
+                csvContent += `"${label}",${value}\n`;
+            });
+        } else {
+            // Fallback to template data
+            {% for job_type in job_type_distribution %}
+            csvContent += "{{ job_type.job_type|escapejs }},{{ job_type.count }}\n";
+            {% endfor %}
+        }
+
         csvContent += "\n\nTop Locations\n";
         csvContent += "Location,Job Count\n";
         {% for location, count in top_locations %}
         csvContent += "{{ location|escapejs }},{{ count }}\n";
         {% endfor %}
-        
+
         // Create and trigger download
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
@@ -2126,7 +2301,7 @@ function exportAnalyticsData() {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
+
         showNotification('Analytics data exported successfully!', 'success');
     } catch (error) {
         console.error('Export error:', error);
