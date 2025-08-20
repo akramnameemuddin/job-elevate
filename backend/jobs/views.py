@@ -12,6 +12,7 @@ from accounts.models import User
 from recruiter.models import Job, Application
 from .models import JobView, JobBookmark, UserJobPreference, JobRecommendation, UserSimilarity
 from jobs.recommendation_engine import HybridRecommender
+from dashboard.notifications import notify_job_application, notify_application_status
 
 logger = logging.getLogger(__name__)
 recommender = HybridRecommender()
@@ -174,10 +175,16 @@ def apply_for_job(request, job_id):
             resume=resume,
             status='Applied'
         )
-        
+
         # Track this application in the recommendation system
         recommender.track_job_application(request.user, job)
-        
+
+        # Send notification to recruiter
+        try:
+            notify_job_application(request.user, job.posted_by, job.title)
+        except Exception as e:
+            logger.warning(f"Failed to send notification: {str(e)}")
+
         messages.success(request, "Your application has been submitted successfully!")
         return redirect('jobs:my_applications')
         
@@ -276,10 +283,10 @@ def recommended_jobs(request):
     # Get user's bookmarked job IDs for checking
     bookmarked_job_ids = JobBookmark.objects.filter(user=request.user).values_list('job_id', flat=True)
     
-    # Calculate statistics
-    high_match_count = sum(1 for rec in recommended_jobs if rec.get('score', 0) > 80)
-    medium_match_count = sum(1 for rec in recommended_jobs if 60 <= rec.get('score', 0) <= 80)
-    low_match_count = sum(1 for rec in recommended_jobs if rec.get('score', 0) < 60)
+    # Calculate statistics (convert decimal scores to percentages)
+    high_match_count = sum(1 for rec in recommended_jobs if rec.get('score', 0) * 100 > 80)
+    medium_match_count = sum(1 for rec in recommended_jobs if 60 <= rec.get('score', 0) * 100 <= 80)
+    low_match_count = sum(1 for rec in recommended_jobs if rec.get('score', 0) * 100 < 60)
     
     context = {
         'recommended_jobs': recommended_jobs,
