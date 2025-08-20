@@ -1,22 +1,31 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
 {% block content %}
-<div class="page-header">
+<!-- Breadcrumb Navigation -->
+<div class="breadcrumb">
+    <div class="breadcrumb-item">
+        <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item">
+        <span>Learning Progress</span>
+    </div>
+</div>
+
+<!-- Page Title -->
+<div class="page-content-header">
     <h1 class="page-title">Learning Progress</h1>
-    <div class="breadcrumb">
-        <div class="breadcrumb-item">
-            <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
-            <i class='bx bx-chevron-right'></i>
-        </div>
-        <div class="breadcrumb-item">
-            <span>Learning Progress</span>
-        </div>
+    <div class="page-actions">
+        <button class="btn btn-primary">
+            <i class='bx bx-plus'></i>
+            Start New Course
+        </button>
     </div>
 </div>
 
 <style>
     /* Learning Dashboard Styles - Using base theme */
-    .learning-dashboard-container .pending-modules-container {
+    .pending-modules-container {
         background: var(--card-bg);
         border-radius: var(--radius-xl);
         padding: var(--spacing-xl);
@@ -25,7 +34,7 @@
         border: 1px solid var(--border-color);
     }
 
-    .learning-dashboard-container .section-title {
+    .section-title {
         display: flex;
         align-items: center;
         gap: var(--spacing-sm);
@@ -35,18 +44,18 @@
         margin-bottom: var(--spacing-lg);
     }
 
-    .learning-dashboard-container .section-title i {
+    .section-title i {
         color: var(--primary-color);
         font-size: var(--font-size-3xl);
     }
 
-    .learning-dashboard-container .modules-grid {
+    .modules-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
         gap: var(--spacing-lg);
     }
 
-    .learning-dashboard-container .module-card {
+    .module-card {
         background: var(--card-bg);
         border-radius: var(--radius-lg);
         padding: var(--spacing-lg);
@@ -57,31 +66,31 @@
         overflow: hidden;
     }
 
-    .learning-dashboard-container .module-card.pending {
+    .module-card.pending {
         border-left: 4px solid var(--warning-color);
     }
 
-    .learning-dashboard-container .module-card.in-progress {
+    .module-card.in-progress {
         border-left: 4px solid var(--primary-color);
     }
 
-    .learning-dashboard-container .module-card:hover {
+    .module-card:hover {
         transform: translateY(-2px);
         box-shadow: var(--shadow-lg);
     }
 
-    .learning-dashboard-container .module-header {
+    .module-header {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        margin-bottom: var(--spacing);
+        margin-bottom: 1rem;
     }
 
-    .learning-dashboard-container .module-title {
-        font-size: var(--font-size-xl);
+    .module-title {
+        font-size: 1.25rem;
         font-weight: 600;
         color: var(--heading-color);
-        margin-bottom: var(--spacing-sm);
+        margin-bottom: 0.5rem;
     }
 
     .learning-dashboard-container .module-status {

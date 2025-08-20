@@ -4,15 +4,11 @@
 <style>
 /* Resume Builder Dashboard Styles - Using base theme variables */
 
-/* Resume Dashboard Layout - Using base theme */
-.resume-dashboard-container {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0;
-}
+/* Resume Builder Dashboard Styles - Using Unified Design System */
 
-.resume-dashboard-container .content-section {
-  margin-bottom: var(--spacing-xl);
+/* Content sections use standard spacing */
+.content-section {
+  margin-bottom: 1.5rem;
   animation: fadeIn 0.5s ease-in-out;
 }
 
@@ -21,69 +17,13 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Page Header customizations */
-.resume-dashboard-container .page-header {
-  margin-bottom: var(--spacing-lg);
-}
-
-.resume-dashboard-container .page-title {
-  position: relative;
-}
-
-.resume-dashboard-container .page-title::after {
-  content: '';
-  position: absolute;
-  bottom: -var(--spacing-sm);
-  left: 0;
-  width: var(--spacing-2xl);
-  height: var(--spacing-xs);
-  background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
-  border-radius: var(--radius-full);
-}
-
-/* Breadcrumb inherits from base styles */
-
-/* Section Headers - Using base theme */
-.resume-dashboard-container .section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--spacing-lg);
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: var(--spacing);
-}
-
-.resume-dashboard-container .section-title {
-  font-size: var(--font-size-xl);
-  font-weight: 600;
-  color: var(--heading-color);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-}
-
-.resume-dashboard-container .section-title i {
-  color: var(--primary-color);
-  font-size: var(--font-size-xl);
-}
-
-/* Button customizations - Using base button system */
-.resume-dashboard-container .btn {
-  /* Inherits from base button styles */
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.resume-dashboard-container .btn:hover {
-  transform: translateY(-1px);
-}
-
 /* Action buttons use base button system with size variants */
 
 /* ==== Resume Cards ==== */
 .resume-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: var(--spacing-lg);
+  gap: 1.5rem;
 }
 
 .resume-card {
@@ -165,7 +105,7 @@
 .template-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: var(--spacing-lg);
+  gap: 1.5rem;
 }
 
 .template-card {
@@ -354,6 +294,7 @@
   color: var(--text-color);
 }
 
+/* Button styling - using unified design system */
 .btn-close {
   background: none;
   border: none;
@@ -361,11 +302,25 @@
   font-size: 1.5rem;
   cursor: pointer;
   padding: 0;
-  transition: var(--transition-fast);
+  transition: var(--transition);
 }
 
 .btn-close:hover {
   color: var(--text-color);
+}
+
+.btn-cancel {
+  background: var(--hover-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-cancel:hover {
+  background: var(--border-color);
 }
 
 .modal-body {
@@ -466,6 +421,60 @@
 @keyframes fadeOut {
   from { transform: translateX(0); opacity: 1; }
   to { transform: translateX(100%); opacity: 0; }
+}
+
+/* ==== Utility Classes ==== */
+.d-flex {
+  display: flex;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.align-center {
+  align-items: center;
+}
+
+.mb-0 {
+  margin-bottom: 0;
+}
+
+.mb-1 {
+  margin-bottom: 0.25rem;
+}
+
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+
+.mr-1 {
+  margin-right: 0.25rem;
+}
+
+.mr-2 {
+  margin-right: 0.5rem;
+}
+
+.text-muted {
+  color: var(--text-light);
+}
+
+.text-primary {
+  color: var(--primary-color);
+}
+
+.bg-light {
+  background-color: var(--hover-bg);
+}
+
+.bg-primary {
+  background-color: var(--primary-color);
+  color: var(--white);
 }
 
 /* ==== Responsive Design ==== */
@@ -737,71 +746,81 @@
   }
 }
     </style>
-</head>
-<body>
-   <div class="resume-dashboard-container">
-    <!-- Page Header -->
-    <header class="page-header">
-        <h1 class="page-title">Resume Dashboard</h1>
-        <div class="breadcrumb">
-            <div class="breadcrumb-item">
-                <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
-            </div>
-            <i class="fas fa-chevron-right"></i>
-            <div class="breadcrumb-item">Resume Dashboard</div>
-        </div>
-    </header>
+</style>
+
+<!-- Breadcrumb Navigation -->
+<div class="breadcrumb">
+    <div class="breadcrumb-item">
+        <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item">
+        <span>Resume Builder</span>
+    </div>
+</div>
+
+<!-- Page Title -->
+<div class="page-content-header">
+    <h1 class="page-title">Resume Builder</h1>
+    <div class="page-actions">
+        <button class="btn btn-primary" onclick="showCreateResumeModal()">
+            <i class='bx bx-plus'></i>
+            Create New Resume
+        </button>
+    </div>
+</div>
 
     <!-- My Resumes Section -->
     <section class="content-section">
         <div class="section-header">
-            <h2 class="section-title"><i class="fas fa-file-alt"></i> My Resumes</h2>
+            <h2 class="section-title"><i class='bx bx-file'></i> My Resumes</h2>
         </div>
 
         <!-- Resume Grid with Cards -->
         {% if user_resumes %}
         <div class="resume-grid">
             {% for resume in user_resumes %}
-            <div class="resume-card" data-id="{{ resume.id }}">
-                <div class="resume-card-header">
-                    <h4>{{ resume.title }}</h4>
-                    <span class="resume-template-badge">{{ resume.template.name }}</span>
+            <div class="card card-elevated resume-card" data-id="{{ resume.id }}">
+                <div class="card-header">
+                    <div class="d-flex justify-between align-center">
+                        <h4 class="card-title mb-0">{{ resume.title }}</h4>
+                        <span class="badge bg-primary">{{ resume.template.name }}</span>
+                    </div>
                 </div>
-                <div class="resume-card-body">
+                <div class="card-body">
                     <div class="resume-stats">
-                        <div class="resume-stat">
-                            <i class="fas fa-calendar-alt"></i>
-                            <span>Updated: {{ resume.updated_at|date:"M d, Y" }}</span>
+                        <div class="resume-stat d-flex align-center mb-2">
+                            <i class='bx bx-calendar text-muted mr-2'></i>
+                            <span class="text-muted">Updated: {{ resume.updated_at|date:"M d, Y" }}</span>
                         </div>
                         <div class="resume-stat">
-                            <i class="fas fa-eye"></i>
-                            <span>
-                                {{ resume.show_contact|yesno:"Contact," }}
-                                {{ resume.show_objective|yesno:"Objective," }}
-                                {{ resume.show_education|yesno:"Education," }}
-                                {{ resume.show_skills|yesno:"Skills," }}
-                                {{ resume.show_experience|yesno:"Experience," }}
-                                {{ resume.show_projects|yesno:"Projects," }}
-                                {{ resume.show_certifications|yesno:"Certifications," }}
-                                {{ resume.show_achievements|yesno:"Achievements," }}
-                                {{ resume.show_extracurricular|yesno:"Extracurricular," }}
-                            </span>
+                            <i class='bx bx-show text-muted mr-2'></i>
+                            <div class="d-flex flex-wrap">
+                                {% if resume.show_contact %}<span class="badge bg-light text-primary mr-1 mb-1">Contact</span>{% endif %}
+                                {% if resume.show_objective %}<span class="badge bg-light text-primary mr-1 mb-1">Objective</span>{% endif %}
+                                {% if resume.show_education %}<span class="badge bg-light text-primary mr-1 mb-1">Education</span>{% endif %}
+                                {% if resume.show_skills %}<span class="badge bg-light text-primary mr-1 mb-1">Skills</span>{% endif %}
+                                {% if resume.show_experience %}<span class="badge bg-light text-primary mr-1 mb-1">Experience</span>{% endif %}
+                                {% if resume.show_projects %}<span class="badge bg-light text-primary mr-1 mb-1">Projects</span>{% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="resume-card-actions">
-                    <a href="{% url 'resume_builder:edit_resume' resume.id %}" class="btn btn-sm btn-primary">
-                        <i class="fas fa-pencil-alt"></i> Edit
-                    </a>
-                    <a href="{% url 'resume_builder:preview_resume' resume.id %}" class="btn btn-sm btn-light">
-                        <i class="fas fa-eye"></i> Preview
-                    </a>
-                    <a href="{% url 'resume_builder:download_resume' resume.id %}" class="btn btn-sm btn-success">
-                        <i class="fas fa-download"></i> Download
-                    </a>
-                    <button class="btn btn-sm btn-danger" data-resume-id="{{ resume.id }}">
-                        <i class="fas fa-trash-alt"></i> Delete
-                    </button>
+                <div class="card-footer">
+                    <div class="d-flex flex-wrap">
+                        <a href="{% url 'resume_builder:edit_resume' resume.id %}" class="btn btn-sm btn-primary mr-2 mb-2">
+                            <i class='bx bx-edit'></i> Edit
+                        </a>
+                        <a href="{% url 'resume_builder:preview_resume' resume.id %}" class="btn btn-sm btn-outline-primary mr-2 mb-2">
+                            <i class='bx bx-show'></i> Preview
+                        </a>
+                        <a href="{% url 'resume_builder:download_resume' resume.id %}" class="btn btn-sm btn-outline-success mr-2 mb-2">
+                            <i class='bx bx-download'></i> Download
+                        </a>
+                        <button class="btn btn-sm btn-outline-danger mb-2" data-resume-id="{{ resume.id }}">
+                            <i class='bx bx-trash'></i> Delete
+                        </button>
+                    </div>
                 </div>
             </div>
             {% endfor %}
@@ -819,7 +838,7 @@
     <!-- Resume Templates Section -->
     <section class="content-section">
         <div class="section-header">
-            <h2 class="section-title"><i class="fas fa-th-large"></i> Resume Templates</h2>
+            <h2 class="section-title"><i class='bx bx-grid-alt'></i> Resume Templates</h2>
         </div>
 
         <div class="template-grid">
@@ -849,7 +868,7 @@
     <!-- Resume Tips Section -->
     <section class="content-section">
         <div class="section-header">
-            <h2 class="section-title"><i class="fas fa-lightbulb"></i> Resume Tips</h2>
+            <h2 class="section-title"><i class='bx bx-bulb'></i> Resume Tips</h2>
         </div>
 
         <!-- Tips Container -->
@@ -857,7 +876,7 @@
             <!-- Tip Card 1 -->
             <div class="tip-card">
                 <div class="tip-icon">
-                    <i class="fas fa-bullseye"></i>
+                    <i class='bx bx-target-lock'></i>
                 </div>
                 <div class="tip-content">
                     <h4>Tailor for Each Job</h4>
@@ -868,7 +887,7 @@
             <!-- Tip Card 2 -->
             <div class="tip-card">
                 <div class="tip-icon">
-                    <i class="fas fa-chart-line"></i>
+                    <i class='bx bx-trending-up'></i>
                 </div>
                 <div class="tip-content">
                     <h4>Use Action Verbs</h4>
@@ -879,7 +898,7 @@
             <!-- Tip Card 3 -->
             <div class="tip-card">
                 <div class="tip-icon">
-                    <i class="fas fa-search"></i>
+                    <i class='bx bx-search'></i>
                 </div>
                 <div class="tip-content">
                     <h4>Keywords Matter</h4>
@@ -890,7 +909,7 @@
             <!-- Tip Card 4 -->
             <div class="tip-card">
                 <div class="tip-icon">
-                    <i class="fas fa-check-double"></i>
+                    <i class='bx bx-check-double'></i>
                 </div>
                 <div class="tip-content">
                     <h4>Proofread Carefully</h4>
@@ -940,7 +959,6 @@
             {% endfor %}
         {% endif %}
     </div>
-</div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {

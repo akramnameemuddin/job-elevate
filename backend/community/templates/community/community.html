@@ -2,38 +2,31 @@
 {% load static %}
 
 {% block content %}
-<div class="community-container">
-    <!-- Page Header with Breadcrumb -->
-    <div class="page-header">
-        <div class="breadcrumb">
-            <div class="breadcrumb-item">
-                <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">
-                    <i class='bx bx-home'></i>
-                    Home
-                </a>
-                <i class='bx bx-chevron-right'></i>
-            </div>
-            <div class="breadcrumb-item">
-                <span>Career Network</span>
-            </div>
-        </div>
-
-        <div class="page-title-section">
-            <h1 class="page-title">
-                <i class='bx bx-group'></i>
-                Career Community
-            </h1>
-            <p class="page-subtitle">Connect, share experiences, and grow together with fellow professionals</p>
-        </div>
-
-        <div class="page-actions">
-            <button class="btn btn-primary" onclick="showSection('create-post')">
-                <i class='bx bx-plus'></i> Create Post
-            </button>
-        </div>
+<!-- Breadcrumb Navigation -->
+<div class="breadcrumb">
+    <div class="breadcrumb-item">
+        <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
+        <i class='bx bx-chevron-right'></i>
     </div>
+    <div class="breadcrumb-item">
+        <span>Career Network</span>
+    </div>
+</div>
 
-    <!-- Community Navigation -->
+<!-- Page Title -->
+<div class="page-content-header">
+    <div>
+        <h1 class="page-title">Career Network</h1>
+        <p class="page-description text-muted">Connect, share experiences, and grow together with fellow professionals</p>
+    </div>
+    <div class="page-actions">
+        <button class="btn btn-primary" onclick="showSection('create-post')">
+            <i class='bx bx-plus'></i> Create Post
+        </button>
+    </div>
+</div>
+
+<!-- Community Navigation -->
     <div class="community-nav">
         <div class="nav-pills">
             <button class="nav-pill active" data-section="home" onclick="showSection('home')">
@@ -418,16 +411,29 @@
             </div>
         </div>
     </div>
-</div>
 
 <style>
-/* Community Specific Styles */
-.community-container {
-    max-width: 1400px;
-    margin: 0 auto;
+/* Community Specific Styles - Using Unified Design System */
+
+/* Ensure proper background inheritance and override any conflicting styles */
+body {
+    background-color: var(--background-color) !important;
 }
 
-/* Community header removed - using base page-header styles */
+.main-content {
+    background-color: var(--background-color) !important;
+    min-height: 100vh;
+}
+
+/* Ensure sidebar inherits proper background */
+.sidebar {
+    background-color: var(--sidebar-bg) !important;
+}
+
+/* Override any potential conflicting background colors */
+* {
+    background-color: inherit;
+}
 
 .community-nav {
     margin-bottom: 2rem;

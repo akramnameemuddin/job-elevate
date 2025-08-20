@@ -4,51 +4,48 @@
 {% block title %}{{ job.title }} at {{ job.company }} | JobMatch{% endblock %}
 
 {% block content %}
-<div class="main-content">
-    <!-- Notification area -->
-    {% if messages %}
-    <div class="notification-area">
-        {% for message in messages %}
-        <div class="notification {% if message.tags %}{{ message.tags }}{% endif %}">
-            <i class='bx
-                {% if message.tags == "success" %}bx-check-circle
-                {% elif message.tags == "error" %}bx-error
-                {% elif message.tags == "warning" %}bx-error-circle
-                {% else %}bx-info-circle{% endif %}'>
-            </i>
-            <span>{{ message }}</span>
-            <button class="close-btn"><i class='bx bx-x'></i></button>
-        </div>
-        {% endfor %}
+<!-- Breadcrumb Navigation -->
+<div class="breadcrumb">
+    <div class="breadcrumb-item">
+        <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
+        <i class='bx bx-chevron-right'></i>
     </div>
-    {% endif %}
-
-    <!-- Page Header with Breadcrumb -->
-    <div class="page-header">
-        <div class="breadcrumb">
-            <div class="breadcrumb-item">
-                <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">
-                    <i class='bx bx-home'></i>
-                    Home
-                </a>
-                <i class='bx bx-chevron-right'></i>
-            </div>
-            <div class="breadcrumb-item">
-                <a href="{% url 'jobs:job_listings' %}" class="breadcrumb-link">Jobs</a>
-                <i class='bx bx-chevron-right'></i>
-            </div>
-            <div class="breadcrumb-item">
-                <span>{{ job.title }}</span>
-            </div>
-        </div>
+    <div class="breadcrumb-item">
+        <a href="{% url 'jobs:job_listings' %}" class="breadcrumb-link">Job Matches</a>
+        <i class='bx bx-chevron-right'></i>
     </div>
+    <div class="breadcrumb-item">
+        <span>{{ job.title }}</span>
+    </div>
+</div>
 
+<!-- Page Title -->
+<div class="page-content-header">
+    <h1 class="page-title">{{ job.title }}</h1>
+</div>
 
-    <div class="job-detail-container">
-        <!-- Left content: Job information -->
-        <div class="job-main-content">
-            <!-- Job header -->
-            <div class="job-header-card">
+<!-- Messages for notifications -->
+{% if messages %}
+<div class="notification-container">
+    {% for message in messages %}
+    <div class="notification {{ message.tags }}">
+        <i class='bx
+            {% if message.tags == "success" %}bx-check-circle
+            {% elif message.tags == "error" %}bx-error
+            {% elif message.tags == "warning" %}bx-error-circle
+            {% else %}bx-info-circle{% endif %}'>
+        </i>
+        <span>{{ message }}</span>
+        <button class="notification-close"><i class='bx bx-x'></i></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Job Detail Content -->
+<div class="content-section">
+    <!-- Job header -->
+    <div class="job-header-card">
                 <div class="job-header-content">
                     {% if job.company_logo %}
                     <div class="company-logo">
@@ -317,70 +314,10 @@
             </div>
         </div>
     </div>
-</div>
 <style>
-    /* Modern CSS Variables - Updated for dark mode */
-    :root {
-        /* Light mode colors */
-        --primary-color: #4361ee;
-        --primary-light: rgba(67, 97, 238, 0.1);
-        --primary-dark: #3a56d4;
-        --secondary-color: #7c3aed;
-        --success-color: #2ecc71;
-        --warning-color: #f39c12;
-        --danger-color: #e74c3c;
-        --info-color: #3498db;
+    /* Job Detail Styles - Using Unified Design System */
 
-        --background-color: #f9fafb;
-        --card-bg: #ffffff;
-        --hover-bg: #f3f4f6;
-        --border-color: #e5e7eb;
-        --text-color: #111827;
-        --text-light: #6b7280;
-
-        --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        
-        --radius-sm: 0.375rem;
-        --radius-md: 0.5rem;
-        --radius-lg: 0.75rem;
-        --transition: all 0.2s ease;
-    }
-
-    /* Dark mode colors */
-    [data-theme="dark"] {
-        --primary-color: #818cf8;
-        --primary-light: rgba(129, 140, 248, 0.1);
-        --primary-dark: #6366f1;
-        --secondary-color: #a78bfa;
-        --success-color: #34d399;
-        --warning-color: #fbbf24;
-        --danger-color: #f87171;
-        --info-color: #60a5fa;
-
-        --background-color: #111827;
-        --card-bg: #1f2937;
-        --hover-bg: #374151;
-        --border-color: #374151;
-        --text-color: #f9fafb;
-        --text-light: #d1d5db;
-
-        --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
-        --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-        --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
-    }
-
-    /* Main Content Layout - Mobile First */
-    .main-content {
-        margin-left: 0;
-        padding: 0.75rem;
-        min-height: 100vh;
-        transition: var(--transition);
-        background: var(--background-color);
-    }
+    /* Job Detail Content - Inherit base template layout */
 
     /* Breadcrumb */
     .breadcrumb {
@@ -415,13 +352,23 @@
         word-break: break-word;
     }
 
-    /* Job Detail Container - Mobile First */
-    .job-detail-container {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        max-width: 100%;
-        margin: 0 auto;
+    /* Job Detail Layout - Using Unified Design System */
+
+    /* Mobile-first responsive design */
+    @media (max-width: 480px) {
+        .job-header-card {
+            padding: 1rem;
+        }
+
+        .job-actions {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
     }
 
     /* Job Header Card - Mobile Optimized */
@@ -541,7 +488,7 @@
 
     .btn-primary {
         background: var(--primary-color);
-        color: #ffffff;
+        color: var(--white);
     }
 
     .btn-primary:hover {
@@ -563,7 +510,7 @@
 
     .btn-success {
         background: var(--success-color);
-        color: #ffffff;
+        color: var(--white);
     }
 
     .bookmarked {
@@ -733,8 +680,8 @@
     }
 
     .score-circle.good {
-        background: rgba(139, 195, 74, 0.15);
-        border-color: #8bc34a;
+        background: var(--success-light);
+        border-color: var(--success-color);
     }
 
     .score-circle.moderate {
@@ -1237,15 +1184,15 @@
     }
 
     .social-share-btn.linkedin {
-        background: #0077b5;
-        color: white;
-        border-color: #0077b5;
+        background: var(--info-color);
+        color: var(--white);
+        border-color: var(--info-color);
     }
 
     .social-share-btn.twitter {
-        background: #1da1f2;
-        color: white;
-        border-color: #1da1f2;
+        background: var(--primary-color);
+        color: var(--white);
+        border-color: var(--primary-color);
     }
 
     .social-share-btn.email {
@@ -1256,9 +1203,6 @@
 
     /* Desktop Styles - Progressive Enhancement */
     @media (min-width: 640px) {
-        .main-content {
-            padding: 1rem;
-        }
 
         .breadcrumb {
             font-size: 0.875rem;
@@ -1415,12 +1359,7 @@
     }
 
     @media (min-width: 768px) {
-        .main-content {
-            margin-left: 80px;
-            padding: 1.5rem;
-        }
-
-        .job-detail-container {
+        .job-main-content {
             gap: 1.5rem;
         }
 
@@ -1483,11 +1422,7 @@
     }
 
     @media (min-width: 1024px) {
-        .main-content {
-            margin-left: 180px;
-        }
-
-        .job-detail-container {
+        .job-main-content {
             display: grid;
             grid-template-columns: 2fr 1fr;
             gap: 2rem;
@@ -1502,7 +1437,7 @@
     }
 
     @media (min-width: 1200px) {
-        .job-detail-container {
+        .job-main-content {
             grid-template-columns: 1fr 350px;
         }
     }
@@ -1559,23 +1494,18 @@
             display: none !important;
         }
 
-        .main-content {
-            margin-left: 0;
-            padding: 0;
-        }
-
-        .job-detail-container {
+        .job-main-content {
             display: block;
         }
 
         .content-section {
             box-shadow: none;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             margin-bottom: 1rem;
         }
 
         .job-header-card {
-            border: 2px solid #333;
+            border: 2px solid var(--text-color);
         }
     }
 
