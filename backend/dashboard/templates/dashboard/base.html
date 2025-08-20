@@ -16,21 +16,23 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/static/icons/favicon-16x16.png">
     <link rel="manifest" href="/static/manifest.json">
     <style>
-        /* ==== CSS Variables - Comprehensive Design System ==== */
+        /* ==== JobElevate Unified Design System (Accounts Template Standard) ==== */
         :root {
-            /* Primary Colors */
+            /* Primary Colors - Enhanced Modern Palette */
             --primary-color: #3b82f6;
             --primary-hover: #2563eb;
-            --primary-light: #dbeafe;
             --primary-dark: #1d4ed8;
+            --primary-light: #dbeafe;
+            --primary-50: #eff6ff;
+            --primary-100: #dbeafe;
+            --primary-500: #3b82f6;
+            --primary-600: #2563eb;
+            --primary-700: #1d4ed8;
 
-            /* Secondary Colors */
             --secondary-color: #8b5cf6;
             --secondary-hover: #7c3aed;
             --secondary-light: #ede9fe;
-            --secondary-dark: #6d28d9;
-
-            /* Status Colors */
+            --accent-color: #06b6d4;
             --success-color: #10b981;
             --success-hover: #059669;
             --success-light: #d1fae5;
@@ -44,25 +46,38 @@
             --info-hover: #0891b2;
             --info-light: #cffafe;
 
-            /* Background Colors */
-            --background-color: #f9fafb;
-            --card-bg: #ffffff;
-            --sidebar-bg: #ffffff;
-            --sidebar-active: #eff6ff;
-            --hover-bg: #f3f4f6;
-            --input-bg: #ffffff;
+            /* Neutral Colors - Clean White Design System */
+            --white: #ffffff;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
 
-            /* Text Colors */
-            --text-color: #1f2937;
-            --text-light: #6b7280;
-            --text-muted: #9ca3af;
-            --text-inverse: #ffffff;
-            --heading-color: #111827;
+            /* Background Colors - Clean White Design */
+            --background-color: var(--white);
+            --card-bg: var(--white);
+            --sidebar-bg: var(--white);
+            --sidebar-active: var(--primary-light);
+            --hover-bg: var(--gray-50);
+            --input-bg: var(--white);
 
-            /* Border Colors */
-            --border-color: #e5e7eb;
-            --border-light: #f3f4f6;
-            --border-dark: #d1d5db;
+            /* Text Colors - Consistent with Accounts */
+            --text-color: var(--gray-800);
+            --text-light: var(--gray-600);
+            --text-muted: var(--gray-500);
+            --text-inverse: var(--white);
+            --heading-color: var(--gray-900);
+
+            /* Border Colors - Standardized */
+            --border-color: var(--gray-200);
+            --border-light: var(--gray-100);
+            --border-dark: var(--gray-300);
 
             /* Shadows */
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -70,60 +85,59 @@
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 
-            /* Border Radius */
-            --radius-sm: 0.375rem;
+            /* Border Radius - Aligned with accounts templates */
+            --radius-sm: 0.25rem;
             --radius: 0.5rem;
-            --radius-md: 0.75rem;
-            --radius-lg: 1rem;
-            --radius-xl: 1.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-2xl: 1.5rem;
+            --radius-full: 9999px;
 
-            /* Spacing */
+            /* Spacing - Aligned with accounts templates */
             --spacing-xs: 0.25rem;
             --spacing-sm: 0.5rem;
             --spacing: 1rem;
             --spacing-lg: 1.5rem;
             --spacing-xl: 2rem;
             --spacing-2xl: 3rem;
+            --spacing-3xl: 4rem;
 
-            /* Typography */
-            --font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            /* Typography - Inter Font System (Accounts Standard) */
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             --font-size-xs: 0.75rem;
             --font-size-sm: 0.875rem;
-            --font-size: 1rem;
+            --font-size-base: 1rem;
             --font-size-lg: 1.125rem;
             --font-size-xl: 1.25rem;
             --font-size-2xl: 1.5rem;
             --font-size-3xl: 1.875rem;
-            --line-height-tight: 1.25;
-            --line-height: 1.5;
-            --line-height-relaxed: 1.75;
+            --font-size-4xl: 2.25rem;
+            --font-size-5xl: 3rem;
 
-            /* Transitions */
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            --transition-fast: all 0.15s ease-in-out;
-            --transition-slow: all 0.5s ease-in-out;
+            /* Transitions - Accounts Template Standard */
+            --transition-fast: 150ms ease-in-out;
+            --transition: 300ms ease-in-out;
+            --transition-slow: 500ms ease-in-out;
 
-            /* Z-index */
+            /* Z-index - Accounts Template Standard */
             --z-dropdown: 1000;
             --z-sticky: 1020;
             --z-fixed: 1030;
-            --z-modal-backdrop: 1040;
-            --z-modal: 1050;
-            --z-popover: 1060;
-            --z-tooltip: 1070;
+            --z-modal: 1040;
+            --z-tooltip: 1050;
         }
 
         [data-theme="dark"] {
-            /* Primary Colors */
-            --primary-color: #60a5fa;
-            --primary-hover: #3b82f6;
-            --primary-light: rgba(96, 165, 250, 0.1);
-            --primary-dark: #2563eb;
+            /* Primary Colors - Dark Theme with Subtle Blue Accent */
+            --primary-color: #6b7280;
+            --primary-hover: #9ca3af;
+            --primary-light: rgba(107, 114, 128, 0.1);
+            --primary-dark: #4b5563;
 
-            /* Secondary Colors */
-            --secondary-color: #a78bfa;
-            --secondary-hover: #8b5cf6;
-            --secondary-light: rgba(167, 139, 250, 0.1);
+            /* Secondary Colors - Dark Theme with Subtle Purple Accent */
+            --secondary-color: #8b5cf6;
+            --secondary-hover: #a78bfa;
+            --secondary-light: rgba(139, 92, 246, 0.1);
             --secondary-dark: #7c3aed;
 
             /* Status Colors */
@@ -140,25 +154,25 @@
             --info-hover: #06b6d4;
             --info-light: rgba(34, 211, 238, 0.1);
 
-            /* Background Colors */
-            --background-color: #111827;
-            --card-bg: #1f2937;
-            --sidebar-bg: #1f2937;
-            --sidebar-active: rgba(59, 130, 246, 0.1);
-            --hover-bg: #374151;
-            --input-bg: #374151;
+            /* Background Colors - Pure Dark Theme */
+            --background-color: #0f0f0f;
+            --card-bg: #1a1a1a;
+            --sidebar-bg: #1a1a1a;
+            --sidebar-active: rgba(107, 114, 128, 0.15);
+            --hover-bg: #2a2a2a;
+            --input-bg: #2a2a2a;
 
-            /* Text Colors */
-            --text-color: #f9fafb;
+            /* Text Colors - High Contrast for Dark Theme */
+            --text-color: #ffffff;
             --text-light: #d1d5db;
             --text-muted: #9ca3af;
-            --text-inverse: #111827;
+            --text-inverse: #0f0f0f;
             --heading-color: #ffffff;
 
-            /* Border Colors */
-            --border-color: #374151;
-            --border-light: #4b5563;
-            --border-dark: #6b7280;
+            /* Border Colors - Subtle Dark Theme Borders */
+            --border-color: #3a3a3a;
+            --border-light: #4a4a4a;
+            --border-dark: #5a5a5a;
 
             /* Shadows */
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
@@ -183,16 +197,29 @@
             font-family: var(--font-family);
             background-color: var(--background-color);
             color: var(--text-color);
-            transition: var(--transition);
-            line-height: var(--line-height);
-            font-size: var(--font-size);
+            line-height: 1.6;
+            font-size: var(--font-size-base);
+            transition: background-color var(--transition), color var(--transition);
         }
 
-        /* ==== Typography ==== */
+        /* Smooth theme transitions */
+        *, *::before, *::after {
+            transition: background-color var(--transition),
+                       border-color var(--transition),
+                       color var(--transition),
+                       box-shadow var(--transition);
+        }
+
+        /* Disable transitions during theme change to prevent flash */
+        .theme-transitioning * {
+            transition: none !important;
+        }
+
+        /* ==== Typography - Accounts Template Standard ==== */
         h1, h2, h3, h4, h5, h6 {
             color: var(--heading-color);
             font-weight: 600;
-            line-height: var(--line-height-tight);
+            line-height: 1.25;
             margin-bottom: var(--spacing-sm);
         }
 
@@ -200,7 +227,7 @@
         h2 { font-size: var(--font-size-2xl); }
         h3 { font-size: var(--font-size-xl); }
         h4 { font-size: var(--font-size-lg); }
-        h5 { font-size: var(--font-size); }
+        h5 { font-size: var(--font-size-base); }
         h6 { font-size: var(--font-size-sm); }
 
         p {
@@ -215,7 +242,7 @@
         }
 
         a:hover {
-            color: var(--primary-hover);
+            color: var(--primary-dark);
         }
 
         /* ==== Utility Classes ==== */
@@ -667,6 +694,8 @@
             gap: 0.5rem;
             color: var(--text-light);
             font-size: 0.875rem;
+            margin-bottom: var(--spacing-lg);
+            padding: 0;
         }
 
         .breadcrumb-item {
@@ -683,6 +712,36 @@
 
         .breadcrumb-link:hover {
             color: var(--primary-color);
+        }
+
+        /* New page content header styles for Jobs app redesign */
+        .page-content-header {
+            margin: var(--spacing-lg) 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: var(--spacing);
+        }
+
+        .page-content-header .page-title {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            color: var(--heading-color);
+            margin: 0;
+        }
+
+        .page-content-header .page-description {
+            color: var(--text-light);
+            margin: var(--spacing-sm) 0 0 0;
+            font-size: var(--font-size-base);
+        }
+
+        .page-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+            align-items: center;
+            flex-wrap: wrap;
         }
 
         .feature-content {
@@ -1214,6 +1273,61 @@
             color: var(--text-color);
         }
 
+        /* Modern Card Variants */
+        .card-elevated {
+            box-shadow: var(--shadow-lg);
+            border: none;
+        }
+
+        .card-elevated:hover {
+            box-shadow: var(--shadow-xl);
+            transform: translateY(-2px);
+        }
+
+        .card-gradient {
+            background: linear-gradient(135deg, var(--primary-50) 0%, var(--white) 100%);
+            border: 1px solid var(--primary-100);
+        }
+
+        .card-feature {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-feature::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        }
+
+        /* ==== Gradient Utilities ==== */
+        .gradient-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-600));
+        }
+
+        .gradient-secondary {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-hover));
+        }
+
+        .gradient-success {
+            background: linear-gradient(135deg, var(--success-color), var(--success-hover));
+        }
+
+        .gradient-brand {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 50%, var(--accent-color) 100%);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
         /* ==== Badge System ==== */
         .badge {
             display: inline-flex;
@@ -1314,23 +1428,23 @@
         }
 
         .stat-icon.blue {
-            background-color: #dbeafe;
-            color: #2563eb;
+            background-color: var(--primary-light);
+            color: var(--primary-color);
         }
 
         .stat-icon.purple {
-            background-color: #ede9fe;
-            color: #7c3aed;
+            background-color: var(--secondary-light);
+            color: var(--secondary-color);
         }
 
         .stat-icon.green {
-            background-color: #d1fae5;
-            color: #10b981;
+            background-color: var(--success-light);
+            color: var(--success-color);
         }
 
         .stat-icon.amber {
-            background-color: #fef3c7;
-            color: #d97706;
+            background-color: var(--warning-light);
+            color: var(--warning-color);
         }
 
         .stat-info {
@@ -1457,6 +1571,106 @@
         .feature-link:hover {
             color: var(--primary-hover);
         }
+
+        /* ==== Utility Classes ==== */
+
+        /* Display Utilities */
+        .d-none { display: none !important; }
+        .d-block { display: block !important; }
+        .d-inline { display: inline !important; }
+        .d-inline-block { display: inline-block !important; }
+        .d-flex { display: flex !important; }
+        .d-inline-flex { display: inline-flex !important; }
+        .d-grid { display: grid !important; }
+
+        /* Flex Utilities */
+        .flex-row { flex-direction: row !important; }
+        .flex-column { flex-direction: column !important; }
+        .flex-wrap { flex-wrap: wrap !important; }
+        .flex-nowrap { flex-wrap: nowrap !important; }
+        .justify-start { justify-content: flex-start !important; }
+        .justify-center { justify-content: center !important; }
+        .justify-end { justify-content: flex-end !important; }
+        .justify-between { justify-content: space-between !important; }
+        .justify-around { justify-content: space-around !important; }
+        .align-start { align-items: flex-start !important; }
+        .align-center { align-items: center !important; }
+        .align-end { align-items: flex-end !important; }
+        .align-stretch { align-items: stretch !important; }
+
+        /* Spacing Utilities */
+        .m-0 { margin: 0 !important; }
+        .m-1 { margin: var(--spacing-xs) !important; }
+        .m-2 { margin: var(--spacing-sm) !important; }
+        .m-3 { margin: var(--spacing) !important; }
+        .m-4 { margin: var(--spacing-lg) !important; }
+        .m-5 { margin: var(--spacing-xl) !important; }
+
+        .mt-0 { margin-top: 0 !important; }
+        .mt-1 { margin-top: var(--spacing-xs) !important; }
+        .mt-2 { margin-top: var(--spacing-sm) !important; }
+        .mt-3 { margin-top: var(--spacing) !important; }
+        .mt-4 { margin-top: var(--spacing-lg) !important; }
+        .mt-5 { margin-top: var(--spacing-xl) !important; }
+
+        .mb-0 { margin-bottom: 0 !important; }
+        .mb-1 { margin-bottom: var(--spacing-xs) !important; }
+        .mb-2 { margin-bottom: var(--spacing-sm) !important; }
+        .mb-3 { margin-bottom: var(--spacing) !important; }
+        .mb-4 { margin-bottom: var(--spacing-lg) !important; }
+        .mb-5 { margin-bottom: var(--spacing-xl) !important; }
+
+        .p-0 { padding: 0 !important; }
+        .p-1 { padding: var(--spacing-xs) !important; }
+        .p-2 { padding: var(--spacing-sm) !important; }
+        .p-3 { padding: var(--spacing) !important; }
+        .p-4 { padding: var(--spacing-lg) !important; }
+        .p-5 { padding: var(--spacing-xl) !important; }
+
+        /* Text Utilities */
+        .text-left { text-align: left !important; }
+        .text-center { text-align: center !important; }
+        .text-right { text-align: right !important; }
+        .text-primary { color: var(--primary-color) !important; }
+        .text-secondary { color: var(--secondary-color) !important; }
+        .text-success { color: var(--success-color) !important; }
+        .text-warning { color: var(--warning-color) !important; }
+        .text-danger { color: var(--danger-color) !important; }
+        .text-muted { color: var(--text-muted) !important; }
+        .text-light { color: var(--text-light) !important; }
+
+        /* Background Utilities */
+        .bg-primary { background-color: var(--primary-color) !important; }
+        .bg-secondary { background-color: var(--secondary-color) !important; }
+        .bg-success { background-color: var(--success-color) !important; }
+        .bg-warning { background-color: var(--warning-color) !important; }
+        .bg-danger { background-color: var(--danger-color) !important; }
+        .bg-light { background-color: var(--hover-bg) !important; }
+        .bg-white { background-color: var(--white) !important; }
+
+        /* Border Utilities */
+        .border { border: 1px solid var(--border-color) !important; }
+        .border-0 { border: 0 !important; }
+        .border-top { border-top: 1px solid var(--border-color) !important; }
+        .border-bottom { border-bottom: 1px solid var(--border-color) !important; }
+        .rounded { border-radius: var(--radius) !important; }
+        .rounded-lg { border-radius: var(--radius-lg) !important; }
+        .rounded-xl { border-radius: var(--radius-xl) !important; }
+        .rounded-full { border-radius: var(--radius-full) !important; }
+
+        /* Shadow Utilities */
+        .shadow-none { box-shadow: none !important; }
+        .shadow-sm { box-shadow: var(--shadow-sm) !important; }
+        .shadow { box-shadow: var(--shadow) !important; }
+        .shadow-lg { box-shadow: var(--shadow-lg) !important; }
+        .shadow-xl { box-shadow: var(--shadow-xl) !important; }
+
+        /* Width/Height Utilities */
+        .w-25 { width: 25% !important; }
+        .w-50 { width: 50% !important; }
+        .w-75 { width: 75% !important; }
+        .w-100 { width: 100% !important; }
+        .h-100 { height: 100% !important; }
 
         /* ==== Responsive Design System ==== */
 
@@ -2153,7 +2367,7 @@
 
         <div class="features-grid">
             <div class="feature-card">
-                <div class="feature-icon" style="background-color: #3b82f6;">
+                <div class="feature-icon bg-primary">
                     <i class='bx bx-user'></i>
                 </div>
                 <h3 class="feature-title">Career Profile</h3>
@@ -2164,7 +2378,7 @@
             </div>
             
             <div class="feature-card">
-                <div class="feature-icon" style="background-color: #8b5cf6;">
+                <div class="feature-icon bg-secondary">
                     <i class='bx bx-clipboard'></i>
                 </div>
                 <h3 class="feature-title">Skills Diagnostic</h3>
@@ -2175,7 +2389,7 @@
             </div>
             
             <div class="feature-card">
-                <div class="feature-icon" style="background-color: #10b981;">
+                <div class="feature-icon bg-success">
                     <i class='bx bx-book'></i>
                 </div>
                 <h3 class="feature-title">Learning Paths</h3>
@@ -2186,35 +2400,35 @@
             </div>
             
             <div class="feature-card">
-                <div class="feature-icon" style="background-color: #f59e0b;">
+                <div class="feature-icon bg-warning">
                     <i class='bx bx-file'></i>
                 </div>
                 <h3 class="feature-title">Resume Builder</h3>
                 <p class="feature-description">Create professional resumes tailored to your target roles with our AI-powered builder.</p>
-                <a href="{% url 'learning:learning' %}" class="feature-link">
+                <a href="{% url 'resume_builder:resume_builder' %}" class="feature-link">
                     Build Resume <i class='bx bx-right-arrow-alt'></i>
                 </a>
             </div>
             
             <div class="feature-card">
-                <div class="feature-icon" style="background-color: #ec4899;">
+                <div class="feature-icon bg-danger">
                     <i class='bx bx-line-chart'></i>
                 </div>
                 <h3 class="feature-title">Market Insights</h3>
                 <p class="feature-description">Access real-time job market data to understand industry trends and salary expectations.</p>
-                <a href="{% url 'learning:learning' %}" class="feature-link">
+                <a href="{% url 'jobs:job_analytics' %}" class="feature-link">
                     View Insights <i class='bx bx-right-arrow-alt'></i>
                 </a>
             </div>
             
             <div class="feature-card">
-                <div class="feature-icon" style="background-color: #6366f1;">
+                <div class="feature-icon bg-info">
                     <i class='bx bx-group'></i>
                 </div>
                 <h3 class="feature-title">Career Network</h3>
                 <p class="feature-description">Connect with peers and industry professionals to expand your professional network.</p>
-                <a href="{% url 'learning:learning' %}" class="feature-link">
-                    Join Community <i class='bx bx-right-arrow-alt'></i>
+                <a href="{% url 'community:community' %}" class="feature-link">
+                    Join Network <i class='bx bx-right-arrow-alt'></i>
                 </a>
             </div>
         </div>
@@ -2236,11 +2450,21 @@
 
         if (themeToggleBtn) {
             themeToggleBtn.addEventListener('click', () => {
+                // Add transitioning class to prevent flash
+                document.body.classList.add('theme-transitioning');
+
                 const currentTheme = root.getAttribute('data-theme');
                 const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+                // Apply new theme
                 root.setAttribute('data-theme', newTheme);
                 localStorage.setItem('theme', newTheme);
                 updateThemeIcon(newTheme);
+
+                // Remove transitioning class after a short delay
+                setTimeout(() => {
+                    document.body.classList.remove('theme-transitioning');
+                }, 100);
             });
         }
 

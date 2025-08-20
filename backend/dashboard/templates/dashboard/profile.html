@@ -1,16 +1,25 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
 {% block content %}
-<div class="page-header">
+<!-- Breadcrumb Navigation -->
+<div class="breadcrumb">
+    <div class="breadcrumb-item">
+        <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item">
+        <span>My Profile</span>
+    </div>
+</div>
+
+<!-- Page Title -->
+<div class="page-content-header">
     <h1 class="page-title">My Profile</h1>
-    <div class="breadcrumb">
-        <div class="breadcrumb-item">
-            <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
-            <i class='bx bx-chevron-right'></i>
-        </div>
-        <div class="breadcrumb-item">
-            <span>My Profile</span>
-        </div>
+    <div class="page-actions">
+        <button class="btn btn-outline-primary" onclick="toggleEditMode()">
+            <i class='bx bx-edit'></i>
+            Edit Profile
+        </button>
     </div>
 </div>
 
@@ -29,39 +38,41 @@
 {% endif %}
 
 <div class="profile-container">
-    <div class="profile-header">
-        <div class="profile-header-content">
-            <div class="profile-photo-wrapper">
-                <div class="profile-photo-container" id="photo-container">
-                    <img id="profile-photo-preview" class="profile-photo" 
-                        src="{% if user.profile_photo %}{{ user.profile_photo.url }}{% else %}{% static 'default_profile.png' %}{% endif %}" 
-                        alt="{{ user.full_name }}'s Profile Photo">
-                    <div class="photo-upload-overlay">
-                        <i class='bx bx-camera'></i>
+    <div class="card card-elevated profile-header">
+        <div class="card-body">
+            <div class="profile-header-content d-flex align-center">
+                <div class="profile-photo-wrapper">
+                    <div class="profile-photo-container" id="photo-container">
+                        <img id="profile-photo-preview" class="profile-photo"
+                            src="{% if user.profile_photo %}{{ user.profile_photo.url }}{% else %}{% static 'default_profile.png' %}{% endif %}"
+                            alt="{{ user.full_name }}'s Profile Photo">
+                        <div class="photo-upload-overlay">
+                            <i class='bx bx-camera'></i>
+                        </div>
                     </div>
+                    <span class="photo-upload-hint text-muted">Click to upload</span>
                 </div>
-                <span class="photo-upload-hint">Click to upload</span>
-            </div>
-            <div class="profile-header-info">
-                <h2 class="profile-name">{{ user.full_name }}</h2>
-                <p class="profile-role">{{ user.user_type|title }}</p>
-                <div class="profile-stats">
-                    <div class="profile-stat">
-                        <span class="stat-value">{{ profile_percent }}%</span>
-                        <span class="stat-label">Profile Completion</span>
-                    </div>
-                    <div class="profile-stat">
-                        <span class="stat-value">{{ job_match_count }}</span>
-                        <span class="stat-label">Job Matches</span>
-                    </div>
-                    <div class="profile-stat">
-                        <span class="stat-value">7</span>
-                        <span class="stat-label">Courses</span>
+                <div class="profile-header-info flex-1">
+                    <h2 class="profile-name mb-1">{{ user.full_name }}</h2>
+                    <p class="profile-role text-muted mb-3">{{ user.user_type|title }}</p>
+                    <div class="profile-stats d-flex">
+                        <div class="profile-stat">
+                            <span class="stat-value text-primary">{{ profile_percent }}%</span>
+                            <span class="stat-label text-muted">Profile Completion</span>
+                        </div>
+                        <div class="profile-stat">
+                            <span class="stat-value text-success">{{ job_match_count }}</span>
+                            <span class="stat-label text-muted">Job Matches</span>
+                        </div>
+                        <div class="profile-stat">
+                            <span class="stat-value text-secondary">7</span>
+                            <span class="stat-label text-muted">Courses</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-       </div>
+    </div>
 
     <div class="profile-tabs">
         <button class="tab-button active" data-tab="basic-info">

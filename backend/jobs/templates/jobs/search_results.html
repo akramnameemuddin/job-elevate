@@ -4,41 +4,34 @@
 
 {% block content %}
 <div class="job-search-container">
-    <!-- Page Header -->
-    <div class="page-header">
-        <div class="breadcrumb">
-            <div class="breadcrumb-item">
-                <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">
-                    <i class='bx bx-home'></i>
-                    Home
-                </a>
-                <i class='bx bx-chevron-right'></i>
-            </div>
-            <div class="breadcrumb-item">
-                <a href="{% url 'jobs:job_listings' %}" class="breadcrumb-link">
-                    Jobs
-                </a>
-                <i class='bx bx-chevron-right'></i>
-            </div>
-            <div class="breadcrumb-item">
-                <span>Search Results</span>
-            </div>
+    <!-- Breadcrumb Navigation -->
+    <div class="breadcrumb">
+        <div class="breadcrumb-item">
+            <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
+            <i class='bx bx-chevron-right'></i>
         </div>
+        <div class="breadcrumb-item">
+            <a href="{% url 'jobs:job_listings' %}" class="breadcrumb-link">Job Matches</a>
+            <i class='bx bx-chevron-right'></i>
+        </div>
+        <div class="breadcrumb-item">
+            <span>Search Results</span>
+        </div>
+    </div>
 
-        <div class="page-title-section">
-            <h1 class="page-title">
-                <i class='bx bx-search'></i>
-                Job Search Results
-                {% if query %}
-                    <span class="query-highlight">for "{{ query }}"</span>
-                {% endif %}
-            </h1>
-            {% if query or location or job_type %}
-                <p class="page-subtitle">
-                    Found {{ jobs.count }} job{{ jobs.count|pluralize }} matching your criteria
-                </p>
+    <!-- Page Title -->
+    <div class="page-content-header">
+        <h1 class="page-title">
+            Job Search Results
+            {% if query %}
+                <span class="query-highlight">for "{{ query }}"</span>
             {% endif %}
-        </div>
+        </h1>
+        {% if query or location or job_type %}
+            <p class="page-description">
+                Found {{ jobs.count }} job{{ jobs.count|pluralize }} matching your criteria
+            </p>
+        {% endif %}
     </div>
 
     <!-- Search Form Section -->

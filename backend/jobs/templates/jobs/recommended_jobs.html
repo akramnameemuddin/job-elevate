@@ -2,28 +2,36 @@
 {% load static %}
 {% block content %}
 {% csrf_token %}
-<!-- Page Header -->
-<div class="page-header">
-  <div class="header-content">
-    <h1 class="page-title">Job Recommendations</h1>
-    <div class="breadcrumb">
-      <span class="breadcrumb-item"><a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Dashboard</a></span>
-      <span class="breadcrumb-separator"><i class='bx bx-chevron-right'></i></span>
-      <span class="breadcrumb-item"><a href="{% url 'jobs:job_listings' %}" class="breadcrumb-link">Jobs</a></span>
-      <span class="breadcrumb-separator"><i class='bx bx-chevron-right'></i></span>
-      <span class="breadcrumb-item">Job Recommendations</span>
-    </div>
+<!-- Breadcrumb Navigation -->
+<div class="breadcrumb">
+  <div class="breadcrumb-item">
+    <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
+    <i class='bx bx-chevron-right'></i>
   </div>
-  <div class="header-actions">
-    <a href="{% url 'jobs:update_job_preferences' %}" class="btn btn-light">
-      <i class='bx bx-cog'></i>
-      <span>Update Preferences</span>
-    </a>
-    <a href="{% url 'jobs:job_analytics' %}" class="btn btn-light">
-      <i class='bx bx-line-chart'></i>
-      <span>Job Market Trends</span>
-    </a>
+  <div class="breadcrumb-item">
+    <a href="{% url 'jobs:job_listings' %}" class="breadcrumb-link">Job Matches</a>
+    <i class='bx bx-chevron-right'></i>
   </div>
+  <div class="breadcrumb-item">
+    <span>Recommendations</span>
+  </div>
+</div>
+
+<!-- Page Title -->
+<div class="page-content-header">
+  <h1 class="page-title">Job Recommendations</h1>
+</div>
+
+<!-- Page Actions -->
+<div class="page-actions">
+  <a href="{% url 'jobs:update_job_preferences' %}" class="btn btn-outline-primary">
+    <i class='bx bx-cog'></i>
+    Update Preferences
+  </a>
+  <a href="{% url 'jobs:job_analytics' %}" class="btn btn-outline-primary">
+    <i class='bx bx-line-chart'></i>
+    Market Insights
+  </a>
 </div>
 
 <!-- Messages/Notifications -->

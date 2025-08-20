@@ -6,28 +6,32 @@
 {% block content %}
 {% csrf_token %}
 
-<!-- Page Header -->
-<div class="page-header">
-  <div class="header-content">
-    <h1 class="page-title">Job Market Analytics</h1>
-    <div class="breadcrumb">
-      <span class="breadcrumb-item"><a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Dashboard</a></span>
-      <span class="breadcrumb-separator"><i class='bx bx-chevron-right'></i></span>
-      <span class="breadcrumb-item"><a href="{% url 'jobs:job_listings' %}" class="breadcrumb-link">Jobs</a></span>
-      <span class="breadcrumb-separator"><i class='bx bx-chevron-right'></i></span>
-      <span class="breadcrumb-item">Market Analytics</span>
-    </div>
+<!-- Breadcrumb Navigation -->
+<div class="breadcrumb">
+  <div class="breadcrumb-item">
+    <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
+    <i class='bx bx-chevron-right'></i>
   </div>
-  <div class="header-actions">
-    <button class="btn btn-light" id="refresh-analytics">
-      <i class='bx bx-refresh'></i>
-      <span>Refresh Data</span>
-    </button>
-    <a href="{% url 'jobs:recommended_jobs' %}" class="btn btn-light">
-      <i class='bx bx-star'></i>
-      <span>Recommendations</span>
-    </a>
+  <div class="breadcrumb-item">
+    <span>Market Insights</span>
   </div>
+</div>
+
+<!-- Page Title -->
+<div class="page-content-header">
+  <h1 class="page-title">Market Insights</h1>
+</div>
+
+<!-- Page Actions -->
+<div class="page-actions">
+  <button class="btn btn-outline-primary" id="refresh-analytics">
+    <i class='bx bx-refresh'></i>
+    Refresh Data
+  </button>
+  <a href="{% url 'jobs:recommended_jobs' %}" class="btn btn-outline-primary">
+    <i class='bx bx-star'></i>
+    Recommendations
+  </a>
 </div>
 
 <!-- Quick Stats -->

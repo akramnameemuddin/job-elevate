@@ -2,39 +2,33 @@
 {% load static %}
 {% block content %}
 {% csrf_token %}
-<!-- Page Header -->
-<div class="page-header">
-  <div class="breadcrumb">
-    <div class="breadcrumb-item">
-      <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">
-        <i class='bx bx-home'></i>
-        Home
-      </a>
-      <i class='bx bx-chevron-right'></i>
-    </div>
-    <div class="breadcrumb-item">
-      <span>Job Listings</span>
-    </div>
+<!-- Breadcrumb Navigation -->
+<div class="breadcrumb">
+  <div class="breadcrumb-item">
+    <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
+    <i class='bx bx-chevron-right'></i>
   </div>
+  <div class="breadcrumb-item">
+    <span>Job Matches</span>
+  </div>
+</div>
 
-  <div class="page-title-section">
-    <h1 class="page-title">
-      <i class='bx bx-briefcase'></i>
-      Job Listings
-    </h1>
-    <p class="page-subtitle">Discover opportunities that match your skills and career goals</p>
-  </div>
+<!-- Page Title and Description -->
+<div class="page-content-header">
+  <h1 class="page-title">Job Matches</h1>
+  <p class="page-description">Discover opportunities that match your skills and career goals</p>
+</div>
 
-  <div class="page-actions">
-    <a href="{% url 'jobs:search_jobs' %}" class="btn btn-outline-primary">
-      <i class='bx bx-search'></i>
-      <span>Advanced Search</span>
-    </a>
-    <a href="{% url 'jobs:job_analytics' %}" class="btn btn-outline-primary">
-      <i class='bx bx-line-chart'></i>
-      <span>Job Market Trends</span>
-    </a>
-  </div>
+<!-- Page Actions -->
+<div class="page-actions">
+  <a href="{% url 'jobs:search_jobs' %}" class="btn btn-outline-primary">
+    <i class='bx bx-search'></i>
+    Advanced Search
+  </a>
+  <a href="{% url 'jobs:job_analytics' %}" class="btn btn-outline-primary">
+    <i class='bx bx-line-chart'></i>
+    Market Insights
+  </a>
 </div>
 
 <!-- Messages/Notifications -->
@@ -72,63 +66,63 @@
   
   <div class="job-grid">
     {% for rec in recommended_jobs %}
-    <div class="job-card {% if rec.score > 0.7 %}job-card-highlighted{% endif %}">
-      <div class="job-card-top">
-        <div class="job-card-header">
+    <div class="card card-elevated job-card {% if rec.score > 0.7 %}card-feature{% endif %}">
+      <div class="card-body">
+        <div class="job-card-header d-flex justify-between align-start mb-3">
           <div class="job-title-container">
-            <h3 class="job-title">{{ rec.job.title }}</h3>
-            <p class="job-company">{{ rec.job.company }}</p>
+            <h3 class="job-title mb-1">{{ rec.job.title }}</h3>
+            <p class="job-company text-muted">{{ rec.job.company }}</p>
           </div>
           <div class="job-match-score">
-            <span class="match-percent">{{ rec.score|floatformat:2 }}</span>
+            <span class="badge bg-primary">{{ rec.score|floatformat:0 }}% match</span>
           </div>
         </div>
-        
-        <div class="job-details">
-          <div class="job-detail-item">
-            <i class='bx bx-map'></i>
-            <span>{{ rec.job.location }}</span>
+
+        <div class="job-details d-flex flex-wrap mb-3">
+          <div class="job-detail-item d-flex align-center">
+            <i class='bx bx-map text-muted'></i>
+            <span class="text-muted">{{ rec.job.location }}</span>
           </div>
-          <div class="job-detail-item">
-            <i class='bx bx-time'></i>
-            <span>{{ rec.job.get_job_type_display }}</span>
+          <div class="job-detail-item d-flex align-center">
+            <i class='bx bx-time text-muted'></i>
+            <span class="text-muted">{{ rec.job.get_job_type_display }}</span>
           </div>
           {% if rec.job.salary %}
-          <div class="job-detail-item">
-            <i class='bx bx-dollar-circle'></i>
-            <span>{{ rec.job.salary }}</span>
+          <div class="job-detail-item d-flex align-center">
+            <i class='bx bx-dollar-circle text-success'></i>
+            <span class="text-success">{{ rec.job.salary }}</span>
           </div>
           {% endif %}
         </div>
           
         {% if rec.job.skills %}
-        <div class="job-skills">
+        <div class="job-skills d-flex flex-wrap mb-3">
           {% for skill in rec.job.skills|slice:":3" %}
-          <span class="skill-tag">{{ skill }}</span>
+          <span class="badge bg-light text-primary">{{ skill }}</span>
           {% endfor %}
           {% if rec.job.skills|length > 3 %}
-          <span class="more-skills">+{{ rec.job.skills|length|add:"-3" }}</span>
+          <span class="badge bg-secondary">+{{ rec.job.skills|length|add:"-3" }} more</span>
           {% endif %}
         </div>
         {% endif %}
-            
-        <div class="job-reason">
-          <i class='bx bx-bulb'></i>
-          <p>{{ rec.reason }}</p>
+
+        <div class="job-reason d-flex align-start p-3 bg-light rounded mb-3">
+          <i class='bx bx-bulb text-warning mr-2'></i>
+          <p class="text-muted mb-0">{{ rec.reason }}</p>
         </div>
-      </div>
-      
-      <div class="job-card-footer">
-        <a href="{% url 'jobs:job_detail' job_id=rec.job.id %}" class="btn btn-primary">View Details</a>
-        {% if rec.job.id in bookmarked_job_ids %}
-        <button class="btn-icon bookmark-btn active" data-job-id="{{ rec.job.id }}" title="Remove Bookmark">
-          <i class='bx bxs-bookmark'></i>
-        </button>
-        {% else %}
-        <button class="btn-icon bookmark-btn" data-job-id="{{ rec.job.id }}" title="Bookmark Job">
-          <i class='bx bx-bookmark'></i>
-        </button>
-        {% endif %}
+
+        <div class="job-card-footer d-flex justify-between align-center">
+          <a href="{% url 'jobs:job_detail' job_id=rec.job.id %}" class="btn btn-primary">View Details</a>
+          {% if rec.job.id in bookmarked_job_ids %}
+          <button class="btn btn-outline-secondary bookmark-btn active" data-job-id="{{ rec.job.id }}" title="Remove Bookmark">
+            <i class='bx bxs-bookmark'></i>
+          </button>
+          {% else %}
+          <button class="btn btn-outline-secondary bookmark-btn" data-job-id="{{ rec.job.id }}" title="Bookmark Job">
+            <i class='bx bx-bookmark'></i>
+          </button>
+          {% endif %}
+        </div>
       </div>
     </div>
     {% endfor %}
@@ -319,50 +313,7 @@
   {% endif %}
 </div>
 <style>
-/* Modern CSS Variables - Updated for dark mode */
-:root {
-  /* Light mode colors */
-  --primary-color: #4361ee;
-  --primary-light: rgba(67, 97, 238, 0.1);
-  --primary-dark: #3a56d4;
-  --secondary-color: #7c3aed;
-  --success-color: #2ecc71;
-  --warning-color: #f39c12;
-  --danger-color: #e74c3c;
-  --info-color: #3498db;
-
-  --background-color: #f9fafb;
-  --card-bg: #ffffff;
-  --hover-bg: #f3f4f6;
-  --border-color: #e5e7eb;
-  --text-color: #111827;
-  --text-light: #6b7280;
-
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-
-/* Dark mode colors */
-[data-theme="dark"] {
-  --primary-color: #818cf8;
-  --primary-light: rgba(129, 140, 248, 0.1);
-  --primary-dark: #6366f1;
-  --secondary-color: #a78bfa;
-  --success-color: #34d399;
-  --warning-color: #fbbf24;
-  --danger-color: #f87171;
-  --info-color: #60a5fa;
-
-  --background-color: #111827;
-  --card-bg: #1f2937;
-  --hover-bg: #374151;
-  --border-color: #374151;
-  --text-color: #f9fafb;
-  --text-light: #d1d5db;
-
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
-}
+/* Jobs App Specific Styles - Using Unified Design System */
 
 /* Update existing components */
 .job-card {
@@ -441,15 +392,15 @@
   color: var(--text-light);
 }
 
-/* Button improvements */
+/* Button improvements - using unified design system */
 .btn-primary {
   background: var(--primary-color);
-  color: #ffffff;
+  color: var(--white);
   border: none;
 }
 
 .btn-primary:hover {
-  background: var(--primary-dark);
+  background: var(--primary-hover);
 }
 
 .btn-outline {
@@ -598,33 +549,33 @@ select {
 }
 
 .status-pending {
-  background-color: rgba(243, 156, 18, 0.15);
-  color: #f39c12;
+  background-color: var(--warning-light);
+  color: var(--warning-color);
 }
 
 .status-reviewed {
-  background-color: rgba(52, 152, 219, 0.15);
-  color: #2980b9;
+  background-color: var(--info-light);
+  color: var(--info-color);
 }
 
 .status-interview {
-  background-color: rgba(155, 89, 182, 0.15);
-  color: #9b59b6;
+  background-color: var(--secondary-light);
+  color: var(--secondary-color);
 }
 
 .status-accepted {
-  background-color: rgba(46, 204, 113, 0.15);
-  color: #27ae60;
+  background-color: var(--success-light);
+  color: var(--success-color);
 }
 
 .status-rejected {
-  background-color: rgba(231, 76, 60, 0.15);
-  color: #e74c3c;
+  background-color: var(--danger-light);
+  color: var(--danger-color);
 }
 
 .status-withdrawn {
-  background-color: rgba(149, 165, 166, 0.15);
-  color: #95a5a6;
+  background-color: var(--hover-bg);
+  color: var(--text-muted);
 }
 
 .search-container {
@@ -1024,28 +975,28 @@ select {
 }
 
 .type-full-time {
-  background-color: rgba(46, 204, 113, 0.15);
-  color: #27ae60;
+  background-color: var(--success-light);
+  color: var(--success-color);
 }
 
 .type-part-time {
-  background-color: rgba(52, 152, 219, 0.15);
-  color: #2980b9;
+  background-color: var(--info-light);
+  color: var(--info-color);
 }
 
 .type-contract {
-  background-color: rgba(243, 156, 18, 0.15);
-  color: #f39c12;
+  background-color: var(--warning-light);
+  color: var(--warning-color);
 }
 
 .type-remote {
-  background-color: rgba(67, 97, 238, 0.15);
+  background-color: var(--primary-light);
   color: var(--primary-color);
 }
 
 .type-internship {
-  background-color: rgba(155, 89, 182, 0.15);
-  color: #9b59b6;
+  background-color: var(--secondary-light);
+  color: var(--secondary-color);
 }
 
 .job-actions {
@@ -1151,12 +1102,12 @@ select {
 
 .btn-primary {
   background: var(--primary-color);
-  color: #ffffff;
+  color: var(--white);
 }
 
 .btn-primary:hover {
-  background: var(--primary-dark);
-  box-shadow: 0 4px 6px rgba(67, 97, 238, 0.2);
+  background: var(--primary-hover);
+  box-shadow: var(--shadow-lg);
 }
 
 .btn-light {

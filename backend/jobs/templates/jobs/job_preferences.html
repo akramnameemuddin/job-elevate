@@ -5,25 +5,28 @@
 
 {% block content %}
 <div class="preferences-page">
-    <!-- Page Header -->
-    <div class="page-header">
-        <div class="header-content">
-            <h1 class="page-title">
-                <i class='bx bx-cog'></i>
-                Job Preferences
-            </h1>
-            <div class="breadcrumb">
-                <span class="breadcrumb-item"><a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Dashboard</a></span>
-                <span class="breadcrumb-separator"><i class='bx bx-chevron-right'></i></span>
-                <span class="breadcrumb-item"><a href="{% url 'jobs:job_listings' %}" class="breadcrumb-link">Jobs</a></span>
-                <span class="breadcrumb-separator"><i class='bx bx-chevron-right'></i></span>
-                <span class="breadcrumb-item">Preferences</span>
-            </div>
+    <!-- Breadcrumb Navigation -->
+    <div class="breadcrumb">
+        <div class="breadcrumb-item">
+            <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
+            <i class='bx bx-chevron-right'></i>
         </div>
-        <div class="header-actions">
-            <a href="{% url 'jobs:recommended_jobs' %}" class="btn btn-light">
+        <div class="breadcrumb-item">
+            <a href="{% url 'jobs:job_listings' %}" class="breadcrumb-link">Job Matches</a>
+            <i class='bx bx-chevron-right'></i>
+        </div>
+        <div class="breadcrumb-item">
+            <span>Preferences</span>
+        </div>
+    </div>
+
+    <!-- Page Title and Actions -->
+    <div class="page-content-header">
+        <h1 class="page-title">Job Preferences</h1>
+        <div class="page-actions">
+            <a href="{% url 'jobs:recommended_jobs' %}" class="btn btn-outline-primary">
                 <i class='bx bx-left-arrow-alt'></i>
-                <span>Back to Recommendations</span>
+                Back to Recommendations
             </a>
         </div>
     </div>

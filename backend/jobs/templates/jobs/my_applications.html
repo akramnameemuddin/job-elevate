@@ -4,23 +4,20 @@
 {% block title %}My Applications{% endblock %}
 
 {% block content %}
-<!-- Page Header -->
-<div class="page-header">
-    <div class="breadcrumb">
-        <div class="breadcrumb-item">
-            <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">
-                Dashboard
-               <i class='bx bx-chevron-right breadcrumb-separator'></i>
-            </a>
-        </div>
-        <div class="breadcrumb-item">
-            <span class="breadcrumb-link active">My Applications</span>
-        </div>
+<!-- Breadcrumb Navigation -->
+<div class="breadcrumb">
+    <div class="breadcrumb-item">
+        <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
+        <i class='bx bx-chevron-right'></i>
     </div>
-    <h1 class="page-title">
-        <i class='bx bx-file'></i>
-        My Applications
-    </h1>
+    <div class="breadcrumb-item">
+        <span>My Applications</span>
+    </div>
+</div>
+
+<!-- Page Title -->
+<div class="page-content-header">
+    <h1 class="page-title">My Applications</h1>
 </div>
 
 <!-- Notifications -->
