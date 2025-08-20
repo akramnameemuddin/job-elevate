@@ -1,0 +1,587 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Skills Assessment{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<div class="breadcrumb">
+    <div class="breadcrumb-item">
+        <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item">
+        <a href="{% url 'assessments:assessment' %}" class="breadcrumb-link">Assessments</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item">
+        <span>Skills Assessment</span>
+    </div>
+</div>
+
+<!-- Assessment Header -->
+<div class="assessment-header">
+    <div class="assessment-info">
+        <h1 class="assessment-title">Full-Stack Development Assessment</h1>
+        <p class="assessment-description">Comprehensive evaluation of your technical skills across frontend, backend, and database technologies</p>
+        <div class="assessment-meta">
+            <div class="meta-item">
+                <i class='bx bx-time'></i>
+                <span>45 minutes</span>
+            </div>
+            <div class="meta-item">
+                <i class='bx bx-list-ul'></i>
+                <span>25 questions</span>
+            </div>
+            <div class="meta-item">
+                <i class='bx bx-trophy'></i>
+                <span>Certificate available</span>
+            </div>
+        </div>
+    </div>
+    <div class="assessment-progress">
+        <div class="progress-circle">
+            <svg viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45" class="progress-bg"></circle>
+                <circle cx="50" cy="50" r="45" class="progress-fill" style="stroke-dasharray: 60, 283;"></circle>
+            </svg>
+            <div class="progress-text">
+                <span class="progress-number">12</span>
+                <span class="progress-total">/ 25</span>
+            </div>
+        </div>
+        <div class="time-remaining">
+            <i class='bx bx-time-five'></i>
+            <span>32:15 remaining</span>
+        </div>
+    </div>
+</div>
+
+<!-- Question Container -->
+<div class="question-container">
+    <div class="question-header">
+        <div class="question-number">Question 12 of 25</div>
+        <div class="question-category">
+            <span class="category-tag frontend">Frontend Development</span>
+        </div>
+    </div>
+
+    <div class="question-content">
+        <h3 class="question-title">Which CSS property is used to create flexible layouts that can adapt to different screen sizes?</h3>
+        
+        <div class="question-options">
+            <label class="option-item">
+                <input type="radio" name="question_12" value="a">
+                <div class="option-content">
+                    <div class="option-letter">A</div>
+                    <div class="option-text">display: block</div>
+                </div>
+            </label>
+            
+            <label class="option-item">
+                <input type="radio" name="question_12" value="b">
+                <div class="option-content">
+                    <div class="option-letter">B</div>
+                    <div class="option-text">display: flexbox</div>
+                </div>
+            </label>
+            
+            <label class="option-item selected">
+                <input type="radio" name="question_12" value="c" checked>
+                <div class="option-content">
+                    <div class="option-letter">C</div>
+                    <div class="option-text">display: flex</div>
+                </div>
+            </label>
+            
+            <label class="option-item">
+                <input type="radio" name="question_12" value="d">
+                <div class="option-content">
+                    <div class="option-letter">D</div>
+                    <div class="option-text">display: grid</div>
+                </div>
+            </label>
+        </div>
+
+        <div class="question-explanation" style="display: none;">
+            <div class="explanation-header">
+                <i class='bx bx-info-circle'></i>
+                <span>Explanation</span>
+            </div>
+            <p>The <code>display: flex</code> property creates a flexible container that allows items to be arranged in rows or columns with flexible sizing and alignment options.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Navigation Controls -->
+<div class="assessment-controls">
+    <button class="btn btn-outline-primary" id="prev-question">
+        <i class='bx bx-chevron-left'></i>
+        Previous
+    </button>
+    
+    <div class="question-navigator">
+        <button class="question-dot completed" data-question="1"></button>
+        <button class="question-dot completed" data-question="2"></button>
+        <button class="question-dot completed" data-question="3"></button>
+        <button class="question-dot completed" data-question="4"></button>
+        <button class="question-dot completed" data-question="5"></button>
+        <button class="question-dot completed" data-question="6"></button>
+        <button class="question-dot completed" data-question="7"></button>
+        <button class="question-dot completed" data-question="8"></button>
+        <button class="question-dot completed" data-question="9"></button>
+        <button class="question-dot completed" data-question="10"></button>
+        <button class="question-dot completed" data-question="11"></button>
+        <button class="question-dot current" data-question="12"></button>
+        <button class="question-dot" data-question="13"></button>
+        <button class="question-dot" data-question="14"></button>
+        <button class="question-dot" data-question="15"></button>
+        <button class="question-dot" data-question="16"></button>
+        <button class="question-dot" data-question="17"></button>
+        <button class="question-dot" data-question="18"></button>
+        <button class="question-dot" data-question="19"></button>
+        <button class="question-dot" data-question="20"></button>
+        <button class="question-dot" data-question="21"></button>
+        <button class="question-dot" data-question="22"></button>
+        <button class="question-dot" data-question="23"></button>
+        <button class="question-dot" data-question="24"></button>
+        <button class="question-dot" data-question="25"></button>
+    </div>
+    
+    <button class="btn btn-primary" id="next-question">
+        Next
+        <i class='bx bx-chevron-right'></i>
+    </button>
+</div>
+
+<!-- Assessment Actions -->
+<div class="assessment-actions">
+    <button class="btn btn-outline-danger" id="pause-assessment">
+        <i class='bx bx-pause'></i>
+        Pause Assessment
+    </button>
+    <button class="btn btn-success" id="submit-assessment">
+        <i class='bx bx-check'></i>
+        Submit Assessment
+    </button>
+</div>
+
+<style>
+/* Assessment Interface Styles */
+.assessment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: var(--radius-lg);
+    margin-bottom: 2rem;
+    border: 1px solid var(--border-color);
+}
+
+.assessment-info h1 {
+    color: var(--heading-color);
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.assessment-description {
+    color: var(--text-light);
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    max-width: 600px;
+}
+
+.assessment-meta {
+    display: flex;
+    gap: 2rem;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-light);
+    font-size: 0.875rem;
+}
+
+.meta-item i {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+}
+
+.assessment-progress {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.progress-circle {
+    position: relative;
+    width: 80px;
+    height: 80px;
+}
+
+.progress-circle svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.progress-bg {
+    fill: none;
+    stroke: var(--border-color);
+    stroke-width: 8;
+}
+
+.progress-fill {
+    fill: none;
+    stroke: var(--primary-color);
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dasharray 0.3s ease;
+}
+
+.progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.progress-number {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--heading-color);
+}
+
+.progress-total {
+    font-size: 0.875rem;
+    color: var(--text-light);
+}
+
+.time-remaining {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--warning-color);
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.question-container {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    margin-bottom: 2rem;
+}
+
+.question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.question-number {
+    font-weight: 600;
+    color: var(--text-light);
+}
+
+.category-tag {
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.category-tag.frontend {
+    background: var(--info-light);
+    color: var(--info-color);
+}
+
+.category-tag.backend {
+    background: var(--success-light);
+    color: var(--success-color);
+}
+
+.category-tag.database {
+    background: var(--warning-light);
+    color: var(--warning-color);
+}
+
+.question-content {
+    padding: 2rem;
+}
+
+.question-title {
+    color: var(--heading-color);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    line-height: 1.5;
+}
+
+.question-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.option-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.option-item:hover {
+    border-color: var(--primary-color);
+    background: var(--primary-light);
+}
+
+.option-item.selected {
+    border-color: var(--primary-color);
+    background: var(--primary-light);
+}
+
+.option-item input {
+    display: none;
+}
+
+.option-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+}
+
+.option-letter {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.option-text {
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.question-explanation {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: var(--info-light);
+    border-radius: var(--radius-md);
+    border-left: 4px solid var(--info-color);
+}
+
+.explanation-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--info-color);
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.question-explanation p {
+    color: var(--text-color);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.question-explanation code {
+    background: var(--hover-bg);
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    font-family: 'Courier New', monospace;
+    color: var(--primary-color);
+}
+
+.assessment-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--card-bg);
+    padding: 1.5rem 2rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    margin-bottom: 2rem;
+}
+
+.question-navigator {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.question-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+    background: var(--card-bg);
+    color: var(--text-light);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.question-dot:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.question-dot.completed {
+    background: var(--success-color);
+    border-color: var(--success-color);
+    color: var(--white);
+}
+
+.question-dot.current {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: var(--white);
+}
+
+.assessment-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .assessment-header {
+        flex-direction: column;
+        gap: 2rem;
+    }
+    
+    .assessment-meta {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .assessment-controls {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .question-navigator {
+        order: -1;
+    }
+    
+    .question-content {
+        padding: 1.5rem;
+    }
+    
+    .option-content {
+        gap: 0.75rem;
+    }
+}
+</style>
+
+<script>
+// Assessment Interface JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    // Timer functionality
+    let timeRemaining = 32 * 60 + 15; // 32:15 in seconds
+    
+    function updateTimer() {
+        const minutes = Math.floor(timeRemaining / 60);
+        const seconds = timeRemaining % 60;
+        const timerElement = document.querySelector('.time-remaining span');
+        timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')} remaining`;
+        
+        if (timeRemaining <= 300) { // 5 minutes warning
+            timerElement.parentElement.style.color = 'var(--danger-color)';
+        }
+        
+        timeRemaining--;
+        
+        if (timeRemaining < 0) {
+            // Auto-submit assessment
+            submitAssessment();
+        }
+    }
+    
+    setInterval(updateTimer, 1000);
+    
+    // Option selection
+    document.querySelectorAll('.option-item').forEach(option => {
+        option.addEventListener('click', function() {
+            // Remove selected class from siblings
+            this.parentElement.querySelectorAll('.option-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked option
+            this.classList.add('selected');
+            
+            // Check the radio button
+            this.querySelector('input[type="radio"]').checked = true;
+        });
+    });
+    
+    // Question navigation
+    document.querySelectorAll('.question-dot').forEach(dot => {
+        dot.addEventListener('click', function() {
+            const questionNumber = this.dataset.question;
+            // Navigate to question (would be implemented with AJAX)
+            console.log(`Navigate to question ${questionNumber}`);
+        });
+    });
+    
+    // Navigation buttons
+    document.getElementById('prev-question').addEventListener('click', function() {
+        // Navigate to previous question
+        console.log('Previous question');
+    });
+    
+    document.getElementById('next-question').addEventListener('click', function() {
+        // Navigate to next question
+        console.log('Next question');
+    });
+    
+    // Assessment actions
+    document.getElementById('pause-assessment').addEventListener('click', function() {
+        if (confirm('Are you sure you want to pause the assessment? Your progress will be saved.')) {
+            // Pause assessment
+            console.log('Assessment paused');
+        }
+    });
+    
+    document.getElementById('submit-assessment').addEventListener('click', function() {
+        if (confirm('Are you sure you want to submit the assessment? You cannot change your answers after submission.')) {
+            submitAssessment();
+        }
+    });
+    
+    function submitAssessment() {
+        // Submit assessment logic
+        console.log('Assessment submitted');
+        // Redirect to results page
+        // window.location.href = '/assessments/results/';
+    }
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,929 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Learning Pathways{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<div class="breadcrumb">
+    <div class="breadcrumb-item">
+        <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item">
+        <a href="{% url 'learning:learning' %}" class="breadcrumb-link">Learning</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item">
+        <span>Learning Pathways</span>
+    </div>
+</div>
+
+<!-- Learning Progress Overview -->
+<div class="learning-overview">
+    <div class="overview-stats">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class='bx bx-book-open'></i>
+            </div>
+            <div class="stat-content">
+                <h3>3</h3>
+                <p>Active Pathways</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class='bx bx-trophy'></i>
+            </div>
+            <div class="stat-content">
+                <h3>12</h3>
+                <p>Completed Courses</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class='bx bx-time'></i>
+            </div>
+            <div class="stat-content">
+                <h3>47h</h3>
+                <p>Learning Time</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class='bx bx-medal'></i>
+            </div>
+            <div class="stat-content">
+                <h3>8</h3>
+                <p>Certificates</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="weekly-progress">
+        <h3>This Week's Progress</h3>
+        <div class="progress-chart">
+            <div class="chart-bar" style="height: 60%;" data-day="Mon" data-hours="3"></div>
+            <div class="chart-bar" style="height: 80%;" data-day="Tue" data-hours="4"></div>
+            <div class="chart-bar" style="height: 40%;" data-day="Wed" data-hours="2"></div>
+            <div class="chart-bar" style="height: 100%;" data-day="Thu" data-hours="5"></div>
+            <div class="chart-bar" style="height: 70%;" data-day="Fri" data-hours="3.5"></div>
+            <div class="chart-bar" style="height: 30%;" data-day="Sat" data-hours="1.5"></div>
+            <div class="chart-bar" style="height: 50%;" data-day="Sun" data-hours="2.5"></div>
+        </div>
+        <div class="chart-labels">
+            <span>Mon</span>
+            <span>Tue</span>
+            <span>Wed</span>
+            <span>Thu</span>
+            <span>Fri</span>
+            <span>Sat</span>
+            <span>Sun</span>
+        </div>
+    </div>
+</div>
+
+<!-- Active Learning Pathways -->
+<div class="pathways-section">
+    <div class="section-header">
+        <h2>Your Learning Pathways</h2>
+        <button class="btn btn-primary">
+            <i class='bx bx-plus'></i>
+            Explore New Pathways
+        </button>
+    </div>
+    
+    <div class="pathways-grid">
+        <!-- Full-Stack Development Pathway -->
+        <div class="pathway-card active">
+            <div class="pathway-header">
+                <div class="pathway-icon">
+                    <i class='bx bx-code-alt'></i>
+                </div>
+                <div class="pathway-info">
+                    <h3>Full-Stack Web Development</h3>
+                    <p>Master modern web development from frontend to backend</p>
+                    <div class="pathway-meta">
+                        <span class="difficulty intermediate">Intermediate</span>
+                        <span class="duration">6 months</span>
+                    </div>
+                </div>
+                <div class="pathway-progress">
+                    <div class="progress-circle">
+                        <svg viewBox="0 0 60 60">
+                            <circle cx="30" cy="30" r="25" class="progress-bg"></circle>
+                            <circle cx="30" cy="30" r="25" class="progress-fill" style="stroke-dasharray: 110, 157;"></circle>
+                        </svg>
+                        <span class="progress-text">70%</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="pathway-modules">
+                <div class="module-item completed">
+                    <div class="module-status">
+                        <i class='bx bx-check-circle'></i>
+                    </div>
+                    <div class="module-content">
+                        <h4>HTML & CSS Fundamentals</h4>
+                        <p>4 courses • 12 hours</p>
+                    </div>
+                    <div class="module-score">100%</div>
+                </div>
+                
+                <div class="module-item completed">
+                    <div class="module-status">
+                        <i class='bx bx-check-circle'></i>
+                    </div>
+                    <div class="module-content">
+                        <h4>JavaScript Essentials</h4>
+                        <p>6 courses • 18 hours</p>
+                    </div>
+                    <div class="module-score">95%</div>
+                </div>
+                
+                <div class="module-item current">
+                    <div class="module-status">
+                        <i class='bx bx-play-circle'></i>
+                    </div>
+                    <div class="module-content">
+                        <h4>React Development</h4>
+                        <p>5 courses • 15 hours</p>
+                        <div class="module-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 60%;"></div>
+                            </div>
+                            <span>3/5 courses</span>
+                        </div>
+                    </div>
+                    <div class="module-score">-</div>
+                </div>
+                
+                <div class="module-item locked">
+                    <div class="module-status">
+                        <i class='bx bx-lock'></i>
+                    </div>
+                    <div class="module-content">
+                        <h4>Node.js & Express</h4>
+                        <p>4 courses • 12 hours</p>
+                    </div>
+                    <div class="module-score">-</div>
+                </div>
+                
+                <div class="module-item locked">
+                    <div class="module-status">
+                        <i class='bx bx-lock'></i>
+                    </div>
+                    <div class="module-content">
+                        <h4>Database Integration</h4>
+                        <p>3 courses • 9 hours</p>
+                    </div>
+                    <div class="module-score">-</div>
+                </div>
+            </div>
+            
+            <div class="pathway-actions">
+                <button class="btn btn-primary">Continue Learning</button>
+                <button class="btn btn-outline-primary">View Details</button>
+            </div>
+        </div>
+
+        <!-- Data Science Pathway -->
+        <div class="pathway-card">
+            <div class="pathway-header">
+                <div class="pathway-icon">
+                    <i class='bx bx-bar-chart-alt-2'></i>
+                </div>
+                <div class="pathway-info">
+                    <h3>Data Science & Analytics</h3>
+                    <p>Learn data analysis, machine learning, and visualization</p>
+                    <div class="pathway-meta">
+                        <span class="difficulty advanced">Advanced</span>
+                        <span class="duration">8 months</span>
+                    </div>
+                </div>
+                <div class="pathway-progress">
+                    <div class="progress-circle">
+                        <svg viewBox="0 0 60 60">
+                            <circle cx="30" cy="30" r="25" class="progress-bg"></circle>
+                            <circle cx="30" cy="30" r="25" class="progress-fill" style="stroke-dasharray: 47, 157;"></circle>
+                        </svg>
+                        <span class="progress-text">30%</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="pathway-modules">
+                <div class="module-item completed">
+                    <div class="module-status">
+                        <i class='bx bx-check-circle'></i>
+                    </div>
+                    <div class="module-content">
+                        <h4>Python for Data Science</h4>
+                        <p>5 courses • 20 hours</p>
+                    </div>
+                    <div class="module-score">88%</div>
+                </div>
+                
+                <div class="module-item current">
+                    <div class="module-status">
+                        <i class='bx bx-play-circle'></i>
+                    </div>
+                    <div class="module-content">
+                        <h4>Statistics & Probability</h4>
+                        <p>4 courses • 16 hours</p>
+                        <div class="module-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 25%;"></div>
+                            </div>
+                            <span>1/4 courses</span>
+                        </div>
+                    </div>
+                    <div class="module-score">-</div>
+                </div>
+                
+                <div class="module-item locked">
+                    <div class="module-status">
+                        <i class='bx bx-lock'></i>
+                    </div>
+                    <div class="module-content">
+                        <h4>Machine Learning</h4>
+                        <p>6 courses • 24 hours</p>
+                    </div>
+                    <div class="module-score">-</div>
+                </div>
+            </div>
+            
+            <div class="pathway-actions">
+                <button class="btn btn-primary">Continue Learning</button>
+                <button class="btn btn-outline-primary">View Details</button>
+            </div>
+        </div>
+
+        <!-- Cloud Computing Pathway -->
+        <div class="pathway-card">
+            <div class="pathway-header">
+                <div class="pathway-icon">
+                    <i class='bx bx-cloud'></i>
+                </div>
+                <div class="pathway-info">
+                    <h3>Cloud Computing & DevOps</h3>
+                    <p>Master cloud platforms and deployment strategies</p>
+                    <div class="pathway-meta">
+                        <span class="difficulty intermediate">Intermediate</span>
+                        <span class="duration">4 months</span>
+                    </div>
+                </div>
+                <div class="pathway-progress">
+                    <div class="progress-circle">
+                        <svg viewBox="0 0 60 60">
+                            <circle cx="30" cy="30" r="25" class="progress-bg"></circle>
+                            <circle cx="30" cy="30" r="25" class="progress-fill" style="stroke-dasharray: 16, 157;"></circle>
+                        </svg>
+                        <span class="progress-text">10%</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="pathway-modules">
+                <div class="module-item current">
+                    <div class="module-status">
+                        <i class='bx bx-play-circle'></i>
+                    </div>
+                    <div class="module-content">
+                        <h4>Cloud Fundamentals</h4>
+                        <p>3 courses • 12 hours</p>
+                        <div class="module-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 33%;"></div>
+                            </div>
+                            <span>1/3 courses</span>
+                        </div>
+                    </div>
+                    <div class="module-score">-</div>
+                </div>
+                
+                <div class="module-item locked">
+                    <div class="module-status">
+                        <i class='bx bx-lock'></i>
+                    </div>
+                    <div class="module-content">
+                        <h4>AWS Services</h4>
+                        <p>5 courses • 20 hours</p>
+                    </div>
+                    <div class="module-score">-</div>
+                </div>
+                
+                <div class="module-item locked">
+                    <div class="module-status">
+                        <i class='bx bx-lock'></i>
+                    </div>
+                    <div class="module-content">
+                        <h4>Docker & Kubernetes</h4>
+                        <p>4 courses • 16 hours</p>
+                    </div>
+                    <div class="module-score">-</div>
+                </div>
+            </div>
+            
+            <div class="pathway-actions">
+                <button class="btn btn-primary">Continue Learning</button>
+                <button class="btn btn-outline-primary">View Details</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recommended Pathways -->
+<div class="recommendations-section">
+    <h2>Recommended for You</h2>
+    <div class="recommendations-grid">
+        <div class="recommendation-card">
+            <div class="recommendation-header">
+                <div class="recommendation-icon">
+                    <i class='bx bx-mobile-alt'></i>
+                </div>
+                <div class="recommendation-badge">
+                    <span>95% Match</span>
+                </div>
+            </div>
+            <h3>Mobile App Development</h3>
+            <p>Build native and cross-platform mobile applications</p>
+            <div class="recommendation-meta">
+                <span class="difficulty beginner">Beginner</span>
+                <span class="duration">5 months</span>
+                <span class="courses">12 courses</span>
+            </div>
+            <button class="btn btn-outline-primary">Start Pathway</button>
+        </div>
+
+        <div class="recommendation-card">
+            <div class="recommendation-header">
+                <div class="recommendation-icon">
+                    <i class='bx bx-shield-check'></i>
+                </div>
+                <div class="recommendation-badge">
+                    <span>88% Match</span>
+                </div>
+            </div>
+            <h3>Cybersecurity Fundamentals</h3>
+            <p>Learn security principles and ethical hacking</p>
+            <div class="recommendation-meta">
+                <span class="difficulty intermediate">Intermediate</span>
+                <span class="duration">6 months</span>
+                <span class="courses">15 courses</span>
+            </div>
+            <button class="btn btn-outline-primary">Start Pathway</button>
+        </div>
+
+        <div class="recommendation-card">
+            <div class="recommendation-header">
+                <div class="recommendation-icon">
+                    <i class='bx bx-brain'></i>
+                </div>
+                <div class="recommendation-badge">
+                    <span>82% Match</span>
+                </div>
+            </div>
+            <h3>AI & Machine Learning</h3>
+            <p>Dive deep into artificial intelligence and ML algorithms</p>
+            <div class="recommendation-meta">
+                <span class="difficulty advanced">Advanced</span>
+                <span class="duration">10 months</span>
+                <span class="courses">20 courses</span>
+            </div>
+            <button class="btn btn-outline-primary">Start Pathway</button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Learning Pathways Styles */
+.learning-overview {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.overview-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--primary-color);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--white);
+    font-size: 1.5rem;
+}
+
+.stat-content h3 {
+    color: var(--heading-color);
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.stat-content p {
+    color: var(--text-light);
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.weekly-progress {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+}
+
+.weekly-progress h3 {
+    color: var(--heading-color);
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+.progress-chart {
+    display: flex;
+    align-items: end;
+    gap: 0.5rem;
+    height: 120px;
+    margin-bottom: 0.5rem;
+}
+
+.chart-bar {
+    flex: 1;
+    background: var(--primary-color);
+    border-radius: 4px 4px 0 0;
+    min-height: 8px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.chart-bar:hover {
+    background: var(--primary-dark);
+}
+
+.chart-bar:hover::after {
+    content: attr(data-hours) 'h';
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--text-color);
+    color: var(--white);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
+.chart-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--text-light);
+}
+
+.pathways-section {
+    margin-bottom: 3rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.section-header h2 {
+    color: var(--heading-color);
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.pathways-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+}
+
+.pathway-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    transition: var(--transition);
+}
+
+.pathway-card.active {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 1px var(--primary-color);
+}
+
+.pathway-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.pathway-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.pathway-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--primary-color);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--white);
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.pathway-info {
+    flex: 1;
+}
+
+.pathway-info h3 {
+    color: var(--heading-color);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.pathway-info p {
+    color: var(--text-light);
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+}
+
+.pathway-meta {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.difficulty {
+    padding: 0.125rem 0.5rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.difficulty.beginner {
+    background: var(--success-light);
+    color: var(--success-color);
+}
+
+.difficulty.intermediate {
+    background: var(--warning-light);
+    color: var(--warning-color);
+}
+
+.difficulty.advanced {
+    background: var(--danger-light);
+    color: var(--danger-color);
+}
+
+.duration {
+    color: var(--text-light);
+    font-size: 0.875rem;
+}
+
+.pathway-progress {
+    flex-shrink: 0;
+}
+
+.progress-circle {
+    position: relative;
+    width: 60px;
+    height: 60px;
+}
+
+.progress-circle svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.progress-bg {
+    fill: none;
+    stroke: var(--border-color);
+    stroke-width: 6;
+}
+
+.progress-fill {
+    fill: none;
+    stroke: var(--primary-color);
+    stroke-width: 6;
+    stroke-linecap: round;
+    transition: stroke-dasharray 0.6s ease;
+}
+
+.progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--heading-color);
+}
+
+.pathway-modules {
+    margin-bottom: 1.5rem;
+}
+
+.module-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.module-item:last-child {
+    border-bottom: none;
+}
+
+.module-status {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.module-item.completed .module-status {
+    color: var(--success-color);
+}
+
+.module-item.current .module-status {
+    color: var(--primary-color);
+}
+
+.module-item.locked .module-status {
+    color: var(--text-light);
+}
+
+.module-content {
+    flex: 1;
+}
+
+.module-content h4 {
+    color: var(--heading-color);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.module-content p {
+    color: var(--text-light);
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.module-progress {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--border-color);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-bar .progress-fill {
+    height: 100%;
+    background: var(--primary-color);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.module-progress span {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    white-space: nowrap;
+}
+
+.module-score {
+    font-weight: 600;
+    color: var(--heading-color);
+    min-width: 40px;
+    text-align: right;
+}
+
+.pathway-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.recommendations-section h2 {
+    color: var(--heading-color);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+}
+
+.recommendations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.recommendation-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    transition: var(--transition);
+}
+
+.recommendation-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.recommendation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.recommendation-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--info-color);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--white);
+    font-size: 1.5rem;
+}
+
+.recommendation-badge {
+    background: var(--success-light);
+    color: var(--success-color);
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.recommendation-card h3 {
+    color: var(--heading-color);
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.recommendation-card p {
+    color: var(--text-light);
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+.recommendation-meta {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.courses {
+    color: var(--text-light);
+    font-size: 0.875rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .learning-overview {
+        grid-template-columns: 1fr;
+    }
+    
+    .pathways-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .overview-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .pathway-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .pathway-actions {
+        flex-direction: column;
+    }
+    
+    .recommendations-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+// Learning Pathways JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate progress circles
+    setTimeout(() => {
+        document.querySelectorAll('.progress-circle .progress-fill').forEach(circle => {
+            const progress = circle.parentElement.querySelector('.progress-text').textContent;
+            const percentage = parseInt(progress);
+            const circumference = 2 * Math.PI * 25; // radius = 25
+            const offset = circumference - (percentage / 100) * circumference;
+            circle.style.strokeDasharray = `${circumference - offset}, ${circumference}`;
+        });
+    }, 500);
+    
+    // Animate chart bars
+    setTimeout(() => {
+        document.querySelectorAll('.chart-bar').forEach((bar, index) => {
+            const height = bar.style.height;
+            bar.style.height = '8px';
+            setTimeout(() => {
+                bar.style.height = height;
+            }, index * 100);
+        });
+    }, 1000);
+    
+    // Continue learning buttons
+    document.querySelectorAll('.pathway-actions .btn-primary').forEach(button => {
+        button.addEventListener('click', function() {
+            const pathwayCard = this.closest('.pathway-card');
+            const pathwayTitle = pathwayCard.querySelector('h3').textContent;
+            console.log(`Continue learning: ${pathwayTitle}`);
+            // Navigate to current module
+        });
+    });
+    
+    // View details buttons
+    document.querySelectorAll('.pathway-actions .btn-outline-primary').forEach(button => {
+        button.addEventListener('click', function() {
+            const pathwayCard = this.closest('.pathway-card');
+            const pathwayTitle = pathwayCard.querySelector('h3').textContent;
+            console.log(`View details: ${pathwayTitle}`);
+            // Navigate to pathway details
+        });
+    });
+    
+    // Start pathway buttons
+    document.querySelectorAll('.recommendation-card .btn-outline-primary').forEach(button => {
+        button.addEventListener('click', function() {
+            const recommendationCard = this.closest('.recommendation-card');
+            const pathwayTitle = recommendationCard.querySelector('h3').textContent;
+            console.log(`Start pathway: ${pathwayTitle}`);
+            // Navigate to pathway enrollment
+        });
+    });
+});
+</script>
+
+{% endblock %}
