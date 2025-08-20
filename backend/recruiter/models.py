@@ -28,6 +28,7 @@ class Job(models.Model):
     salary = models.CharField(_('salary range'), max_length=100, blank=True, null=True)
     experience = models.IntegerField(_('experience required (years)'), default=0)
     description = models.TextField(_('job description'))
+    requirements = models.TextField(_('job requirements'), blank=True, null=True)
     status = models.CharField(_('job status'), max_length=10, choices=JOB_STATUS_CHOICES, default='Open')
     skills = models.JSONField(_('required skills'), default=list)
     created_at = models.DateTimeField(auto_now_add=True)

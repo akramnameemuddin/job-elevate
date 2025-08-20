@@ -218,7 +218,11 @@
                                 <div class="job-meta">
                                     <span><i class='bx bx-buildings'></i> {{ similar_job.company }}</span>
                                     <span><i class='bx bx-map'></i> {{ similar_job.location }}</span>
+                                    {% if similar_job.salary %}
+                                    <span><i class='bx bx-dollar-circle'></i> {{ similar_job.salary }}</span>
+                                    {% endif %}
                                 </div>
+                                <div class="job-type-badge">{{ similar_job.job_type }}</div>
                             </div>
                             <i class='bx bx-right-arrow-alt'></i>
                         </a>

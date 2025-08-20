@@ -1494,6 +1494,10 @@
                         <label class="form-label">Description</label>
                         <textarea class="form-control" id="job-description" rows="3" required></textarea>
                     </div>
+                    <div class="form-group">
+                        <label class="form-label">Requirements</label>
+                        <textarea class="form-control" id="job-requirements" rows="3" placeholder="List the specific requirements for this position..."></textarea>
+                    </div>
                     <div class="form-actions">
                         <button type="reset" class="btn btn-secondary">Clear</button>
                         <button type="submit" class="btn btn-primary">
@@ -1786,11 +1790,12 @@ function populateJobForm(jobData) {
     document.getElementById('job-salary').value = jobData.salary || '';
     document.getElementById('job-experience').value = jobData.experience || 0;
     document.getElementById('job-description').value = jobData.description;
-    
+    document.getElementById('job-requirements').value = jobData.requirements || '';
+
     // Clear and repopulate job skills
     jobSkills = Array.isArray(jobData.skills) ? [...jobData.skills] : [];
     renderJobSkills();
-    
+
     // Scroll to form
     document.querySelector('.form-container').scrollIntoView({ behavior: 'smooth' });
 }
@@ -1804,6 +1809,9 @@ function resetJobForm() {
     document.querySelector('button[type="submit"]').innerHTML = '<i class="bx bx-send"></i> Post Job';
     jobSkills = [];
     renderJobSkills();
+
+    // Clear requirements field explicitly
+    document.getElementById('job-requirements').value = '';
 }
 
 // Create a new job
@@ -2400,15 +2408,16 @@ document.addEventListener('DOMContentLoaded', function() {
             const salary = document.getElementById('job-salary').value.trim();
             const experience = parseInt(document.getElementById('job-experience').value, 10) || 0;
             const description = document.getElementById('job-description').value.trim();
-            
+            const requirements = document.getElementById('job-requirements').value.trim();
+
             if (!title || !company || !location || !type || !description) {
                 alert('Please fill all required fields.');
                 return;
             }
-            
+
             const jobData = {
-                title, company, location, type: type, salary, 
-                experience, skills: jobSkills, description
+                title, company, location, type: type, salary,
+                experience, skills: jobSkills, description, requirements
             };
             
             const isEditMode = this.getAttribute('data-edit-mode') === 'true';

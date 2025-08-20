@@ -11,6 +11,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from accounts.models import User
 from recruiter.models import Job, Application
 from .models import JobView, JobBookmark, UserJobPreference, JobRecommendation, UserSimilarity
+from .forms import UserJobPreferenceForm
 from jobs.recommendation_engine import HybridRecommender
 from dashboard.notifications import notify_job_application, notify_application_status
 
@@ -103,27 +104,81 @@ def job_listings(request):
 def job_detail(request, job_id):
     """Display detailed job information"""
     job = get_object_or_404(Job, id=job_id, status='Open')
-    
+
     # Track that the user viewed this job
     recommender.track_job_view(request.user, job)
-    
+
     # Check if the user has applied to this job
     already_applied = Application.objects.filter(
         job=job,
         applicant=request.user
     ).exists()
-    
+
     # Check if the job is bookmarked
     is_bookmarked = JobBookmark.objects.filter(
         job=job,
         user=request.user
     ).exists()
-    
-    # Get similar jobs based on the current job
-    similar_jobs = Job.objects.filter(
-        status='Open',
-        skills__overlap=job.skills
-    ).exclude(id=job_id)[:5]
+
+    # Get company description from recruiter profile
+    company_description = None
+    try:
+        # First try to get from recruiter profile
+        if hasattr(job.posted_by, 'recruiterprofile'):
+            company_description = job.posted_by.recruiterprofile.company_description
+        # Fallback to user's company description field
+        elif job.posted_by.company_description:
+            company_description = job.posted_by.company_description
+    except Exception:
+        company_description = None
+
+    # Get similar jobs using improved algorithm
+    similar_jobs = []
+    try:
+        # Get all open jobs except current one
+        all_jobs = Job.objects.filter(status='Open').exclude(id=job_id)
+
+        # Calculate similarity scores for better recommendations
+        job_skills_set = set(job.skills) if job.skills else set()
+
+        similar_jobs_with_scores = []
+        for similar_job in all_jobs:
+            similar_skills_set = set(similar_job.skills) if similar_job.skills else set()
+
+            # Calculate similarity based on multiple factors
+            similarity_score = 0
+
+            # Skills similarity (primary factor)
+            if job_skills_set and similar_skills_set:
+                overlap = len(job_skills_set.intersection(similar_skills_set))
+                if overlap > 0:
+                    similarity_score += overlap / len(job_skills_set.union(similar_skills_set)) * 0.7
+
+            # Job type similarity
+            if job.job_type == similar_job.job_type:
+                similarity_score += 0.2
+
+            # Location similarity (basic)
+            if job.location.lower() == similar_job.location.lower():
+                similarity_score += 0.1
+
+            # Only include jobs with decent similarity
+            if similarity_score > 0.1:
+                similar_jobs_with_scores.append({
+                    'job': similar_job,
+                    'similarity_score': similarity_score
+                })
+
+        # Sort by similarity and take top 5
+        similar_jobs_with_scores.sort(key=lambda x: x['similarity_score'], reverse=True)
+        similar_jobs = [item['job'] for item in similar_jobs_with_scores[:5]]
+
+    except Exception as e:
+        # Fallback to simple filtering
+        similar_jobs = Job.objects.filter(
+            status='Open',
+            job_type=job.job_type
+        ).exclude(id=job_id)[:5]
     
     # Assess the user's match score for this job
     user_skills = request.user.get_skills_list()
@@ -144,6 +199,7 @@ def job_detail(request, job_id):
         'already_applied': already_applied,
         'is_bookmarked': is_bookmarked,
         'similar_jobs': similar_jobs,
+        'company_description': company_description,
         'match_score': match_score,
         'matching_skills': user_skills_set.intersection(job_skills_set) if user_skills and job.skills else [],
         'missing_skills': job_skills_set - user_skills_set if user_skills and job.skills else []
@@ -305,56 +361,62 @@ def recommended_jobs(request):
 @login_required
 def update_job_preferences(request):
     """Update job preferences for better recommendations"""
-    if request.method == 'POST':
-        try:
-            preferred_job_types = request.POST.getlist('preferred_job_types')
-            preferred_locations = request.POST.getlist('preferred_locations')
-            min_salary = request.POST.get('min_salary')
-            remote_preference = 'remote_preference' in request.POST
-            industry_preferences = request.POST.getlist('industry_preferences')
-            
-            # Convert salary to integer if provided
-            if min_salary:
-                try:
-                    min_salary = int(min_salary)
-                except ValueError:
-                    min_salary = None
-            else:
-                min_salary = None
-            
-            # Update or create preferences
-            preferences, created = UserJobPreference.objects.update_or_create(
-                user=request.user,
-                defaults={
-                    'preferred_job_types': preferred_job_types,
-                    'preferred_locations': preferred_locations,
-                    'min_salary_expectation': min_salary,
-                    'remote_preference': remote_preference,
-                    'industry_preferences': industry_preferences
-                }
-            )
-            
-            messages.success(request, "Your job preferences have been updated successfully!")
-            return redirect('jobs:recommended_jobs')
-            
-        except Exception as e:
-            logger.error(f"Error updating job preferences for user {request.user.id}: {str(e)}")
-            messages.error(request, "There was an error updating your preferences. Please try again.")
-    
-    # Get current preferences
+    # Get or create current preferences
     try:
         preferences = UserJobPreference.objects.get(user=request.user)
     except UserJobPreference.DoesNotExist:
         preferences = None
-    
-    # Get available job types
+
+    if request.method == 'POST':
+        # Use Django form for better validation
+        form = UserJobPreferenceForm(request.POST, instance=preferences)
+        if form.is_valid():
+            try:
+                # Save the form with the current user
+                preferences = form.save(commit=False)
+                preferences.user = request.user
+                preferences.save()
+
+                messages.success(request, "Your job preferences have been updated successfully!")
+                return redirect('jobs:recommended_jobs')
+
+            except Exception as e:
+                logger.error(f"Error updating job preferences for user {request.user.id}: {str(e)}")
+                messages.error(request, "There was an error updating your preferences. Please try again.")
+        else:
+            # Form validation failed
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
+    else:
+        # GET request - create form with existing data
+        form = UserJobPreferenceForm(instance=preferences)
+
+    # Get available job types and industries
     job_types = dict(Job.JOB_TYPE_CHOICES)
-    
+
+    # Get industry choices from the form
+    industry_choices = [
+        ('Technology', 'Technology'),
+        ('Healthcare', 'Healthcare'),
+        ('Finance', 'Finance'),
+        ('Education', 'Education'),
+        ('Marketing', 'Marketing'),
+        ('Manufacturing', 'Manufacturing'),
+        ('Retail', 'Retail'),
+        ('Media', 'Media'),
+        ('Construction', 'Construction'),
+        ('Transportation', 'Transportation'),
+        ('Food Service', 'Food Service'),
+    ]
+
     context = {
+        'form': form,
         'preferences': preferences,
         'job_types': job_types,
+        'industry_choices': industry_choices,
     }
-    
+
     return render(request, 'jobs/job_preferences.html', context)
 
 @login_required
