@@ -81,6 +81,7 @@ def get_jobs(request):
             'experience': job.experience,
             'skills': job.skills,
             'description': job.description,
+            'requirements': job.requirements or '',
             'status': job.status,
             'applicants': job.applicant_count,
             'created_at': job.created_at.strftime('%Y-%m-%d')
@@ -109,6 +110,7 @@ def create_job(request):
             experience=data.get('experience', 0),
             skills=data.get('skills', []),
             description=data.get('description'),
+            requirements=data.get('requirements'),
             status='Open'
         )
         
@@ -145,6 +147,7 @@ def update_job(request, job_id):
         job.experience = data.get('experience', job.experience)
         job.skills = data.get('skills', job.skills)
         job.description = data.get('description', job.description)
+        job.requirements = data.get('requirements', job.requirements)
         job.status = data.get('status', job.status)
         job.save()
         

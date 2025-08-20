@@ -59,6 +59,24 @@ class JobSearchForm(forms.Form):
 
 class UserJobPreferenceForm(forms.ModelForm):
     """Form for updating job preferences"""
+
+    # Override fields to handle JSON data properly
+    preferred_job_types = forms.MultipleChoiceField(
+        choices=Job.JOB_TYPE_CHOICES,
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'job-type-checkbox'}),
+        required=False
+    )
+
+    preferred_locations = forms.CharField(
+        widget=forms.HiddenInput(),
+        required=False
+    )
+
+    industry_preferences = forms.CharField(
+        widget=forms.HiddenInput(),
+        required=False
+    )
+
     class Meta:
         model = UserJobPreference
         fields = [
@@ -69,31 +87,47 @@ class UserJobPreferenceForm(forms.ModelForm):
             'industry_preferences'
         ]
         widgets = {
-            'preferred_job_types': forms.CheckboxSelectMultiple(),
-            'preferred_locations': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Enter locations separated by commas'
-            }),
             'min_salary_expectation': forms.NumberInput(attrs={
                 'class': 'form-control',
+                'min': '25000',
+                'max': '200000',
+                'step': '5000',
                 'placeholder': 'Minimum expected salary'
             }),
             'remote_preference': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'industry_preferences': forms.SelectMultiple(attrs={'class': 'form-select'})
         }
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['preferred_job_types'].choices = Job.JOB_TYPE_CHOICES
-        self.fields['industry_preferences'].choices = [
-            ('Technology', 'Technology'),
-            ('Healthcare', 'Healthcare'),
-            ('Finance', 'Finance'),
-            ('Education', 'Education'),
-            ('Retail', 'Retail'),
-            ('Manufacturing', 'Manufacturing'),
-            ('Media', 'Media'),
-            ('Construction', 'Construction'),
-            ('Transportation', 'Transportation'),
-            ('Food Service', 'Food Service'),
-        ]
+
+        # Set initial values for JSON fields
+        if self.instance and self.instance.pk:
+            if self.instance.preferred_job_types:
+                self.fields['preferred_job_types'].initial = self.instance.preferred_job_types
+            if self.instance.preferred_locations:
+                self.fields['preferred_locations'].initial = ','.join(self.instance.preferred_locations)
+            if self.instance.industry_preferences:
+                self.fields['industry_preferences'].initial = ','.join(self.instance.industry_preferences)
+
+    def clean_preferred_locations(self):
+        """Convert comma-separated string to list"""
+        locations_data = self.cleaned_data.get('preferred_locations', '')
+        if isinstance(locations_data, list):
+            return locations_data
+        if locations_data:
+            return [loc.strip() for loc in locations_data.split(',') if loc.strip()]
+        return []
+
+    def clean_industry_preferences(self):
+        """Convert comma-separated string to list"""
+        industries_data = self.cleaned_data.get('industry_preferences', '')
+        if isinstance(industries_data, list):
+            return industries_data
+        if industries_data:
+            return [ind.strip() for ind in industries_data.split(',') if ind.strip()]
+        return []
+
+    def clean_preferred_job_types(self):
+        """Ensure job types is a list"""
+        job_types = self.cleaned_data.get('preferred_job_types', [])
+        return list(job_types) if job_types else []

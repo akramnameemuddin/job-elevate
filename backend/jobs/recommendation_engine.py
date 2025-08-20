@@ -68,133 +68,263 @@ class ContentBasedRecommender:
         # If job requires no experience, everyone gets a perfect score
         return 1.0
     
-    def calculate_location_match(self, user_location, job_location):
-        """Calculate location match score (simple exact match for now)"""
-        if not user_location or not job_location:
+    def calculate_location_match(self, preferred_locations, job_location):
+        """Calculate location match score using user's preferred locations"""
+        if not preferred_locations or not job_location:
             return 0.5  # Neutral score if data is missing
-        
-        # Simple case-insensitive exact match for now
-        # In a real system, you'd use geocoding and distance calculations
-        user_loc_lower = user_location.lower()
+
+        # Handle remote jobs
+        if job_location.lower() in ['remote', 'work from home', 'anywhere']:
+            return 1.0  # Remote jobs match all location preferences
+
         job_loc_lower = job_location.lower()
-        
-        # Check if locations match exactly or if one contains the other
-        if user_loc_lower == job_loc_lower:
-            return 1.0
-        elif user_loc_lower in job_loc_lower or job_loc_lower in user_loc_lower:
-            return 0.7
-        
-        # Check if they have at least some common tokens (city/state)
-        user_tokens = set(user_loc_lower.split())
-        job_tokens = set(job_loc_lower.split())
-        common_tokens = user_tokens.intersection(job_tokens)
-        
-        if common_tokens:
-            return 0.5
-        
-        # No match
-        return 0.0
+        best_match = 0.0
+
+        # Check against each preferred location
+        for user_location in preferred_locations:
+            if not user_location:
+                continue
+
+            user_loc_lower = user_location.lower()
+
+            # Check if locations match exactly or if one contains the other
+            if user_loc_lower == job_loc_lower:
+                return 1.0  # Perfect match found
+            elif user_loc_lower in job_loc_lower or job_loc_lower in user_loc_lower:
+                best_match = max(best_match, 0.8)
+            else:
+                # Check if they have at least some common tokens (city/state)
+                user_tokens = set(user_loc_lower.split())
+                job_tokens = set(job_loc_lower.split())
+                common_tokens = user_tokens.intersection(job_tokens)
+
+                if common_tokens:
+                    best_match = max(best_match, 0.6)
+
+        return best_match
     
     def calculate_job_type_match(self, user_preferences, job_type):
         """Calculate job type match score based on user preferences"""
         if not user_preferences or not job_type:
             return 0.5  # Neutral score if data is missing
-        
+
         # Check if job type is in user's preferred job types
         if job_type in user_preferences:
             return 1.0
-        
+
         # No match but still consider the job
         return 0.2
+
+    def calculate_industry_match(self, preferred_industries, job_description, job_title, company_name):
+        """Calculate industry match score based on job content"""
+        if not preferred_industries:
+            return 0.5  # Neutral score if no preferences
+
+        # Combine job text for analysis
+        job_text = f"{job_title} {job_description} {company_name}".lower()
+
+        # Industry keywords mapping
+        industry_keywords = {
+            'technology': ['tech', 'software', 'developer', 'programming', 'coding', 'it', 'computer', 'digital', 'app', 'web', 'mobile', 'ai', 'machine learning', 'data science'],
+            'healthcare': ['health', 'medical', 'hospital', 'clinic', 'nurse', 'doctor', 'patient', 'pharmaceutical', 'biotech', 'medicine'],
+            'finance': ['finance', 'bank', 'investment', 'accounting', 'financial', 'money', 'credit', 'loan', 'insurance', 'trading'],
+            'education': ['education', 'school', 'university', 'teacher', 'professor', 'student', 'learning', 'academic', 'curriculum'],
+            'marketing': ['marketing', 'advertising', 'brand', 'campaign', 'social media', 'content', 'seo', 'digital marketing'],
+            'manufacturing': ['factory', 'production', 'assembly', 'industrial', 'machinery', 'automotive'],
+            'retail': ['retail', 'store', 'sales', 'customer service', 'merchandise', 'shopping', 'ecommerce'],
+            'media': ['media', 'journalism', 'news', 'broadcasting', 'entertainment', 'film', 'television', 'radio'],
+            'construction': ['construction', 'building', 'contractor', 'architecture', 'real estate'],
+            'transportation': ['transportation', 'logistics', 'shipping', 'delivery', 'trucking', 'airline'],
+            'food service': ['restaurant', 'food', 'culinary', 'chef', 'catering', 'hospitality', 'dining']
+        }
+
+        best_match = 0.0
+        found_any_match = False
+
+        for preferred_industry in preferred_industries:
+            industry_lower = preferred_industry.lower()
+
+            # Direct industry name match
+            if industry_lower in job_text:
+                best_match = max(best_match, 1.0)
+                found_any_match = True
+                continue
+
+            # Keyword-based matching
+            if industry_lower in industry_keywords:
+                keywords = industry_keywords[industry_lower]
+                matches = sum(1 for keyword in keywords if keyword in job_text)
+                if matches > 0:
+                    found_any_match = True
+                    # Score based on number of keyword matches
+                    keyword_score = min(matches / len(keywords) * 2.5, 1.0)
+                    # Give at least 0.6 for any keyword match
+                    keyword_score = max(keyword_score, 0.6)
+                    best_match = max(best_match, keyword_score)
+
+        # If no matches found at all, return low score
+        if not found_any_match:
+            return 0.2
+
+        return best_match
+
+    def parse_salary_range(self, salary_text):
+        """Parse salary text and return minimum and maximum values"""
+        if not salary_text:
+            return None, None
+
+        try:
+            # Clean the salary text
+            salary_clean = salary_text.lower().replace('$', '').replace(',', '').replace(' ', '')
+
+            # Handle different formats
+            min_salary = None
+            max_salary = None
+
+            # Check for range (contains "-" or "to")
+            if '-' in salary_clean:
+                parts = salary_clean.split('-')
+            elif ' to ' in salary_clean:
+                parts = salary_clean.split('to')
+            else:
+                parts = [salary_clean]
+
+            # Parse minimum salary
+            if len(parts) >= 1:
+                min_part = parts[0].strip()
+                # Remove non-numeric characters except decimal point
+                min_numeric = ''.join(c for c in min_part if c.isdigit() or c == '.')
+                if min_numeric:
+                    min_salary = float(min_numeric)
+                    # Handle "k" notation
+                    if 'k' in min_part:
+                        min_salary *= 1000
+
+            # Parse maximum salary
+            if len(parts) >= 2:
+                max_part = parts[1].strip()
+                # Remove non-numeric characters except decimal point
+                max_numeric = ''.join(c for c in max_part if c.isdigit() or c == '.')
+                if max_numeric:
+                    max_salary = float(max_numeric)
+                    # Handle "k" notation
+                    if 'k' in max_part:
+                        max_salary *= 1000
+            else:
+                max_salary = min_salary  # Single value
+
+            return min_salary, max_salary
+
+        except (ValueError, IndexError, AttributeError):
+            return None, None
+
+    def calculate_salary_match(self, user_min_salary, job_salary_text):
+        """Calculate salary match score"""
+        if not user_min_salary or not job_salary_text:
+            return 0.7  # Neutral-positive score if data is missing
+
+        job_min, job_max = self.parse_salary_range(job_salary_text)
+
+        if job_min is None:
+            return 0.7  # Neutral-positive if can't parse job salary
+
+        # If job minimum meets or exceeds user's minimum, perfect score
+        if job_min >= user_min_salary:
+            return 1.0
+
+        # If job maximum meets user's minimum, good score
+        if job_max and job_max >= user_min_salary:
+            return 0.8
+
+        # If job salary is below user's minimum, calculate how close it is
+        if job_max:
+            salary_ratio = job_max / user_min_salary
+        else:
+            salary_ratio = job_min / user_min_salary
+
+        # Score based on how close the salary is to user's expectation
+        return min(salary_ratio, 1.0)
     
     def recommend_jobs(self, user, limit=20):
-        """Recommend jobs based on content similarity (skills, experience, location)"""
+        """Recommend jobs based on enhanced content similarity and user preferences"""
         try:
-            # Get user's skills, experience and location
+            # Get user's skills and experience
             user_skills = user.get_skills_list()
             user_experience = user.experience
-            user_location = user.organization  # Using organization field as proxy for location
-            
+
             # Get user's job preferences if available
             try:
                 job_preferences = user.job_preferences
-                preferred_job_types = job_preferences.preferred_job_types
+                preferred_job_types = job_preferences.preferred_job_types or []
+                preferred_locations = job_preferences.preferred_locations or []
                 min_salary = job_preferences.min_salary_expectation
                 remote_preference = job_preferences.remote_preference
+                industry_preferences = job_preferences.industry_preferences or []
             except UserJobPreference.DoesNotExist:
                 preferred_job_types = []
+                preferred_locations = []
                 min_salary = None
                 remote_preference = False
-            
+                industry_preferences = []
+
             # Get IDs of jobs user has already applied to
             applied_job_ids = Application.objects.filter(applicant=user).values_list('job_id', flat=True)
-            
+
             # Get all active jobs excluding those user has already applied to
             jobs = Job.objects.filter(status='Open').exclude(id__in=applied_job_ids)
-            
+
             # Calculate scores for each job
             job_scores = []
             for job in jobs:
                 # Content-based features
                 skill_match = self.calculate_skill_match(user_skills, job.skills)
                 exp_match = self.calculate_experience_match(user_experience, job.experience)
-                location_match = self.calculate_location_match(user_location, job.location)
+                location_match = self.calculate_location_match(preferred_locations, job.location)
                 job_type_match = self.calculate_job_type_match(preferred_job_types, job.job_type)
-                
-                # Calculate weighted score
-                score = (
-                    0.5 * skill_match +  # Skills are most important
-                    0.2 * exp_match +    # Experience is next
-                    0.15 * location_match +  # Location matters somewhat
-                    0.15 * job_type_match    # Job type preference
+                industry_match = self.calculate_industry_match(
+                    industry_preferences,
+                    job.description,
+                    job.title,
+                    job.company
                 )
-                
+                salary_match = self.calculate_salary_match(min_salary, job.salary)
+
+                # Calculate weighted score with enhanced algorithm
+                score = (
+                    0.35 * skill_match +      # Skills remain most important
+                    0.15 * exp_match +        # Experience
+                    0.15 * location_match +   # Location preferences
+                    0.15 * job_type_match +   # Job type preferences
+                    0.10 * industry_match +   # Industry preferences
+                    0.10 * salary_match       # Salary expectations
+                )
+
                 # Add remote preference boost
-                if remote_preference and job.job_type == 'Remote':
-                    score += 0.1
-                
-                # Add salary preference filter (if defined)
-                if min_salary and job.salary:
-                    # Extract minimum salary from job's salary range
-                    # This is a simplification - in reality, you'd need to parse the salary range
-                    try:
-                        # Handle formats like "$50k-70k", "50,000-70,000", "50K", etc.
-                        salary_text = job.salary.lower().replace('$', '').replace(',', '')
-                        
-                        # Check if it has a range (contains "-")
-                        if '-' in salary_text:
-                            min_job_salary = salary_text.split('-')[0]
-                        else:
-                            min_job_salary = salary_text
-                            
-                        # Remove non-numeric characters except decimal point
-                        min_job_salary = ''.join(c for c in min_job_salary if c.isdigit() or c == '.')
-                        
-                        # Handle "k" notation
-                        if 'k' in salary_text:
-                            min_job_salary = float(min_job_salary) * 1000
-                        else:
-                            min_job_salary = float(min_job_salary)
-                            
-                        # If job salary is below user's minimum, reduce score
-                        if min_job_salary < min_salary:
-                            score *= 0.5
-                            
-                    except (ValueError, IndexError):
-                        # If parsing fails, don't modify the score
-                        pass
-                
-                # Store the score and reason
-                reason = self._get_recommendation_reason(skill_match, exp_match, location_match)
+                if remote_preference and (job.job_type == 'Remote' or 'remote' in job.location.lower()):
+                    score += 0.05
+
+                # Store the score and enhanced reason
+                reason = self._get_enhanced_recommendation_reason(
+                    skill_match, exp_match, location_match,
+                    job_type_match, industry_match, salary_match
+                )
                 job_scores.append({
                     'job': job,
                     'score': score,
-                    'reason': reason
+                    'reason': reason,
+                    'match_details': {
+                        'skill_match': skill_match,
+                        'experience_match': exp_match,
+                        'location_match': location_match,
+                        'job_type_match': job_type_match,
+                        'industry_match': industry_match,
+                        'salary_match': salary_match
+                    }
                 })
-            
+
             # Sort jobs by score in descending order
             sorted_jobs = sorted(job_scores, key=lambda x: x['score'], reverse=True)
-            
+
             # Return top N jobs
             return sorted_jobs[:limit]
             
@@ -212,6 +342,60 @@ class ContentBasedRecommender:
             return "This job is in your location"
         else:
             return "This job might interest you"
+
+    def _get_enhanced_recommendation_reason(self, skill_match, exp_match, location_match,
+                                          job_type_match, industry_match, salary_match):
+        """Generate an enhanced human-readable reason for the recommendation"""
+        reasons = []
+
+        # Skill matching
+        if skill_match > 0.8:
+            reasons.append("Excellent skill match")
+        elif skill_match > 0.6:
+            reasons.append("Strong skill match")
+        elif skill_match > 0.4:
+            reasons.append("Good skill match")
+
+        # Experience matching
+        if exp_match > 0.9:
+            reasons.append("Perfect experience level")
+        elif exp_match > 0.7:
+            reasons.append("Great experience match")
+        elif exp_match > 0.5:
+            reasons.append("Good experience fit")
+
+        # Location matching
+        if location_match > 0.9:
+            reasons.append("Perfect location match")
+        elif location_match > 0.7:
+            reasons.append("Great location")
+        elif location_match > 0.5:
+            reasons.append("Good location")
+
+        # Job type matching
+        if job_type_match > 0.9:
+            reasons.append("Preferred job type")
+        elif job_type_match > 0.5:
+            reasons.append("Suitable job type")
+
+        # Industry matching
+        if industry_match > 0.8:
+            reasons.append("Perfect industry match")
+        elif industry_match > 0.6:
+            reasons.append("Great industry fit")
+        elif industry_match > 0.4:
+            reasons.append("Good industry match")
+
+        # Salary matching
+        if salary_match > 0.9:
+            reasons.append("Excellent salary")
+        elif salary_match > 0.7:
+            reasons.append("Good salary range")
+
+        if not reasons:
+            return "Potential opportunity"
+
+        return ", ".join(reasons[:3])  # Limit to top 3 reasons
 
 
 class CollaborativeRecommender:
