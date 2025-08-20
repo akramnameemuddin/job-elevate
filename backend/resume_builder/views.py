@@ -412,10 +412,19 @@ def download_resume(request, resume_id):
 @login_required
 def delete_resume(request, resume_id):
     """Delete a resume"""
+    # Always check if resume exists and belongs to user, regardless of method
+    resume = get_object_or_404(Resume, id=resume_id, user=request.user)
+
     if request.method == 'POST':
-        resume = get_object_or_404(Resume, id=resume_id, user=request.user)
-        resume.delete()
-        messages.success(request, "Resume deleted successfully!")
+        try:
+            resume_title = resume.title
+            resume.delete()
+            messages.success(request, f"Resume '{resume_title}' deleted successfully!")
+        except Exception as e:
+            messages.error(request, "Failed to delete resume. Please try again.")
+    else:
+        messages.error(request, "Invalid request method.")
+
     return redirect('resume_builder:resume_builder')
 
 @login_required
