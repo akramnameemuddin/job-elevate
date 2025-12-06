@@ -31,7 +31,7 @@ if DEBUG:
     EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default='')
     EMAIL_TIMEOUT = 10
 else:
-    # Production - Console backend (or SendGrid when configured)
+    # Production - SendGrid (or Console backend as fallback)
     # Render blocks SMTP ports, so we need alternative email service
     SENDGRID_API_KEY = env("SENDGRID_API_KEY", default='')
     
@@ -39,13 +39,17 @@ else:
         # If SendGrid is configured
         EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
         SENDGRID_SANDBOX_MODE_IN_DEBUG = False
+        SENDGRID_API_KEY = SENDGRID_API_KEY  # Make sure it's set for the backend
+        EMAIL_HOST_USER = env("EMAIL_HOST_USER", default='noreply@jobelevates.com')
         DEFAULT_FROM_EMAIL = env("EMAIL_HOST_USER", default='noreply@jobelevates.com')
     else:
         # Fallback: Console backend (emails printed to logs)
         EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
         EMAIL_HOST_USER = env("EMAIL_HOST_USER", default='')
-        
-DEFAULT_FROM_EMAIL = env("EMAIL_HOST_USER", default='noreply@jobelevates.com')
+        DEFAULT_FROM_EMAIL = 'noreply@jobelevates.com'
+
+if not 'DEFAULT_FROM_EMAIL' in locals():
+    DEFAULT_FROM_EMAIL = env("EMAIL_HOST_USER", default='noreply@jobelevates.com')
 
 # APPS
 INSTALLED_APPS = [
