@@ -18,13 +18,34 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
 ]
 
-# EMAIL
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = env("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+# EMAIL CONFIGURATION
+# Use different backends for local vs production
+if DEBUG:
+    # Local development - Gmail SMTP
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.gmail.com'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_USE_SSL = False
+    EMAIL_HOST_USER = env("EMAIL_HOST_USER", default='')
+    EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default='')
+    EMAIL_TIMEOUT = 10
+else:
+    # Production - Console backend (or SendGrid when configured)
+    # Render blocks SMTP ports, so we need alternative email service
+    SENDGRID_API_KEY = env("SENDGRID_API_KEY", default='')
+    
+    if SENDGRID_API_KEY:
+        # If SendGrid is configured
+        EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
+        SENDGRID_SANDBOX_MODE_IN_DEBUG = False
+        DEFAULT_FROM_EMAIL = env("EMAIL_HOST_USER", default='noreply@jobelevates.com')
+    else:
+        # Fallback: Console backend (emails printed to logs)
+        EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+        EMAIL_HOST_USER = env("EMAIL_HOST_USER", default='')
+        
+DEFAULT_FROM_EMAIL = env("EMAIL_HOST_USER", default='noreply@jobelevates.com')
 
 # APPS
 INSTALLED_APPS = [

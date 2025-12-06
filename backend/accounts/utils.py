@@ -11,7 +11,7 @@ def generate_otp(length=6):
     return ''.join(random.choices(string.digits, k=length))
 
 def send_email_otp(email, otp, subject=None, message=None):
-    """Send OTP to user's email"""
+    """Send OTP to user's email with proper timeout and error handling"""
     if not subject:
         subject = "Your JobElevate Verification Code"
     
@@ -30,14 +30,24 @@ def send_email_otp(email, otp, subject=None, message=None):
         """
     
     try:
+        # Check if email backend is console (development fallback)
+        if settings.EMAIL_BACKEND == 'django.core.mail.backends.console.EmailBackend':
+            print(f"[EMAIL] Console Backend - OTP for {email}: {otp}")
+            return True
+            
         send_mail(
             subject=subject,
             message=message,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[email],
             fail_silently=False,
+            timeout=10,  # Add timeout to prevent hanging
         )
+        print(f"[EMAIL] Successfully sent OTP to {email}")
         return True
+    except TimeoutError as e:
+        print(f"[EMAIL] Timeout sending to {email}: {str(e)}")
+        return False
     except Exception as e:
         print(f"[EMAIL] Failed to send OTP to {email}: {str(e)}")
         return False

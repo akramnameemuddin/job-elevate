@@ -35,5 +35,8 @@ python-dotenv==1.0.1
 # Production Server
 gunicorn==23.0.0
 
+# Email Backend for Production
+sendgrid==6.11.0
+
 # Additional utilities that might be needed
 html2text==2024.2.26
