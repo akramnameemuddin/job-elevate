@@ -37,6 +37,7 @@ gunicorn==23.0.0
 
 # Email Backend for Production
 sendgrid==6.11.0
+django-sendgrid-v5==1.2.3
 
 # Additional utilities that might be needed
 html2text==2024.2.26
