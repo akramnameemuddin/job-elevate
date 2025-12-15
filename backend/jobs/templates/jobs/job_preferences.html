@@ -1030,9 +1030,9 @@ document.addEventListener('DOMContentLoaded', function() {
         function updateHiddenInput() {
             const tags = tagsContainer.querySelectorAll('.tag');
             const locations = Array.from(tags).map(tag => {
-                const text = tag.textContent.trim();
-                return text.substring(0, text.length - 1); // Remove the 'x' from the end
-            });
+                const removeBtn = tag.querySelector('.tag-remove');
+                return removeBtn ? removeBtn.dataset.value : '';
+            }).filter(loc => loc.trim());
             hiddenInput.value = locations.join(',');
         }
 
@@ -1135,8 +1135,8 @@ document.addEventListener('DOMContentLoaded', function() {
         function removeIndustryTag(industry) {
             const tags = tagsContainer.querySelectorAll('.tag');
             tags.forEach(tag => {
-                const text = tag.textContent.trim();
-                const tagIndustry = text.substring(0, text.length - 1); // Remove the 'x'
+                const removeBtn = tag.querySelector('.tag-remove');
+                const tagIndustry = removeBtn ? removeBtn.dataset.value : '';
                 if (tagIndustry === industry) {
                     tag.remove();
                 }
@@ -1146,9 +1146,9 @@ document.addEventListener('DOMContentLoaded', function() {
         function updateIndustryHiddenInput() {
             const tags = tagsContainer.querySelectorAll('.tag');
             const industries = Array.from(tags).map(tag => {
-                const text = tag.textContent.trim();
-                return text.substring(0, text.length - 1); // Remove the 'x' from the end
-            });
+                const removeBtn = tag.querySelector('.tag-remove');
+                return removeBtn ? removeBtn.dataset.value : '';
+            }).filter(ind => ind.trim());
             hiddenInput.value = industries.join(',');
         }
 
