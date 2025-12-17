@@ -10,8 +10,6 @@ __pycache__/
 venv/
 env/
 ENV/
-env.bak/
-venv.bak/
 
 # Python packaging
 build/
@@ -29,6 +27,7 @@ share/python-wheels/
 .env
 .env.*
 *.env
+backend/backend/.env
 
 # =========================
 # Django / Flask
@@ -68,9 +67,6 @@ yarn-error.log*
 # =========================
 .vscode/
 .idea/
-*.swp
-*.swo
-*~
 
 # =========================
 # OS files
@@ -93,4 +89,3 @@ Thumbs.db
 .cache/
 .mypy_cache/
 .pyre/
-backend/backend/.env
