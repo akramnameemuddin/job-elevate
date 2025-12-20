@@ -3,12 +3,12 @@
 # =========================
 __pycache__/
 *.py[cod]
-*$py.class
+*$py.cla.ss
 
 # Virtual environments
 .venv/
 venv/
-env/
+.env/
 ENV/
 
 # Python packaging
