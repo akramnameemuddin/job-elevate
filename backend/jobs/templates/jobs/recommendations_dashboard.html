@@ -1,0 +1,338 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Job Recommendations{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1">
+                        <i class='bx bx-briefcase me-2'></i>Job Recommendations
+                    </h2>
+                    <p class="text-muted mb-0">Matched based on your verified skills</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterModal">
+                        <i class='bx bx-filter me-1'></i>Filters
+                    </button>
+                    <a href="{% url 'assessments:assessment_list' %}" class="btn btn-primary">
+                        <i class='bx bx-brain me-1'></i>My Skills
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Match Summary Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-success-light text-success">
+                            <i class='bx bx-check-circle'></i>
+                        </div>
+                        <div class="ms-3">
+                            <p class="text-muted mb-0 small">Eligible Jobs</p>
+                            <h3 class="mb-0">{{ eligible_count }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-warning-light text-warning">
+                            <i class='bx bx-trending-up'></i>
+                        </div>
+                        <div class="ms-3">
+                            <p class="text-muted mb-0 small">Almost There</p>
+                            <h3 class="mb-0">{{ almost_eligible_count }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-primary-light text-primary">
+                            <i class='bx bx-target-lock'></i>
+                        </div>
+                        <div class="ms-3">
+                            <p class="text-muted mb-0 small">Avg Match</p>
+                            <h3 class="mb-0">{{ avg_match_percentage|floatformat:0 }}%</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-info-light text-info">
+                            <i class='bx bx-send'></i>
+                        </div>
+                        <div class="ms-3">
+                            <p class="text-muted mb-0 small">Applications</p>
+                            <h3 class="mb-0">{{ applications_count }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <ul class="nav nav-pills mb-4" id="jobFilterTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="all-tab" data-bs-toggle="pill" 
+                    data-bs-target="#all" type="button" role="tab">
+                All Jobs ({{ all_jobs|length }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="eligible-tab" data-bs-toggle="pill" 
+                    data-bs-target="#eligible" type="button" role="tab">
+                <span class="badge bg-success">Eligible ({{ eligible_jobs|length }})</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="almost-tab" data-bs-toggle="pill" 
+                    data-bs-target="#almost" type="button" role="tab">
+                <span class="badge bg-warning">Almost Eligible ({{ almost_eligible_jobs|length }})</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="not-eligible-tab" data-bs-toggle="pill" 
+                    data-bs-target="#not-eligible" type="button" role="tab">
+                Not Eligible ({{ not_eligible_jobs|length }})
+            </button>
+        </li>
+    </ul>
+
+    <!-- Job Listings -->
+    <div class="tab-content" id="jobFilterTabContent">
+        <!-- All Jobs Tab -->
+        <div class="tab-pane fade show active" id="all" role="tabpanel">
+            <div class="row g-4">
+                {% for job_match in all_jobs %}
+                {% include 'jobs/partials/job_card.html' with job=job_match.job match_data=job_match %}
+                {% empty %}
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center py-5">
+                            <i class='bx bx-search-alt display-1 text-muted mb-3'></i>
+                            <h4 class="mb-3">No Job Recommendations Yet</h4>
+                            <p class="text-muted mb-4">
+                                Complete skill assessments to get personalized job recommendations
+                            </p>
+                            <a href="{% url 'assessments:skill_intake_dashboard' %}" class="btn btn-primary">
+                                <i class='bx bx-brain me-1'></i>Browse Skills
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Eligible Jobs Tab -->
+        <div class="tab-pane fade" id="eligible" role="tabpanel">
+            <div class="row g-4">
+                {% for job_match in eligible_jobs %}
+                {% include 'jobs/partials/job_card.html' with job=job_match.job match_data=job_match %}
+                {% empty %}
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center py-5">
+                            <i class='bx bx-trophy display-1 text-success mb-3'></i>
+                            <h4 class="mb-3">No Fully Eligible Jobs</h4>
+                            <p class="text-muted">
+                                Keep improving your skills to become eligible for more opportunities
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Almost Eligible Jobs Tab -->
+        <div class="tab-pane fade" id="almost" role="tabpanel">
+            <div class="row g-4">
+                {% for job_match in almost_eligible_jobs %}
+                {% include 'jobs/partials/job_card.html' with job=job_match.job match_data=job_match %}
+                {% empty %}
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center py-5">
+                            <i class='bx bx-trending-up display-1 text-warning mb-3'></i>
+                            <h4 class="mb-3">No Almost Eligible Jobs</h4>
+                            <p class="text-muted">Great work! Focus on fully eligible jobs</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Not Eligible Jobs Tab -->
+        <div class="tab-pane fade" id="not-eligible" role="tabpanel">
+            <div class="row g-4">
+                {% for job_match in not_eligible_jobs %}
+                {% include 'jobs/partials/job_card.html' with job=job_match.job match_data=job_match %}
+                {% empty %}
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center py-5">
+                            <i class='bx bx-shield-x display-1 text-muted mb-3'></i>
+                            <h4 class="mb-3">No Not Eligible Jobs</h4>
+                            <p class="text-muted">Excellent! You're qualified for available positions</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Modal -->
+<div class="modal fade" id="filterModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Filter Jobs</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="GET">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Job Type</label>
+                        <select class="form-select" name="job_type">
+                            <option value="">All Types</option>
+                            <option value="full_time">Full Time</option>
+                            <option value="part_time">Part Time</option>
+                            <option value="contract">Contract</option>
+                            <option value="internship">Internship</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Location</label>
+                        <input type="text" class="form-control" name="location" 
+                               placeholder="Enter location">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Minimum Match %</label>
+                        <input type="range" class="form-range" name="min_match" 
+                               min="0" max="100" value="0" id="minMatchRange">
+                        <div class="d-flex justify-content-between">
+                            <span>0%</span>
+                            <span id="minMatchValue">0%</span>
+                            <span>100%</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Experience Level</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="exp_entry" id="expEntry">
+                            <label class="form-check-label" for="expEntry">Entry Level</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="exp_mid" id="expMid">
+                            <label class="form-check-label" for="expMid">Mid Level</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="exp_senior" id="expSenior">
+                            <label class="form-check-label" for="expSenior">Senior Level</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Apply Filters</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.bg-success-light {
+    background-color: var(--success-light);
+}
+
+.bg-warning-light {
+    background-color: var(--warning-light);
+}
+
+.bg-primary-light {
+    background-color: var(--primary-light);
+}
+
+.bg-info-light {
+    background-color: var(--info-light);
+}
+
+.nav-pills .nav-link {
+    color: var(--text-color);
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-lg);
+}
+
+.nav-pills .nav-link:hover {
+    background-color: var(--hover-bg);
+}
+
+.nav-pills .nav-link.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.nav-pills .nav-link .badge {
+    margin-left: 0.5rem;
+}
+
+.nav-pills .nav-link.active .badge {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    color: white;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const minMatchRange = document.getElementById('minMatchRange');
+    const minMatchValue = document.getElementById('minMatchValue');
+    
+    if (minMatchRange && minMatchValue) {
+        minMatchRange.addEventListener('input', function() {
+            minMatchValue.textContent = this.value + '%';
+        });
+    }
+});
+</script>
+{% endblock %}

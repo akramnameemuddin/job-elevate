@@ -5,6 +5,11 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
+    # REST API endpoints
+    # path('api/', include('assessments.api_urls')),  # Temporarily disabled
+    
+    # Traditional web views
     path('', include('accounts.urls')),
     path('jobs/', include('jobs.urls')),
     path('assessments/', include('assessments.urls')),

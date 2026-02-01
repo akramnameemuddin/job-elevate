@@ -71,7 +71,21 @@ class User(AbstractUser):
         return self.full_name or self.username
 
     def get_skills_list(self):
+        """Get technical skills as a list"""
         return [skill.strip() for skill in self.technical_skills.split(',')] if self.technical_skills else []
+    
+    def get_soft_skills_list(self):
+        """Get soft skills as a list"""
+        return [skill.strip() for skill in self.soft_skills.split(',')] if self.soft_skills else []
+    
+    def get_all_skills_list(self):
+        """Get combined list of technical and soft skills"""
+        all_skills = []
+        if self.technical_skills:
+            all_skills.extend([skill.strip() for skill in self.technical_skills.split(',') if skill.strip()])
+        if self.soft_skills:
+            all_skills.extend([skill.strip() for skill in self.soft_skills.split(',') if skill.strip()])
+        return all_skills
 
     def get_internships(self):
         """Returns internships as a list of dictionaries"""
@@ -191,7 +205,15 @@ class User(AbstractUser):
             
             for job in open_jobs:
                 if job.skills:
-                    job_skills_set = set([skill.lower().strip() for skill in job.skills])
+                    # Handle both old format (strings) and new format (dicts)
+                    job_skills_list = []
+                    for skill in job.skills:
+                        if isinstance(skill, dict):
+                            job_skills_list.append(skill.get('name', '').lower().strip())
+                        else:
+                            job_skills_list.append(skill.lower().strip())
+                    
+                    job_skills_set = set(job_skills_list)
                     
                     if job_skills_set:
                         matching_skills = user_skills_set.intersection(job_skills_set)
@@ -207,17 +229,104 @@ class User(AbstractUser):
             logger = logging.getLogger(__name__)
             logger.error(f"Error calculating job matches for user {self.id}: {str(e)}")
             return 0
-
-
-class RecruiterProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='recruiterprofile')
-    company_name = models.CharField(max_length=255)
-    company_website = models.URLField(blank=True, null=True)
-    company_description = models.TextField(blank=True, null=True)
-   
-    def __str__(self):
-        return f"{self.company_name} - {self.user.full_name or self.user.username}"
     
-    class Meta:
-        verbose_name = "Recruiter Profile"
-        verbose_name_plural = "Recruiter Profiles"
+    def calculate_job_fit_score(self, job):
+        """
+        Calculate job fit score based on verified skills vs job requirements
+        
+        Formula: (matched_skills / total_required_skills) × 100
+        Enhanced with:
+        - Proficiency level matching
+        - Skill weight importance
+        - Experience multipliers
+        
+        Args:
+            job: Job instance to calculate fit against
+        
+        Returns:
+            dict: {
+                'score': float (0-100),
+                'matched_skills': list,
+                'missing_skills': list,
+                'weak_skills': list (have but below required level)
+            }
+        """
+        from assessments.models import UserSkillProfile
+        
+        # Get user's verified skills
+        user_skills = UserSkillProfile.objects.filter(user=self).select_related('skill')
+        user_skill_dict = {
+            profile.skill.name.lower(): profile.verified_level 
+            for profile in user_skills
+        }
+        
+        # Get job required skills
+        if not job.skills:
+            return {'score': 0, 'matched_skills': [], 'missing_skills': [], 'weak_skills': []}
+        
+        required_skills = job.skills  # Assuming it's a list
+        total_required = len(required_skills)
+        
+        if total_required == 0:
+            return {'score': 100, 'matched_skills': [], 'missing_skills': [], 'weak_skills': []}
+        
+        matched_skills = []
+        missing_skills = []
+        weak_skills = []
+        
+        # Default required proficiency for jobs
+        default_required_proficiency = {
+            'Entry Level': 4.0,
+            'Mid Level': 6.0,
+            'Senior': 8.0
+        }.get(getattr(job, 'experience_level', 'Mid Level'), 6.0)
+        
+        for skill_name in required_skills:
+            skill_lower = skill_name.lower().strip()
+            
+            if skill_lower in user_skill_dict:
+                user_level = user_skill_dict[skill_lower]
+                
+                # Check if proficiency meets requirement
+                if user_level >= default_required_proficiency:
+                    matched_skills.append({
+                        'name': skill_name,
+                        'level': user_level,
+                        'status': 'strong'
+                    })
+                else:
+                    weak_skills.append({
+                        'name': skill_name,
+                        'current': user_level,
+                        'required': default_required_proficiency,
+                        'gap': default_required_proficiency - user_level
+                    })
+            else:
+                missing_skills.append({
+                    'name': skill_name,
+                    'required': default_required_proficiency
+                })
+        
+        # Calculate base score
+        matched_count = len(matched_skills)
+        weak_count = len(weak_skills)
+        
+        # Give partial credit for weak skills (0.5 credit)
+        effective_matched = matched_count + (weak_count * 0.5)
+        base_score = (effective_matched / total_required) * 100
+        
+        # Experience multiplier (optional enhancement)
+        experience_years = self.experience or 0
+        if experience_years >= 5:
+            base_score = min(base_score * 1.1, 100)  # 10% bonus
+        elif experience_years >= 3:
+            base_score = min(base_score * 1.05, 100)  # 5% bonus
+        
+        return {
+            'score': round(base_score, 1),
+            'matched_skills': matched_skills,
+            'missing_skills': missing_skills,
+            'weak_skills': weak_skills,
+            'total_required': total_required,
+            'matched_count': matched_count
+        }

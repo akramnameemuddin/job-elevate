@@ -22,10 +22,19 @@ class ContentBasedRecommender:
     def get_skill_vector(self, skills_list):
         """Convert a list of skills to a simple vector representation"""
         # Normalize skills (lowercase, remove extra spaces)
-        return [skill.lower().strip() for skill in skills_list if skill.strip()]
+        # Handle both old format (strings) and new format (dicts)
+        result = []
+        for skill in skills_list:
+            if isinstance(skill, dict):
+                skill_name = skill.get('name', '')
+                if skill_name.strip():
+                    result.append(skill_name.lower().strip())
+            elif isinstance(skill, str) and skill.strip():
+                result.append(skill.lower().strip())
+        return result
     
     def calculate_skill_match(self, user_skills, job_skills):
-        """Calculate the skill match score between user and job skills"""
+        """Calculate the skill match score between user skills and job skills"""
         if not user_skills or not job_skills:
             return 0.0
         
@@ -248,8 +257,8 @@ class ContentBasedRecommender:
     def recommend_jobs(self, user, limit=20):
         """Recommend jobs based on enhanced content similarity and user preferences"""
         try:
-            # Get user's skills and experience
-            user_skills = user.get_skills_list()
+            # Get user's skills (combine technical + soft skills)
+            user_skills = user.get_all_skills_list()
             user_experience = user.experience
 
             # Get user's job preferences if available
@@ -436,9 +445,9 @@ class CollaborativeRecommender:
     def _calculate_user_similarity(self, user1, user2):
         """Calculate similarity between two users based on their behavior and profile"""
         try:
-            # 1. Calculate similarity based on skill overlap
-            user1_skills = set(user1.get_skills_list())
-            user2_skills = set(user2.get_skills_list())
+            # 1. Calculate similarity based on skill overlap (combine technical + soft)
+            user1_skills = set(user1.get_all_skills_list())
+            user2_skills = set(user2.get_all_skills_list())
             
             # Jaccard similarity for skills
             if user1_skills and user2_skills:
@@ -494,7 +503,7 @@ class CollaborativeRecommender:
             return final_similarity
             
         except Exception as e:
-            logger.error(f"Error calculating similarity between users {user1.id} and {user2.id}: {str(e)}")
+            logger.error(f"Error calculating similarity between users {user1.id} and {user2.id}: {str(e)}", exc_info=True)
             return 0
     
     def recommend_jobs(self, user, limit=20):

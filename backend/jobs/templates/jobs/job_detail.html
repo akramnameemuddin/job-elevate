@@ -1,5 +1,6 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
+{% load jobs_extras %}
 
 {% block title %}{{ job.title }} at {{ job.company }} | JobMatch{% endblock %}
 
@@ -88,9 +89,15 @@
                 
                 <div class="job-actions">
                     {% if not already_applied %}
-                    <button id="applyBtn" class="btn btn-primary btn-lg">
-                        <i class='bx bx-send'></i> Apply Now
-                    </button>
+                        {% if can_apply %}
+                            <button id="applyBtn" class="btn btn-primary btn-lg">
+                                <i class='bx bx-send'></i> Apply Now
+                            </button>
+                        {% else %}
+                            <button class="btn btn-warning btn-lg" disabled>
+                                <i class='bx bx-lock'></i> Complete Required Skills First
+                            </button>
+                        {% endif %}
                     {% else %}
                     <button class="btn btn-success btn-lg" disabled>
                         <i class='bx bx-check'></i> Applied
@@ -107,6 +114,179 @@
                     </button>
                 </div>
             </div>
+
+            <!-- NEW: Skill Gap Analysis Section -->
+            {% if skill_requirements %}
+            <div class="content-section skill-gap-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class='bx bx-bar-chart'></i> Skill Requirements & Your Match
+                    </h2>
+                    <span class="match-badge {% if match_score >= 80 %}excellent{% elif match_score >= 60 %}good{% else %}low{% endif %}">
+                        {{ match_score }}% Overall Match
+                    </span>
+                </div>
+                
+                <div class="section-content">
+                    <!-- Verified Skills -->
+                    {% if verified_skills %}
+                    <div class="skill-category-box verified-box">
+                        <h3><i class='bx bx-check-circle'></i> ✅ Verified Skills ({{ verified_skills|length }})</h3>
+                        <div class="skills-grid">
+                            {% for skill_data in verified_skills %}
+                            <div class="skill-requirement-card verified">
+                                <div class="skill-header">
+                                    <strong>{{ skill_data.skill.name }}</strong>
+                                    <span class="criticality-badge {{ skill_data.criticality|lower }}">
+                                        {{ skill_data.criticality }}
+                                    </span>
+                                </div>
+                                <div class="skill-levels">
+                                    <div class="level-bar">
+                                        <div class="level-label">Required:</div>
+                                        <div class="level-progress">
+                                            <div class="progress-bar-bg">
+                                                <div class="progress-bar-fill required" style="width: {{ skill_data.required_proficiency|floatformat:0|multiply:10 }}%"></div>
+                                            </div>
+                                            <span class="level-value">{{ skill_data.required_proficiency }}/10</span>
+                                        </div>
+                                    </div>
+                                    <div class="level-bar">
+                                        <div class="level-label">Your Level:</div>
+                                        <div class="level-progress">
+                                            <div class="progress-bar-bg">
+                                                <div class="progress-bar-fill current" style="width: {{ skill_data.user_proficiency|floatformat:0|multiply:10 }}%"></div>
+                                            </div>
+                                            <span class="level-value verified-badge">{{ skill_data.user_proficiency }}/10 ✓</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="skill-status qualified">
+                                    <i class='bx bx-check'></i> Qualified
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Partial Skills -->
+                    {% if partial_skills %}
+                    <div class="skill-category-box partial-box">
+                        <h3><i class='bx bx-time'></i> ⚠️ Partially Qualified ({{ partial_skills|length }})</h3>
+                        <div class="skills-grid">
+                            {% for skill_data in partial_skills %}
+                            <div class="skill-requirement-card partial">
+                                <div class="skill-header">
+                                    <strong>{{ skill_data.skill.name }}</strong>
+                                    <span class="criticality-badge {{ skill_data.criticality|lower }}">
+                                        {{ skill_data.criticality }}
+                                    </span>
+                                </div>
+                                <div class="skill-levels">
+                                    <div class="level-bar">
+                                        <div class="level-label">Required:</div>
+                                        <div class="level-progress">
+                                            <div class="progress-bar-bg">
+                                                <div class="progress-bar-fill required" style="width: {{ skill_data.required_proficiency|floatformat:0|multiply:10 }}%"></div>
+                                            </div>
+                                            <span class="level-value">{{ skill_data.required_proficiency }}/10</span>
+                                        </div>
+                                    </div>
+                                    <div class="level-bar">
+                                        <div class="level-label">Your Level:</div>
+                                        <div class="level-progress">
+                                            <div class="progress-bar-bg">
+                                                <div class="progress-bar-fill current" style="width: {{ skill_data.user_proficiency|floatformat:0|multiply:10 }}%"></div>
+                                            </div>
+                                            <span class="level-value">{{ skill_data.user_proficiency }}/10</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="skill-gap-info">
+                                    <span class="gap-amount">Gap: {{ skill_data.gap|floatformat:1 }} points</span>
+                                    <a href="{% url 'assessments:start_assessment_from_job' job.id skill_data.skill_id %}" class="btn btn-sm btn-warning">
+                                        <i class='bx bx-trending-up'></i> Retake Assessment
+                                    </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Missing Skills -->
+                    {% if missing_skills %}
+                    <div class="skill-category-box missing-box">
+                        <h3><i class='bx bx-x-circle'></i> ❌ Skills to Learn ({{ missing_skills|length }})</h3>
+                        <div class="skills-grid">
+                            {% for skill_data in missing_skills %}
+                            <div class="skill-requirement-card missing">
+                                <div class="skill-header">
+                                    <strong>{{ skill_data.skill.name }}</strong>
+                                    <span class="criticality-badge {{ skill_data.criticality|lower }}">
+                                        {% if skill_data.is_mandatory %}
+                                            🔒 Mandatory
+                                        {% else %}
+                                            {{ skill_data.criticality }}
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <div class="skill-levels">
+                                    <div class="level-bar">
+                                        <div class="level-label">Required:</div>
+                                        <div class="level-progress">
+                                            <div class="progress-bar-bg">
+                                                <div class="progress-bar-fill required" style="width: {{ skill_data.required_proficiency|floatformat:0|multiply:10 }}%"></div>
+                                            </div>
+                                            <span class="level-value">{{ skill_data.required_proficiency }}/10</span>
+                                        </div>
+                                    </div>
+                                    <div class="level-bar">
+                                        <div class="level-label">Your Level:</div>
+                                        <div class="level-progress">
+                                            <div class="progress-bar-bg">
+                                                <div class="progress-bar-fill current" style="width: 0%"></div>
+                                            </div>
+                                            <span class="level-value not-verified">Not Verified</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="skill-gap-info">
+                                    {% if skill_data.is_claimed %}
+                                        <a href="{% url 'assessments:start_assessment_from_job' job.id skill_data.skill_id %}" class="btn btn-sm btn-primary">
+                                            <i class='bx bx-book-reader'></i> Take Assessment
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'jobs:claim_skill_from_job' job.id skill_data.skill_id %}" class="btn btn-sm btn-primary">
+                                            <i class='bx bx-plus-circle'></i> Add & Take Assessment
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Action Banner -->
+                    {% if missing_skills or partial_skills %}
+                    <div class="action-banner">
+                        <div class="banner-content">
+                            <i class='bx bx-info-circle'></i>
+                            <div>
+                                <strong>Ready to close the gap?</strong>
+                                <p>Take assessments to verify your skills and increase your match score!</p>
+                            </div>
+                        </div>
+                        <a href="{% url 'assessments:skill_intake_dashboard' %}" class="btn btn-primary">
+                            <i class='bx bx-brain'></i> Go to Skill Diagnostic
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
 
             <!-- Job description -->
             <div class="content-section">
@@ -138,16 +318,69 @@
                     <h2 class="section-title"><i class='bx bx-brain'></i> Skills Required</h2>
                 </div>
                 <div class="section-content">
-                    <div class="skills-container">
-                        {% for skill in job.skills %}
-                        <span class="skill-tag {% if skill in matching_skills %}skill-match{% endif %}">
-                            {% if skill in matching_skills %}<i class='bx bx-check'></i>{% endif %}
-                            {{ skill }}
-                        </span>
-                        {% empty %}
-                        <p>No specific skills listed.</p>
+                    {% if skill_requirements %}
+                    <div class="skills-requirements-grid">
+                        {% for req in skill_requirements %}
+                        <div class="skill-req-card">
+                            <div class="skill-req-header">
+                                <span class="skill-name">{{ req.skill.name }}</span>
+                                {% if req.is_mandatory %}
+                                <span class="mandatory-badge">
+                                    <i class='bx bx-lock-alt'></i> Mandatory
+                                </span>
+                                {% endif %}
+                            </div>
+                            <div class="skill-req-body">
+                                <div class="proficiency-required">
+                                    <span class="label">Required Level:</span>
+                                    <div class="proficiency-bar">
+                                        <div class="proficiency-fill" style="width: {{ req.required_proficiency|multiply:10 }}%"></div>
+                                    </div>
+                                    <span class="proficiency-value">{{ req.required_proficiency }}/10</span>
+                                </div>
+                                <div class="criticality-badge-container">
+                                    <span class="criticality-badge {{ req.skill_type }}">
+                                        {% if req.skill_type == 'must_have' %}
+                                            <i class='bx bx-star'></i> Must Have
+                                        {% elif req.skill_type == 'important' %}
+                                            <i class='bx bx-info-circle'></i> Important
+                                        {% else %}
+                                            <i class='bx bx-check-circle'></i> Nice to Have
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                         {% endfor %}
                     </div>
+                    {% elif job.skills %}
+                    <!-- Fallback: Show basic skills from job.skills -->
+                    <div class="empty-skills-state" style="background: var(--hover-bg); padding: 1.5rem; border-radius: 12px;">
+                        <i class='bx bx-info-circle' style="font-size: 2rem; color: var(--primary-color);"></i>
+                        <p style="margin: 1rem 0 0.5rem;">This job requires the following skills:</p>
+                        <div class="skills-container" style="justify-content: center; margin-top: 1rem;">
+                            {% for skill in job.skills %}
+                                {% if skill.name %}
+                                    <span class="skill-tag" style="background: var(--primary-color); color: white; border: none;">
+                                        {{ skill.name }}
+                                    </span>
+                                {% elif skill %}
+                                    <span class="skill-tag" style="background: var(--primary-color); color: white; border: none;">
+                                        {{ skill }}
+                                    </span>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-light);">
+                            <i class='bx bx-error-circle'></i> Detailed skill proficiency levels not available for this job.
+                        </p>
+                    </div>
+                    {% else %}
+                    <div class="empty-skills-state">
+                        <i class='bx bx-info-circle'></i>
+                        <p>No specific skills requirements defined for this position.</p>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
             <!-- About the company -->
@@ -183,8 +416,8 @@
                     <div class="skills-match">
                         <h4><i class='bx bx-check-circle'></i> Your Matching Skills ({{ matching_skills|length }})</h4>
                         <div class="skills-container">
-                            {% for skill in matching_skills %}
-                            <span class="skill-tag skill-match"><i class='bx bx-check'></i> {{ skill }}</span>
+                            {% for skill_name in matching_skills %}
+                            <span class="skill-tag skill-match"><i class='bx bx-check'></i> {{ skill_name }}</span>
                             {% empty %}
                             <p>You don't have any matching skills yet.</p>
                             {% endfor %}
@@ -192,14 +425,43 @@
                     </div>
                     
                     <div class="skills-missing">
-                        <h4><i class='bx bx-x-circle'></i> Skills to Develop ({{ missing_skills|length }})</h4>
+                        <h4><i class='bx bx-x-circle'></i> Skills to Develop ({{ skills_to_develop|length }})</h4>
                         <div class="skills-container">
-                            {% for skill in missing_skills %}
-                            <span class="skill-tag skill-missing">{{ skill }}</span>
+                            {% for skill in skills_to_develop %}
+                                {% if skill.status == 'partial' %}
+                                <span class="skill-tag skill-partial" title="You have {{ skill.user_level }}/{{ skill.required_level }} - Need improvement">
+                                    {{ skill.name }} <small>({{ skill.user_level }}/{{ skill.required_level }})</small>
+                                </span>
+                                {% elif skill.not_in_db %}
+                                <span class="skill-tag" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid #f59e0b;" title="Skill not in system yet - Contact admin to add">
+                                    {{ skill.name }} <small><i class='bx bx-error-circle'></i></small>
+                                </span>
+                                {% else %}
+                                <span class="skill-tag skill-missing" title="Not verified - Add to profile and take assessment">
+                                    {{ skill.name }}
+                                </span>
+                                {% endif %}
                             {% empty %}
                             <p>You have all the required skills!</p>
                             {% endfor %}
                         </div>
+                        {% if skills_to_develop %}
+                        <div style="margin-top: 1rem; padding: 0.75rem; background: var(--hover-bg); border-radius: 8px; font-size: 0.9rem;">
+                            <p style="margin: 0 0 0.5rem 0; color: var(--text-light);">
+                                <i class='bx bx-info-circle'></i> 
+                                <strong>{{ skills_to_develop|length }} skill{{ skills_to_develop|length|pluralize }}</strong> need{{ skills_to_develop|length|pluralize:"s," }} development.
+                            </p>
+                            <a href="{% url 'assessments:job_skill_gap_analysis' job.id %}" class="btn btn-sm" style="background: var(--primary-color); color: white; text-decoration: none; padding: 0.4rem 0.8rem; border-radius: 6px; display: inline-block; margin-top: 0.5rem;">
+                                <i class='bx bx-plus-circle'></i> Add Skills & Take Assessments
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="skill-gap-action" style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+                        <a href="{% url 'assessments:job_skill_gap_analysis' job.id %}" class="btn btn-primary btn-block">
+                            <i class='bx bx-chart-bar'></i> View Detailed Skill Gap Analysis
+                        </a>
                     </div>
                 </div>
             </div>
@@ -602,7 +864,7 @@
 
     .skill-match {
         background: rgba(46, 204, 113, 0.15);
-        color: var(--success-color);
+        color: #10b981;
         border-color: rgba(46, 204, 113, 0.3);
     }
 
@@ -611,11 +873,159 @@
         font-size: 0.75rem;
     }
 
+    .skill-partial {
+        background: rgba(245, 158, 11, 0.15);
+        color: #f59e0b;
+        border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    .skill-partial small {
+        opacity: 0.8;
+        font-size: 0.75rem;
+        margin-left: 0.25rem;
+    }
+
     .skill-missing {
         background: var(--hover-bg);
         color: var(--text-light);
         opacity: 0.8;
     }
+
+    /* Skills Requirements Grid */
+    .skills-requirements-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .skill-req-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        transition: var(--transition);
+    }
+
+    .skill-req-card:hover {
+        border-color: var(--primary-color);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .skill-req-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .skill-name {
+        font-weight: 600;
+        font-size: 1rem;
+        color: var(--text-color);
+    }
+
+    .mandatory-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.25rem 0.5rem;
+        background: #FEE2E2;
+        color: #991B1B;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .skill-req-body {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .proficiency-required {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .proficiency-required .label {
+        font-size: 0.813rem;
+        color: var(--text-secondary);
+        min-width: 90px;
+    }
+
+    .proficiency-bar {
+        flex: 1;
+        height: 8px;
+        background: var(--hover-bg);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .proficiency-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary-color), var(--primary-hover));
+        border-radius: 4px;
+        transition: width 0.3s;
+    }
+
+    .proficiency-value {
+        font-weight: 600;
+        color: var(--text-color);
+        font-size: 0.875rem;
+        min-width: 45px;
+    }
+
+    .criticality-badge-container {
+        display: flex;
+        justify-content: flex-start;
+    }
+
+    .criticality-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.375rem 0.75rem;
+        border-radius: 0.375rem;
+        font-size: 0.813rem;
+        font-weight: 500;
+    }
+
+    .criticality-badge.must_have {
+        background: rgba(239, 68, 68, 0.15);
+        color: #ef4444;
+    }
+
+    .criticality-badge.important {
+        background: rgba(245, 158, 11, 0.15);
+        color: #f59e0b;
+    }
+
+    .criticality-badge.nice_to_have {
+        background: rgba(59, 130, 246, 0.15);
+        color: #3b82f6;
+    }
+
+    .empty-skills-state {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-secondary);
+    }
+
+    .empty-skills-state i {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        opacity: 0.5;
+    }
+
+    .empty-skills-state p {
+        margin: 0;
+        font-size: 0.875rem;
+    }
+
 
     /* Sidebar - Mobile First */
     .job-sidebar {
@@ -1527,6 +1937,270 @@
 
         .similar-job-item {
             min-height: 60px;
+        }
+    }
+
+    /* NEW: Skill Gap Analysis Styles */
+    .skill-gap-section {
+        background: linear-gradient(135deg, rgba(73, 103, 229, 0.1), rgba(99, 102, 241, 0.1));
+        border: 2px solid var(--primary-color);
+        color: var(--text-color);
+    }
+
+    .skill-gap-section .section-header {
+        border-bottom-color: var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .skill-gap-section .section-title {
+        color: var(--text-color);
+    }
+
+    .match-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .match-badge.excellent {
+        background: #27ae60;
+        color: #fff;
+    }
+
+    .match-badge.good {
+        background: #3498db;
+        color: #fff;
+    }
+
+    .match-badge.low {
+        background: #e74c3c;
+        color: #fff;
+    }
+
+    .skill-category-box {
+        background: #fff;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        color: #2c3e50;
+    }
+
+    .skill-category-box h3 {
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .verified-box {
+        border-left: 4px solid #27ae60;
+    }
+
+    .partial-box {
+        border-left: 4px solid #f39c12;
+    }
+
+    .missing-box {
+        border-left: 4px solid #e74c3c;
+    }
+
+    .skills-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1rem;
+    }
+
+    .skill-requirement-card {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        border: 2px solid #ecf0f1;
+    }
+
+    .skill-requirement-card.verified {
+        border-color: #27ae60;
+        background: #e8f5e9;
+    }
+
+    .skill-requirement-card.partial {
+        border-color: #f39c12;
+        background: #fff9e6;
+    }
+
+    .skill-requirement-card.missing {
+        border-color: #e74c3c;
+        background: #ffebee;
+    }
+
+    .skill-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .skill-header strong {
+        font-size: 1.1rem;
+        color: #2c3e50;
+    }
+
+    .criticality-badge {
+        padding: 0.3rem 0.8rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .criticality-badge.must {
+        background: #e74c3c;
+        color: #fff;
+    }
+
+    .criticality-badge.important {
+        background: #f39c12;
+        color: #fff;
+    }
+
+    .criticality-badge.nice {
+        background: #3498db;
+        color: #fff;
+    }
+
+    .skill-levels {
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+        margin-bottom: 1rem;
+    }
+
+    .level-bar {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+
+    .level-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #7f8c8d;
+    }
+
+    .level-progress {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    .progress-bar-bg {
+        flex: 1;
+        height: 10px;
+        background: #ecf0f1;
+        border-radius: 5px;
+        overflow: hidden;
+    }
+
+    .progress-bar-fill {
+        height: 100%;
+        border-radius: 5px;
+        transition: width 0.3s ease;
+    }
+
+    .progress-bar-fill.required {
+        background: linear-gradient(90deg, #e74c3c, #c0392b);
+    }
+
+    .progress-bar-fill.current {
+        background: linear-gradient(90deg, #3498db, #27ae60);
+    }
+
+    .level-value {
+        font-weight: 600;
+        color: #2c3e50;
+        min-width: 60px;
+    }
+
+    .level-value.verified-badge {
+        color: #27ae60;
+    }
+
+    .level-value.not-verified {
+        color: #e74c3c;
+        font-size: 0.85rem;
+    }
+
+    .skill-status {
+        padding: 0.5rem;
+        border-radius: 6px;
+        text-align: center;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.3rem;
+    }
+
+    .skill-status.qualified {
+        background: #27ae60;
+        color: #fff;
+    }
+
+    .skill-gap-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .gap-amount {
+        font-weight: 600;
+        color: #e74c3c;
+    }
+
+    .action-banner {
+        background: #fff;
+        border-radius: 12px;
+        padding: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 2px solid #3498db;
+    }
+
+    .banner-content {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .banner-content i {
+        font-size: 2rem;
+        color: #3498db;
+    }
+
+    .banner-content strong {
+        display: block;
+        margin-bottom: 0.3rem;
+        color: #2c3e50;
+    }
+
+    .banner-content p {
+        margin: 0;
+        color: #7f8c8d;
+    }
+
+    @media (max-width: 768px) {
+        .skills-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .action-banner {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
         }
     }
 </style>

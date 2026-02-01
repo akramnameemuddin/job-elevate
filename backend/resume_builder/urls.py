@@ -13,4 +13,4 @@ urlpatterns = [
     path('download/<int:resume_id>/', views.download_resume, name='download_resume'),
     path('delete/<int:resume_id>/', views.delete_resume, name='delete_resume'),
     path('change-template/<int:resume_id>/', views.change_template, name='change_template'),
-]+ static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
+]

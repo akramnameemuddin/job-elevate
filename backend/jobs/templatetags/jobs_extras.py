@@ -14,6 +14,14 @@ def percentage(value):
         return 0
 
 @register.filter
+def multiply(value, arg):
+    """Multiply the value by the argument"""
+    try:
+        return float(value) * float(arg)
+    except (ValueError, TypeError):
+        return 0
+
+@register.filter
 def match_color(value):
     """Return CSS class based on match percentage"""
     try:
@@ -40,3 +48,4 @@ def match_badge_color(value):
             return 'bg-secondary'
     except (ValueError, TypeError):
         return 'bg-secondary'
+

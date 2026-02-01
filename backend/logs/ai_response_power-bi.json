@@ -1,0 +1,144 @@
+{
+  "questions": [
+    {
+      "question_text": "What is Power BI primarily used for",
+      "options": ["Creating mobile applications", "Developing websites", "Business intelligence and data visualization", "Managing server infrastructure"],
+      "correct_answer": "Business intelligence and data visualization",
+      "difficulty": "easy",
+      "explanation": "Power BI is a business intelligence tool used for data analysis and creating interactive visualizations."
+    },
+    {
+      "question_text": "Which component of Power BI Desktop allows you to connect to various data sources",
+      "options": ["Power Query Editor", "Get Data", "Model View", "Report View"],
+      "correct_answer": "Get Data",
+      "difficulty": "easy",
+      "explanation": "The Get Data option in Power BI Desktop is used to import data from different sources."
+    },
+    {
+      "question_text": "What is the standard file extension for a Power BI Desktop report file",
+      "options": [".xlsx", ".pbix", ".csv", ".json"],
+      "correct_answer": ".pbix",
+      "difficulty": "easy",
+      "explanation": "Power BI Desktop files are saved with the .pbix extension."
+    },
+    {
+      "question_text": "In Power BI Desktop, which view is used to create and manage relationships between tables",
+      "options": ["Report View", "Data View", "Model View", "Power Query View"],
+      "correct_answer": "Model View",
+      "difficulty": "easy",
+      "explanation": "The Model View in Power BI Desktop is where you define and manage relationships between your data tables."
+    },
+    {
+      "question_text": "What does the acronym DAX stand for in Power BI",
+      "options": ["Data Access eXchange", "Data Analysis eXpress", "Data Analysis eXpressions", "Digital Analytics eXtensions"],
+      "correct_answer": "Data Analysis eXpressions",
+      "difficulty": "easy",
+      "explanation": "DAX is a formula language used in Power BI for creating calculated columns and measures."
+    },
+    {
+      "question_text": "Which type of visual is best suited for displaying trends over a period of time in Power BI",
+      "options": ["Bar chart", "Pie chart", "Line chart", "Scatter plot"],
+      "correct_answer": "Line chart",
+      "difficulty": "easy",
+      "explanation": "Line charts are ideal for showing how data changes or trends over a continuous period like time."
+    },
+    {
+      "question_text": "What is a Power BI Report",
+      "options": ["A single data table", "A collection of datasets", "A collection of visuals on one or more pages", "A database management system"],
+      "correct_answer": "A collection of visuals on one or more pages",
+      "difficulty": "easy",
+      "explanation": "A Power BI report consists of multiple pages, each containing various visuals and filters to present data insights."
+    },
+    {
+      "question_text": "How do you make a Power BI Desktop report available to others in the Power BI service",
+      "options": ["Export it as a PDF", "Email the .pbix file", "Use the Publish button in Power BI Desktop", "Save it to a network drive"],
+      "correct_answer": "Use the Publish button in Power BI Desktop",
+      "difficulty": "easy",
+      "explanation": "The Publish button in Power BI Desktop uploads your report and dataset to the Power BI service, making it accessible to others."
+    },
+    {
+      "question_text": "You need to calculate the total sales for a specific product category, ignoring any existing filters on other categories. Which DAX function would be most appropriate to modify the filter context",
+      "options": ["SUM", "AVERAGE", "CALCULATE", "COUNTROWS"],
+      "correct_answer": "CALCULATE",
+      "difficulty": "medium",
+      "explanation": "CALCULATE is a powerful DAX function that allows you to modify the filter context in which an expression is evaluated, enabling calculations like total sales for a specific category regardless of other filters."
+    },
+    {
+      "question_text": "What is the primary purpose of the Power Query Editor in Power BI Desktop",
+      "options": ["To design interactive reports", "To create relationships between tables", "To transform and clean data", "To write DAX formulas"],
+      "correct_answer": "To transform and clean data",
+      "difficulty": "medium",
+      "explanation": "Power Query Editor is used for extracting, transforming, and loading ETL data, allowing users to clean, reshape, and combine data from various sources before loading it into the Power BI data model."
+    },
+    {
+      "question_text": "To create a measure that shows the percentage of total sales for each product, what DAX pattern would you typically use",
+      "options": ["DIVIDE(SUM(Sales[Amount]), SUM(Sales[Amount])) without context modification", "DIVIDE(SUM(Sales[Amount]), CALCULATE(SUM(Sales[Amount]), ALL(Sales)))", "SUM(Sales[Amount]) / COUNTROWS(Sales)", "CALCULATE(SUM(Sales[Amount]), FILTER(ALL(Sales), Sales[Product] = CURRENTITEM()))"],
+      "correct_answer": "DIVIDE(SUM(Sales[Amount]), CALCULATE(SUM(Sales[Amount]), ALL(Sales)))",
+      "difficulty": "medium",
+      "explanation": "To calculate a percentage of total, you need the current item's value divided by the grand total. ALL(Sales) removes all filters from the Sales table, giving you the grand total for the denominator."
+    },
+    {
+      "question_text": "What is a key difference between a calculated column and a measure in Power BI",
+      "options": ["Calculated columns are stored in the model and measures are calculated on the fly", "Calculated columns are always faster than measures", "Measures can only be used in tables", "Calculated columns are only for text data"],
+      "correct_answer": "Calculated columns are stored in the model and measures are calculated on the fly",
+      "difficulty": "medium",
+      "explanation": "Calculated columns consume memory and are computed during data refresh, storing a value for each row. Measures are calculated dynamically at query time based on the current filter context and do not consume storage space in the model."
+    },
+    {
+      "question_text": "In a star schema data model, what is the preferred relationship type between a dimension table e.g. Products and a fact table e.g. Sales",
+      "options": ["Many-to-many", "One-to-one", "One-to-many", "Many-to-one"],
+      "correct_answer": "One-to-many",
+      "difficulty": "medium",
+      "explanation": "In a star schema, dimension tables typically have a unique key that relates to multiple rows in the fact table, forming a one-to-many relationship from the dimension to the fact table."
+    },
+    {
+      "question_text": "You have imported a date table into Power BI. To ensure that time intelligence DAX functions work correctly, what essential step must you perform",
+      "options": ["Mark it as a fact table", "Hide all columns in the date table", "Mark it as a date table", "Create a calculated column for each date part"],
+      "correct_answer": "Mark it as a date table",
+      "difficulty": "medium",
+      "explanation": "Marking a date table as a date table in Power BI Desktop is crucial for time intelligence functions to correctly identify and use the date hierarchy and context."
+    },
+    {
+      "question_text": "What is Row-Level Security RLS in Power BI and how is it primarily implemented",
+      "options": ["It encrypts data at the row level and is implemented via Power Query", "It restricts data access for users based on roles and is implemented using DAX filters", "It secures the Power BI service infrastructure and is implemented by IT admins", "It controls who can edit reports and is implemented through workspace permissions"],
+      "correct_answer": "It restricts data access for users based on roles and is implemented using DAX filters",
+      "difficulty": "hard",
+      "explanation": "RLS allows you to define roles and rules using DAX filters that restrict which rows of data a user can see. When a user logs in, the RLS rules are applied, filtering the data visible to them."
+    },
+    {
+      "question_text": "Explain the difference between 'filter context' and 'row context' in DAX",
+      "options": ["Filter context applies to individual rows while row context applies to the entire table", "Filter context is created by visuals and slicers, while row context is created by iterating functions", "They are interchangeable terms for the same concept", "Row context is only for calculated columns, filter context is only for measures"],
+      "correct_answer": "Filter context is created by visuals and slicers, while row context is created by iterating functions",
+      "difficulty": "hard",
+      "explanation": "Filter context describes the set of filters applied to a calculation e.g. by slicers, visuals. Row context is created when DAX functions iterate over a table e.g. SUMX, FILTER and evaluates an expression for each row."
+    },
+    {
+      "question_text": "Your Power BI report is performing slowly. Which of the following is NOT a common optimization technique for improving report performance",
+      "options": ["Reducing the number of rows and columns in the data model", "Optimizing complex DAX measures", "Using more high-cardinality columns in filters", "Choosing appropriate storage modes e.g. Import vs DirectQuery"],
+      "correct_answer": "Using more high-cardinality columns in filters",
+      "difficulty": "hard",
+      "explanation": "Using more high-cardinality columns columns with many unique values in filters or visuals can often degrade performance, as it increases the complexity of filtering and aggregation. Optimization usually involves reducing cardinality where possible or using efficient filtering strategies."
+    },
+    {
+      "question_text": "When would you typically choose DirectQuery over Import mode for a Power BI dataset, and what is a significant limitation of DirectQuery",
+      "options": ["Choose DirectQuery for smaller datasets and its limitation is faster refresh times", "Choose DirectQuery for real-time data needs or very large datasets, but its limitation is slower query performance", "Choose DirectQuery for complex DAX calculations and its limitation is limited data sources", "Choose DirectQuery for offline access and its limitation is no security features"],
+      "correct_answer": "Choose DirectQuery for real-time data needs or very large datasets, but its limitation is slower query performance",
+      "difficulty": "hard",
+      "explanation": "DirectQuery is suitable when data needs to be real-time or the dataset is too large to fit into memory Import mode. However, it generally results in slower query performance compared to Import mode because every interaction with the report triggers a query back to the source database."
+    },
+    {
+      "question_text": "What is the purpose of the 'Summarization' property for columns in Power BI, and when might you change it from the default",
+      "options": ["It defines how text columns are sorted and should be changed for alphabetical order", "It determines the default aggregation behavior of a column in visuals and should be changed for non-additive measures", "It controls the visibility of a column in the report view and should be changed to hide sensitive data", "It specifies the data type of a column and should be changed for numerical precision"],
+      "correct_answer": "It determines the default aggregation behavior of a column in visuals and should be changed for non-additive measures",
+      "difficulty": "hard",
+      "explanation": "The Summarization property e.g. Sum, Average, Count, Do Not Summarize dictates how a column will aggregate by default when dragged into a visual. You would change it from the default often Sum for numbers for columns that represent non-additive values like unit price, which should be averaged or identifiers which should be counted or not summarized."
+    },
+    {
+      "question_text": "Describe the difference between a many-to-many relationship created directly in Power BI Desktop and one created using a bridge table. Which approach is generally preferred and why",
+      "options": ["Direct many-to-many is faster but less flexible; bridge table is slower but more flexible. Direct is preferred for simplicity.", "Direct many-to-many can be ambiguous and less performant; a bridge table provides clear filtering paths and better performance. The bridge table approach is generally preferred for clarity and control.", "Direct many-to-many is only for small datasets; bridge table is for large datasets. Direct is preferred for ease of setup.", "There is no functional difference; they are just different ways to achieve the same result. Neither is preferred."],
+      "correct_answer": "Direct many-to-many can be ambiguous and less performant; a bridge table provides clear filtering paths and better performance. The bridge table approach is generally preferred for clarity and control.",
+      "difficulty": "hard",
+      "explanation": "A direct many-to-many relationship in Power BI can sometimes lead to ambiguous filter propagation and performance issues. A bridge table or junction table explicitly models the many-to-many relationship as two one-to-many relationships, providing clear filter context, better performance, and more control over DAX calculations, making it the generally preferred approach."
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from accounts.models import User, RecruiterProfile
+from accounts.models import User
 from recruiter.models import Job  # Import Job model
 from jobs.recommendation_engine import HybridRecommender  # Import recommendation engine
 import logging
@@ -128,15 +128,13 @@ def profile(request):
             logger.info("Uploaded image: %s", request.FILES['profile_photo'].name)
             user.profile_photo = request.FILES['profile_photo']
 
-        user.save()
-
-        # Recruiter profile (only if recruiter)
+        # Recruiter profile fields (stored directly in User model)
         if user.user_type == 'recruiter':
-            recruiter_profile, created = RecruiterProfile.objects.get_or_create(user=user)
-            recruiter_profile.company_name = post.get('company_name', '').strip()
-            recruiter_profile.company_website = post.get('company_website', '').strip()
-            recruiter_profile.company_description = post.get('company_description', '').strip()
-            recruiter_profile.save()
+            user.company_name = post.get('company_name', '').strip()
+            user.company_website = post.get('company_website', '').strip()
+            user.company_description = post.get('company_description', '').strip()
+
+        user.save()
 
         messages.success(request, "Profile updated successfully!")
 

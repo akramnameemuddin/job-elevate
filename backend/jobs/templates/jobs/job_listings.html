@@ -114,7 +114,9 @@
         {% if rec.job.skills %}
         <div class="job-skills d-flex flex-wrap mb-3">
           {% for skill in rec.job.skills|slice:":3" %}
-          <span class="badge bg-light text-primary">{{ skill }}</span>
+          <span class="badge bg-light text-primary">
+            {% if skill.name %}{{ skill.name }}{% else %}{{ skill }}{% endif %}
+          </span>
           {% endfor %}
           {% if rec.job.skills|length > 3 %}
           <span class="badge bg-secondary">+{{ rec.job.skills|length|add:"-3" }} more</span>

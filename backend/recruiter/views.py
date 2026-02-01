@@ -3,9 +3,13 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.db.models import Count, Q
+from django.db import transaction
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 from accounts.models import User
 from .models import Job, Application, Message
@@ -71,6 +75,19 @@ def get_jobs(request):
     
     jobs_data = []
     for job in jobs:
+        # Get detailed skill requirements
+        from recruiter.models import JobSkillRequirement
+        skill_requirements = JobSkillRequirement.objects.filter(job=job).select_related('skill')
+        
+        skills_with_details = []
+        for req in skill_requirements:
+            skills_with_details.append({
+                'name': req.skill.name,
+                'proficiency': req.required_proficiency,
+                'criticality': req.skill_type,  # must_have, important, nice_to_have
+                'mandatory': req.is_mandatory
+            })
+        
         jobs_data.append({
             'id': job.id,
             'title': job.title,
@@ -79,7 +96,7 @@ def get_jobs(request):
             'type': job.job_type,
             'salary': job.salary or '',
             'experience': job.experience,
-            'skills': job.skills,
+            'skills': skills_with_details,  # Now includes full details
             'description': job.description,
             'requirements': job.requirements or '',
             'status': job.status,
@@ -99,20 +116,87 @@ def create_job(request):
     try:
         data = json.loads(request.body)
         
-        # Create new job
-        job = Job.objects.create(
-            posted_by=request.user,
-            title=data.get('title'),
-            company=data.get('company'),
-            location=data.get('location'),
-            job_type=data.get('type'),
-            salary=data.get('salary'),
-            experience=data.get('experience', 0),
-            skills=data.get('skills', []),
-            description=data.get('description'),
-            requirements=data.get('requirements'),
-            status='Open'
-        )
+        # Use transaction to ensure all-or-nothing
+        with transaction.atomic():
+            # Extract skills data
+            skills_data = data.get('skills', [])
+            
+            # Handle both old format (strings) and new format (objects)
+            skill_names = []
+            skill_objects = []
+            
+            for skill in skills_data:
+                if isinstance(skill, dict):
+                    # New format: {name, proficiency, criticality, mandatory}
+                    skill_names.append(skill['name'])
+                    skill_objects.append(skill)
+                else:
+                    # Old format: just skill name as string
+                    skill_names.append(skill)
+                    skill_objects.append({
+                        'name': skill,
+                        'proficiency': 7.0,
+                        'criticality': 'important',
+                        'mandatory': False
+                    })
+            
+            # Create new job
+            job = Job.objects.create(
+                posted_by=request.user,
+                title=data.get('title'),
+                company=data.get('company'),
+                location=data.get('location'),
+                job_type=data.get('type'),
+                salary=data.get('salary'),
+                experience=data.get('experience', 0),
+                skills=skill_names,  # Store simple names for backward compatibility
+                description=data.get('description'),
+                requirements=data.get('requirements'),
+                status='Open'
+            )
+            
+            # Create JobSkillRequirement records for detailed skill data
+            from recruiter.models import JobSkillRequirement
+            from assessments.models import Skill, SkillCategory
+            
+            # Get or create a default category for job-posted skills
+            default_category, _ = SkillCategory.objects.get_or_create(
+                name='General',
+                defaults={'description': 'General skills'}
+            )
+            
+            for skill_data in skill_objects:
+                # Get or create skill
+                skill_name = skill_data['name'].strip()
+                # Use filter().first() to avoid MultipleObjectsReturned error
+                skill = Skill.objects.filter(name__iexact=skill_name).first()
+                if not skill:
+                    skill = Skill.objects.create(
+                        name=skill_name,
+                        is_active=True,
+                        category=default_category
+                    )
+                
+                # Map skill_type to weight and criticality (numeric)
+                skill_type = skill_data.get('criticality', 'important')
+                criticality_map = {
+                    'must_have': {'weight': 1.8, 'criticality': 1.0},
+                    'important': {'weight': 1.2, 'criticality': 0.5},
+                    'nice_to_have': {'weight': 0.8, 'criticality': 0.0}
+                }
+                
+                config = criticality_map.get(skill_type, {'weight': 1.2, 'criticality': 0.5})
+                
+                # Create JobSkillRequirement
+                JobSkillRequirement.objects.create(
+                    job=job,
+                    skill=skill,
+                    required_proficiency=float(skill_data.get('proficiency', 7.0)),
+                    is_mandatory=bool(skill_data.get('mandatory', False)),
+                    skill_type=skill_type,
+                    criticality=config['criticality'],
+                    weight=config['weight']
+                )
         
         return JsonResponse({
             'success': True,
@@ -121,6 +205,7 @@ def create_job(request):
         })
         
     except Exception as e:
+        logger.error(f"Error creating job: {str(e)}", exc_info=True)
         return JsonResponse({
             'success': False,
             'message': f'Error creating job: {str(e)}'
@@ -138,18 +223,85 @@ def update_job(request, job_id):
     try:
         data = json.loads(request.body)
         
-        # Update job fields
-        job.title = data.get('title', job.title)
-        job.company = data.get('company', job.company)
-        job.location = data.get('location', job.location)
-        job.job_type = data.get('type', job.job_type)
-        job.salary = data.get('salary', job.salary)
-        job.experience = data.get('experience', job.experience)
-        job.skills = data.get('skills', job.skills)
-        job.description = data.get('description', job.description)
-        job.requirements = data.get('requirements', job.requirements)
-        job.status = data.get('status', job.status)
-        job.save()
+        # Use transaction to ensure all-or-nothing
+        with transaction.atomic():
+            # Extract skills data
+            skills_data = data.get('skills', [])
+            
+            # Handle both old format (strings) and new format (objects)
+            skill_names = []
+            skill_objects = []
+            
+            for skill in skills_data:
+                if isinstance(skill, dict):
+                    skill_names.append(skill['name'])
+                    skill_objects.append(skill)
+                else:
+                    skill_names.append(skill)
+                    skill_objects.append({
+                        'name': skill,
+                        'proficiency': 7.0,
+                        'criticality': 'important',
+                        'mandatory': False
+                    })
+            
+            # Update job fields
+            job.title = data.get('title', job.title)
+            job.company = data.get('company', job.company)
+            job.location = data.get('location', job.location)
+            job.job_type = data.get('type', job.job_type)
+            job.salary = data.get('salary', job.salary)
+            job.experience = data.get('experience', job.experience)
+            job.skills = skill_names  # Store simple names
+            job.description = data.get('description', job.description)
+            job.requirements = data.get('requirements', job.requirements)
+            job.status = data.get('status', job.status)
+            job.save()
+            
+            # Update JobSkillRequirement records
+            from recruiter.models import JobSkillRequirement
+            from assessments.models import Skill, SkillCategory
+            
+            # Get or create a default category for job-posted skills
+            default_category, _ = SkillCategory.objects.get_or_create(
+                name='General',
+                defaults={'description': 'General skills'}
+            )
+            
+            # Delete existing requirements
+            JobSkillRequirement.objects.filter(job=job).delete()
+            
+            # Create new requirements
+            for skill_data in skill_objects:
+                skill_name = skill_data['name'].strip()
+                # Use filter().first() to avoid MultipleObjectsReturned error
+                skill = Skill.objects.filter(name__iexact=skill_name).first()
+                if not skill:
+                    skill = Skill.objects.create(
+                        name=skill_name,
+                        is_active=True,
+                        category=default_category
+                    )
+                
+                # Map skill_type to weight and criticality (numeric)
+                skill_type = skill_data.get('criticality', 'important')
+                criticality_map = {
+                    'must_have': {'weight': 1.8, 'criticality': 1.0},
+                    'important': {'weight': 1.2, 'criticality': 0.5},
+                    'nice_to_have': {'weight': 0.8, 'criticality': 0.0}
+                }
+                
+                config = criticality_map.get(skill_type, {'weight': 1.2, 'criticality': 0.5})
+                
+                JobSkillRequirement.objects.create(
+                    job=job,
+                    skill=skill,
+                    required_proficiency=float(skill_data.get('proficiency', 7.0)),
+                    is_mandatory=bool(skill_data.get('mandatory', False)),
+                    skill_type=skill_type,
+                    criticality=config['criticality'],
+                    weight=config['weight']
+                )
         
         return JsonResponse({
             'success': True,
@@ -157,6 +309,7 @@ def update_job(request, job_id):
         })
         
     except Exception as e:
+        logger.error(f"Error updating job {job_id}: {str(e)}", exc_info=True)
         return JsonResponse({
             'success': False,
             'message': f'Error updating job: {str(e)}'
@@ -224,9 +377,15 @@ def get_candidates(request, job_id=None):
         # Search for location in user profile
         applications = applications.filter(applicant__organization__icontains=location)
     
-    # Prepare response data
+    # Prepare response data with enhanced match scores
+    from jobs.skill_based_matching_engine import SkillBasedJobMatcher
+    
     candidates = []
     for app in applications:
+        # Calculate detailed match analysis
+        matcher = SkillBasedJobMatcher(app.applicant)
+        match_analysis = matcher.calculate_job_match(app.job)
+        
         candidates.append({
             'id': app.id,
             'name': app.applicant.full_name,
@@ -235,10 +394,18 @@ def get_candidates(request, job_id=None):
             'experience': app.applicant.experience or 0,
             'location': app.applicant.organization or 'Not specified',
             'match': app.match_score,
+            'match_percentage': match_analysis.get('overall_score', 0),
+            'eligibility_status': match_analysis.get('eligibility_status', 'Unknown'),
+            'matched_skills': match_analysis.get('matched_skills_count', 0),
+            'total_skills': match_analysis.get('total_required_skills', 0),
+            'gap_count': match_analysis.get('gap_count', 0),
             'status': app.status,
             'applied_at': app.applied_at.strftime('%Y-%m-%d'),
             'resume_url': app.resume.url if app.resume else None
         })
+    
+    # Sort by match percentage (highest first)
+    candidates.sort(key=lambda x: x['match_percentage'], reverse=True)
     
     return JsonResponse({'candidates': candidates})
 

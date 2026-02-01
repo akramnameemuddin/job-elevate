@@ -1,0 +1,324 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Skill Gap Analysis - {{ job.title }} | JobElevate{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<div class="breadcrumb">
+    <div class="breadcrumb-item">
+        <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item">
+        <a href="{% url 'jobs:job_listings' %}" class="breadcrumb-link">Job Matches</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item">
+        <a href="{% url 'jobs:job_detail' job.id %}" class="breadcrumb-link">{{ job.title }}</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item">
+        <span>Gap Analysis</span>
+    </div>
+</div>
+
+<!-- Page Header -->
+<div class="page-content-header">
+    <h1 class="page-title">
+        <i class='bx bx-bar-chart-alt'></i> Skill Gap Analysis
+    </h1>
+    <p class="page-subtitle">{{ job.title }} at {{ job.company }}</p>
+</div>
+
+<!-- Overall Match Score Card -->
+<div class="content-section">
+    <div class="match-score-card" style="background: linear-gradient(135deg, rgba(73, 103, 229, 0.1), rgba(99, 102, 241, 0.1)); border: 2px solid var(--primary-color); border-radius: 16px; padding: 2rem; text-align: center;">
+        <div class="score-circle-large {% if match_score >= 80 %}excellent{% elif match_score >= 60 %}good{% elif match_score >= 40 %}moderate{% else %}low{% endif %}" style="width: 180px; height: 180px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto 1.5rem; border: 8px solid; position: relative;">
+            <span class="score-number" style="font-size: 3.5rem; font-weight: 700;">{{ match_score }}%</span>
+            <span class="score-label" style="font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8;">Match</span>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+            <div class="stat-item">
+                <div style="font-size: 2rem; font-weight: 700; color: var(--success-color);">{{ skills_qualified }}</div>
+                <div style="font-size: 0.9rem; color: var(--text-light); margin-top: 0.25rem;">Verified Skills</div>
+            </div>
+            <div class="stat-item">
+                <div style="font-size: 2rem; font-weight: 700; color: var(--warning-color);">{{ partial_skills|length }}</div>
+                <div style="font-size: 0.9rem; color: var(--text-light); margin-top: 0.25rem;">Partial Match</div>
+            </div>
+            <div class="stat-item">
+                <div style="font-size: 2rem; font-weight: 700; color: var(--danger-color);">{{ missing_skills|length }}</div>
+                <div style="font-size: 0.9rem; color: var(--text-light); margin-top: 0.25rem;">Skills to Develop</div>
+            </div>
+            <div class="stat-item">
+                <div style="font-size: 2rem; font-weight: 700; color: var(--primary-color);">{{ total_skills_required }}</div>
+                <div style="font-size: 0.9rem; color: var(--text-light); margin-top: 0.25rem;">Total Required</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recommendation Banner -->
+{% if match_score < 60 %}
+<div class="content-section">
+    <div class="alert-banner {% if match_score >= 40 %}warning{% else %}danger{% endif %}" style="padding: 1.5rem; border-radius: 12px; display: flex; align-items: start; gap: 1rem;">
+        <i class='bx bx-info-circle' style="font-size: 2rem;"></i>
+        <div>
+            <h4 style="margin: 0 0 0.5rem 0; font-size: 1.1rem;">Recommendation</h4>
+            <p style="margin: 0;">
+                {% if match_score < 40 %}
+                    Your skill match is below 40%. Consider developing {{ missing_skills|length }} missing skill{{ missing_skills|length|pluralize }} and improving {{ partial_skills|length }} partial skill{{ partial_skills|length|pluralize }} before applying.
+                {% else %}
+                    You're close to a good match! Complete assessments for the remaining {{ missing_skills|length }} skill{{ missing_skills|length|pluralize }} to improve your chances.
+                {% endif %}
+            </p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Verified Skills Section -->
+{% if verified_skills %}
+<div class="content-section">
+    <div class="section-header">
+        <h2 class="section-title">
+            <i class='bx bx-check-circle' style="color: var(--success-color);"></i> Your Verified Skills
+        </h2>
+        <span class="badge badge-success">{{ verified_skills|length }} skill{{ verified_skills|length|pluralize }}</span>
+    </div>
+    
+    <div class="skills-grid">
+        {% for skill_data in verified_skills %}
+        <div class="skill-card verified" style="background: var(--card-bg); border: 2px solid var(--success-color); border-radius: 12px; padding: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                <div>
+                    <h3 style="margin: 0; font-size: 1.1rem;">{{ skill_data.skill.name }}</h3>
+                    {% if skill_data.skill.category %}
+                    <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--text-light);">{{ skill_data.skill.category.name }}</p>
+                    {% endif %}
+                </div>
+                <span class="badge badge-success" style="flex-shrink: 0;">
+                    <i class='bx bx-check-circle'></i> Verified
+                </span>
+            </div>
+            
+            {% if skill_data.user_proficiency > 0 %}
+            <div style="margin-top: 1rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="font-size: 0.9rem; color: var(--text-light);">Your Level</span>
+                    <span style="font-weight: 600;">{{ skill_data.user_proficiency }}/10</span>
+                </div>
+                <div class="proficiency-bar" style="height: 8px; background: var(--hover-bg); border-radius: 4px; overflow: hidden;">
+                    <div style="height: 100%; background: var(--success-color); width: {{ skill_data.user_proficiency|floatformat:0 }}0%;"></div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Partial Skills Section -->
+{% if partial_skills %}
+<div class="content-section">
+    <div class="section-header">
+        <h2 class="section-title">
+            <i class='bx bx-time' style="color: var(--warning-color);"></i> Skills Needing Improvement
+        </h2>
+        <span class="badge badge-warning">{{ partial_skills|length }} skill{{ partial_skills|length|pluralize }}</span>
+    </div>
+    
+    <div class="skills-grid">
+        {% for skill_data in partial_skills %}
+        <div class="skill-card partial" style="background: var(--card-bg); border: 2px solid var(--warning-color); border-radius: 12px; padding: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                <div>
+                    <h3 style="margin: 0; font-size: 1.1rem;">{{ skill_data.skill.name }}</h3>
+                    {% if skill_data.skill.category %}
+                    <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--text-light);">{{ skill_data.skill.category.name }}</p>
+                    {% endif %}
+                </div>
+                <span class="badge badge-warning" style="flex-shrink: 0;">
+                    <i class='bx bx-trending-up'></i> Improve
+                </span>
+            </div>
+            
+            <div style="margin-top: 1rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="font-size: 0.9rem; color: var(--text-light);">Progress</span>
+                    <span style="font-weight: 600;">{{ skill_data.user_proficiency }}/{{ skill_data.required_proficiency }}</span>
+                </div>
+                <div class="proficiency-bar" style="height: 8px; background: var(--hover-bg); border-radius: 4px; overflow: hidden;">
+                    <div style="height: 100%; background: var(--warning-color); width: {{ skill_data.proficiency_percentage }}%;"></div>
+                </div>
+                <p style="margin: 0.75rem 0 0 0; font-size: 0.85rem; color: var(--text-light);">
+                    <i class='bx bx-error-circle'></i> Need {{ skill_data.gap|floatformat:1 }} more points to meet requirements
+                </p>
+            </div>
+            
+            <div style="margin-top: 1rem;">
+                <a href="{% url 'assessments:start_assessment_from_job' job.id skill_data.skill_id %}" class="btn btn-sm btn-warning" style="width: 100%;">
+                    <i class='bx bx-refresh'></i> Retake Assessment
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Missing Skills Section -->
+{% if missing_skills %}
+<div class="content-section">
+    <div class="section-header">
+        <h2 class="section-title">
+            <i class='bx bx-x-circle' style="color: var(--danger-color);"></i> Skills to Develop
+        </h2>
+        <span class="badge badge-danger">{{ missing_skills|length }} skill{{ missing_skills|length|pluralize }}</span>
+    </div>
+    
+    <div class="skills-grid">
+        {% for skill_data in missing_skills %}
+        <div class="skill-card missing" style="background: var(--card-bg); border: 2px solid var(--danger-color); border-radius: 12px; padding: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                <div>
+                    <h3 style="margin: 0; font-size: 1.1rem;">
+                        {% if skill_data.name %}
+                            {{ skill_data.name }}
+                        {% else %}
+                            {{ skill_data.skill.name }}
+                        {% endif %}
+                    </h3>
+                    {% if skill_data.skill.category %}
+                    <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--text-light);">{{ skill_data.skill.category.name }}</p>
+                    {% endif %}
+                </div>
+                {% if skill_data.not_in_db %}
+                <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; flex-shrink: 0;">
+                    <i class='bx bx-error-circle'></i> Not in System
+                </span>
+                {% else %}
+                <span class="badge badge-danger" style="flex-shrink: 0;">
+                    <i class='bx bx-x-circle'></i> Missing
+                </span>
+                {% endif %}
+            </div>
+            
+            {% if skill_data.required_proficiency > 0 %}
+            <div style="padding: 0.75rem; background: rgba(239, 68, 68, 0.1); border-radius: 8px; margin-top: 1rem;">
+                <p style="margin: 0; font-size: 0.9rem; color: var(--text-color);">
+                    <strong>Required Level:</strong> {{ skill_data.required_proficiency }}/10
+                </p>
+            </div>
+            {% endif %}
+            
+            <div style="margin-top: 1rem;">
+                {% if skill_data.not_in_db %}
+                <button class="btn btn-sm btn-outline" disabled style="width: 100%;">
+                    <i class='bx bx-error-circle'></i> Skill Not Available
+                </button>
+                <p style="margin: 0.5rem 0 0 0; font-size: 0.8rem; color: var(--text-light); text-align: center;">Contact admin to add this skill</p>
+                {% else %}
+                <a href="{% url 'assessments:start_assessment_from_job' job.id skill_data.skill_id %}" class="btn btn-sm btn-primary" style="width: 100%;">
+                    <i class='bx bx-plus-circle'></i> Add & Take Assessment
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- No Skills Defined -->
+{% if not verified_skills and not partial_skills and not missing_skills %}
+<div class="content-section">
+    <div class="empty-state" style="text-align: center; padding: 3rem;">
+        <i class='bx bx-info-circle' style="font-size: 4rem; color: var(--text-light); margin-bottom: 1rem;"></i>
+        <h3>No Skill Requirements Defined</h3>
+        <p style="color: var(--text-light);">This job posting doesn't have specific skill requirements set up yet.</p>
+        <a href="{% url 'jobs:job_detail' job.id %}" class="btn btn-primary" style="margin-top: 1rem;">
+            <i class='bx bx-arrow-back'></i> Back to Job Details
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Action Buttons -->
+<div class="content-section" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+    <a href="{% url 'jobs:job_detail' job.id %}" class="btn btn-outline">
+        <i class='bx bx-arrow-back'></i> Back to Job
+    </a>
+    {% if missing_skills %}
+    <a href="{% url 'assessments:skill_intake_dashboard' %}" class="btn btn-primary">
+        <i class='bx bx-plus-circle'></i> Browse All Skills
+    </a>
+    {% endif %}
+    {% if match_score >= 60 %}
+    <a href="{% url 'jobs:apply' job.id %}" class="btn btn-success">
+        <i class='bx bx-send'></i> Apply for this Job
+    </a>
+    {% endif %}
+</div>
+
+<style>
+.skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+
+.score-circle-large.excellent {
+    border-color: var(--success-color);
+    color: var(--success-color);
+}
+
+.score-circle-large.good {
+    border-color: #10b981;
+    color: #10b981;
+}
+
+.score-circle-large.moderate {
+    border-color: var(--warning-color);
+    color: var(--warning-color);
+}
+
+.score-circle-large.low {
+    border-color: var(--danger-color);
+    color: var(--danger-color);
+}
+
+.alert-banner {
+    background: var(--card-bg);
+    border: 2px solid;
+}
+
+.alert-banner.warning {
+    border-color: var(--warning-color);
+    background: rgba(245, 158, 11, 0.1);
+}
+
+.alert-banner.danger {
+    border-color: var(--danger-color);
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.btn-warning {
+    background: var(--warning-color);
+    color: white;
+}
+
+.btn-warning:hover {
+    background: #f59e0b;
+}
+
+@media (max-width: 768px) {
+    .skills-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

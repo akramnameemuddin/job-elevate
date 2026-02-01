@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from . import views, recommendation_dashboard_views
 
 app_name = 'jobs'
 
@@ -8,6 +8,13 @@ urlpatterns = [
     path('', views.job_listings, name='job_listings'),
     path('search/', views.search_jobs, name='search_jobs'),
     path('job/<int:job_id>/', views.job_detail, name='job_detail'),
+    path('job/<int:job_id>/claim-skill/<int:skill_id>/', views.claim_skill_from_job, name='claim_skill_from_job'),
+    
+    # New Skill-Based Job Recommendations
+    path('recommendations/', recommendation_dashboard_views.job_recommendations_dashboard, name='recommendations_dashboard'),
+    path('job/<int:job_id>/analysis/', recommendation_dashboard_views.job_detail_with_analysis, name='job_detail_with_analysis'),
+    path('job/<int:job_id>/gap-analysis/', recommendation_dashboard_views.skill_gap_analysis, name='skill_gap_analysis'),
+    path('job/<int:job_id>/apply-now/', recommendation_dashboard_views.apply_to_job, name='apply_to_job'),
     
     # Applications
     path('job/<int:job_id>/apply/', views.apply_for_job, name='apply_for_job'),

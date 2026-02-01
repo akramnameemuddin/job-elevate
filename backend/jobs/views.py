@@ -102,7 +102,10 @@ def job_listings(request):
     return render(request, 'jobs/job_listings.html', context)
 @login_required
 def job_detail(request, job_id):
-    """Display detailed job information"""
+    """Display detailed job information with comprehensive skill gap analysis"""
+    from recruiter.models import JobSkillRequirement
+    from assessments.models import UserSkillScore, Skill
+    
     job = get_object_or_404(Job, id=job_id, status='Open')
 
     # Track that the user viewed this job
@@ -120,17 +123,8 @@ def job_detail(request, job_id):
         user=request.user
     ).exists()
 
-    # Get company description from recruiter profile
-    company_description = None
-    try:
-        # First try to get from recruiter profile
-        if hasattr(job.posted_by, 'recruiterprofile'):
-            company_description = job.posted_by.recruiterprofile.company_description
-        # Fallback to user's company description field
-        elif job.posted_by.company_description:
-            company_description = job.posted_by.company_description
-    except Exception:
-        company_description = None
+    # Get company description from user profile
+    company_description = job.posted_by.company_description if job.posted_by.company_description else None
 
     # Get similar jobs using improved algorithm
     similar_jobs = []
@@ -139,11 +133,27 @@ def job_detail(request, job_id):
         all_jobs = Job.objects.filter(status='Open').exclude(id=job_id)
 
         # Calculate similarity scores for better recommendations
-        job_skills_set = set(job.skills) if job.skills else set()
+        # Extract skill names from job.skills (handle both dict and string formats)
+        job_skills_list = []
+        if job.skills:
+            for skill in job.skills:
+                if isinstance(skill, dict):
+                    job_skills_list.append(skill.get('name', '').lower())
+                else:
+                    job_skills_list.append(skill.lower())
+        job_skills_set = set(job_skills_list)
 
         similar_jobs_with_scores = []
         for similar_job in all_jobs:
-            similar_skills_set = set(similar_job.skills) if similar_job.skills else set()
+            # Extract skill names from similar_job.skills
+            similar_skills_list = []
+            if similar_job.skills:
+                for skill in similar_job.skills:
+                    if isinstance(skill, dict):
+                        similar_skills_list.append(skill.get('name', '').lower())
+                    else:
+                        similar_skills_list.append(skill.lower())
+            similar_skills_set = set(similar_skills_list)
 
             # Calculate similarity based on multiple factors
             similarity_score = 0
@@ -180,19 +190,208 @@ def job_detail(request, job_id):
             job_type=job.job_type
         ).exclude(id=job_id)[:5]
     
-    # Assess the user's match score for this job
-    user_skills = request.user.get_skills_list()
-    match_score = 0
+    # === NEW: COMPREHENSIVE SKILL GAP ANALYSIS ===
+    # Get job skill requirements with grades
+    skill_requirements = JobSkillRequirement.objects.filter(
+        job=job
+    ).select_related('skill', 'skill__category').order_by('-criticality', '-required_proficiency')
     
-    if user_skills and job.skills:
-        # Simple skill match calculation
-        user_skills_set = set([skill.lower().strip() for skill in user_skills])
-        job_skills_set = set([skill.lower().strip() for skill in job.skills])
+    # Get user's verified skills
+    user_skill_profiles = {
+        profile.skill_id: profile
+        for profile in UserSkillScore.objects.filter(
+            user=request.user,
+            status='verified'
+        ).select_related('skill')
+    }
+    
+    # Get user's claimed but not verified skills
+    user_claimed_skills = {
+        profile.skill_id: profile
+        for profile in UserSkillScore.objects.filter(
+            user=request.user,
+            status='claimed'
+        ).select_related('skill')
+    }
+    
+    # Analyze each skill requirement
+    verified_skills = []
+    missing_skills = []
+    partial_skills = []
+    total_skills_required = skill_requirements.count()
+    skills_qualified = 0
+    overall_match_score = 0
+    
+    # If no detailed skill requirements, fall back to basic job.skills
+    if total_skills_required == 0 and job.skills:
+        from assessments.models import Skill
+        # Parse job.skills and create basic analysis
+        for skill_data in job.skills:
+            # Handle both dict format {'name': 'Python'} and simple string 'Python'
+            skill_name = skill_data.get('name') if isinstance(skill_data, dict) else skill_data
+            if not skill_name:
+                continue
+            
+            try:
+                # Try to find the skill in database (case-insensitive)
+                skill = Skill.objects.filter(name__iexact=skill_name).first()
+                
+                # If skill doesn't exist in database, create placeholder
+                if not skill:
+                    # Check if user has this skill by name (case-insensitive)
+                    user_has_skill = any(
+                        profile.skill.name.lower() == skill_name.lower() 
+                        for profile in user_skill_profiles.values()
+                    )
+                    
+                    # Create a pseudo-skill object for display
+                    class SkillPlaceholder:
+                        def __init__(self, name):
+                            self.name = name
+                            self.id = None
+                    
+                    skill_analysis = {
+                        'skill': SkillPlaceholder(skill_name),
+                        'skill_id': None,
+                        'name': skill_name,
+                        'required_proficiency': 0,
+                        'user_proficiency': 5.0 if user_has_skill else 0,
+                        'not_in_db': True
+                    }
+                    
+                    if user_has_skill:
+                        verified_skills.append(skill_analysis)
+                        skills_qualified += 1
+                        overall_match_score += 1
+                    else:
+                        missing_skills.append(skill_analysis)
+                    
+                    total_skills_required += 1
+                    continue
+                
+                # Check if user has this skill (case-insensitive by name)
+                user_profile = user_skill_profiles.get(skill.id)
+                
+                # Also check by name in case skill was added with different ID
+                if not user_profile:
+                    for profile in user_skill_profiles.values():
+                        if profile.skill.name.lower() == skill.name.lower():
+                            user_profile = profile
+                            break
+                
+                user_level = user_profile.verified_level if user_profile else 0
+                
+                # Create basic skill analysis (no detailed requirements)
+                skill_analysis = {
+                    'skill': skill,
+                    'skill_id': skill.id,
+                    'name': skill.name,
+                    'required_proficiency': 0,
+                    'user_proficiency': user_level,
+                    'not_in_db': False
+                }
+                
+                if user_level > 0:
+                    verified_skills.append(skill_analysis)
+                    skills_qualified += 1
+                    overall_match_score += 1
+                else:
+                    missing_skills.append(skill_analysis)
+                
+                total_skills_required += 1
+            except Exception as e:
+                logger.error(f"Error processing skill {skill_name}: {e}", exc_info=True)
+                continue
+    
+    # If we have JobSkillRequirement records, do detailed analysis
+    for req in skill_requirements:
+        user_profile = user_skill_profiles.get(req.skill_id)
+        user_level = user_profile.verified_level if user_profile else 0
+        is_claimed = req.skill_id in user_claimed_skills
         
-        if user_skills_set and job_skills_set:
-            # Calculate skill match percentage
-            matching_skills = user_skills_set.intersection(job_skills_set)
-            match_score = int((len(matching_skills) / len(job_skills_set)) * 100)
+        skill_analysis = {
+            'skill': req.skill,
+            'skill_id': req.skill_id,
+            'required_proficiency': req.required_proficiency,
+            'user_proficiency': user_level,
+            'gap': max(0, req.required_proficiency - user_level),
+            'is_mandatory': req.is_mandatory,
+            'criticality': req.get_criticality_display_text(),
+            'weight': req.weight,
+            'has_profile': user_profile is not None,
+            'is_claimed': is_claimed,
+            'proficiency_percentage': (user_level / req.required_proficiency * 100) if req.required_proficiency > 0 else 0
+        }
+        
+        # Categorize skills
+        if user_level >= req.required_proficiency:
+            verified_skills.append(skill_analysis)
+            skills_qualified += 1
+            overall_match_score += req.weight
+        elif user_level > 0:
+            partial_skills.append(skill_analysis)
+            overall_match_score += (user_level / req.required_proficiency) * req.weight
+        else:
+            missing_skills.append(skill_analysis)
+    
+    # Calculate overall match percentage
+    total_weight = sum(req.weight for req in skill_requirements)
+    if total_weight > 0:
+        # Detailed skill requirements with weights
+        match_percentage = int((overall_match_score / total_weight * 100))
+    elif total_skills_required > 0:
+        # Basic skill matching (from job.skills)
+        match_percentage = int((overall_match_score / total_skills_required * 100))
+    else:
+        match_percentage = 0
+    
+    # Check eligibility
+    can_apply = True
+    mandatory_skills_met = True
+    
+    for req in skill_requirements:
+        if req.is_mandatory:
+            user_profile = user_skill_profiles.get(req.skill_id)
+            user_level = user_profile.verified_level if user_profile else 0
+            if user_level < req.required_proficiency:
+                can_apply = False
+                mandatory_skills_met = False
+                break
+    
+    # Recommend assessment if skills are missing
+    recommended_assessments = []
+    if missing_skills or partial_skills:
+        from assessments.models import Assessment
+        missing_skill_ids = [s.get('skill_id', s['skill'].id) for s in missing_skills] + [s.get('skill_id', s['skill'].id) for s in partial_skills]
+        recommended_assessments = Assessment.objects.filter(
+            skill_id__in=missing_skill_ids,
+            is_active=True
+        ).select_related('skill')[:5]
+    
+    # Create simple skill name lists for sidebar display
+    # Include both fully verified and partial skills in matching
+    matching_skills_simple = [s['skill'].name for s in verified_skills]
+    
+    # Combine missing and partial skills for "Skills to Develop"
+    skills_to_develop = []
+    for s in partial_skills:
+        skills_to_develop.append({
+            'name': s['skill'].name,
+            'status': 'partial',
+            'user_level': s.get('user_proficiency', 0),
+            'required_level': s.get('required_proficiency', 0),
+            'skill_id': s.get('skill_id'),
+            'not_in_db': s.get('not_in_db', False)
+        })
+    for s in missing_skills:
+        skills_to_develop.append({
+            'name': s.get('name', s['skill'].name),
+            'status': 'missing',
+            'user_level': 0,
+            'required_level': s.get('required_proficiency', 0),
+            'skill_id': s.get('skill_id'),
+            'not_in_db': s.get('not_in_db', False)
+        })
     
     context = {
         'job': job,
@@ -200,12 +399,54 @@ def job_detail(request, job_id):
         'is_bookmarked': is_bookmarked,
         'similar_jobs': similar_jobs,
         'company_description': company_description,
-        'match_score': match_score,
-        'matching_skills': user_skills_set.intersection(job_skills_set) if user_skills and job.skills else [],
-        'missing_skills': job_skills_set - user_skills_set if user_skills and job.skills else []
+        'match_score': match_percentage,
+        
+        # New skill gap analysis (detailed dictionaries for main section)
+        'skill_requirements': skill_requirements,
+        'verified_skills': verified_skills,
+        'missing_skills': missing_skills,
+        'partial_skills': partial_skills,
+        
+        # Simple skill name lists for sidebar
+        'matching_skills': matching_skills_simple,
+        'skills_to_develop': skills_to_develop,
+        'missing_skills_simple': [s['name'] for s in skills_to_develop],  # For backward compatibility
+        
+        'total_skills_required': total_skills_required,
+        'skills_qualified': skills_qualified,
+        'can_apply': can_apply,
+        'mandatory_skills_met': mandatory_skills_met,
+        'recommended_assessments': recommended_assessments,
     }
     
     return render(request, 'jobs/job_detail.html', context)
+
+
+@login_required
+def claim_skill_from_job(request, job_id, skill_id):
+    """Claim a skill from job detail page and redirect to assessment"""
+    from assessments.models import Skill, UserSkillScore
+    
+    skill = get_object_or_404(Skill, id=skill_id, is_active=True)
+    
+    # Create or get user skill score
+    profile, created = UserSkillScore.objects.get_or_create(
+        user=request.user,
+        skill=skill,
+        defaults={
+            'self_rated_level': 0,
+            'verified_level': 0,
+            'status': 'claimed'
+        }
+    )
+    
+    if created:
+        messages.success(request, f"Skill '{skill.name}' added to your profile. Take the assessment to verify it!")
+    else:
+        messages.info(request, f"Skill '{skill.name}' already in your profile.")
+    
+    # Redirect to start assessment from job context
+    return redirect('assessments:start_assessment_from_job', job_id=job_id, skill_id=skill_id)
 
 @login_required
 @require_POST
@@ -233,7 +474,11 @@ def apply_for_job(request, job_id):
         )
 
         # Track this application in the recommendation system
-        recommender.track_job_application(request.user, job)
+        try:
+            recommender.track_job_application(request.user, job)
+        except Exception as track_err:
+            # Log but don't fail the application
+            logger.warning(f"Failed to track application in recommender: {str(track_err)}")
 
         # Send notification to recruiter
         try:
@@ -245,7 +490,7 @@ def apply_for_job(request, job_id):
         return redirect('jobs:my_applications')
         
     except Exception as e:
-        logger.error(f"Error submitting application for user {request.user.id}: {str(e)}")
+        logger.error(f"Error submitting application for user {request.user.id}: {str(e)}", exc_info=True)
         messages.error(request, "There was an error submitting your application. Please try again.")
         return redirect('jobs:job_detail', job_id=job_id)
 

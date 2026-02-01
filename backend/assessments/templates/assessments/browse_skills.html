@@ -1,0 +1,405 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Browse All Skills | JobElevate{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<div class="breadcrumb">
+    <div class="breadcrumb-item">
+        <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item">
+        <span>Browse Skills</span>
+    </div>
+</div>
+
+<!-- Page Header -->
+<div class="page-content-header">
+    <h1 class="page-title">
+        <i class='bx bx-search'></i> Browse All Skills
+    </h1>
+    <p class="page-subtitle">Explore skills, add them to your profile, and take assessments to verify your proficiency</p>
+</div>
+
+<!-- Required Skills from Job (if applicable) -->
+{% if required_skills and job %}
+<div class="job-required-skills-section" style="background: linear-gradient(135deg, rgba(73, 103, 229, 0.1), rgba(99, 102, 241, 0.1)); border: 2px solid var(--primary-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+        <i class='bx bx-briefcase' style="font-size: 2rem; color: var(--primary-color);"></i>
+        <div>
+            <h2 style="margin: 0; font-size: 1.3rem; color: var(--text-color);">
+                Skills Required for: {{ job.title }}
+            </h2>
+            <p style="margin: 0.25rem 0 0 0; color: var(--text-light); font-size: 0.9rem;">
+                Add these skills to your profile and take assessments to qualify for this job
+            </p>
+        </div>
+    </div>
+    
+    <div class="skills-grid">
+        {% for skill in required_skills %}
+        <div class="skill-card {% if skill.is_verified %}verified{% elif skill.is_claimed %}claimed{% elif skill.not_in_db %}not-in-db{% else %}required{% endif %}" style="border: 2px solid var(--primary-color);">
+            <div class="skill-card-header">
+                <div class="skill-name">
+                    <strong>{{ skill.name }}</strong>
+                    {% if skill.is_verified %}
+                        <span class="badge badge-success">
+                            <i class='bx bx-check-circle'></i> Already Verified
+                        </span>
+                    {% elif skill.is_claimed %}
+                        <span class="badge badge-warning">
+                            <i class='bx bx-time'></i> Claimed - Take Assessment
+                        </span>
+                    {% elif skill.not_in_db %}
+                        <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+                            <i class='bx bx-error-circle'></i> Not in System
+                        </span>
+                    {% else %}
+                        <span class="badge badge-primary">
+                            <i class='bx bx-star'></i> Required
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <p class="skill-description">
+                {{ skill.description|default:"Required skill for this position." }}
+            </p>
+            
+            <div class="skill-actions">
+                {% if skill.not_in_db %}
+                    <button class="btn btn-outline btn-sm" disabled title="Contact admin to add this skill">
+                        <i class='bx bx-error-circle'></i> Not Available Yet
+                    </button>
+                {% elif skill.is_verified %}
+                    <a href="{% url 'assessments:start_skill_assessment' skill.id %}" class="btn btn-outline btn-sm">
+                        <i class='bx bx-refresh'></i> Retake Assessment
+                    </a>
+                {% elif skill.is_claimed %}
+                    <a href="{% url 'assessments:start_skill_assessment' skill.id %}" class="btn btn-primary btn-sm">
+                        <i class='bx bx-play'></i> Take Assessment Now
+                    </a>
+                {% else %}
+                    <a href="{% url 'assessments:claim_skill' skill.id %}" class="btn btn-primary btn-sm">
+                        <i class='bx bx-plus-circle'></i> Add & Assess
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+        <p style="margin: 0; color: var(--text-light); font-size: 0.9rem;">
+            <i class='bx bx-info-circle'></i> 
+            Verify all required skills to increase your match score for this job
+        </p>
+        <a href="{% url 'jobs:job_detail' job.id %}" class="btn btn-outline">
+            <i class='bx bx-arrow-back'></i> Back to Job
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Search and Filter -->
+<div class="search-filter-card">
+    <form method="GET" class="search-filter-form">
+        <div class="search-input-group">
+            <i class='bx bx-search'></i>
+            <input type="text" name="search" placeholder="Search skills..." value="{{ search_query }}" class="search-input">
+        </div>
+        <select name="category" class="category-select">
+            <option value="">All Categories</option>
+            {% for category in categories %}
+            <option value="{{ category.name }}" {% if category_filter == category.name %}selected{% endif %}>
+                {{ category.name }}
+            </option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary">
+            <i class='bx bx-filter'></i> Filter
+        </button>
+        {% if search_query or category_filter %}
+        <a href="{% url 'assessments:browse_skills' %}" class="btn btn-outline">
+            <i class='bx bx-x'></i> Clear
+        </a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Skills by Category -->
+{% if skills_by_category %}
+    {% for category_name, skills in skills_by_category.items %}
+    <div class="category-section">
+        <div class="category-header">
+            <h2><i class='bx bx-folder'></i> {{ category_name }}</h2>
+            <span class="skill-count">{{ skills|length }} skill{{ skills|length|pluralize }}</span>
+        </div>
+        
+        <div class="skills-grid">
+            {% for skill in skills %}
+            <div class="skill-card {% if skill.is_verified %}verified{% elif skill.is_claimed %}claimed{% endif %}">
+                <div class="skill-card-header">
+                    <div class="skill-name">
+                        <strong>{{ skill.name }}</strong>
+                        {% if skill.is_verified %}
+                            <span class="badge badge-success">
+                                <i class='bx bx-check-circle'></i> Verified
+                            </span>
+                        {% elif skill.is_claimed %}
+                            <span class="badge badge-warning">
+                                <i class='bx bx-time'></i> Claimed
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <p class="skill-description">
+                    {{ skill.description|default:"Assess your proficiency in this skill through our AI-powered diagnostic test." }}
+                </p>
+                
+                <div class="skill-actions">
+                    {% if skill.is_verified %}
+                        <a href="{% url 'assessments:start_skill_assessment' skill.id %}" class="btn btn-outline btn-sm">
+                            <i class='bx bx-refresh'></i> Retake Assessment
+                        </a>
+                    {% elif skill.is_claimed %}
+                        <a href="{% url 'assessments:start_skill_assessment' skill.id %}" class="btn btn-primary btn-sm">
+                            <i class='bx bx-play'></i> Take Assessment
+                        </a>
+                    {% else %}
+                        <a href="{% url 'assessments:claim_skill' skill.id %}" class="btn btn-primary btn-sm">
+                            <i class='bx bx-plus-circle'></i> Add & Assess
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="empty-state">
+        <i class='bx bx-search-alt'></i>
+        <h3>No Skills Found</h3>
+        <p>Try adjusting your search or filter criteria</p>
+        <a href="{% url 'assessments:browse_skills' %}" class="btn btn-primary">
+            Clear Filters
+        </a>
+    </div>
+{% endif %}
+
+<style>
+/* Search and Filter */
+.search-filter-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    margin-bottom: 2rem;
+}
+
+.search-filter-form {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.search-input-group {
+    flex: 1;
+    min-width: 250px;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-input-group i {
+    position: absolute;
+    left: 1rem;
+    color: var(--text-light);
+    font-size: 1.2rem;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.8rem 1rem 0.8rem 3rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    background: var(--background-color);
+    color: var(--text-color);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.category-select {
+    padding: 0.8rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--background-color);
+    color: var(--text-color);
+    font-size: 1rem;
+    min-width: 200px;
+}
+
+/* Category Section */
+.category-section {
+    margin-bottom: 3rem;
+}
+
+.category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.category-header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+}
+
+.skill-count {
+    background: var(--primary-light, #e3f2fd);
+    color: var(--primary-color);
+    padding: 0.3rem 0.8rem;
+    border-radius: 16px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* Skills Grid */
+.skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.skill-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.skill-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.skill-card.verified {
+    border-color: #27ae60;
+    background: linear-gradient(to bottom right, var(--card-bg), rgba(39, 174, 96, 0.05));
+}
+
+.skill-card.claimed {
+    border-color: #f39c12;
+    background: linear-gradient(to bottom right, var(--card-bg), rgba(243, 156, 18, 0.05));
+}
+
+.skill-card-header {
+    margin-bottom: 1rem;
+}
+
+.skill-name {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.skill-name strong {
+    font-size: 1.2rem;
+    color: var(--text-color);
+}
+
+.badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: 16px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.badge-success {
+    background: #e8f5e9;
+    color: #27ae60;
+}
+
+.badge-warning {
+    background: #fff3e0;
+    color: #f39c12;
+}
+
+.skill-description {
+    color: var(--text-light);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1.2rem;
+}
+
+.skill-actions {
+    display: flex;
+    gap: 0.8rem;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: var(--text-light);
+    margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: var(--text-light);
+    margin-bottom: 1.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .search-filter-form {
+        flex-direction: column;
+    }
+    
+    .search-input-group,
+    .category-select {
+        width: 100%;
+    }
+    
+    .skills-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+{% endblock %}

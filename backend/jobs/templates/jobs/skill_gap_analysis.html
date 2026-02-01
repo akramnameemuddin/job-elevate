@@ -1,0 +1,417 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}{{ job.title }} - Skill Gap Analysis{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <a href="{% url 'jobs:recommendations_dashboard' %}" class="btn btn-link text-decoration-none mb-3">
+                <i class='bx bx-arrow-back me-1'></i>Back to Recommendations
+            </a>
+        </div>
+    </div>
+
+    <!-- Job Header -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h2 class="mb-2">{{ job.title }}</h2>
+                    <p class="text-muted mb-3">
+                        <i class='bx bx-buildings me-2'></i>{{ job.company }}
+                        <span class="mx-2">|</span>
+                        <i class='bx bx-map me-2'></i>{{ job.location }}
+                    </p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="badge bg-light text-dark">
+                            <i class='bx bx-briefcase me-1'></i>{{ job.get_job_type_display }}
+                        </span>
+                        {% if job.salary_min and job.salary_max %}
+                        <span class="badge bg-light text-dark">
+                            <i class='bx bx-dollar me-1'></i>
+                            ${{ job.salary_min|floatformat:0 }}k - ${{ job.salary_max|floatformat:0 }}k
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <div class="match-score mb-2">
+                        <div class="score-circle-large">
+                            <svg width="120" height="120">
+                                <circle cx="60" cy="60" r="52" fill="none" stroke="#e5e7eb" stroke-width="10"/>
+                                <circle cx="60" cy="60" r="52" fill="none" stroke="#3b82f6" stroke-width="10"
+                                        stroke-dasharray="{{ 327|mul:match_percentage|div:100 }} 327"
+                                        stroke-linecap="round" transform="rotate(-90 60 60)"/>
+                                <text x="60" y="70" text-anchor="middle" class="score-text">{{ match_percentage|floatformat:0 }}%</text>
+                            </svg>
+                        </div>
+                    </div>
+                    {% if eligibility_status == 'Eligible' %}
+                    <span class="badge badge-eligible">
+                        <i class='bx bx-check-circle me-1'></i>Eligible
+                    </span>
+                    {% elif eligibility_status == 'Almost Eligible' %}
+                    <span class="badge badge-almost">
+                        <i class='bx bx-trending-up me-1'></i>Almost Eligible
+                    </span>
+                    {% else %}
+                    <span class="badge badge-not">
+                        <i class='bx bx-x-circle me-1'></i>Not Eligible Yet
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Skill Gap Analysis -->
+        <div class="col-lg-8">
+            <!-- Matched Skills -->
+            {% if matched_skills %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">
+                        <i class='bx bx-check-shield text-success me-2'></i>
+                        Skills You Have ({{ matched_skills|length }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for skill in matched_skills %}
+                        <div class="col-md-6">
+                            <div class="skill-match-card p-3 border rounded">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h6 class="mb-1">{{ skill.skill_name }}</h6>
+                                        <small class="text-muted">{{ skill.category }}</small>
+                                    </div>
+                                    <span class="badge bg-success">
+                                        <i class='bx bx-check'></i>
+                                    </span>
+                                </div>
+                                
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Your Level</small>
+                                        <strong class="text-success">{{ skill.user_proficiency|floatformat:1 }}/10</strong>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Required</small>
+                                        <strong>{{ skill.required_proficiency|floatformat:1 }}/10</strong>
+                                    </div>
+                                </div>
+
+                                <div class="progress mt-2" style="height: 8px;">
+                                    <div class="progress-bar bg-success" 
+                                         style="width: {{ skill.user_proficiency|mul:10 }}%"></div>
+                                    {% if skill.user_proficiency < skill.required_proficiency %}
+                                    <div class="progress-bar bg-warning" 
+                                         style="width: {{ skill.required_proficiency|mul:10|add:skill.user_proficiency|mul:-10 }}%"></div>
+                                    {% endif %}
+                                </div>
+
+                                {% if skill.user_proficiency >= skill.required_proficiency %}
+                                <div class="mt-2">
+                                    <small class="text-success">
+                                        <i class='bx bx-trophy me-1'></i>
+                                        Exceeds requirement by {{ skill.user_proficiency|add:skill.required_proficiency|mul:-1|floatformat:1 }} points
+                                    </small>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Skills to Improve -->
+            {% if skills_to_improve %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">
+                        <i class='bx bx-trending-up text-warning me-2'></i>
+                        Skills to Improve ({{ skills_to_improve|length }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for skill in skills_to_improve %}
+                        <div class="col-md-6">
+                            <div class="skill-gap-card p-3 border rounded">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h6 class="mb-1">{{ skill.skill_name }}</h6>
+                                        <small class="text-muted">{{ skill.category }}</small>
+                                    </div>
+                                    <span class="badge bg-warning">
+                                        <i class='bx bx-trending-up'></i>
+                                    </span>
+                                </div>
+                                
+                                <div class="row g-2 align-items-center mb-2">
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Your Level</small>
+                                        <strong class="text-warning">{{ skill.user_proficiency|floatformat:1 }}/10</strong>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Required</small>
+                                        <strong>{{ skill.required_proficiency|floatformat:1 }}/10</strong>
+                                    </div>
+                                </div>
+
+                                <div class="progress mb-2" style="height: 8px;">
+                                    <div class="progress-bar bg-warning" 
+                                         style="width: {{ skill.user_proficiency|mul:10 }}%"></div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-danger">
+                                        <i class='bx bx-x-circle me-1'></i>
+                                        Gap: {{ skill.gap|floatformat:1 }} points
+                                    </small>
+                                    <a href="{% url 'learning:learning_paths_dashboard' %}?skill={{ skill.skill_id }}" 
+                                       class="btn btn-sm btn-outline-success">
+                                        <i class='bx bx-book-open me-1'></i>Learn
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Missing Skills -->
+            {% if missing_skills %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">
+                        <i class='bx bx-x-circle text-danger me-2'></i>
+                        Skills You Need to Learn ({{ missing_skills|length }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for skill in missing_skills %}
+                        <div class="col-md-6">
+                            <div class="skill-missing-card p-3 border rounded">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h6 class="mb-1">{{ skill.skill_name }}</h6>
+                                        <small class="text-muted">{{ skill.category }}</small>
+                                        {% if skill.is_mandatory %}
+                                        <span class="badge bg-danger ms-2">Required</span>
+                                        {% endif %}
+                                    </div>
+                                    <span class="badge bg-danger">
+                                        <i class='bx bx-x'></i>
+                                    </span>
+                                </div>
+                                
+                                <div class="mb-2">
+                                    <small class="text-muted d-block">Required Level</small>
+                                    <strong>{{ skill.required_proficiency|floatformat:1 }}/10</strong>
+                                </div>
+
+                                <div class="progress mb-2" style="height: 8px;">
+                                    <div class="progress-bar bg-danger" 
+                                         style="width: {{ skill.required_proficiency|mul:10 }}%"></div>
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <a href="{% url 'assessments:skill_intake_dashboard' %}" 
+                                       class="btn btn-sm btn-outline-primary flex-grow-1">
+                                        <i class='bx bx-plus-circle me-1'></i>Claim Skill
+                                    </a>
+                                    <a href="{% url 'learning:learning_paths_dashboard' %}?skill={{ skill.skill_id }}" 
+                                       class="btn btn-sm btn-outline-success">
+                                        <i class='bx bx-book-open me-1'></i>Learn
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Action Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h5 class="mb-3">Next Steps</h5>
+                    
+                    {% if eligibility_status == 'Eligible' %}
+                    <div class="alert alert-success mb-3">
+                        <i class='bx bx-check-circle me-2'></i>
+                        You're eligible! Ready to apply.
+                    </div>
+                    <a href="{% url 'jobs:apply_to_job' job.id %}" class="btn btn-success w-100 mb-2">
+                        <i class='bx bx-send me-2'></i>Apply Now
+                    </a>
+                    {% elif eligibility_status == 'Almost Eligible' %}
+                    <div class="alert alert-warning mb-3">
+                        <i class='bx bx-trending-up me-2'></i>
+                        You're almost there! Improve {{ skills_to_improve|length }} skills.
+                    </div>
+                    <a href="{% url 'learning:learning_paths_dashboard' %}" class="btn btn-warning w-100 mb-2">
+                        <i class='bx bx-book-open me-2'></i>Start Learning Path
+                    </a>
+                    {% else %}
+                    <div class="alert alert-info mb-3">
+                        <i class='bx bx-info-circle me-2'></i>
+                        Build skills to become eligible.
+                    </div>
+                    <a href="{% url 'assessments:skill_intake_dashboard' %}" class="btn btn-primary w-100 mb-2">
+                        <i class='bx bx-brain me-2'></i>Browse Skills
+                    </a>
+                    {% endif %}
+
+                    <a href="{% url 'jobs:job_detail_with_analysis' job.id %}" class="btn btn-outline-primary w-100">
+                        <i class='bx bx-info-circle me-2'></i>View Full Job Details
+                    </a>
+                </div>
+            </div>
+
+            <!-- Summary Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h5 class="mb-3">Gap Summary</h5>
+                    
+                    <div class="stat-item mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Total Skills Required</span>
+                            <strong class="fs-4">{{ total_required_skills }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="stat-item mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-success">Skills You Have</span>
+                            <strong class="fs-4 text-success">{{ matched_skills|length }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="stat-item mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-warning">Skills to Improve</span>
+                            <strong class="fs-4 text-warning">{{ skills_to_improve|length }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="stat-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-danger">Skills to Learn</span>
+                            <strong class="fs-4 text-danger">{{ missing_skills|length }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Learning Estimate -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h5 class="mb-3">
+                        <i class='bx bx-time me-2'></i>Time to Eligibility
+                    </h5>
+                    <div class="text-center mb-3">
+                        <div class="time-estimate">
+                            {% if estimated_weeks %}
+                            <span class="time-value">{{ estimated_weeks }}</span>
+                            <span class="time-unit">weeks</span>
+                            {% else %}
+                            <span class="time-value">Ready</span>
+                            <span class="time-unit">now!</span>
+                            {% endif %}
+                        </div>
+                        <small class="text-muted">Estimated learning time</small>
+                    </div>
+                    <p class="text-muted small mb-0">
+                        Based on average learning paths and improvement timelines
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.score-circle-large .score-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    fill: var(--primary-color);
+}
+
+.badge-eligible {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+}
+
+.badge-almost {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+}
+
+.badge-not {
+    background: linear-gradient(135deg, #9ca3af, #6b7280);
+    color: white;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+}
+
+.skill-match-card,
+.skill-gap-card,
+.skill-missing-card {
+    transition: all 0.3s ease;
+}
+
+.skill-match-card:hover,
+.skill-gap-card:hover,
+.skill-missing-card:hover {
+    box-shadow: var(--shadow);
+    transform: translateY(-2px);
+}
+
+.stat-item {
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.stat-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.time-estimate {
+    margin: 1rem 0;
+}
+
+.time-value {
+    display: block;
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--primary-color);
+}
+
+.time-unit {
+    display: block;
+    font-size: 1rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+}
+</style>
+{% endblock %}

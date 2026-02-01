@@ -181,7 +181,9 @@
                 </h4>
                 <div class="skills-tags">
                     {% for skill in application.job.skills %}
-                    <span class="skill-tag">{{ skill }}</span>
+                    <span class="skill-tag">
+                        {% if skill.name %}{{ skill.name }}{% else %}{{ skill }}{% endif %}
+                    </span>
                     {% endfor %}
                 </div>
             </div>
