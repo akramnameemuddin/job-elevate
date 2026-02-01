@@ -281,7 +281,9 @@
         {% if rec.job.skills %}
         <div class="skills-tags">
           {% for skill in rec.job.skills|slice:":5" %}
-          <span class="skill-tag">{{ skill }}</span>
+          <span class="skill-tag">
+            {% if skill.name %}{{ skill.name }}{% else %}{{ skill }}{% endif %}
+          </span>
           {% endfor %}
           {% if rec.job.skills|length > 5 %}
           <span class="skill-tag more-skills">+{{ rec.job.skills|length|add:"-5" }}</span>

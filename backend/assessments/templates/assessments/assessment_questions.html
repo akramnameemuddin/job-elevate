@@ -1,0 +1,350 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Assessment - {{ skill.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Assessment Header -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h3 class="mb-2">{{ skill.name }} Assessment</h3>
+                            <p class="text-muted mb-0">
+                                <i class='bx bx-info-circle me-1'></i>
+                                Answer all questions to the best of your ability. Your responses will determine your verified proficiency level.
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <div class="d-flex align-items-center justify-content-md-end gap-3">
+                                <div>
+                                    <small class="text-muted d-block">Questions</small>
+                                    <strong class="fs-5">{{ total_questions }}</strong>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Time</small>
+                                    <strong class="fs-5" id="timer">{{ time_limit }}:00</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="progress mt-3" style="height: 8px;">
+                        <div class="progress-bar" id="progressBar" role="progressbar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assessment Form -->
+            <form method="POST" id="assessmentForm">
+                {% csrf_token %}
+                
+                <!-- Basic Level Questions -->
+                {% if basic_questions %}
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-bottom">
+                        <div class="d-flex align-items-center">
+                            <div class="level-badge level-basic me-3">
+                                <i class='bx bx-layer'></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-0">Basic Level</h5>
+                                <small class="text-muted">{{ basic_questions|length }} questions · 40% weight</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% for question in basic_questions %}
+                        <div class="question-block mb-4 pb-4 {% if not forloop.last %}border-bottom{% endif %}">
+                            <div class="d-flex align-items-start mb-3">
+                                <span class="question-number me-3">{{ forloop.counter }}</span>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-2">{{ question.text }}</h6>
+                                    {% if question.code_snippet %}
+                                    <pre class="code-snippet p-3 bg-light rounded mb-3"><code>{{ question.code_snippet }}</code></pre>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="options-list ms-5">
+                                {% for option in question.options %}
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" 
+                                           name="basic_q{{ forloop.parentloop.counter }}" 
+                                           id="basic_q{{ forloop.parentloop.counter }}_opt{{ forloop.counter }}"
+                                           value="{{ forloop.counter }}" required>
+                                    <label class="form-check-label" for="basic_q{{ forloop.parentloop.counter }}_opt{{ forloop.counter }}">
+                                        {{ option }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Intermediate Level Questions -->
+                {% if intermediate_questions %}
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-bottom">
+                        <div class="d-flex align-items-center">
+                            <div class="level-badge level-intermediate me-3">
+                                <i class='bx bx-layer-plus'></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-0">Intermediate Level</h5>
+                                <small class="text-muted">{{ intermediate_questions|length }} questions · 35% weight</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% for question in intermediate_questions %}
+                        <div class="question-block mb-4 pb-4 {% if not forloop.last %}border-bottom{% endif %}">
+                            <div class="d-flex align-items-start mb-3">
+                                <span class="question-number me-3">{{ forloop.counter|add:basic_questions|length }}</span>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-2">{{ question.text }}</h6>
+                                    {% if question.code_snippet %}
+                                    <pre class="code-snippet p-3 bg-light rounded mb-3"><code>{{ question.code_snippet }}</code></pre>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="options-list ms-5">
+                                {% for option in question.options %}
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" 
+                                           name="intermediate_q{{ forloop.parentloop.counter }}" 
+                                           id="intermediate_q{{ forloop.parentloop.counter }}_opt{{ forloop.counter }}"
+                                           value="{{ forloop.counter }}" required>
+                                    <label class="form-check-label" for="intermediate_q{{ forloop.parentloop.counter }}_opt{{ forloop.counter }}">
+                                        {{ option }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Advanced Level Questions -->
+                {% if advanced_questions %}
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-bottom">
+                        <div class="d-flex align-items-center">
+                            <div class="level-badge level-advanced me-3">
+                                <i class='bx bx-medal'></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-0">Advanced Level</h5>
+                                <small class="text-muted">{{ advanced_questions|length }} questions · 25% weight</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% for question in advanced_questions %}
+                        <div class="question-block mb-4 pb-4 {% if not forloop.last %}border-bottom{% endif %}">
+                            <div class="d-flex align-items-start mb-3">
+                                <span class="question-number me-3">{{ forloop.counter|add:basic_questions|length|add:intermediate_questions|length }}</span>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-2">{{ question.text }}</h6>
+                                    {% if question.code_snippet %}
+                                    <pre class="code-snippet p-3 bg-light rounded mb-3"><code>{{ question.code_snippet }}</code></pre>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="options-list ms-5">
+                                {% for option in question.options %}
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" 
+                                           name="advanced_q{{ forloop.parentloop.counter }}" 
+                                           id="advanced_q{{ forloop.parentloop.counter }}_opt{{ forloop.counter }}"
+                                           value="{{ forloop.counter }}" required>
+                                    <label class="form-check-label" for="advanced_q{{ forloop.parentloop.counter }}_opt{{ forloop.counter }}">
+                                        {{ option }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Submit Button -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted">
+                                    <i class='bx bx-info-circle me-1'></i>
+                                    Make sure you've answered all questions before submitting
+                                </small>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                                <i class='bx bx-check-circle me-2'></i>Submit Assessment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.level-badge {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.level-basic {
+    background-color: var(--primary-light);
+    color: var(--primary-color);
+}
+
+.level-intermediate {
+    background-color: var(--warning-light);
+    color: var(--warning-color);
+}
+
+.level-advanced {
+    background-color: var(--success-light);
+    color: var(--success-color);
+}
+
+.question-number {
+    width: 35px;
+    height: 35px;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.code-snippet {
+    border: 1px solid var(--border-color);
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.9rem;
+    overflow-x: auto;
+}
+
+.form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.form-check-label {
+    cursor: pointer;
+    user-select: none;
+}
+
+.options-list .form-check {
+    padding: 12px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.options-list .form-check:hover {
+    background-color: var(--gray-50);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('assessmentForm');
+    const progressBar = document.getElementById('progressBar');
+    const totalQuestions = {{ total_questions }};
+    const timerElement = document.getElementById('timer');
+    const timeLimit = {{ time_limit }} * 60; // Convert to seconds
+    
+    let timeRemaining = timeLimit;
+    
+    // Timer
+    const timerInterval = setInterval(function() {
+        timeRemaining--;
+        const minutes = Math.floor(timeRemaining / 60);
+        const seconds = timeRemaining % 60;
+        timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        
+        if (timeRemaining <= 0) {
+            clearInterval(timerInterval);
+            alert('Time is up! Submitting your assessment...');
+            form.submit();
+        }
+        
+        // Warning at 5 minutes
+        if (timeRemaining === 300) {
+            alert('5 minutes remaining!');
+        }
+    }, 1000);
+    
+    // Progress tracking
+    const radioInputs = form.querySelectorAll('input[type="radio"]');
+    radioInputs.forEach(input => {
+        input.addEventListener('change', updateProgress);
+    });
+    
+    function updateProgress() {
+        const answeredQuestions = new Set();
+        radioInputs.forEach(input => {
+            if (input.checked) {
+                answeredQuestions.add(input.name);
+            }
+        });
+        
+        const progress = (answeredQuestions.size / totalQuestions) * 100;
+        progressBar.style.width = progress + '%';
+        progressBar.setAttribute('aria-valuenow', progress);
+    }
+    
+    // Form submission validation
+    form.addEventListener('submit', function(e) {
+        const answeredQuestions = new Set();
+        radioInputs.forEach(input => {
+            if (input.checked) {
+                answeredQuestions.add(input.name);
+            }
+        });
+        
+        if (answeredQuestions.size < totalQuestions) {
+            e.preventDefault();
+            alert(`Please answer all questions. You have answered ${answeredQuestions.size} out of ${totalQuestions} questions.`);
+            return false;
+        }
+        
+        if (!confirm('Are you sure you want to submit your assessment? You cannot change your answers after submission.')) {
+            e.preventDefault();
+            return false;
+        }
+        
+        clearInterval(timerInterval);
+    });
+    
+    // Prevent page refresh
+    window.addEventListener('beforeunload', function(e) {
+        e.preventDefault();
+        e.returnValue = '';
+    });
+});
+</script>
+{% endblock %}

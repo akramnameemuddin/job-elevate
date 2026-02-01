@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, RecruiterProfile
+from .models import User
 
 class CustomUserAdmin(UserAdmin):
     # Display these fields in the admin list view
@@ -54,23 +54,8 @@ class CustomUserAdmin(UserAdmin):
         }),
     )
 
-class RecruiterProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'company_name', 'company_website')
-    search_fields = ('user__username', 'user__email', 'company_name')
-    list_filter = ('user__date_joined',)
-    
-    fieldsets = (
-        ('User Information', {
-            'fields': ('user',)
-        }),
-        ('Company Information', {
-            'fields': ('company_name', 'company_website', 'company_description')
-        }),
-    )
-
 # Register the models
 admin.site.register(User, CustomUserAdmin)
-admin.site.register(RecruiterProfile, RecruiterProfileAdmin)
 
 # Customize admin site headers
 admin.site.site_header = "JobElevate Administration"

@@ -1,0 +1,577 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}My Courses{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1><i class='bx bx-book-bookmark'></i> My Courses</h1>
+        <p>Track your learning progress and continue where you left off</p>
+    </div>
+    <a href="{% url 'learning:course_catalog' %}" class="btn btn-primary">
+        <i class='bx bx-plus'></i> Browse Courses
+    </a>
+</div>
+
+<div class="courses-container">
+    <!-- Stats Overview -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <i class='bx bx-book'></i>
+            <div>
+                <strong>{{ active_courses }}</strong>
+                <span>Active Courses</span>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <i class='bx bx-check-circle'></i>
+            <div>
+                <strong>{{ completed_courses }}</strong>
+                <span>Completed</span>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <i class='bx bx-time'></i>
+            <div>
+                <strong>{{ total_hours }}</strong>
+                <span>Hours Learned</span>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <i class='bx bx-medal'></i>
+            <div>
+                <strong>{{ certificates_earned }}</strong>
+                <span>Certificates</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-bar">
+        <div class="filter-tabs">
+            <button class="filter-tab active" data-filter="all" onclick="filterCourses('all')">
+                All Courses ({{ progress_list.count }})
+            </button>
+            <button class="filter-tab" data-filter="in-progress" onclick="filterCourses('in-progress')">
+                In Progress ({{ active_courses }})
+            </button>
+            <button class="filter-tab" data-filter="completed" onclick="filterCourses('completed')">
+                Completed ({{ completed_courses }})
+            </button>
+        </div>
+    </div>
+
+    <!-- Courses List -->
+    <div class="courses-list" id="courses-list">
+        {% for progress in progress_list %}
+        <div class="course-progress-card" data-status="{% if progress.completed %}completed{% else %}in-progress{% endif %}">
+            <div class="course-header">
+                <div class="course-info">
+                    <h3>{{ progress.course.title }}</h3>
+                    <div class="course-meta">
+                        <span class="platform-badge">{{ progress.course.platform }}</span>
+                        <span class="skill-tag">{{ progress.course.skill.name }}</span>
+                        <span class="difficulty-badge difficulty-{{ progress.course.difficulty }}">
+                            {{ progress.course.get_difficulty_display }}
+                        </span>
+                    </div>
+                </div>
+                
+                {% if progress.completed %}
+                <div class="completion-badge">
+                    <i class='bx bx-check-circle'></i>
+                    <span>Completed</span>
+                </div>
+                {% else %}
+                <div class="status-badge">
+                    <i class='bx bx-time'></i>
+                    <span>In Progress</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="course-body">
+                <p class="course-description">{{ progress.course.description|truncatewords:30 }}</p>
+                
+                <div class="progress-section">
+                    <div class="progress-header">
+                        <span>Progress</span>
+                        <span class="progress-percentage">{{ progress.progress_percentage|floatformat:0 }}%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{ progress.progress_percentage|floatformat:0 }}%"></div>
+                    </div>
+                </div>
+                
+                <div class="course-stats-row">
+                    <div class="stat-item">
+                        <i class='bx bx-time'></i>
+                        <span>{{ progress.time_spent }} of {{ progress.course.duration_hours }}h</span>
+                    </div>
+                    {% if progress.last_accessed %}
+                    <div class="stat-item">
+                        <i class='bx bx-calendar'></i>
+                        <span>Last accessed {{ progress.last_accessed|timesince }} ago</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="course-footer">
+                {% if progress.completed %}
+                    {% if progress.certificate_url %}
+                    <a href="{{ progress.certificate_url }}" target="_blank" class="btn btn-success">
+                        <i class='bx bx-medal'></i> View Certificate
+                    </a>
+                    {% endif %}
+                    <button class="btn btn-secondary" onclick="updateProgress({{ progress.id }}, 0)">
+                        <i class='bx bx-revision'></i> Review Again
+                    </button>
+                {% else %}
+                    <button class="btn btn-primary" onclick="continueLearning('{{ progress.course.external_url }}', {{ progress.id }})">
+                        <i class='bx bx-play'></i> Continue Learning
+                    </button>
+                    <button class="btn btn-outline" onclick="showProgressModal({{ progress.id }}, {{ progress.progress_percentage|floatformat:0 }})">
+                        <i class='bx bx-edit'></i> Update Progress
+                    </button>
+                {% endif %}
+                
+                {% if progress.course.external_url %}
+                <a href="{{ progress.course.external_url }}" target="_blank" class="btn-icon" title="Open in {{ progress.course.platform }}">
+                    <i class='bx bx-link-external'></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <i class='bx bx-book-open'></i>
+            <h3>No Enrolled Courses</h3>
+            <p>Start your learning journey by enrolling in courses from our catalog</p>
+            <a href="{% url 'learning:course_catalog' %}" class="btn btn-primary">
+                <i class='bx bx-search'></i> Browse Courses
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Progress Update Modal -->
+<div id="progress-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Update Progress</h3>
+            <button class="modal-close" onclick="closeProgressModal()">
+                <i class='bx bx-x'></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p>How much of the course have you completed?</p>
+            <input type="range" id="progress-slider" min="0" max="100" value="0" oninput="updateSliderValue(this.value)">
+            <div class="progress-value"><span id="slider-value">0</span>%</div>
+            
+            <label class="checkbox-label">
+                <input type="checkbox" id="mark-completed">
+                <span>Mark as completed</span>
+            </label>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeProgressModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveProgress()">Save Progress</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentProgressId = null;
+
+function filterCourses(filter) {
+    const cards = document.querySelectorAll('.course-progress-card');
+    const tabs = document.querySelectorAll('.filter-tab');
+    
+    tabs.forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.filter === filter);
+    });
+    
+    cards.forEach(card => {
+        if (filter === 'all') {
+            card.style.display = 'flex';
+        } else if (filter === 'in-progress') {
+            card.style.display = card.dataset.status === 'in-progress' ? 'flex' : 'none';
+        } else if (filter === 'completed') {
+            card.style.display = card.dataset.status === 'completed' ? 'flex' : 'none';
+        }
+    });
+}
+
+function continueLearning(url, progressId) {
+    if (url) {
+        // Update last accessed time
+        fetch("{% url 'learning:update_course_progress' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                progress_id: progressId,
+                update_access: true
+            })
+        });
+        
+        window.open(url, '_blank');
+    }
+}
+
+function showProgressModal(progressId, currentProgress) {
+    currentProgressId = progressId;
+    document.getElementById('progress-slider').value = currentProgress;
+    document.getElementById('slider-value').textContent = currentProgress;
+    document.getElementById('mark-completed').checked = currentProgress >= 100;
+    document.getElementById('progress-modal').style.display = 'flex';
+}
+
+function closeProgressModal() {
+    document.getElementById('progress-modal').style.display = 'none';
+    currentProgressId = null;
+}
+
+function updateSliderValue(value) {
+    document.getElementById('slider-value').textContent = value;
+    document.getElementById('mark-completed').checked = value >= 100;
+}
+
+function saveProgress() {
+    const progress = document.getElementById('progress-slider').value;
+    const completed = document.getElementById('mark-completed').checked;
+    
+    updateProgress(currentProgressId, progress, completed);
+    closeProgressModal();
+}
+
+function updateProgress(progressId, progress, completed = null) {
+    fetch("{% url 'learning:update_course_progress' %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            progress_id: progressId,
+            progress_percentage: progress,
+            completed: completed !== null ? completed : progress >= 100
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error updating progress: ' + data.error);
+        }
+    });
+}
+</script>
+
+<style>
+.courses-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+}
+
+.stat-card i {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+}
+
+.stat-card strong {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.stat-card span {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.filters-bar {
+    margin-bottom: 2rem;
+}
+
+.filter-tabs {
+    display: flex;
+    gap: 1rem;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.filter-tab {
+    padding: 1rem 1.5rem;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-tab.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+.courses-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.course-progress-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+}
+
+.course-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+
+.course-info h3 {
+    margin-bottom: 0.75rem;
+}
+
+.course-meta {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.platform-badge {
+    padding: 0.25rem 0.75rem;
+    background: var(--primary-light);
+    color: var(--primary-color);
+    border-radius: var(--radius);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.skill-tag {
+    padding: 0.25rem 0.75rem;
+    background: var(--gray-100);
+    border-radius: var(--radius);
+    font-size: 0.75rem;
+}
+
+.difficulty-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.difficulty-beginner { background: var(--success-light); color: var(--success-color); }
+.difficulty-intermediate { background: var(--warning-light); color: var(--warning-color); }
+.difficulty-advanced { background: var(--danger-light); color: var(--danger-color); }
+
+.completion-badge, .status-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    font-weight: 600;
+}
+
+.completion-badge {
+    background: var(--success-light);
+    color: var(--success-color);
+}
+
+.status-badge {
+    background: var(--warning-light);
+    color: var(--warning-color);
+}
+
+.course-description {
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.progress-section {
+    margin-bottom: 1rem;
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.progress-percentage {
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.progress-bar {
+    height: 12px;
+    background: var(--gray-200);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+    transition: width 0.3s ease;
+}
+
+.course-stats-row {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.course-footer {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    color: var(--text-color);
+    transition: all 0.2s;
+}
+
+.btn-icon:hover {
+    background: var(--gray-100);
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+}
+
+.btn-outline:hover {
+    background: var(--gray-50);
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    width: 90%;
+    max-width: 500px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-muted);
+}
+
+.modal-body {
+    padding: 2rem 1.5rem;
+}
+
+.modal-body input[type="range"] {
+    width: 100%;
+    margin: 1.5rem 0;
+}
+
+.progress-value {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-state i {
+    font-size: 5rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+</style>
+{% endblock %}

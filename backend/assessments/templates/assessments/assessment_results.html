@@ -11,7 +11,7 @@
         <i class='bx bx-chevron-right'></i>
     </div>
     <div class="breadcrumb-item">
-        <a href="{% url 'assessments:assessment' %}" class="breadcrumb-link">Assessments</a>
+        <a href="{% url 'assessments:skill_intake_dashboard' %}" class="breadcrumb-link">Assessments</a>
         <i class='bx bx-chevron-right'></i>
     </div>
     <div class="breadcrumb-item">
@@ -23,28 +23,40 @@
 <div class="results-header">
     <div class="results-celebration">
         <div class="celebration-icon">
+            {% if passed %}
             <i class='bx bx-trophy'></i>
+            {% else %}
+            <i class='bx bx-book-open'></i>
+            {% endif %}
         </div>
-        <h1>Congratulations!</h1>
-        <p>You've completed the Full-Stack Development Assessment</p>
+        <h1>{% if passed %}Congratulations!{% else %}Keep Learning!{% endif %}</h1>
+        <p>You've completed the {{ skill_name }} Assessment</p>
     </div>
     
     <div class="overall-score">
         <div class="score-circle">
             <svg viewBox="0 0 120 120">
                 <circle cx="60" cy="60" r="50" class="score-bg"></circle>
-                <circle cx="60" cy="60" r="50" class="score-fill" style="stroke-dasharray: 251, 314;"></circle>
+                <circle cx="60" cy="60" r="50" class="score-fill" style="stroke-dasharray: {{ score_dasharray }};"></circle>
             </svg>
             <div class="score-text">
-                <span class="score-number">82</span>
+                <span class="score-number">{{ percentage }}</span>
                 <span class="score-label">%</span>
             </div>
         </div>
         <div class="score-details">
-            <div class="score-grade">Grade: B+</div>
+            <div class="score-grade">Grade: {{ grade }}</div>
             <div class="score-status">
-                <i class='bx bx-check-circle'></i>
+                {% if passed %}
+                <i class='bx bx-check-circle' style="color: var(--success-color);"></i>
                 <span>Passed</span>
+                {% else %}
+                <i class='bx bx-x-circle' style="color: var(--danger-color);"></i>
+                <span>Not Passed</span>
+                {% endif %}
+            </div>
+            <div class="proficiency-level">
+                Proficiency: {{ proficiency_level }}/10
             </div>
         </div>
     </div>
@@ -52,120 +64,34 @@
 
 <!-- Skill Breakdown -->
 <div class="skill-breakdown">
-    <h2>Skill Performance Breakdown</h2>
+    <h2>Performance Breakdown by Difficulty</h2>
     
     <div class="skills-grid">
+        {% for difficulty in difficulty_breakdown %}
         <div class="skill-card">
             <div class="skill-header">
-                <div class="skill-icon frontend">
-                    <i class='bx bx-code-alt'></i>
+                <div class="skill-icon {{ difficulty.color }}">
+                    <i class='bx {{ difficulty.icon }}'></i>
                 </div>
                 <div class="skill-info">
-                    <h3>Frontend Development</h3>
-                    <p>HTML, CSS, JavaScript, React</p>
+                    <h3>{{ difficulty.name }}</h3>
+                    <p>{{ difficulty.description }}</p>
                 </div>
             </div>
             <div class="skill-score">
                 <div class="score-bar">
-                    <div class="score-fill" style="width: 88%;"></div>
+                    <div class="score-fill" style="width: {{ difficulty.percentage }}%;"></div>
                 </div>
-                <span class="score-value">88%</span>
+                <span class="score-value">{{ difficulty.percentage }}%</span>
             </div>
             <div class="skill-details">
                 <div class="detail-item">
                     <span>Questions Answered:</span>
-                    <span>8/9</span>
-                </div>
-                <div class="detail-item">
-                    <span>Time Spent:</span>
-                    <span>12 min</span>
+                    <span>{{ difficulty.correct }}/{{ difficulty.total }}</span>
                 </div>
             </div>
         </div>
-
-        <div class="skill-card">
-            <div class="skill-header">
-                <div class="skill-icon backend">
-                    <i class='bx bx-server'></i>
-                </div>
-                <div class="skill-info">
-                    <h3>Backend Development</h3>
-                    <p>Node.js, Python, APIs, Authentication</p>
-                </div>
-            </div>
-            <div class="skill-score">
-                <div class="score-bar">
-                    <div class="score-fill" style="width: 75%;"></div>
-                </div>
-                <span class="score-value">75%</span>
-            </div>
-            <div class="skill-details">
-                <div class="detail-item">
-                    <span>Questions Answered:</span>
-                    <span>6/8</span>
-                </div>
-                <div class="detail-item">
-                    <span>Time Spent:</span>
-                    <span>15 min</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="skill-card">
-            <div class="skill-header">
-                <div class="skill-icon database">
-                    <i class='bx bx-data'></i>
-                </div>
-                <div class="skill-info">
-                    <h3>Database Management</h3>
-                    <p>SQL, NoSQL, Database Design</p>
-                </div>
-            </div>
-            <div class="skill-score">
-                <div class="score-bar">
-                    <div class="score-fill" style="width: 83%;"></div>
-                </div>
-                <span class="score-value">83%</span>
-            </div>
-            <div class="skill-details">
-                <div class="detail-item">
-                    <span>Questions Answered:</span>
-                    <span>5/6</span>
-                </div>
-                <div class="detail-item">
-                    <span>Time Spent:</span>
-                    <span>8 min</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="skill-card">
-            <div class="skill-header">
-                <div class="skill-icon tools">
-                    <i class='bx bx-wrench'></i>
-                </div>
-                <div class="skill-info">
-                    <h3>Development Tools</h3>
-                    <p>Git, Docker, Testing, CI/CD</p>
-                </div>
-            </div>
-            <div class="skill-score">
-                <div class="score-bar">
-                    <div class="score-fill" style="width: 67%;"></div>
-                </div>
-                <span class="score-value">67%</span>
-            </div>
-            <div class="skill-details">
-                <div class="detail-item">
-                    <span>Questions Answered:</span>
-                    <span>4/6</span>
-                </div>
-                <div class="detail-item">
-                    <span>Time Spent:</span>
-                    <span>10 min</span>
-                </div>
-            </div>
-        </div>
+        {% endfor %}
     </div>
 </div>
 
@@ -174,59 +100,108 @@
     <h2>Personalized Recommendations</h2>
     
     <div class="recommendations-grid">
-        <div class="recommendation-card">
+        {% if not passed %}
+        <!-- AI-Generated Learning Path -->
+        <div class="recommendation-card featured">
             <div class="recommendation-header">
-                <i class='bx bx-book-open'></i>
-                <h3>Improve Development Tools</h3>
+                <i class='bx bx-brain'></i>
+                <h3>🎯 AI-Powered Learning Path Generated</h3>
             </div>
-            <p>Your weakest area is Development Tools (67%). Consider taking these courses:</p>
+            <p>Don't worry! We've created a personalized learning path to help you improve.</p>
+            
+            {% if learning_path %}
+            <div class="learning-path-preview">
+                <h4>{{ learning_path.title }}</h4>
+                <p>{{ learning_path.description }}</p>
+                <div class="learning-stats">
+                    <div class="stat">
+                        <i class='bx bx-time'></i>
+                        <span>{{ learning_path.estimated_hours }} hours</span>
+                    </div>
+                    <div class="stat">
+                        <i class='bx bx-calendar'></i>
+                        <span>{{ learning_path.estimated_weeks }} weeks</span>
+                    </div>
+                    <div class="stat">
+                        <i class='bx bx-target-lock'></i>
+                        <span>{{ learning_path.courses.count }} courses</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
             <ul>
-                <li>Advanced Git & Version Control</li>
-                <li>Docker Containerization Fundamentals</li>
-                <li>CI/CD Pipeline Implementation</li>
+                <li><strong>Review incorrect answers</strong> - Focus on areas where you struggled</li>
+                <li><strong>Complete recommended courses</strong> - Build foundational knowledge</li>
+                <li><strong>Practice with exercises</strong> - Apply what you've learned</li>
+                {% if in_cooldown %}
+                <li><strong>Wait {{ cooldown_hours|floatformat:1 }} hours</strong> - Give yourself time to learn</li>
+                {% endif %}
             </ul>
-            <button class="btn btn-primary">
-                <i class='bx bx-play'></i>
-                Start Learning
-            </button>
+            
+            <div class="action-buttons">
+                {% if learning_path %}
+                <a href="{% url 'learning:learning_dashboard' %}" class="btn btn-primary">
+                    <i class='bx bx-play-circle'></i>
+                    Start Learning Path
+                </a>
+                {% else %}
+                <a href="{% url 'learning:learning_dashboard' %}" class="btn btn-primary">
+                    <i class='bx bx-book-open'></i>
+                    Explore Learning Resources
+                </a>
+                {% endif %}
+            </div>
+            
+            {% if in_cooldown %}
+            <div class="cooldown-alert">
+                <i class='bx bx-info-circle'></i>
+                <strong>12-Hour Cooldown Active</strong> - You can retake this assessment in {{ cooldown_hours|floatformat:1 }} hours. Use this time wisely!
+            </div>
+            {% endif %}
         </div>
+        {% endif %}
 
+        {% if matching_jobs %}
         <div class="recommendation-card">
             <div class="recommendation-header">
                 <i class='bx bx-briefcase'></i>
                 <h3>Matching Job Opportunities</h3>
             </div>
-            <p>Based on your skills, you're qualified for these positions:</p>
+            <p>Based on your verified {{ skill_name }} skills, you're qualified for these positions:</p>
             <ul>
-                <li>Frontend Developer (95% match)</li>
-                <li>Full-Stack Developer (82% match)</li>
-                <li>React Developer (90% match)</li>
+                {% for job_match in matching_jobs %}
+                <li>{{ job_match.job.title }} at {{ job_match.job.company }} ({{ job_match.match_percentage }}% match)</li>
+                {% endfor %}
             </ul>
-            <button class="btn btn-primary">
+            <a href="{% url 'jobs:job_listings' %}" class="btn btn-primary">
                 <i class='bx bx-search'></i>
-                View Jobs
-            </button>
+                View All Jobs
+            </a>
         </div>
+        {% endif %}
 
         <div class="recommendation-card">
             <div class="recommendation-header">
                 <i class='bx bx-target-lock'></i>
-                <h3>Skill Development Plan</h3>
+                <h3>Assessment Summary</h3>
             </div>
-            <p>Follow this 30-day plan to reach expert level:</p>
+            <p>Your performance on {{ skill_name }}:</p>
             <ul>
-                <li>Week 1-2: Master Docker & Containerization</li>
-                <li>Week 3: Advanced Git Workflows</li>
-                <li>Week 4: Testing & Quality Assurance</li>
+                <li>Score: {{ percentage }}% ({{ correct_count }}/{{ total_count }} correct)</li>
+                <li>Time taken: {{ time_spent_minutes }} minutes</li>
+                <li>Proficiency level: {{ proficiency_level }}/10</li>
+                <li>Status: {% if passed %}<strong style="color: var(--success-color);">Verified ✓</strong>{% else %}<strong style="color: var(--danger-color);">Not Verified</strong>{% endif %}</li>
             </ul>
-            <button class="btn btn-primary">
-                <i class='bx bx-calendar'></i>
-                Create Plan
-            </button>
+            <a href="{% url 'assessments:skill_intake_dashboard' %}" class="btn btn-primary">
+                <i class='bx bx-list-ul'></i>
+                View All Assessments
+            </a>
         </div>
     </div>
 </div>
 
+{% if passed %}
 <!-- Certificate Section -->
 <div class="certificate-section">
     <div class="certificate-card">
@@ -236,36 +211,37 @@
             </div>
             <div class="certificate-info">
                 <h3>Digital Certificate Earned</h3>
-                <p>Full-Stack Development Assessment - Level B+</p>
+                <p>{{ skill_name }} Assessment - Level {{ grade }}</p>
                 <div class="certificate-meta">
-                    <span>Issued: {{ today|date:"F d, Y" }}</span>
-                    <span>Valid: Lifetime</span>
+                    <span>Issued: {{ attempt.completed_at|date:"F d, Y" }}</span>
+                    <span>Proficiency: {{ proficiency_level }}/10</span>
                 </div>
             </div>
         </div>
         <div class="certificate-actions">
-            <button class="btn btn-outline-primary">
-                <i class='bx bx-download'></i>
-                Download PDF
-            </button>
-            <button class="btn btn-primary">
+            <a href="{% url 'dashboard:home' %}" class="btn btn-outline-primary">
+                <i class='bx bx-home'></i>
+                View on Profile
+            </a>
+            <button class="btn btn-primary" onclick="shareCertificate()">
                 <i class='bx bx-share'></i>
                 Share Certificate
             </button>
         </div>
     </div>
 </div>
+{% endif %}
 
 <!-- Action Buttons -->
 <div class="results-actions">
-    <button class="btn btn-outline-primary">
-        <i class='bx bx-refresh'></i>
-        Retake Assessment
-    </button>
-    <button class="btn btn-primary">
+    <a href="{% url 'assessments:skill_intake_dashboard' %}" class="btn btn-outline-primary">
+        <i class='bx bx-list-ul'></i>
+        View All Assessments
+    </a>
+    <a href="{% url 'dashboard:home' %}" class="btn btn-primary">
         <i class='bx bx-home'></i>
         Back to Dashboard
-    </button>
+    </a>
 </div>
 
 <style>
@@ -568,6 +544,71 @@
     color: var(--primary-color);
     position: absolute;
     left: 0;
+}
+
+.recommendation-card.featured {
+    border: 2px solid var(--primary-color);
+    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(79, 70, 229, 0.05) 100%);
+}
+
+.learning-path-preview {
+    background: rgba(79, 70, 229, 0.1);
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.learning-path-preview h4 {
+    color: var(--primary-color);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.learning-path-preview p {
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+}
+
+.learning-stats {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.learning-stats .stat {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.learning-stats .stat i {
+    font-size: 1rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.cooldown-alert {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: #FFF3E0;
+    border-left: 4px solid #FF9800;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: #E65100;
+}
+
+.cooldown-alert i {
+    font-size: 1.25rem;
 }
 
 .certificate-section {

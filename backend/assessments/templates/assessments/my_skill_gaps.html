@@ -1,0 +1,449 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}My Skill Gaps - JobElevate{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1><i class='bx bx-target-lock'></i> Skill Gaps for {{ job.title }}</h1>
+        <p>Skills needed to qualify for this position</p>
+    </div>
+    <a href="{% url 'jobs:job_detail' job.id %}" class="btn btn-outline">
+        <i class='bx bx-arrow-back'></i> Back to Job
+    </a>
+</div>
+
+<!-- Summary Stats -->
+<div class="stats-grid">
+    <div class="stat-card critical">
+        <div class="stat-icon"><i class='bx bx-error-circle'></i></div>
+        <div class="stat-info">
+            <h3>{{ critical_gaps.count }}</h3>
+            <p>Critical Gaps</p>
+        </div>
+    </div>
+    <div class="stat-card high">
+        <div class="stat-icon"><i class='bx bx-error'></i></div>
+        <div class="stat-info">
+            <h3>{{ high_gaps.count }}</h3>
+            <p>High Priority</p>
+        </div>
+    </div>
+    <div class="stat-card moderate">
+        <div class="stat-icon"><i class='bx bx-info-circle'></i></div>
+        <div class="stat-info">
+            <h3>{{ moderate_gaps.count }}</h3>
+            <p>Moderate Priority</p>
+        </div>
+    </div>
+    <div class="stat-card total">
+        <div class="stat-icon"><i class='bx bx-list-ul'></i></div>
+        <div class="stat-info">
+            <h3>{{ total_gaps }}</h3>
+            <p>Total Gaps</p>
+        </div>
+    </div>
+</div>
+
+<!-- Critical Gaps -->
+{% if critical_gaps %}
+<div class="card gap-section">
+    <div class="section-header critical">
+        <h3><i class='bx bx-error-circle'></i> Critical Gaps</h3>
+        <span class="badge badge-critical">{{ critical_gaps.count }}</span>
+    </div>
+    <div class="gaps-list">
+        {% for gap in critical_gaps %}
+        <div class="gap-item">
+            <div class="gap-content">
+                <div class="gap-header">
+                    <h4>{{ gap.skill.name }}</h4>
+                    <span class="gap-category">{{ gap.skill.category.name }}</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-item">
+                        <span class="label">Current:</span>
+                        <span class="value">{{ gap.current_level|floatformat:1 }}/10</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Required:</span>
+                        <span class="value">{{ gap.required_level|floatformat:1 }}/10</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Gap:</span>
+                        <span class="value text-danger">{{ gap.gap_value|floatformat:1 }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Priority:</span>
+                        <span class="value">{{ gap.priority_score|floatformat:2 }}</span>
+                    </div>
+                </div>
+                {% if gap.related_job %}
+                <div class="gap-job">
+                    <i class='bx bx-briefcase'></i>
+                    <span>Needed for: {{ gap.related_job.title }}</span>
+                </div>
+                {% endif %}
+                <div class="gap-progress">
+                    <div class="progress-bar">
+                        <div class="current-level" style="width: {% widthratio gap.current_level 10 100 %}%"></div>
+                        <div class="required-mark" style="left: {% widthratio gap.required_level 10 100 %}%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="gap-actions">
+                {% if gap.related_job %}
+                <a href="{% url 'assessments:start_assessment_from_job' gap.related_job.id gap.skill.id %}" class="btn btn-sm btn-primary">
+                    <i class='bx bx-play-circle'></i> Take Assessment
+                </a>
+                {% else %}
+                <a href="{% url 'assessments:start_assessment_direct' gap.skill.id %}" class="btn btn-sm btn-primary">
+                    <i class='bx bx-play-circle'></i> Take Assessment
+                </a>
+                {% endif %}
+                <a href="{% url 'learning:course_catalog' %}?skill={{ gap.skill.id }}" class="btn btn-sm btn-outline">
+                    <i class='bx bx-book'></i> Find Courses
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- High Priority Gaps -->
+{% if high_gaps %}
+<div class="card gap-section">
+    <div class="section-header high">
+        <h3><i class='bx bx-error'></i> High Priority Gaps</h3>
+        <span class="badge badge-high">{{ high_gaps.count }}</span>
+    </div>
+    <div class="gaps-list">
+        {% for gap in high_gaps %}
+        <div class="gap-item">
+            <div class="gap-content">
+                <div class="gap-header">
+                    <h4>{{ gap.skill.name }}</h4>
+                    <span class="gap-category">{{ gap.skill.category.name }}</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-item">
+                        <span class="label">Current:</span>
+                        <span class="value">{{ gap.current_level|floatformat:1 }}/10</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Required:</span>
+                        <span class="value">{{ gap.required_level|floatformat:1 }}/10</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Gap:</span>
+                        <span class="value text-warning">{{ gap.gap_value|floatformat:1 }}</span>
+                    </div>
+                </div>
+                {% if gap.related_job %}
+                <div class="gap-job">
+                    <i class='bx bx-briefcase'></i>
+                    <span>Needed for: {{ gap.related_job.title }}</span>
+                </div>
+                {% endif %}
+                <div class="gap-progress">
+                    <div class="progress-bar">
+                        <div class="current-level" style="width: {% widthratio gap.current_level 10 100 %}%"></div>
+                        <div class="required-mark" style="left: {% widthratio gap.required_level 10 100 %}%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="gap-actions">
+                {% if gap.related_job %}
+                <a href="{% url 'assessments:start_assessment_from_job' gap.related_job.id gap.skill.id %}" class="btn btn-sm btn-primary">
+                    <i class='bx bx-play-circle'></i> Take Assessment
+                </a>
+                {% else %}
+                <a href="{% url 'assessments:start_assessment_direct' gap.skill.id %}" class="btn btn-sm btn-primary">
+                    <i class='bx bx-play-circle'></i> Take Assessment
+                </a>
+                {% endif %}
+                <a href="{% url 'learning:course_catalog' %}?skill={{ gap.skill.id }}" class="btn btn-sm btn-outline">
+                    <i class='bx bx-book'></i> Find Courses
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Moderate Priority Gaps -->
+{% if moderate_gaps %}
+<div class="card gap-section">
+    <div class="section-header moderate">
+        <h3><i class='bx bx-info-circle'></i> Moderate Priority Gaps</h3>
+        <span class="badge badge-moderate">{{ moderate_gaps.count }}</span>
+    </div>
+    <div class="gaps-list">
+        {% for gap in moderate_gaps %}
+        <div class="gap-item">
+            <div class="gap-content">
+                <div class="gap-header">
+                    <h4>{{ gap.skill.name }}</h4>
+                    <span class="gap-category">{{ gap.skill.category.name }}</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-item">
+                        <span class="label">Current:</span>
+                        <span class="value">{{ gap.current_level|floatformat:1 }}/10</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Required:</span>
+                        <span class="value">{{ gap.required_level|floatformat:1 }}/10</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Gap:</span>
+                        <span class="value">{{ gap.gap_value|floatformat:1 }}</span>
+                    </div>
+                </div>
+                {% if gap.related_job %}
+                <div class="gap-job">
+                    <i class='bx bx-briefcase'></i>
+                    <span>Needed for: {{ gap.related_job.title }}</span>
+                </div>
+                {% endif %}
+            </div>
+            <div class="gap-actions">
+                {% if gap.related_job %}
+                <a href="{% url 'assessments:start_assessment_from_job' gap.related_job.id gap.skill.id %}" class="btn btn-sm btn-primary">
+                    <i class='bx bx-play-circle'></i> Take Assessment
+                </a>
+                {% else %}
+                <a href="{% url 'assessments:start_assessment_direct' gap.skill.id %}" class="btn btn-sm btn-primary">
+                    <i class='bx bx-play-circle'></i> Take Assessment
+                </a>
+                {% endif %}
+                <a href="{% url 'learning:course_catalog' %}?skill={{ gap.skill.id }}" class="btn btn-sm btn-outline">
+                    <i class='bx bx-book'></i> Find Courses
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- No Gaps State -->
+{% if not skill_gaps %}
+<div class="card empty-state">
+    <i class='bx bx-check-circle'></i>
+    <h3>No Skill Gaps Identified</h3>
+    <p>Compare your skills with job requirements to identify areas for development</p>
+    <a href="{% url 'jobs:job_listings' %}" class="btn btn-primary">
+        <i class='bx bx-search'></i> Browse Jobs
+    </a>
+</div>
+{% endif %}
+
+<style>
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+}
+
+.stat-card.critical .stat-icon { color: var(--danger-color); }
+.stat-card.high .stat-icon { color: var(--warning-color); }
+.stat-card.moderate .stat-icon { color: var(--info-color); }
+.stat-card.total .stat-icon { color: var(--primary-color); }
+
+.stat-info h3 {
+    font-size: 2rem;
+    margin-bottom: 0.25rem;
+}
+
+.stat-info p {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.gap-section {
+    margin-bottom: 2rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid;
+}
+
+.section-header.critical { border-color: var(--danger-color); }
+.section-header.high { border-color: var(--warning-color); }
+.section-header.moderate { border-color: var(--info-color); }
+
+.section-header h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.badge-critical { background: var(--danger-light); color: var(--danger-color); }
+.badge-high { background: var(--warning-light); color: var(--warning-color); }
+.badge-moderate { background: var(--info-light); color: var(--info-color); }
+
+.gaps-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.gap-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    background: var(--gray-50);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+}
+
+.gap-content {
+    flex: 1;
+}
+
+.gap-header {
+    margin-bottom: 1rem;
+}
+
+.gap-header h4 {
+    font-size: 1.125rem;
+    margin-bottom: 0.25rem;
+}
+
+.gap-category {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.gap-details {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1rem;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-item .label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.detail-item .value {
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.gap-job {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    margin: 0.75rem 0;
+}
+
+.gap-progress {
+    margin-top: 1rem;
+}
+
+.progress-bar {
+    position: relative;
+    height: 12px;
+    background: var(--gray-200);
+    border-radius: var(--radius);
+}
+
+.current-level {
+    height: 100%;
+    background: var(--primary-color);
+    border-radius: var(--radius);
+    transition: width 0.3s ease;
+}
+
+.required-mark {
+    position: absolute;
+    top: -4px;
+    height: 20px;
+    width: 3px;
+    background: var(--danger-color);
+    border-radius: 2px;
+}
+
+.gap-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-state i {
+    font-size: 5rem;
+    color: var(--success-color);
+    margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .gap-item {
+        flex-direction: column;
+    }
+    
+    .gap-actions {
+        flex-direction: row;
+    }
+    
+    .gap-details {
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+}
+</style>
+{% endblock %}

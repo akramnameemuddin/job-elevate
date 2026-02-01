@@ -1,0 +1,470 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}{{ skill.name }} Assessment{% endblock %}
+
+{% block content %}
+<div class="quiz-container">
+    <!-- Quiz Header with Timer -->
+    <div class="quiz-header">
+        <div class="quiz-info">
+            <h2>{{ skill.name }} Assessment</h2>
+            <div class="progress-info">
+                <span>Question <span id="current-question">1</span> of {{ total_questions }}</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ answered_count|add:0 }}%"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="timer-widget">
+            <i class='bx bx-timer'></i>
+            <div>
+                <div id="timer" class="timer">--:--</div>
+                <span>Time Remaining</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Questions -->
+    <div class="questions-container">
+        {% for question in questions %}
+        <div class="question-card" id="question-{{ question.id }}" data-question-id="{{ question.id }}" 
+             style="{% if forloop.first %}display: block;{% else %}display: none;{% endif %}">
+            <div class="question-header">
+                <span class="question-number">Question {{ forloop.counter }}</span>
+                <span class="question-points">{{ question.points }} points</span>
+                <span class="difficulty-badge {{ question.difficulty }}">{{ question.difficulty|title }}</span>
+            </div>
+            
+            <div class="question-text">{{ question.question_text }}</div>
+            
+            <div class="options">
+                {% for option in question.options %}
+                <label class="option">
+                    <input type="radio" name="q{{ question.id }}" value="{{ option }}" 
+                           data-question="{{ question.id }}">
+                    <span class="option-text">{{ option }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Navigation -->
+    <div class="quiz-navigation">
+        <button type="button" class="btn btn-secondary" id="prev-btn" disabled>
+            <i class='bx bx-chevron-left'></i> Previous
+        </button>
+        
+        <div class="question-grid">
+            {% for question in questions %}
+            <button type="button" class="question-nav-btn {% if question.id in answered %}answered{% endif %}" 
+                    data-index="{{ forloop.counter0 }}">
+                {{ forloop.counter }}
+            </button>
+            {% endfor %}
+        </div>
+        
+        <button type="button" class="btn btn-primary" id="next-btn">
+            Next <i class='bx bx-chevron-right'></i>
+        </button>
+    </div>
+    
+    <!-- Submit Button -->
+    <div class="quiz-submit">
+        <button type="button" class="btn btn-success btn-lg" id="submit-btn" style="display: none;">
+            <i class='bx bx-check-circle'></i> Submit Assessment
+        </button>
+    </div>
+</div>
+
+<style>
+.quiz-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.quiz-header {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.progress-info {
+    margin-top: 0.5rem;
+}
+
+.progress-bar {
+    width: 200px;
+    height: 8px;
+    background: var(--gray-200);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 0.5rem;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--primary-color);
+    transition: width 0.3s ease;
+}
+
+.timer-widget {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--primary-light);
+    border-radius: var(--radius);
+}
+
+.timer-widget i {
+    font-size: 2rem;
+    color: var(--primary-color);
+}
+
+.timer {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    font-family: 'Courier New', monospace;
+}
+
+.timer.warning {
+    color: var(--warning-color);
+}
+
+.timer.danger {
+    color: var(--danger-color);
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.question-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.question-header {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.question-number {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.question-points {
+    color: var(--text-muted);
+}
+
+.question-text {
+    font-size: 1.125rem;
+    font-weight: 500;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.options {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.option {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.option:hover {
+    border-color: var(--primary-color);
+    background: var(--primary-50);
+}
+
+.option input:checked + .option-text {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.option input {
+    width: 20px;
+    height: 20px;
+}
+
+.quiz-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+    margin: 2rem 0;
+}
+
+.question-grid {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    flex: 1;
+    justify-content: center;
+}
+
+.question-nav-btn {
+    width: 40px;
+    height: 40px;
+    border: 2px solid var(--border-color);
+    background: var(--white);
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.question-nav-btn:hover {
+    border-color: var(--primary-color);
+    background: var(--primary-light);
+}
+
+.question-nav-btn.answered {
+    background: var(--success-color);
+    color: var(--white);
+    border-color: var(--success-color);
+}
+
+.question-nav-btn.active {
+    background: var(--primary-color);
+    color: var(--white);
+    border-color: var(--primary-color);
+}
+
+.quiz-submit {
+    text-align: center;
+    margin: 2rem 0;
+}
+</style>
+
+<script>
+let currentQuestionIndex = 0;
+const totalQuestions = {{ total_questions }};
+const attemptId = {{ attempt.id }};
+let timeRemaining = {{ time_remaining }};
+let questionStartTime = Date.now();
+
+// Timer
+const timerInterval = setInterval(() => {
+    if (timeRemaining <= 0) {
+        clearInterval(timerInterval);
+        autoSubmit();
+        return;
+    }
+    
+    timeRemaining--;
+    updateTimerDisplay();
+    
+    // Warning states
+    const timerEl = document.getElementById('timer');
+    if (timeRemaining < 60) {
+        timerEl.classList.add('danger');
+    } else if (timeRemaining < 300) {
+        timerEl.classList.add('warning');
+    }
+}, 1000);
+
+function updateTimerDisplay() {
+    const minutes = Math.floor(timeRemaining / 60);
+    const seconds = timeRemaining % 60;
+    document.getElementById('timer').textContent = 
+        `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+// Initialize timer display immediately
+updateTimerDisplay();
+
+// Navigation
+document.getElementById('prev-btn').addEventListener('click', () => {
+    if (currentQuestionIndex > 0) {
+        navigateToQuestion(currentQuestionIndex - 1);
+    }
+});
+
+document.getElementById('next-btn').addEventListener('click', () => {
+    saveCurrentAnswer();
+    if (currentQuestionIndex < totalQuestions - 1) {
+        navigateToQuestion(currentQuestionIndex + 1);
+    }
+});
+
+document.querySelectorAll('.question-nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        saveCurrentAnswer();
+        navigateToQuestion(parseInt(btn.dataset.index));
+    });
+});
+
+function navigateToQuestion(index) {
+    document.querySelectorAll('.question-card').forEach((card, i) => {
+        card.style.display = i === index ? 'block' : 'none';
+    });
+    
+    document.querySelectorAll('.question-nav-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', i === index);
+    });
+    
+    currentQuestionIndex = index;
+    document.getElementById('current-question').textContent = index + 1;
+    document.getElementById('prev-btn').disabled = index === 0;
+    
+    const nextBtn = document.getElementById('next-btn');
+    const submitBtn = document.getElementById('submit-btn');
+    
+    if (index === totalQuestions - 1) {
+        nextBtn.style.display = 'none';
+        submitBtn.style.display = 'block';
+    } else {
+        nextBtn.style.display = 'block';
+        submitBtn.style.display = 'none';
+    }
+    
+    questionStartTime = Date.now();
+}
+
+// Save answer
+function saveCurrentAnswer() {
+    const questionCard = document.querySelectorAll('.question-card')[currentQuestionIndex];
+    const questionId = questionCard.dataset.questionId;
+    const inputs = questionCard.querySelectorAll('input:checked');
+    
+    if (inputs.length === 0) {
+        console.log('No answer selected for question', questionId);
+        return;
+    }
+    
+    const answer = inputs[0].value;  // Get selected option
+    const timeTaken = Math.floor((Date.now() - questionStartTime) / 1000);
+    
+    console.log('Saving answer:', {question_id: questionId, answer: answer});
+    
+    fetch(`/assessments/submit-answer/{{ attempt.id }}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            question_id: questionId,
+            selected_answer: answer,
+            time_spent: timeTaken
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => {
+                throw new Error(err.error || 'Failed to save answer');
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            document.querySelector(`.question-nav-btn[data-index="${currentQuestionIndex}"]`)
+                .classList.add('answered');
+            updateProgress();
+        }
+    })
+    .catch(error => {
+        console.error('Error submitting answer:', error.message);
+    });
+}
+
+function updateProgress() {
+    const answered = document.querySelectorAll('.question-nav-btn.answered').length;
+    const progress = (answered / totalQuestions) * 100;
+    document.querySelector('.progress-fill').style.width = progress + '%';
+}
+
+// Submit
+document.getElementById('submit-btn').addEventListener('click', () => {
+    if (confirm('Are you sure you want to submit? You cannot change answers after submitting.')) {
+        saveCurrentAnswer();
+        submitAssessment();
+    }
+});
+
+function submitAssessment() {
+    // Disable submit button to prevent double-click
+    const submitBtn = document.getElementById('submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class=\"bx bx-loader-alt bx-spin\"></i> Submitting...';
+    
+    fetch(`/assessments/submit/{{ attempt.id }}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Submission failed');
+        }
+        return response;
+    })
+    .then(() => {
+        window.location.href = `/assessments/result/{{ attempt.id }}/`;
+    })
+    .catch(error => {
+        console.error('Error submitting assessment:', error);
+        alert('Error submitting assessment. Please try again.');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class=\"bx bx-check-circle\"></i> Submit Assessment';
+    });
+}
+
+function autoSubmit() {
+    alert('Time is up! Submitting your assessment automatically.');
+    submitAssessment();
+}
+
+// Auto-save on input change with debounce
+let saveTimeout = null;
+document.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(input => {
+    input.addEventListener('change', () => {
+        // Clear any pending save
+        if (saveTimeout) {
+            clearTimeout(saveTimeout);
+        }
+        // Debounce: wait 1 second before saving
+        saveTimeout = setTimeout(() => {
+            saveCurrentAnswer();
+            saveTimeout = null;
+        }, 1000);
+    });
+});
+
+// Prevent accidental page leave
+window.addEventListener('beforeunload', (e) => {
+    e.preventDefault();
+    e.returnValue = '';
+});
+</script>
+{% endblock %}

@@ -799,6 +799,243 @@
             font-size: 0.875rem;
         }
 
+        /* ==== Skill Builder with Grading ==== */
+        .skill-builder-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+
+        .skill-search-box {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .skill-search-input {
+            flex: 1;
+            padding: 0.625rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            color: var(--text-color);
+            background: var(--card-bg);
+            transition: var(--transition);
+        }
+
+        .skill-search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 1px var(--primary-color);
+        }
+
+        .btn-add-skill {
+            padding: 0.625rem 1.25rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .btn-add-skill:hover {
+            background: #4967E5;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(91, 127, 255, 0.3);
+        }
+
+        .skills-with-grades-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .skill-grade-card {
+            background: #F9FAFB;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            transition: var(--transition);
+        }
+
+        .skill-grade-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .skill-grade-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .skill-grade-name {
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+
+        .btn-remove-skill {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #FEE2E2;
+            color: #991B1B;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .btn-remove-skill:hover {
+            background: #FCA5A5;
+        }
+
+        .skill-grade-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .grade-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .grade-label {
+            font-size: 0.813rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .proficiency-slider-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .proficiency-slider {
+            flex: 1;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #E5E7EB;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .proficiency-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .proficiency-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 0 6px rgba(91, 127, 255, 0.1);
+        }
+
+        .proficiency-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .proficiency-value {
+            min-width: 50px;
+            padding: 0.375rem 0.75rem;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-align: center;
+        }
+
+        .criticality-select {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.375rem;
+            background: var(--card-bg);
+            color: var(--text-color);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .criticality-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 1px var(--primary-color);
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--primary-color);
+        }
+
+        .checkbox-container label {
+            font-size: 0.875rem;
+            color: var(--text-color);
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .skills-empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .skills-empty-state i {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.5;
+        }
+
+        .skills-empty-state p {
+            margin: 0;
+            font-size: 0.875rem;
+        }
+
+        .skills-empty-state.hidden {
+            display: none;
+        }
+
+
         /* ==== Job Card ==== */
         .jobs-grid {
             display: grid;
@@ -1485,8 +1722,25 @@
                         </div>
                         <div class="form-group">
                             <label class="form-label">Required Skills</label>
-                            <div class="tags-input-container" id="job-skills-input">
-                                <input type="text" class="tags-input" placeholder="Type skill and press Enter">
+                            <div class="skill-builder-container">
+                                <!-- Skill Search/Add -->
+                                <div class="skill-search-box">
+                                    <input type="text" class="skill-search-input" id="skill-search-input" placeholder="Type to search and add skills...">
+                                    <button type="button" class="btn-add-skill" id="add-skill-btn">
+                                        <i class='bx bx-plus-circle'></i> Add Skill
+                                    </button>
+                                </div>
+                                
+                                <!-- Added Skills List with Grading -->
+                                <div class="skills-with-grades-container" id="skills-with-grades">
+                                    <!-- Dynamic skill cards will be added here -->
+                                </div>
+                                
+                                <!-- Empty State -->
+                                <div class="skills-empty-state" id="skills-empty-state">
+                                    <i class='bx bx-info-circle'></i>
+                                    <p>No skills added yet. Add skills with proficiency requirements above.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1643,7 +1897,7 @@
 });
     // Data storage (simulate backend)
     // Global variables
-let jobSkills = [];
+let jobSkills = []; // Now stores objects with {name, proficiency, mandatory, criticality}
 let candidateSkillsFilter = [];
 
 // Utility function for CSRF token
@@ -1727,7 +1981,7 @@ function renderJobs(jobs) {
                 <div class="job-detail"><i class='bx bx-map'></i><span>${job.location}</span></div>
                 <div class="job-detail"><i class='bx bx-dollar-circle'></i><span>${job.salary || '-'}</span></div>
                 <div class="job-detail"><i class='bx bx-time'></i><span>${job.experience || 0} yrs exp</span></div>
-                <div class="job-detail"><i class='bx bx-list-ul'></i><span>${Array.isArray(job.skills) ? job.skills.join(', ') : ''}</span></div>
+                <div class="job-detail"><i class='bx bx-list-ul'></i><span>${Array.isArray(job.skills) ? job.skills.map(s => s.name || s).join(', ') : ''}</span></div>
             </div>
             <div class="job-candidates">
                 <i class='bx bx-user'></i>
@@ -1948,6 +2202,26 @@ function renderCandidates(candidates, jobId = null) {
         const item = document.createElement('div');
         item.className = 'candidate-item';
         
+        // Get match data
+        const matchPercentage = candidate.match_percentage || candidate.match || 0;
+        const eligibilityStatus = candidate.eligibility_status || 'Unknown';
+        
+        // Determine match color based on percentage
+        let matchColor = 'var(--danger)';
+        if (matchPercentage >= 85) matchColor = 'var(--success)';
+        else if (matchPercentage >= 70) matchColor = 'var(--warning)';
+        else if (matchPercentage >= 50) matchColor = 'var(--amber)';
+        
+        // Determine eligibility badge
+        let eligibilityBadge = '';
+        if (eligibilityStatus === 'Eligible') {
+            eligibilityBadge = '<span style="background: var(--success); color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; margin-top: 0.25rem; display: inline-block;">✓ Eligible</span>';
+        } else if (eligibilityStatus === 'Almost Eligible') {
+            eligibilityBadge = '<span style="background: var(--warning); color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; margin-top: 0.25rem; display: inline-block;">~ Almost</span>';
+        } else if (eligibilityStatus === 'Not Eligible') {
+            eligibilityBadge = '<span style="background: var(--danger); color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; margin-top: 0.25rem; display: inline-block;">✗ Not Eligible</span>';
+        }
+        
         // Get initials from name
         let initials = '';
         if (candidate.name) {
@@ -1964,17 +2238,32 @@ function renderCandidates(candidates, jobId = null) {
                 <div class="candidate-avatar">${initials.toUpperCase()}</div>
                 <div class="candidate-details">
                     <h4 class="candidate-name">${candidate.name}</h4>
-                    <div class="candidate-skills">
-                        ${candidate.skills ? candidate.skills.map(skill => 
-                            `<span class="candidate-skill">${skill}</span>`).join('') : ''}
-                    </div>
                     ${candidate.job_title ? 
-                        `<div class="candidate-skill job-title" style="margin-top:4px;">For: ${candidate.job_title}</div>` : ''}
+                        `<p style="color: var(--text-muted); font-size: 0.875rem; margin: 0.25rem 0;">Applied for: ${candidate.job_title}</p>` : ''}
+                    <div class="candidate-skills">
+                        ${candidate.skills ? candidate.skills.slice(0, 4).map(skill => 
+                            `<span class="candidate-skill">${skill}</span>`).join('') : ''}
+                        ${candidate.skills && candidate.skills.length > 4 ? 
+                            `<span class="candidate-skill">+${candidate.skills.length - 4} more</span>` : ''}
+                    </div>
+                    ${candidate.matched_skills && candidate.total_skills ? 
+                        `<p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.5rem;">
+                            <i class='bx bx-check-circle'></i> Matched ${candidate.matched_skills}/${candidate.total_skills} required skills
+                            ${candidate.gap_count > 0 ? 
+                                `<span style="color: var(--danger); margin-left: 0.5rem;"><i class='bx bx-error-circle'></i> ${candidate.gap_count} skill gaps</span>` : ''}
+                        </p>` : ''
+                    }
+                    <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.25rem;">
+                        <i class='bx bx-briefcase'></i> ${candidate.experience || 0} years exp. | 
+                        <i class='bx bx-map'></i> ${candidate.location || 'Not specified'} |
+                        <i class='bx bx-calendar'></i> Applied ${candidate.applied_at}
+                    </p>
                 </div>
             </div>
             <div class="match-score">
-                <div class="score-value">${candidate.match || 0}%</div>
+                <div class="score-value" style="color: ${matchColor}; border-color: ${matchColor};">${Math.round(matchPercentage)}%</div>
                 <div class="score-text">Match Score</div>
+                ${eligibilityBadge}
             </div>
             <div class="candidate-actions">
                 ${candidate.resume_url ? 
@@ -2235,24 +2524,123 @@ function showTab(tabId) {
     if (navBtn) navBtn.classList.add('active');
 }
 
-// Render job skills tags
+// Render job skills with grading UI
 function renderJobSkills() {
-    const jobSkillsInputContainer = document.getElementById('job-skills-input');
-    if (!jobSkillsInputContainer) return;
+    const container = document.getElementById('skills-with-grades');
+    const emptyState = document.getElementById('skills-empty-state');
     
-    const input = jobSkillsInputContainer.querySelector('.tags-input');
-    jobSkillsInputContainer.querySelectorAll('.tag').forEach(tag => tag.remove());
+    if (!container) return;
     
-    jobSkills.forEach(skill => {
-        const tagEl = document.createElement('div');
-        tagEl.className = 'tag';
-        tagEl.innerHTML = `<span>${skill}</span><i class='bx bx-x'></i>`;
-        tagEl.querySelector('i').onclick = function() {
-            jobSkills = jobSkills.filter(s => s !== skill);
-            renderJobSkills();
-        };
-        jobSkillsInputContainer.insertBefore(tagEl, input);
+    container.innerHTML = '';
+    
+    if (jobSkills.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
+    }
+    
+    emptyState.classList.add('hidden');
+    
+    jobSkills.forEach((skillData, index) => {
+        const skillCard = document.createElement('div');
+        skillCard.className = 'skill-grade-card';
+        skillCard.innerHTML = `
+            <div class="skill-grade-header">
+                <span class="skill-grade-name">${skillData.name}</span>
+                <button type="button" class="btn-remove-skill" onclick="removeJobSkill(${index})">
+                    <i class='bx bx-x'></i>
+                </button>
+            </div>
+            <div class="skill-grade-options">
+                <div class="grade-input-group">
+                    <label class="grade-label">
+                        <i class='bx bx-bar-chart-alt-2'></i> Required Proficiency
+                    </label>
+                    <div class="proficiency-slider-container">
+                        <input type="range" 
+                               class="proficiency-slider" 
+                               min="0" 
+                               max="10" 
+                               step="0.5" 
+                               value="${skillData.proficiency || 7.0}"
+                               onchange="updateSkillProficiency(${index}, this.value)">
+                        <span class="proficiency-value" id="prof-value-${index}">${skillData.proficiency || 7.0}</span>
+                    </div>
+                </div>
+                <div class="grade-input-group">
+                    <label class="grade-label">
+                        <i class='bx bx-star'></i> Criticality
+                    </label>
+                    <select class="criticality-select" onchange="updateSkillCriticality(${index}, this.value)">
+                        <option value="must_have" ${skillData.criticality === 'must_have' ? 'selected' : ''}>Must Have</option>
+                        <option value="important" ${skillData.criticality === 'important' ? 'selected' : ''}>Important</option>
+                        <option value="nice_to_have" ${skillData.criticality === 'nice_to_have' ? 'selected' : ''}>Nice to Have</option>
+                    </select>
+                </div>
+                <div class="grade-input-group">
+                    <div class="checkbox-container">
+                        <input type="checkbox" 
+                               id="mandatory-${index}" 
+                               ${skillData.mandatory ? 'checked' : ''}
+                               onchange="updateSkillMandatory(${index}, this.checked)">
+                        <label for="mandatory-${index}">
+                            <i class='bx bx-lock-alt'></i> Mandatory Requirement
+                        </label>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.appendChild(skillCard);
     });
+}
+
+// Add new skill
+function addJobSkill() {
+    const input = document.getElementById('skill-search-input');
+    const skillName = input.value.trim();
+    
+    if (!skillName) {
+        alert('Please enter a skill name');
+        return;
+    }
+    
+    // Check if skill already exists
+    if (jobSkills.some(s => s.name.toLowerCase() === skillName.toLowerCase())) {
+        alert('This skill has already been added');
+        return;
+    }
+    
+    // Add skill with default values
+    jobSkills.push({
+        name: skillName,
+        proficiency: 7.0,
+        criticality: 'important',
+        mandatory: false
+    });
+    
+    input.value = '';
+    renderJobSkills();
+}
+
+// Remove skill
+function removeJobSkill(index) {
+    jobSkills.splice(index, 1);
+    renderJobSkills();
+}
+
+// Update skill proficiency
+function updateSkillProficiency(index, value) {
+    jobSkills[index].proficiency = parseFloat(value);
+    document.getElementById(`prof-value-${index}`).textContent = value;
+}
+
+// Update skill criticality
+function updateSkillCriticality(index, value) {
+    jobSkills[index].criticality = value;
+}
+
+// Update skill mandatory status
+function updateSkillMandatory(index, checked) {
+    jobSkills[index].mandatory = checked;
 }
 
 // Render candidate skills filter tags
@@ -2361,22 +2749,25 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('job-title').focus();
     });
 
-    // Job Skills tags input
-    const jobSkillsInputContainer = document.getElementById('job-skills-input');
-    if (jobSkillsInputContainer) {
-        const input = jobSkillsInputContainer.querySelector('.tags-input');
-        input.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && input.value.trim() !== '') {
+    // New Skill Builder - Add Skill Button
+    const addSkillBtn = document.getElementById('add-skill-btn');
+    const skillSearchInput = document.getElementById('skill-search-input');
+    
+    if (addSkillBtn) {
+        addSkillBtn.addEventListener('click', addJobSkill);
+    }
+    
+    if (skillSearchInput) {
+        skillSearchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
                 e.preventDefault();
-                const tag = input.value.trim();
-                if (!jobSkills.includes(tag)) {
-                    jobSkills.push(tag);
-                    renderJobSkills();
-                }
-                input.value = '';
+                addJobSkill();
             }
         });
     }
+    
+    // Initialize empty state
+    renderJobSkills();
 
     // Candidate Skills Filter tags input
     const candidateSkillsInputContainer = document.getElementById('candidate-skills-filter');

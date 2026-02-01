@@ -1,0 +1,467 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Course Catalog{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1><i class='bx bx-book-open'></i> Course Catalog</h1>
+        <p>Browse and enroll in courses to develop your skills</p>
+    </div>
+</div>
+
+<div class="catalog-container">
+    <!-- Filters Sidebar -->
+    <div class="filters-sidebar">
+        <div class="filter-section">
+            <h3>Filters</h3>
+            <button class="btn-text" onclick="clearFilters()">Clear All</button>
+        </div>
+        
+        <div class="filter-group">
+            <h4><i class='bx bx-category'></i> Skill</h4>
+            <div class="filter-options">
+                {% for skill in all_skills %}
+                <label class="checkbox-label">
+                    <input type="checkbox" name="skill" value="{{ skill.id }}" onchange="filterCourses()">
+                    <span>{{ skill.name }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="filter-group">
+            <h4><i class='bx bx-bar-chart'></i> Difficulty</h4>
+            <div class="filter-options">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="difficulty" value="beginner" onchange="filterCourses()">
+                    <span>Beginner</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" name="difficulty" value="intermediate" onchange="filterCourses()">
+                    <span>Intermediate</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" name="difficulty" value="advanced" onchange="filterCourses()">
+                    <span>Advanced</span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="filter-group">
+            <h4><i class='bx bx-world'></i> Platform</h4>
+            <div class="filter-options">
+                {% for platform in platforms %}
+                <label class="checkbox-label">
+                    <input type="checkbox" name="platform" value="{{ platform }}" onchange="filterCourses()">
+                    <span>{{ platform }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="filter-group">
+            <h4><i class='bx bx-filter'></i> Status</h4>
+            <div class="filter-options">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="status" value="enrolled" onchange="filterCourses()">
+                    <span>My Courses</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" name="status" value="available" onchange="filterCourses()">
+                    <span>Available</span>
+                </label>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Courses Grid -->
+    <div class="courses-content">
+        <div class="courses-header">
+            <div class="results-count">
+                Showing <span id="results-count">{{ courses.count }}</span> courses
+            </div>
+            <div class="sort-controls">
+                <select id="sort-select" onchange="sortCourses()">
+                    <option value="title">Title (A-Z)</option>
+                    <option value="-created_at">Newest First</option>
+                    <option value="difficulty">Difficulty</option>
+                    <option value="platform">Platform</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="courses-grid" id="courses-grid">
+            {% for course in courses %}
+            <div class="course-card" 
+                 data-skill="{{ course.skill.id }}"
+                 data-difficulty="{{ course.difficulty_level }}"
+                 data-platform="{{ course.platform }}"
+                 data-enrolled="{% if course.id in enrolled_course_ids %}true{% else %}false{% endif %}">
+                
+                <div class="course-header">
+                    <div class="platform-badge">{{ course.platform }}</div>
+                    {% if course.id in enrolled_course_ids %}
+                    <div class="enrolled-badge"><i class='bx bx-check-circle'></i> Enrolled</div>
+                    {% endif %}
+                </div>
+                
+                <h3 class="course-title">{{ course.title }}</h3>
+                
+                <div class="course-meta">
+                    <span class="skill-tag">{{ course.skill.name }}</span>
+                    <span class="difficulty-badge difficulty-{{ course.difficulty_level }}">
+                        {{ course.get_difficulty_level_display }}
+                    </span>
+                </div>
+                
+                <p class="course-description">{{ course.description|truncatewords:20 }}</p>
+                
+                <div class="course-stats">
+                    <div class="stat-item">
+                        <i class='bx bx-time'></i>
+                        <span>{{ course.duration_hours }}h</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class='bx bx-target-lock'></i>
+                        <span>{{ course.estimated_level }}/10</span>
+                    </div>
+                </div>
+                
+                <div class="course-footer">
+                    {% if course.id in enrolled_course_ids %}
+                    <a href="{% url 'learning:my_courses' %}" class="btn btn-secondary btn-block">
+                        <i class='bx bx-check-circle'></i> View Progress
+                    </a>
+                    {% else %}
+                    <button class="btn btn-primary btn-block" onclick="enrollCourse({{ course.id }})">
+                        <i class='bx bx-plus'></i> Enroll Now
+                    </button>
+                    {% endif %}
+                    
+                    {% if course.external_url %}
+                    <a href="{{ course.external_url }}" target="_blank" class="btn-icon" title="View on {{ course.platform }}">
+                        <i class='bx bx-link-external'></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <i class='bx bx-book-open'></i>
+                <h3>No Courses Found</h3>
+                <p>Try adjusting your filters or check back later for new courses</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+const enrolledCourseIds = {{ enrolled_course_ids|safe }};
+
+function filterCourses() {
+    const skillFilters = Array.from(document.querySelectorAll('input[name="skill"]:checked')).map(cb => cb.value);
+    const difficultyFilters = Array.from(document.querySelectorAll('input[name="difficulty"]:checked')).map(cb => cb.value);
+    const platformFilters = Array.from(document.querySelectorAll('input[name="platform"]:checked')).map(cb => cb.value);
+    const statusFilters = Array.from(document.querySelectorAll('input[name="status"]:checked')).map(cb => cb.value);
+    
+    const courseCards = document.querySelectorAll('.course-card');
+    let visibleCount = 0;
+    
+    courseCards.forEach(card => {
+        const skill = card.dataset.skill;
+        const difficulty = card.dataset.difficulty;
+        const platform = card.dataset.platform;
+        const enrolled = card.dataset.enrolled === 'true';
+        
+        let show = true;
+        
+        if (skillFilters.length > 0 && !skillFilters.includes(skill)) show = false;
+        if (difficultyFilters.length > 0 && !difficultyFilters.includes(difficulty)) show = false;
+        if (platformFilters.length > 0 && !platformFilters.includes(platform)) show = false;
+        
+        if (statusFilters.length > 0) {
+            if (statusFilters.includes('enrolled') && !enrolled) show = false;
+            if (statusFilters.includes('available') && enrolled) show = false;
+        }
+        
+        card.style.display = show ? 'flex' : 'none';
+        if (show) visibleCount++;
+    });
+    
+    document.getElementById('results-count').textContent = visibleCount;
+}
+
+function clearFilters() {
+    document.querySelectorAll('.filter-options input[type="checkbox"]').forEach(cb => cb.checked = false);
+    filterCourses();
+}
+
+function sortCourses() {
+    const sortBy = document.getElementById('sort-select').value;
+    const grid = document.getElementById('courses-grid');
+    const cards = Array.from(grid.querySelectorAll('.course-card'));
+    
+    cards.sort((a, b) => {
+        if (sortBy === 'title') {
+            return a.querySelector('.course-title').textContent.localeCompare(b.querySelector('.course-title').textContent);
+        }
+        // Add more sort options as needed
+        return 0;
+    });
+    
+    cards.forEach(card => grid.appendChild(card));
+}
+
+function enrollCourse(courseId) {
+    fetch("{% url 'learning:enroll_course' %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ course_id: courseId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error enrolling in course: ' + data.error);
+        }
+    });
+}
+</script>
+
+<style>
+.catalog-container {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.filters-sidebar {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    height: fit-content;
+    position: sticky;
+    top: 2rem;
+}
+
+.filter-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.filter-group {
+    margin-bottom: 2rem;
+}
+
+.filter-group h4 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.9375rem;
+}
+
+.filter-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.checkbox-label input {
+    cursor: pointer;
+}
+
+.courses-content {
+    min-height: 500px;
+}
+
+.courses-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.results-count {
+    font-weight: 600;
+}
+
+.sort-controls select {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    background: var(--card-bg);
+}
+
+.courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+
+.course-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.course-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.course-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.platform-badge {
+    padding: 0.25rem 0.75rem;
+    background: var(--primary-light);
+    color: var(--primary-color);
+    border-radius: var(--radius);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.enrolled-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--success-color);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.course-title {
+    font-size: 1.125rem;
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+}
+
+.course-meta {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.skill-tag {
+    padding: 0.25rem 0.75rem;
+    background: var(--gray-100);
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+}
+
+.difficulty-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.difficulty-beginner { background: var(--success-light); color: var(--success-color); }
+.difficulty-intermediate { background: var(--warning-light); color: var(--warning-color); }
+.difficulty-advanced { background: var(--danger-light); color: var(--danger-color); }
+
+.course-description {
+    flex: 1;
+    color: var(--text-muted);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.course-stats {
+    display: flex;
+    gap: 1.5rem;
+    padding: 1rem 0;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 1rem;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.course-footer {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.btn-block {
+    flex: 1;
+}
+
+.btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    color: var(--text-color);
+    transition: all 0.2s;
+}
+
+.btn-icon:hover {
+    background: var(--gray-100);
+}
+
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-state i {
+    font-size: 5rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 1024px) {
+    .catalog-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .filters-sidebar {
+        position: static;
+    }
+}
+</style>
+{% endblock %}

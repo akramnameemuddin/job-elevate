@@ -1,0 +1,144 @@
+{
+  "questions": [
+    {
+      "question_text": "What is React primarily used for",
+      "options": ["Building user interfaces", "Managing databases", "Performing server-side logic", "Data analysis"],
+      "correct_answer": "Building user interfaces",
+      "difficulty": "easy",
+      "explanation": "React is a JavaScript library for building interactive user interfaces"
+    },
+    {
+      "question_text": "Which of the following is a core feature of React that allows you to write HTML-like code in JavaScript",
+      "options": ["JSX", "TypeScript", "Babel", "Webpack"],
+      "correct_answer": "JSX",
+      "difficulty": "easy",
+      "explanation": "JSX JavaScript XML is a syntax extension for JavaScript that lets you describe UI elements"
+    },
+    {
+      "question_text": "How do you define a functional component in React",
+      "options": ["function MyComponent() {}", "class MyComponent extends Component {}", "const MyComponent = new Component()", "var MyComponent = {}"],
+      "correct_answer": "function MyComponent() {}",
+      "difficulty": "easy",
+      "explanation": "Functional components are JavaScript functions that return JSX"
+    },
+    {
+      "question_text": "What are props in React",
+      "options": ["Arguments passed into components", "Internal state of a component", "Lifecycle methods", "Event handlers"],
+      "correct_answer": "Arguments passed into components",
+      "difficulty": "easy",
+      "explanation": "Props short for properties are a way of passing data from parent to child components"
+    },
+    {
+      "question_text": "Which hook is used to add state to functional components in React",
+      "options": ["useState", "useEffect", "useContext", "useRef"],
+      "correct_answer": "useState",
+      "difficulty": "easy",
+      "explanation": "The useState hook allows functional components to manage their own state"
+    },
+    {
+      "question_text": "What is the Virtual DOM in React",
+      "options": ["A lightweight copy of the actual DOM", "A server-side rendering technique", "A way to style components", "A database for component data"],
+      "correct_answer": "A lightweight copy of the actual DOM",
+      "difficulty": "easy",
+      "explanation": "The Virtual DOM is an in-memory representation of the real DOM that React uses for efficient updates"
+    },
+    {
+      "question_text": "Which method is used to render a React component into the actual DOM",
+      "options": ["ReactDOM.render()", "React.mount()", "Component.display()", "React.attach()"],
+      "correct_answer": "ReactDOM.render()",
+      "difficulty": "easy",
+      "explanation": "ReactDOM.render is used to render a React element into a DOM node"
+    },
+    {
+      "question_text": "When does a React component typically mount",
+      "options": ["When it is first rendered to the DOM", "When its state changes", "When its props change", "When it is removed from the DOM"],
+      "correct_answer": "When it is first rendered to the DOM",
+      "difficulty": "easy",
+      "explanation": "Mounting is the process of putting a component into the DOM for the first time"
+    },
+    {
+      "question_text": "What is the primary difference between state and props in React",
+      "options": ["State is internal and mutable props are external and immutable", "State is external and mutable props are internal and immutable", "Both are internal and mutable", "Both are external and immutable"],
+      "correct_answer": "State is internal and mutable props are external and immutable",
+      "difficulty": "medium",
+      "explanation": "State is data managed within a component and can change. Props are data passed from parent to child and are read-only for the child"
+    },
+    {
+      "question_text": "When should you use the useEffect hook in a functional component",
+      "options": ["For side effects like data fetching or subscriptions", "To declare state variables", "To define event handlers", "To render JSX conditionally"],
+      "correct_answer": "For side effects like data fetching or subscriptions",
+      "difficulty": "medium",
+      "explanation": "useEffect is used for side effects that occur after rendering such as data fetching setting up subscriptions or manually changing the DOM"
+    },
+    {
+      "question_text": "How do you conditionally render a component in React",
+      "options": ["Using a ternary operator or logical AND && in JSX", "Using an if-else statement outside JSX", "Using a switch statement inside JSX", "Using a for loop"],
+      "correct_answer": "Using a ternary operator or logical AND && in JSX",
+      "difficulty": "medium",
+      "explanation": "Conditional rendering in React is often achieved using JavaScript operators like the ternary operator or logical AND && directly within JSX"
+    },
+    {
+      "question_text": "What is the main reason for providing a key prop when rendering lists of elements in React",
+      "options": ["To help React efficiently update and reorder list items", "To apply unique styles to each item", "To define the order of items in the list", "To make the items clickable"],
+      "correct_answer": "To help React efficiently update and reorder list items",
+      "difficulty": "medium",
+      "explanation": "Keys help React identify which items have changed are added or are removed making list rendering more efficient and predictable"
+    },
+    {
+      "question_text": "How do you handle events like a button click in a React functional component",
+      "options": ["By passing a function directly to an event attribute like onClick={handleClick}", "By using addEventListener in useEffect", "By defining a method in a separate class", "By using an inline string like onClick=handleClick()"],
+      "correct_answer": "By passing a function directly to an event attribute like onClick={handleClick}",
+      "difficulty": "medium",
+      "explanation": "In React event handlers are typically passed as functions directly to the event attributes of JSX elements"
+    },
+    {
+      "question_text": "What does component composition mean in React",
+      "options": ["Building complex UIs by combining simpler components", "Combining multiple CSS files into one", "Using a single component for all UI elements", "Breaking down a component into smaller functions"],
+      "correct_answer": "Building complex UIs by combining simpler components",
+      "difficulty": "medium",
+      "explanation": "Component composition is the practice of building complex components by combining simpler reusable components"
+    },
+    {
+      "question_text": "What is the primary benefit of using useCallback in React",
+      "options": ["To memoize functions preventing unnecessary re-renders of child components", "To memoize values preventing expensive recalculations", "To manage asynchronous operations", "To create custom hooks"],
+      "correct_answer": "To memoize functions preventing unnecessary re-renders of child components",
+      "difficulty": "hard",
+      "explanation": "useCallback memoizes a function instance so that it is not recreated on every render which can prevent unnecessary re-renders of child components that receive the function as a prop"
+    },
+    {
+      "question_text": "When would you prefer using the Context API over prop drilling",
+      "options": ["When many components at different nesting levels need access to the same data", "When only immediate child components need data", "When data needs to be fetched from an API", "When component state needs to be updated frequently"],
+      "correct_answer": "When many components at different nesting levels need access to the same data",
+      "difficulty": "hard",
+      "explanation": "The Context API is ideal for passing data through the component tree without having to pass props down manually at every level prop drilling"
+    },
+    {
+      "question_text": "What is a custom hook in React",
+      "options": ["A JavaScript function whose name starts with use and calls other hooks", "A special type of component that only manages state", "A built-in React hook for advanced logic", "A utility for styling components"],
+      "correct_answer": "A JavaScript function whose name starts with use and calls other hooks",
+      "difficulty": "hard",
+      "explanation": "Custom hooks are functions that let you reuse stateful logic across different components. They follow the naming convention useSomething"
+    },
+    {
+      "question_text": "What is the purpose of an Error Boundary in React",
+      "options": ["To catch JavaScript errors anywhere in their child component tree log those errors and display a fallback UI", "To prevent network requests from failing", "To handle errors in asynchronous code", "To validate user input in forms"],
+      "correct_answer": "To catch JavaScript errors anywhere in their child component tree log those errors and display a fallback UI",
+      "difficulty": "hard",
+      "explanation": "Error Boundaries are React components that catch JavaScript errors in their child component tree log them and display a fallback UI instead of crashing the whole application"
+    },
+    {
+      "question_text": "What is Server-Side Rendering SSR in the context of React",
+      "options": ["Rendering React components to HTML on the server before sending to the client", "Rendering React components only on the client-side", "Using Nodejs to manage database interactions", "Storing component state on the server"],
+      "correct_answer": "Rendering React components to HTML on the server before sending to the client",
+      "difficulty": "hard",
+      "explanation": "SSR involves rendering the initial HTML of a React application on the server which can improve performance and SEO"
+    },
+    {
+      "question_text": "How does React determine when to re-render components efficiently",
+      "options": ["By comparing the Virtual DOM with the previous Virtual DOM and applying minimal changes to the real DOM", "By constantly polling the real DOM for changes", "By re-rendering all components on every state change", "By using a complex algorithm that checks every prop and state variable"],
+      "correct_answer": "By comparing the Virtual DOM with the previous Virtual DOM and applying minimal changes to the real DOM",
+      "difficulty": "hard",
+      "explanation": "React uses a process called reconciliation where it compares the new Virtual DOM tree with the previous one to identify differences and then updates only the necessary parts of the real DOM"
+    }
+  ]
+}

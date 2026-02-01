@@ -1,0 +1,200 @@
+<!-- Job Card Partial -->
+<div class="col-md-6">
+    <div class="card border-0 shadow-sm h-100 job-card">
+        <div class="card-body p-4">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="flex-grow-1">
+                    <h5 class="mb-1">
+                        <a href="{% url 'jobs:job_detail_with_analysis' job.id %}" class="text-decoration-none text-dark">
+                            {{ job.title }}
+                        </a>
+                    </h5>
+                    <p class="text-muted mb-2">
+                        <i class='bx bx-buildings me-1'></i>{{ job.company }}
+                    </p>
+                    <div class="d-flex flex-wrap gap-2 mb-2">
+                        <span class="badge bg-light text-dark">
+                            <i class='bx bx-map me-1'></i>{{ job.location }}
+                        </span>
+                        <span class="badge bg-light text-dark">
+                            <i class='bx bx-briefcase me-1'></i>{{ job.get_job_type_display }}
+                        </span>
+                        {% if job.salary_min and job.salary_max %}
+                        <span class="badge bg-light text-dark">
+                            <i class='bx bx-dollar me-1'></i>
+                            ${{ job.salary_min|floatformat:0 }}k - ${{ job.salary_max|floatformat:0 }}k
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Match Badge -->
+                <div class="match-badge-container ms-3">
+                    {% if match_data.eligibility_status == 'Eligible' %}
+                    <div class="match-badge match-eligible">
+                        <div class="match-percentage">{{ match_data.match_percentage|floatformat:0 }}%</div>
+                        <div class="match-label">Eligible</div>
+                    </div>
+                    {% elif match_data.eligibility_status == 'Almost Eligible' %}
+                    <div class="match-badge match-almost">
+                        <div class="match-percentage">{{ match_data.match_percentage|floatformat:0 }}%</div>
+                        <div class="match-label">Almost</div>
+                    </div>
+                    {% else %}
+                    <div class="match-badge match-not">
+                        <div class="match-percentage">{{ match_data.match_percentage|floatformat:0 }}%</div>
+                        <div class="match-label">Not Yet</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Skills Match Summary -->
+            <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <small class="text-muted">Skills Match</small>
+                    <small class="fw-bold">{{ match_data.matched_skills|length }}/{{ match_data.required_skills|length }} required</small>
+                </div>
+                <div class="progress mb-2" style="height: 8px;">
+                    <div class="progress-bar bg-success" role="progressbar" 
+                         style="width: {{ match_data.match_percentage }}%"></div>
+                </div>
+                
+                <!-- Matched Skills -->
+                {% if match_data.matched_skills %}
+                <div class="mb-2">
+                    <small class="text-success fw-bold">
+                        <i class='bx bx-check me-1'></i>You have:
+                    </small>
+                    <div class="d-flex flex-wrap gap-1 mt-1">
+                        {% for skill in match_data.matched_skills|slice:":5" %}
+                        <span class="badge bg-success-light text-success">
+                            {{ skill.name }}
+                            {% if skill.user_proficiency %}
+                            ({{ skill.user_proficiency|floatformat:1 }})
+                            {% endif %}
+                        </span>
+                        {% endfor %}
+                        {% if match_data.matched_skills|length > 5 %}
+                        <span class="badge bg-light text-dark">+{{ match_data.matched_skills|length|add:-5 }} more</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Missing Skills -->
+                {% if match_data.missing_skills %}
+                <div>
+                    <small class="text-danger fw-bold">
+                        <i class='bx bx-x me-1'></i>Missing:
+                    </small>
+                    <div class="d-flex flex-wrap gap-1 mt-1">
+                        {% for skill in match_data.missing_skills|slice:":5" %}
+                        <span class="badge bg-danger-light text-danger">
+                            {{ skill.name }}
+                            {% if skill.required_level %}
+                            (need {{ skill.required_level|floatformat:1 }})
+                            {% endif %}
+                        </span>
+                        {% endfor %}
+                        {% if match_data.missing_skills|length > 5 %}
+                        <span class="badge bg-light text-dark">+{{ match_data.missing_skills|length|add:-5 }} more</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Description Preview -->
+            <p class="text-muted small mb-3">{{ job.description|truncatewords:25 }}</p>
+
+            <!-- Posted Date -->
+            <div class="d-flex align-items-center text-muted small mb-3">
+                <i class='bx bx-time me-1'></i>
+                Posted {{ job.posted_date|timesince }} ago
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex gap-2">
+                <a href="{% url 'jobs:job_detail_with_analysis' job.id %}" class="btn btn-primary flex-grow-1">
+                    <i class='bx bx-info-circle me-1'></i>View Details
+                </a>
+                {% if match_data.eligibility_status == 'Eligible' %}
+                <a href="{% url 'jobs:apply_to_job' job.id %}" class="btn btn-success">
+                    <i class='bx bx-send me-1'></i>Apply
+                </a>
+                {% else %}
+                <a href="{% url 'jobs:skill_gap_analysis' job.id %}" class="btn btn-outline-warning">
+                    <i class='bx bx-chart me-1'></i>Gap Analysis
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.job-card {
+    transition: all 0.3s ease;
+}
+
+.job-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg) !important;
+}
+
+.match-badge-container {
+    flex-shrink: 0;
+}
+
+.match-badge {
+    width: 75px;
+    height: 75px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    text-align: center;
+}
+
+.match-eligible {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.match-almost {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+}
+
+.match-not {
+    background: linear-gradient(135deg, #9ca3af, #6b7280);
+    color: white;
+}
+
+.match-percentage {
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.match-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+.bg-success-light {
+    background-color: #d1fae5;
+}
+
+.bg-danger-light {
+    background-color: #fee2e2;
+}
+
+.text-danger {
+    color: #ef4444 !important;
+}
+</style>

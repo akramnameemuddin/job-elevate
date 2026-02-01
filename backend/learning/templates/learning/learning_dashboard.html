@@ -177,121 +177,124 @@
 <div class="pending-modules-container">
     <h3 class="section-title">
         <i class='bx bx-clock'></i>
-        Modules in Progress
+        {% if learning_paths %}Your Learning Paths{% else %}Get Started with Learning{% endif %}
     </h3>
     
+    {% if learning_paths %}
     <div class="modules-grid">
+        {% for path in learning_paths %}
+        <div class="module-card {% if path.status == 'not_started' %}pending{% else %}in-progress{% endif %}">
+            <div class="module-header">
+                <div>
+                    <h4 class="module-title">{{ path.title }}</h4>
+                    <span class="module-status {{ path.status }}">{{ path.get_status_display }}</span>
+                </div>
+            </div>
+            <div class="module-body">
+                <p class="module-description">{{ path.description }}</p>
+                <div class="module-progress">
+                    <div class="progress-fill" style="width: {{ path.progress_percentage|floatformat:0 }}%"></div>
+                </div>
+                <div class="module-meta">
+                    <span>{{ path.courses.count }} courses</span>
+                    <span>{{ path.progress_percentage|floatformat:0 }}% complete</span>
+                </div>
+                <a href="{% url 'learning:learning_path_detail' path.id %}" class="btn btn-primary">
+                    <i class='bx bx-play'></i>
+                    {% if path.status == 'not_started' %}Start Learning{% else %}Continue{% endif %}
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 3rem;">
+        <i class='bx bx-book-open' style="font-size: 5rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+        <h3>No Learning Paths Yet</h3>
+        <p style="color: var(--text-muted); margin-bottom: 2rem;">Take an assessment to identify skill gaps and get personalized learning recommendations.</p>
+        <a href="{% url 'assessments:skill_intake_dashboard' %}" class="btn btn-primary">
+            <i class='bx bx-clipboard'></i> Take Assessment
+        </a>
+        <a href="{% url 'learning:skill_gaps' %}" class="btn btn-secondary" style="margin-left: 1rem;">
+            <i class='bx bx-line-chart'></i> View Skill Gaps
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- In Progress Courses Section -->
+{% if in_progress_courses %}
+<div class="pending-modules-container">
+    <h3 class="section-title">
+        <i class='bx bx-book'></i>
+        Courses in Progress
+    </h3>
+    <div class="modules-grid">
+        {% for progress in in_progress_courses %}
+        <div class="module-card in-progress">
+            <div class="module-header">
+                <div>
+                    <h4 class="module-title">{{ progress.course.title }}</h4>
+                    <span class="module-status in-progress">In Progress</span>
+                </div>
+            </div>
+            <div class="module-body">
+                <p class="module-description">{{ progress.course.description|truncatewords:20 }}</p>
+                <div class="module-progress">
+                    <div class="progress-fill" style="width: {{ progress.progress_percentage|floatformat:0 }}%"></div>
+                </div>
+                <div class="module-meta">
+                    <span>{{ progress.course.skill.name }} • {{ progress.course.platform }}</span>
+                    <span>{{ progress.progress_percentage|floatformat:0 }}% complete</span>
+                </div>
+                <a href="{% url 'learning:my_courses' %}" class="btn btn-primary">
+                    <i class='bx bx-play'></i>
+                    Continue Learning
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Stats & Quick Actions -->
+<div class="pending-modules-container">
+    <h3 class="section-title">
+        <i class='bx bx-rocket'></i>
+        Your Progress
+    </h3>
+    <div class="modules-grid">
+        <div class="module-card" style="border-left: 4px solid var(--success-color);">
+            <div class="module-body">
+                <h4 class="module-title">{{ completed_count }} Courses Completed</h4>
+                <p class="module-description">Keep up the great work!</p>
+                <a href="{% url 'learning:my_courses' %}" class="btn btn-success">
+                    <i class='bx bx-book'></i>
+                    View My Courses
+                </a>
+            </div>
+        </div>
         
-
-        <!-- Module 3: Pending -->
-        <div class="module-card pending">
-            <div class="module-header">
-                <div>
-                    <h4 class="module-title">Machine Learning Basics</h4>
-                    <span class="module-status pending">Pending</span>
-                </div>
-            </div>
+        <div class="module-card" style="border-left: 4px solid var(--primary-color);">
             <div class="module-body">
-                <p class="module-description">Introduction to machine learning concepts and practical implementations.</p>
-                <div class="module-progress">
-                    <div class="progress-fill" style="width: 0%"></div>
-                </div>
-                <div class="module-meta">
-                    <span>0 of 12 lessons completed</span>
-                    <span>Not started</span>
-                </div>
-                <div class="pending-message">
-                    <i class='bx bx-info-circle'></i>
-                    This module is not yet added to your learning plan
-                </div>
-                <button class="btn btn-light" disabled>
-                    <i class='bx bx-lock'></i>
-                    Not Available
-                </button>
+                <h4 class="module-title">Browse Course Catalog</h4>
+                <p class="module-description">Explore courses from Coursera, Udemy, and more</p>
+                <a href="{% url 'learning:course_catalog' %}" class="btn btn-primary">
+                    <i class='bx bx-search'></i>
+                    Browse Courses
+                </a>
             </div>
         </div>
-
-        <!-- Module 4: Pending -->
-        <div class="module-card pending">
-            <div class="module-header">
-                <div>
-                    <h4 class="module-title">DevOps Fundamentals</h4>
-                    <span class="module-status pending">Pending</span>
-                </div>
-            </div>
+        
+        <div class="module-card" style="border-left: 4px solid var(--warning-color);">
             <div class="module-body">
-                <p class="module-description">Learn CI/CD, containerization, and cloud deployment strategies.</p>
-                <div class="module-progress">
-                    <div class="progress-fill" style="width: 0%"></div>
-                </div>
-                <div class="module-meta">
-                    <span>0 of 8 lessons completed</span>
-                    <span>Not started</span>
-                </div>
-                <div class="pending-message">
-                    <i class='bx bx-info-circle'></i>
-                    This module is not yet added to your learning plan
-                </div>
-                <button class="btn btn-light" disabled>
-                    <i class='bx bx-lock'></i>
-                    Not Available
-                </button>
-            </div>
-        </div>
-
-        <!-- Module 5: Pending -->
-        <div class="module-card pending">
-            <div class="module-header">
-                <div>
-                    <h4 class="module-title">Database Design</h4>
-                    <span class="module-status pending">Pending</span>
-                </div>
-            </div>
-            <div class="module-body">
-                <p class="module-description">Master database design principles and SQL optimization techniques.</p>
-                <div class="module-progress">
-                    <div class="progress-fill" style="width: 0%"></div>
-                </div>
-                <div class="module-meta">
-                    <span>0 of 6 lessons completed</span>
-                    <span>Not started</span>
-                </div>
-                <div class="pending-message">
-                    <i class='bx bx-info-circle'></i>
-                    This module is not yet added to your learning plan
-                </div>
-                <button class="btn btn-light" disabled>
-                    <i class='bx bx-lock'></i>
-                    Not Available
-                </button>
-            </div>
-        </div>
-
-        <!-- Module 6: Pending -->
-        <div class="module-card pending">
-            <div class="module-header">
-                <div>
-                    <h4 class="module-title">API Development</h4>
-                    <span class="module-status pending">Pending</span>
-                </div>
-            </div>
-            <div class="module-body">
-                <p class="module-description">Build robust RESTful APIs with authentication and security best practices.</p>
-                <div class="module-progress">
-                    <div class="progress-fill" style="width: 0%"></div>
-                </div>
-                <div class="module-meta">
-                    <span>0 of 9 lessons completed</span>
-                    <span>Not started</span>
-                </div>
-                <div class="pending-message">
-                    <i class='bx bx-info-circle'></i>
-                    This module is not yet added to your learning plan
-                </div>
-                <button class="btn btn-light" disabled>
-                    <i class='bx bx-lock'></i>
-                    Not Available
-                </button>
+                <h4 class="module-title">Identify Skill Gaps</h4>
+                <p class="module-description">See which skills you need to develop</p>
+                <a href="{% url 'learning:skill_gaps' %}" class="btn btn-warning">
+                    <i class='bx bx-target-lock'></i>
+                    View Gaps
+                </a>
             </div>
         </div>
     </div>

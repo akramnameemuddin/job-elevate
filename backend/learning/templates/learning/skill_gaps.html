@@ -1,0 +1,426 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Skill Gaps Analysis{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1><i class='bx bx-line-chart'></i> Skill Gap Analysis</h1>
+        <p>Identify areas for improvement and get personalized learning recommendations</p>
+    </div>
+</div>
+
+<div class="gaps-container">
+    <!-- Job Comparison Tool -->
+    <div class="card comparison-tool">
+        <h3><i class='bx bx-search'></i> Compare with Job Requirements</h3>
+        <p>Select a job you're interested in to see which skills you need to develop</p>
+        <form method="post" action="{% url 'learning:analyze_job_gaps' %}" class="job-select-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <select name="job_id" id="job-select" required>
+                    <option value="">Select a job...</option>
+                    {% for job in available_jobs %}
+                    <option value="{{ job.id }}">{{ job.title }} - {{ job.company }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class='bx bx-analyse'></i> Analyze Gaps
+            </button>
+        </form>
+    </div>
+
+    <!-- Current Skills Overview -->
+    <div class="card skills-overview">
+        <h3><i class='bx bx-trophy'></i> Your Verified Skills</h3>
+        <div class="skills-grid">
+            {% for profile in user_skills %}
+            <div class="skill-card">
+                <div class="skill-header">
+                    <span class="skill-name">{{ profile.skill.name }}</span>
+                    <span class="skill-level level-{{ profile.verified_level|floatformat:0 }}">
+                        {{ profile.verified_level|floatformat:1 }}/10
+                    </span>
+                </div>
+                <div class="skill-bar">
+                    <div class="skill-fill" style="width: {{ profile.verified_level|floatformat:0 }}0%"></div>
+                </div>
+                {% if profile.certificate_earned %}
+                <div class="certificate-badge">
+                    <i class='bx bx-medal'></i> Certified
+                </div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <i class='bx bx-info-circle'></i>
+                <p>No verified skills yet. Take assessments to build your skill profile.</p>
+                <a href="{% url 'assessments:skill_intake_dashboard' %}" class="btn btn-primary">
+                    Take Assessments
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Identified Skill Gaps -->
+    {% if skill_gaps %}
+    <div class="card gaps-list">
+        <div class="gaps-header">
+            <h3><i class='bx bx-target-lock'></i> Your Skill Gaps</h3>
+            <button class="btn btn-success" onclick="generateLearningPaths()">
+                <i class='bx bx-plus'></i> Generate Learning Paths
+            </button>
+        </div>
+        <div class="gaps-grid">
+            {% for gap in skill_gaps %}
+            <div class="gap-item priority-{{ gap.priority }}">
+                <div class="gap-header">
+                    <div>
+                        <h4>{{ gap.skill.name }}</h4>
+                        <span class="gap-category">{{ gap.skill.category.name }}</span>
+                    </div>
+                    <span class="priority-badge priority-{{ gap.priority }}">
+                        {{ gap.get_priority_display }}
+                    </span>
+                </div>
+                <div class="gap-levels">
+                    <div class="level-info">
+                        <span class="label">Current</span>
+                        <span class="value">{{ gap.current_level|floatformat:1 }}/10</span>
+                    </div>
+                    <i class='bx bx-right-arrow-alt'></i>
+                    <div class="level-info">
+                        <span class="label">Required</span>
+                        <span class="value">{{ gap.required_level|floatformat:1 }}/10</span>
+                    </div>
+                </div>
+                <div class="gap-progress">
+                    <div class="progress-bar">
+                        <div class="current-progress" style="width: {{ gap.current_level|floatformat:0 }}0%"></div>
+                        <div class="required-mark" style="left: {{ gap.required_level|floatformat:0 }}0%"></div>
+                    </div>
+                </div>
+                {% if gap.related_job %}
+                <div class="gap-context">
+                    <i class='bx bx-briefcase'></i>
+                    <span>Required for: {{ gap.related_job.title }}</span>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recommendations -->
+    <div class="card recommendations">
+        <h3><i class='bx bx-bulb'></i> Recommended Actions</h3>
+        <div class="recommendations-list">
+            {% if not user_skills %}
+            <div class="recommendation-item">
+                <i class='bx bx-target-lock'></i>
+                <div>
+                    <strong>Build Your Skill Profile</strong>
+                    <p>Take skill assessments to establish your baseline proficiency levels</p>
+                    <a href="{% url 'assessments:skill_intake_dashboard' %}" class="link">Start Assessments →</a>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if skill_gaps %}
+            <div class="recommendation-item">
+                <i class='bx bx-book-open'></i>
+                <div>
+                    <strong>Start Learning</strong>
+                    <p>Generate personalized learning paths to address your skill gaps</p>
+                    <button onclick="generateLearningPaths()" class="link">Generate Paths →</button>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="recommendation-item">
+                <i class='bx bx-search'></i>
+                <div>
+                    <strong>Explore Courses</strong>
+                    <p>Browse our course catalog to find learning resources for any skill</p>
+                    <a href="{% url 'learning:course_catalog' %}" class="link">Browse Courses →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function generateLearningPaths() {
+    fetch("{% url 'learning:generate_learning_path' %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = "{% url 'learning:learning_dashboard' %}";
+        } else {
+            alert('Error generating learning paths: ' + data.error);
+        }
+    });
+}
+</script>
+
+<style>
+.gaps-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+}
+
+.comparison-tool {
+    text-align: center;
+}
+
+.job-select-form {
+    max-width: 500px;
+    margin: 2rem auto 0;
+    display: flex;
+    gap: 1rem;
+}
+
+.job-select-form select {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+}
+
+.skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.skill-card {
+    padding: 1.5rem;
+    background: var(--gray-50);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+}
+
+.skill-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.skill-name {
+    font-weight: 600;
+    font-size: 1.0625rem;
+}
+
+.skill-level {
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius);
+    font-weight: 700;
+    font-size: 0.875rem;
+}
+
+.level-7, .level-8, .level-9, .level-10 { background: var(--success-light); color: var(--success-color); }
+.level-5, .level-6 { background: var(--warning-light); color: var(--warning-color); }
+.level-1, .level-2, .level-3, .level-4 { background: var(--danger-light); color: var(--danger-color); }
+
+.skill-bar {
+    height: 8px;
+    background: var(--gray-200);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.skill-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+    transition: width 0.3s ease;
+}
+
+.certificate-badge {
+    margin-top: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--success-color);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.gaps-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.gaps-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.gap-item {
+    padding: 1.5rem;
+    background: var(--gray-50);
+    border: 1px solid var(--border-color);
+    border-left: 4px solid;
+    border-radius: var(--radius);
+}
+
+.gap-item.priority-3 { border-left-color: var(--danger-color); }
+.gap-item.priority-2 { border-left-color: var(--warning-color); }
+.gap-item.priority-1 { border-left-color: var(--info-color); }
+
+.gap-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.gap-category {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.priority-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.priority-badge.priority-3 { background: var(--danger-light); color: var(--danger-color); }
+.priority-badge.priority-2 { background: var(--warning-light); color: var(--warning-color); }
+.priority-badge.priority-1 { background: var(--info-light); color: var(--info-color); }
+
+.gap-levels {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.level-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.level-info .label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.level-info .value {
+    font-size: 1.125rem;
+    font-weight: 700;
+}
+
+.gap-progress {
+    position: relative;
+    margin: 1rem 0;
+}
+
+.progress-bar {
+    height: 12px;
+    background: var(--gray-200);
+    border-radius: var(--radius);
+    position: relative;
+}
+
+.current-progress {
+    height: 100%;
+    background: var(--primary-color);
+    border-radius: var(--radius);
+    transition: width 0.3s ease;
+}
+
+.required-mark {
+    position: absolute;
+    top: -4px;
+    height: 20px;
+    width: 3px;
+    background: var(--danger-color);
+    border-radius: 2px;
+}
+
+.gap-context {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.recommendations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.recommendation-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: var(--gray-50);
+    border-radius: var(--radius);
+}
+
+.recommendation-item i {
+    font-size: 2rem;
+    color: var(--primary-color);
+}
+
+.recommendation-item strong {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.link {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.link:hover {
+    text-decoration: underline;
+}
+
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+</style>
+{% endblock %}
