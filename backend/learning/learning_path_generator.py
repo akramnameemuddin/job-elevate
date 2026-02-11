@@ -75,8 +75,15 @@ class LearningPathGenerator:
         
         # Use AI to generate learning recommendations
         api_key = getattr(settings, 'GOOGLE_API_KEY', os.environ.get('GOOGLE_API_KEY'))
-        
-        if api_key:
+
+        # Check circuit breaker before calling Gemini
+        try:
+            from agents.circuit_breaker import is_open as _cb_open, record_error as _cb_record
+            _breaker_available = True
+        except ImportError:
+            _breaker_available = False
+
+        if api_key and not (_breaker_available and _cb_open()):
             try:
                 client = genai.Client(api_key=api_key)
                 
@@ -104,7 +111,7 @@ JSON format:
 }}"""
                 
                 response = client.models.generate_content(
-                    model='gemini-2.0-flash',
+                    model='gemini-2.5-flash-lite',
                     contents=prompt,
                     config=types.GenerateContentConfig(
                         temperature=0.7,
@@ -122,6 +129,8 @@ JSON format:
                 
             except Exception as e:
                 logger.warning(f"AI generation failed: {e}")
+                if _breaker_available:
+                    _cb_record(e)
                 ai_data = cls._fallback_learning_data(skill.name, current_level, target_level)
         else:
             ai_data = cls._fallback_learning_data(skill.name, current_level, target_level)
@@ -133,8 +142,7 @@ JSON format:
             defaults={
                 'title': ai_data.get('title', f"Path to {skill.name} Mastery"),
                 'description': ai_data.get('description', f"Improve your {skill.name} skills"),
-                'target_proficiency': target_level,
-                'estimated_duration_weeks': ai_data.get('estimated_weeks', 8),
+                'estimated_weeks': ai_data.get('estimated_weeks', 8),
                 'estimated_hours': int(gap_value * 15),
                 'status': 'not_started'
             }

@@ -1,10 +1,10 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
 
-{% block title %}Resume Wizard{% endblock %}
+{% block title %}Edit Resume | JobElevate{% endblock %}
 
 {% block content %}
-<!-- Breadcrumb Navigation -->
+<!-- Breadcrumb -->
 <div class="breadcrumb">
     <div class="breadcrumb-item">
         <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
@@ -14,1658 +14,547 @@
         <a href="{% url 'resume_builder:resume_builder' %}" class="breadcrumb-link">Resume Builder</a>
         <i class='bx bx-chevron-right'></i>
     </div>
-    <div class="breadcrumb-item">
-        <span>Edit Resume</span>
+    <div class="breadcrumb-item"><span>{{ resume.title }}</span></div>
+</div>
+
+<!-- Page Header -->
+<div class="page-content-header">
+    <h1 class="page-title"><i class='bx bx-edit'></i> {{ resume.title }}</h1>
+    <p class="page-subtitle">Template: {{ resume.template.name }} &middot; Auto-filled from your profile</p>
+</div>
+
+<!-- Messages -->
+{% if messages %}
+<div class="notification-container">
+    {% for message in messages %}
+    <div class="notification {{ message.tags }}">
+        <i class='bx {% if message.tags == "success" %}bx-check-circle{% elif message.tags == "error" %}bx-error{% else %}bx-info-circle{% endif %}'></i>
+        <span>{{ message }}</span>
+        <button class="notification-close" onclick="this.parentElement.remove()"><i class='bx bx-x'></i></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<form method="post" id="resume-form">
+{% csrf_token %}
+
+<!-- ═══ Two-Column Layout ═══ -->
+<div class="re-two-col">
+
+    <!-- ── LEFT: Resume Sections (auto-filled) ──── -->
+    <div class="re-main">
+
+        <!-- Resume Title -->
+        <div class="re-card">
+            <div class="re-card-head">
+                <h2><i class='bx bx-text'></i> Resume Title</h2>
+            </div>
+            <div class="re-card-body">
+                <input type="text" name="title" value="{{ resume.title }}" class="re-input" placeholder="e.g. Software Engineer Resume">
+            </div>
+        </div>
+
+        <!-- Contact Info -->
+        <div class="re-card re-section {% if not resume.show_contact %}re-disabled{% endif %}" id="section-contact">
+            <div class="re-card-head">
+                <h2><i class='bx bx-user'></i> Contact Information</h2>
+                <label class="re-toggle">
+                    <input type="checkbox" name="show_contact" {% if resume.show_contact %}checked{% endif %} onchange="toggleSection('contact')">
+                    <span class="re-toggle-slider"></span>
+                </label>
+            </div>
+            <div class="re-card-body">
+                <div class="re-field-grid">
+                    <div class="re-field">
+                        <span class="re-field-label">Full Name</span>
+                        <span class="re-field-value">{{ user_profile.full_name|default:"—" }}</span>
+                    </div>
+                    <div class="re-field">
+                        <span class="re-field-label">Email</span>
+                        <span class="re-field-value">{{ user_profile.email|default:"—" }}</span>
+                    </div>
+                    <div class="re-field">
+                        <span class="re-field-label">Phone</span>
+                        <span class="re-field-value">{{ user_profile.phone_number|default:"—" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Professional Links -->
+        <div class="re-card re-section {% if not resume.show_links %}re-disabled{% endif %}" id="section-links">
+            <div class="re-card-head">
+                <h2><i class='bx bx-link'></i> Professional Links</h2>
+                <label class="re-toggle">
+                    <input type="checkbox" name="show_links" {% if resume.show_links %}checked{% endif %} onchange="toggleSection('links')">
+                    <span class="re-toggle-slider"></span>
+                </label>
+            </div>
+            <div class="re-card-body">
+                <div class="re-field-grid">
+                    {% if user_profile.linkedin_profile %}
+                    <div class="re-field">
+                        <span class="re-field-label"><i class='bx bxl-linkedin'></i> LinkedIn</span>
+                        <span class="re-field-value">{{ user_profile.linkedin_profile }}</span>
+                    </div>
+                    {% endif %}
+                    {% if user_profile.github_profile %}
+                    <div class="re-field">
+                        <span class="re-field-label"><i class='bx bxl-github'></i> GitHub</span>
+                        <span class="re-field-value">{{ user_profile.github_profile }}</span>
+                    </div>
+                    {% endif %}
+                    {% if user_profile.portfolio_website %}
+                    <div class="re-field">
+                        <span class="re-field-label"><i class='bx bx-globe'></i> Portfolio</span>
+                        <span class="re-field-value">{{ user_profile.portfolio_website }}</span>
+                    </div>
+                    {% endif %}
+                    {% if not user_profile.linkedin_profile and not user_profile.github_profile and not user_profile.portfolio_website %}
+                    <div class="re-empty-hint"><i class='bx bx-info-circle'></i> No links in your profile. <a href="{% url 'dashboard:profile' %}">Add them →</a></div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Professional Summary -->
+        <div class="re-card re-section {% if not resume.show_objective %}re-disabled{% endif %}" id="section-objective">
+            <div class="re-card-head">
+                <h2><i class='bx bx-message-square-detail'></i> Professional Summary</h2>
+                <label class="re-toggle">
+                    <input type="checkbox" name="show_objective" {% if resume.show_objective %}checked{% endif %} onchange="toggleSection('objective')">
+                    <span class="re-toggle-slider"></span>
+                </label>
+            </div>
+            <div class="re-card-body">
+                {% if user_profile.objective %}
+                <p class="re-preview-text">{{ user_profile.objective }}</p>
+                {% else %}
+                <div class="re-empty-hint"><i class='bx bx-info-circle'></i> No summary in your profile. <a href="{% url 'dashboard:profile' %}">Add one →</a></div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Education -->
+        <div class="re-card re-section {% if not resume.show_education %}re-disabled{% endif %}" id="section-education">
+            <div class="re-card-head">
+                <h2><i class='bx bx-book-reader'></i> Education</h2>
+                <label class="re-toggle">
+                    <input type="checkbox" name="show_education" {% if resume.show_education %}checked{% endif %} onchange="toggleSection('education')">
+                    <span class="re-toggle-slider"></span>
+                </label>
+            </div>
+            <div class="re-card-body">
+                {% if user_profile.university or user_profile.degree %}
+                <div class="re-edu-item">
+                    <div class="re-edu-icon"><i class='bx bx-graduation'></i></div>
+                    <div class="re-edu-info">
+                        <strong>{{ user_profile.degree|default:"Degree" }}</strong>
+                        <span>{{ user_profile.university|default:"University" }}</span>
+                        {% if user_profile.graduation_year %}<small>Class of {{ user_profile.graduation_year }}{% if user_profile.cgpa %} &middot; CGPA: {{ user_profile.cgpa }}{% endif %}</small>{% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="re-empty-hint"><i class='bx bx-info-circle'></i> No education data. <a href="{% url 'dashboard:profile' %}">Add it →</a></div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Skills -->
+        <div class="re-card re-section {% if not resume.show_skills %}re-disabled{% endif %}" id="section-skills">
+            <div class="re-card-head">
+                <h2><i class='bx bx-code-alt'></i> Technical Skills</h2>
+                <label class="re-toggle">
+                    <input type="checkbox" name="show_skills" {% if resume.show_skills %}checked{% endif %} onchange="toggleSection('skills')">
+                    <span class="re-toggle-slider"></span>
+                </label>
+            </div>
+            <div class="re-card-body">
+                {% if technical_skills %}
+                <div class="re-skill-chips">
+                    {% for skill in technical_skills %}
+                    <span class="re-chip">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="re-empty-hint"><i class='bx bx-info-circle'></i> No skills found. <a href="{% url 'dashboard:profile' %}">Add skills →</a></div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Work Experience -->
+        <div class="re-card re-section {% if not resume.show_experience %}re-disabled{% endif %}" id="section-experience">
+            <div class="re-card-head">
+                <h2><i class='bx bx-briefcase'></i> Work Experience</h2>
+                <label class="re-toggle">
+                    <input type="checkbox" name="show_experience" {% if resume.show_experience %}checked{% endif %} onchange="toggleSection('experience')">
+                    <span class="re-toggle-slider"></span>
+                </label>
+            </div>
+            <div class="re-card-body">
+                {% if work_experience %}
+                <div class="re-exp-list">
+                    {% for job in work_experience %}
+                    <div class="re-exp-item">
+                        <div class="re-exp-dot"></div>
+                        <div class="re-exp-info">
+                            <strong>{{ job.title }} <span class="re-company">at {{ job.company }}</span></strong>
+                            <small>{{ job.start_date }} – {{ job.end_date|default:"Present" }}</small>
+                            {% if job.description %}<p>{{ job.description|truncatechars:200 }}</p>{% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="re-empty-hint"><i class='bx bx-info-circle'></i> No work experience. <a href="{% url 'dashboard:profile' %}">Add it →</a></div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Internships (students only) -->
+        {% if user_profile.user_type == 'student' and internships %}
+        <div class="re-card re-section" id="section-internships">
+            <div class="re-card-head">
+                <h2><i class='bx bx-building'></i> Internships</h2>
+            </div>
+            <div class="re-card-body">
+                <div class="re-exp-list">
+                    {% for intern in internships %}
+                    <div class="re-exp-item">
+                        <div class="re-exp-dot"></div>
+                        <div class="re-exp-info">
+                            <strong>{{ intern.title }} <span class="re-company">at {{ intern.company }}</span></strong>
+                            <small>{{ intern.start_date }} – {{ intern.end_date|default:"Present" }}</small>
+                            {% if intern.description %}<p>{{ intern.description|truncatechars:200 }}</p>{% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Projects -->
+        <div class="re-card re-section {% if not resume.show_projects %}re-disabled{% endif %}" id="section-projects">
+            <div class="re-card-head">
+                <h2><i class='bx bx-folder-open'></i> Projects</h2>
+                <label class="re-toggle">
+                    <input type="checkbox" name="show_projects" {% if resume.show_projects %}checked{% endif %} onchange="toggleSection('projects')">
+                    <span class="re-toggle-slider"></span>
+                </label>
+            </div>
+            <div class="re-card-body">
+                {% if projects %}
+                <div class="re-project-grid">
+                    {% for project in projects %}
+                    <div class="re-project-item">
+                        <strong>{{ project.title }}</strong>
+                        {% if project.description %}<p>{{ project.description|truncatechars:150 }}</p>{% endif %}
+                        {% if project.technologies %}
+                        <div class="re-tech-pills">
+                            {% for tech in project.technologies|truncatechars:60 %}{% endfor %}
+                            <span class="re-tech-pill">{{ project.technologies }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="re-empty-hint"><i class='bx bx-info-circle'></i> No projects. <a href="{% url 'dashboard:profile' %}">Add projects →</a></div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Certifications -->
+        <div class="re-card re-section {% if not resume.show_certifications %}re-disabled{% endif %}" id="section-certifications">
+            <div class="re-card-head">
+                <h2><i class='bx bx-certification'></i> Certifications</h2>
+                <label class="re-toggle">
+                    <input type="checkbox" name="show_certifications" {% if resume.show_certifications %}checked{% endif %} onchange="toggleSection('certifications')">
+                    <span class="re-toggle-slider"></span>
+                </label>
+            </div>
+            <div class="re-card-body">
+                {% if certifications %}
+                <div class="re-cert-list">
+                    {% for cert in certifications %}
+                    <div class="re-cert-item">
+                        <i class='bx bx-award'></i>
+                        <div>
+                            <strong>{{ cert.name }}</strong>
+                            {% if cert.issuing_organization %}<small>{{ cert.issuing_organization }}{% if cert.date %} &middot; {{ cert.date }}{% endif %}</small>{% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="re-empty-hint"><i class='bx bx-info-circle'></i> No certifications. <a href="{% url 'dashboard:profile' %}">Add some →</a></div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Achievements -->
+        <div class="re-card re-section {% if not resume.show_achievements %}re-disabled{% endif %}" id="section-achievements">
+            <div class="re-card-head">
+                <h2><i class='bx bx-trophy'></i> Achievements</h2>
+                <label class="re-toggle">
+                    <input type="checkbox" name="show_achievements" {% if resume.show_achievements %}checked{% endif %} onchange="toggleSection('achievements')">
+                    <span class="re-toggle-slider"></span>
+                </label>
+            </div>
+            <div class="re-card-body">
+                {% if user_profile.achievements %}
+                <p class="re-preview-text">{{ user_profile.achievements }}</p>
+                {% else %}
+                <div class="re-empty-hint"><i class='bx bx-info-circle'></i> No achievements listed. <a href="{% url 'dashboard:profile' %}">Add them →</a></div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Extracurricular -->
+        <div class="re-card re-section {% if not resume.show_extracurricular %}re-disabled{% endif %}" id="section-extracurricular">
+            <div class="re-card-head">
+                <h2><i class='bx bx-group'></i> Extracurricular Activities</h2>
+                <label class="re-toggle">
+                    <input type="checkbox" name="show_extracurricular" {% if resume.show_extracurricular %}checked{% endif %} onchange="toggleSection('extracurricular')">
+                    <span class="re-toggle-slider"></span>
+                </label>
+            </div>
+            <div class="re-card-body">
+                {% if user_profile.extracurricular_activities %}
+                <p class="re-preview-text">{{ user_profile.extracurricular_activities }}</p>
+                {% else %}
+                <div class="re-empty-hint"><i class='bx bx-info-circle'></i> None listed. <a href="{% url 'dashboard:profile' %}">Add activities →</a></div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ── RIGHT: Settings Sidebar ──────────────── -->
+    <div class="re-sidebar">
+
+        <!-- Template Info -->
+        <div class="re-card">
+            <div class="re-card-head"><h2><i class='bx bx-palette'></i> Style Settings</h2></div>
+            <div class="re-card-body">
+                <div class="re-setting">
+                    <label>Primary Color</label>
+                    <input type="color" name="primary_color" value="{{ resume.primary_color }}" class="re-color-input">
+                </div>
+                <div class="re-setting">
+                    <label>Secondary Color</label>
+                    <input type="color" name="secondary_color" value="{{ resume.secondary_color }}" class="re-color-input">
+                </div>
+                <div class="re-setting">
+                    <label>Font Family</label>
+                    <select name="font_family" class="re-select">
+                        <option value="Roboto, sans-serif" {% if resume.font_family == "Roboto, sans-serif" %}selected{% endif %}>Roboto</option>
+                        <option value="Inter, sans-serif" {% if resume.font_family == "Inter, sans-serif" %}selected{% endif %}>Inter</option>
+                        <option value="Georgia, serif" {% if resume.font_family == "Georgia, serif" %}selected{% endif %}>Georgia</option>
+                        <option value="'Courier New', monospace" {% if resume.font_family == "'Courier New', monospace" %}selected{% endif %}>Courier New</option>
+                        <option value="Arial, sans-serif" {% if resume.font_family == "Arial, sans-serif" %}selected{% endif %}>Arial</option>
+                        <option value="'Times New Roman', serif" {% if resume.font_family == "'Times New Roman', serif" %}selected{% endif %}>Times New Roman</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Checklist -->
+        <div class="re-card">
+            <div class="re-card-head"><h2><i class='bx bx-list-check'></i> Sections Included</h2></div>
+            <div class="re-card-body">
+                <div class="re-checklist">
+                    <div class="re-check-item"><i class='bx {% if resume.show_contact %}bx-check-circle{% else %}bx-circle{% endif %} {% if resume.show_contact %}active{% endif %}'></i> Contact</div>
+                    <div class="re-check-item"><i class='bx {% if resume.show_links %}bx-check-circle{% else %}bx-circle{% endif %} {% if resume.show_links %}active{% endif %}'></i> Links</div>
+                    <div class="re-check-item"><i class='bx {% if resume.show_objective %}bx-check-circle{% else %}bx-circle{% endif %} {% if resume.show_objective %}active{% endif %}'></i> Summary</div>
+                    <div class="re-check-item"><i class='bx {% if resume.show_education %}bx-check-circle{% else %}bx-circle{% endif %} {% if resume.show_education %}active{% endif %}'></i> Education</div>
+                    <div class="re-check-item"><i class='bx {% if resume.show_skills %}bx-check-circle{% else %}bx-circle{% endif %} {% if resume.show_skills %}active{% endif %}'></i> Skills</div>
+                    <div class="re-check-item"><i class='bx {% if resume.show_experience %}bx-check-circle{% else %}bx-circle{% endif %} {% if resume.show_experience %}active{% endif %}'></i> Experience</div>
+                    <div class="re-check-item"><i class='bx {% if resume.show_projects %}bx-check-circle{% else %}bx-circle{% endif %} {% if resume.show_projects %}active{% endif %}'></i> Projects</div>
+                    <div class="re-check-item"><i class='bx {% if resume.show_certifications %}bx-check-circle{% else %}bx-circle{% endif %} {% if resume.show_certifications %}active{% endif %}'></i> Certifications</div>
+                    <div class="re-check-item"><i class='bx {% if resume.show_achievements %}bx-check-circle{% else %}bx-circle{% endif %} {% if resume.show_achievements %}active{% endif %}'></i> Achievements</div>
+                    <div class="re-check-item"><i class='bx {% if resume.show_extracurricular %}bx-check-circle{% else %}bx-circle{% endif %} {% if resume.show_extracurricular %}active{% endif %}'></i> Extracurricular</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="re-card">
+            <div class="re-card-head"><h2><i class='bx bx-bolt'></i> Actions</h2></div>
+            <div class="re-card-body">
+                <div class="re-action-stack">
+                    <button type="submit" class="re-btn primary"><i class='bx bx-save'></i> Save Changes</button>
+                    <button type="submit" name="preview" class="re-btn outline"><i class='bx bx-show'></i> Save & Preview</button>
+                    <button type="submit" name="download" class="re-btn success"><i class='bx bx-download'></i> Save & Download</button>
+                    <a href="{% url 'resume_builder:resume_builder' %}" class="re-btn ghost"><i class='bx bx-arrow-back'></i> Back to Dashboard</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Hint -->
+        <div class="re-card">
+            <div class="re-card-body" style="text-align:center">
+                <i class='bx bx-info-circle' style="font-size:1.5rem;color:var(--info-color);margin-bottom:.5rem"></i>
+                <p style="font-size:.82rem;color:var(--text-muted);margin:0">
+                    All data is pulled from your profile. 
+                    <a href="{% url 'dashboard:profile' %}" style="color:var(--primary-color)">Update profile</a> to change resume content.
+                </p>
+            </div>
+        </div>
+
     </div>
 </div>
 
-<!-- Page Title -->
-<div class="page-content-header">
-    <h1 class="page-title">Edit Resume: {{ resume.title }}</h1>
-</div>
+</form>
 
-<div class="edit-resume-container">
-    <form method="post" action="{% url 'resume_builder:edit_resume' resume.id %}" class="edit-form">
-        {% csrf_token %}   
-        <div class="edit-header">
-            <div class="header-info">
-                <span class="template-badge">Template: {{ resume.template.name }}</span>
-            </div>
-            <div class="header-actions">
-                <a href="{% url 'resume_builder:preview_resume' resume_id=resume.id %}" class="btn btn-outline-primary" target="_blank">
-                    <i class='bx bx-show'></i> View Current Version
-                </a>
-            </div>
-        </div>
-        
-        <div class="form-sections">
-            <!-- Left Sidebar - Options and Toggles -->
-            <div class="section-sidebar">
-                <!-- Basic Information Section -->
-                <div class="sidebar-section">
-                    <h3 class="sidebar-heading">Resume Information</h3>
-                    <div class="customize-option">
-                        <label for="title">Resume Title</label>
-                        <input type="text" id="title" name="title" class="form-control" value="{{ resume.title }}" required>
-                    </div>
-                </div>
-                
-                <!-- Section Visibility Toggles -->
-                <div class="sidebar-section">
-                    <h3 class="sidebar-heading">Section Visibility</h3>
-                    
-                    <div class="toggle-section">
-                        <label class="switch">
-                            <input type="checkbox" name="show_contact" {% if resume.show_contact %}checked{% endif %}>
-                            <span class="slider"></span>
-                        </label>
-                        <label for="show_contact">Contact Information</label>
-                    </div>
-                    
-                    <div class="toggle-section">
-                        <label class="switch">
-                            <input type="checkbox" name="show_links" {% if resume.show_links %}checked{% endif %}>
-                            <span class="slider"></span>
-                        </label>
-                        <label for="show_links">Professional Links</label>
-                    </div>
-                    
-                    <div class="toggle-section">
-                        <label class="switch">
-                            <input type="checkbox" name="show_objective" {% if resume.show_objective %}checked{% endif %}>
-                            <span class="slider"></span>
-                        </label>
-                        <label for="show_objective">Professional Summary</label>
-                    </div>
-                    
-                    <div class="toggle-section">
-                        <label class="switch">
-                            <input type="checkbox" name="show_education" {% if resume.show_education %}checked{% endif %}>
-                            <span class="slider"></span>
-                        </label>
-                        <label for="show_education">Education</label>
-                    </div>
-                    
-                    <div class="toggle-section">
-                        <label class="switch">
-                            <input type="checkbox" name="show_skills" {% if resume.show_skills %}checked{% endif %}>
-                            <span class="slider"></span>
-                        </label>
-                        <label for="show_skills">Skills</label>
-                    </div>
-                    
-                    <div class="toggle-section">
-                        <label class="switch">
-                            <input type="checkbox" name="show_experience" {% if resume.show_experience %}checked{% endif %}>
-                            <span class="slider"></span>
-                        </label>
-                        <label for="show_experience">Work Experience</label>
-                    </div>
-                    
-                    <div class="toggle-section">
-                        <label class="switch">
-                            <input type="checkbox" name="show_projects" {% if resume.show_projects %}checked{% endif %}>
-                            <span class="slider"></span>
-                        </label>
-                        <label for="show_projects">Projects</label>
-                    </div>
-                    
-                    <div class="toggle-section">
-                        <label class="switch">
-                            <input type="checkbox" name="show_certifications" {% if resume.show_certifications %}checked{% endif %}>
-                            <span class="slider"></span>
-                        </label>
-                        <label for="show_certifications">Certifications</label>
-                    </div>
-                    
-                    <div class="toggle-section">
-                        <label class="switch">
-                            <input type="checkbox" name="show_achievements" {% if resume.show_achievements %}checked{% endif %}>
-                            <span class="slider"></span>
-                        </label>
-                        <label for="show_achievements">Achievements</label>
-                    </div>
-                    
-                    <div class="toggle-section">
-                        <label class="switch">
-                            <input type="checkbox" name="show_extracurricular" {% if resume.show_extracurricular %}checked{% endif %}>
-                            <span class="slider"></span>
-                        </label>
-                        <label for="show_extracurricular">Extracurricular</label>
-                    </div>
-                </div>
-                
-                <!-- Design Customization -->
-                <div class="sidebar-section">
-                    <h3 class="sidebar-heading">Design Customization</h3>
-                    
-                    <div class="customize-option">
-                        <label for="primary_color">Primary Color</label>
-                        <input type="text" id="primary_color" name="primary_color" class="color-picker" value="{{ resume.primary_color|default:'#4a6cf7' }}">
-                    </div>
-                    
-                    <div class="customize-option">
-                        <label for="secondary_color">Secondary Color</label>
-                        <input type="text" id="secondary_color" name="secondary_color" class="color-picker" value="{{ resume.secondary_color|default:'#555555' }}">
-                    </div>
-                    
-                    <div class="customize-option">
-                        <label for="font_family">Font Family</label>
-                        <select id="font_family" name="font_family" class="form-control">
-                            <option value="'Roboto', sans-serif" {% if resume.font_family == "'Roboto', sans-serif" %}selected{% endif %}>Roboto</option>
-                            <option value="'Open Sans', sans-serif" {% if resume.font_family == "'Open Sans', sans-serif" %}selected{% endif %}>Open Sans</option>
-                            <option value="'Lato', sans-serif" {% if resume.font_family == "'Lato', sans-serif" %}selected{% endif %}>Lato</option>
-                            <option value="'Montserrat', sans-serif" {% if resume.font_family == "'Montserrat', sans-serif" %}selected{% endif %}>Montserrat</option>
-                            <option value="'Poppins', sans-serif" {% if resume.font_family == "'Poppins', sans-serif" %}selected{% endif %}>Poppins</option>
-                            <option value="'Times New Roman', serif" {% if resume.font_family == "'Times New Roman', serif" %}selected{% endif %}>Times New Roman</option>
-                            <option value="'Georgia', serif" {% if resume.font_family == "'Georgia', serif" %}selected{% endif %}>Georgia</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Main Content Editor - Profile Fields -->
-            <div class="main-editor">
-                <h3 class="section-header">Update Your Information</h3>
-                <p class="helper-text">Your resume will use the information from your profile. You can update your profile information below.</p>
-                
-                <!-- Personal Information Section -->
-                <div class="editor-section" id="personal-info-section">
-                    <h4 class="section-header">Personal Information</h4>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="input-group">
-                                <label for="full_name">Full Name</label>
-                                <input type="text" id="full_name" name="full_name" class="form-control" value="{{ user_profile.full_name }}" disabled>
-                                <small class="text-muted">To update this field, go to your profile settings</small>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="input-group">
-                                <label for="job_title">Job Title</label>
-                                <input type="text" id="job_title" name="job_title" class="form-control" value="{{ user_profile.job_title }}" disabled>
-                                <small class="text-muted">To update this field, go to your profile settings</small>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="input-group">
-                                <label for="email">Email</label>
-                                <input type="email" id="email" name="email" class="form-control" value="{{ user_profile.email }}" disabled>
-                                <small class="text-muted">To update this field, go to your profile settings</small>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="input-group">
-                                <label for="phone_number">Phone Number</label>
-                                <input type="text" id="phone_number" name="phone_number" class="form-control" value="{{ user_profile.phone_number }}" disabled>
-                                <small class="text-muted">To update this field, go to your profile settings</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Professional Links Section -->
-                <div class="editor-section" id="links-section">
-                    <h4 class="section-header">Professional Links</h4>
-                    
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="input-group">
-                                <label for="linkedin_profile">LinkedIn</label>
-                                <input type="url" id="linkedin_profile" name="linkedin_profile" class="form-control" value="{{ user_profile.linkedin_profile }}" disabled>
-                                <small class="text-muted">To update this field, go to your profile settings</small>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-4">
-                            <div class="input-group">
-                                <label for="github_profile">GitHub</label>
-                                <input type="url" id="github_profile" name="github_profile" class="form-control" value="{{ user_profile.github_profile }}" disabled>
-                                <small class="text-muted">To update this field, go to your profile settings</small>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-4">
-                            <div class="input-group">
-                                <label for="portfolio_website">Portfolio Website</label>
-                                <input type="url" id="portfolio_website" name="portfolio_website" class="form-control" value="{{ user_profile.portfolio_website }}" disabled>
-                                <small class="text-muted">To update this field, go to your profile settings</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Professional Summary Section -->
-                <div class="editor-section" id="objective-section">
-                    <h4 class="section-header">Professional Summary</h4>
-                    
-                    <div class="input-group">
-                        <label for="objective">Summary/Objective</label>
-                        <textarea id="objective" name="objective" class="form-control" disabled>{{ user_profile.objective }}</textarea>
-                        <small class="text-muted">To update this field, go to your profile settings</small>
-                    </div>
-                </div>
-                
-                <!-- Education Section -->
-                <div class="editor-section" id="education-section">
-                    <h4 class="section-header">Education</h4>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="input-group">
-                                <label for="university">University/Institution</label>
-                                <input type="text" id="university" name="university" class="form-control" value="{{ user_profile.university }}" disabled>
-                                <small class="text-muted">To update this field, go to your profile settings</small>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="input-group">
-                                <label for="degree">Degree</label>
-                                <input type="text" id="degree" name="degree" class="form-control" value="{{ user_profile.degree }}" disabled>
-                                <small class="text-muted">To update this field, go to your profile settings</small>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="input-group">
-                                <label for="graduation_year">Graduation Year</label>
-                                <input type="text" id="graduation_year" name="graduation_year" class="form-control" value="{{ user_profile.graduation_year }}" disabled>
-                                <small class="text-muted">To update this field, go to your profile settings</small>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="input-group">
-                                <label for="cgpa">CGPA/GPA</label>
-                                <input type="text" id="cgpa" name="cgpa" class="form-control" value="{{ user_profile.cgpa }}" disabled>
-                                <small class="text-muted">To update this field, go to your profile settings</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Work Experience Section -->
-                <div class="editor-section" id="experience-section">
-                    <h4 class="section-header">Work Experience</h4>
-                    
-                    {% if work_experience %}
-                        <div class="experience-list">
-                            {% for job in work_experience %}
-                                <div class="experience-item card mb-3">
-                                    <div class="card-header">
-                                        <h5>{{ job.title }} at {{ job.company }}</h5>
-                                        <span class="text-muted">{{ job.start_date }} - {{ job.end_date|default:"Present" }}</span>
-                                    </div>
-                                    <div class="card-body">
-                                        <p>{{ job.description|linebreaks }}</p>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="alert alert-info">
-                            No work experience added yet. You can add work experience from your profile.
-                        </div>
-                    {% endif %}
-                    
-                    <a href="{% url 'resume_builder:resume_builder' %}" class="btn btn-outline mt-2">
-                        <i class="fas fa-plus"></i> Manage Work Experience
-                    </a>
-                </div>
-                
-                <!-- Internships Section (for students) -->
-                {% if user_profile.user_type == 'student' %}
-                <div class="editor-section" id="internships-section">
-                    <h4 class="section-header">Internships</h4>
-                    
-                    {% if internships %}
-                        <div class="internship-list">
-                            {% for internship in internships %}
-                                <div class="internship-item card mb-3">
-                                    <div class="card-header">
-                                        <h5>{{ internship.title }} at {{ internship.company }}</h5>
-                                        <span class="text-muted">{{ internship.start_date }} - {{ internship.end_date|default:"Present" }}</span>
-                                    </div>
-                                    <div class="card-body">
-                                        <p>{{ internship.description|linebreaks }}</p>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="alert alert-info">
-                            No internships added yet. You can add internships from your profile.
-                        </div>
-                    {% endif %}
-                    
-                    <a href="{% url 'dashboard:profile' %}" class="btn btn-outline mt-2">
-                        <i class="fas fa-plus"></i> Manage Internships
-                    </a>
-                </div>
-                {% endif %}
-                
-                <!-- Projects Section -->
-                <div class="editor-section" id="projects-section">
-                    <h4 class="section-header">Projects</h4>
-                    
-                    {% if projects %}
-                        <div class="projects-list">
-                            {% for project in projects %}
-                                <div class="project-item card mb-3">
-                                    <div class="card-header">
-                                        <h5>{{ project.title }}</h5>
-                                        {% if project.url %}
-                                        <a href="{{ project.url }}" target="_blank" class="project-link">
-                                            <i class="fas fa-external-link-alt"></i> View Project
-                                        </a>
-                                        {% endif %}
-                                    </div>
-                                    <div class="card-body">
-                                        <p>{{ project.description|linebreaks }}</p>
-                                        {% if project.technologies %}
-                                        <div class="project-tech">
-                                            <strong>Technologies:</strong> {{ project.technologies }}
-                                        </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="alert alert-info">
-                            No projects added yet. You can add projects from your profile.
-                        </div>
-                    {% endif %}
-                    
-                    <a href="{% url 'resume_builder:resume_builder' %}" class="btn btn-outline mt-2">
-                        <i class="fas fa-plus"></i> Manage Projects
-                    </a>
-                </div>
-                
-                <!-- Skills Section -->
-                <div class="editor-section" id="skills-section">
-                    <h4 class="section-header">Technical Skills</h4>
-                    
-                    {% if technical_skills %}
-                        <div class="skills-container">
-                            {% for skill in technical_skills %}
-                            <span class="badge bg-light text-dark p-2 m-1">{{ skill }}</span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="alert alert-info">
-                            No skills added yet. You can add skills from your profile.
-                        </div>
-                    {% endif %}
-                    
-                    <a href="{% url 'resume_builder:resume_builder' %}" class="btn btn-outline mt-2">
-                        <i class="fas fa-plus"></i> Manage Skills
-                    </a>
-                </div>
-                
-                <!-- Certifications Section -->
-                <div class="editor-section" id="certifications-section">
-                    <h4 class="section-header">Certifications</h4>
-                    
-                    {% if certifications %}
-                        <div class="certifications-list">
-                            {% for cert in certifications %}
-                                <div class="certification-item card mb-3">
-                                    <div class="card-header">
-                                        <h5>{{ cert.name }}</h5>
-                                        {% if cert.issuing_organization %}
-                                        <p class="mb-0">{{ cert.issuing_organization }}</p>
-                                        {% endif %}
-                                        {% if cert.date %}
-                                        <span class="text-muted">{{ cert.date }}</span>
-                                        {% endif %}
-                                    </div>
-                                    {% if cert.description %}
-                                    <div class="card-body">
-                                        <p>{{ cert.description }}</p>
-                                    </div>
-                                    {% endif %}
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="alert alert-info">
-                            No certifications added yet. You can add certifications from your profile.
-                        </div>
-                    {% endif %}
-                    
-                    <a href="{% url 'resume_builder:resume_builder' %}" class="btn btn-outline mt-2">
-                        <i class="fas fa-plus"></i> Manage Certifications
-                    </a>
-                </div>
-                
-                <!-- Achievements Section -->
-                <div class="editor-section" id="achievements-section">
-                    <h4 class="section-header">Achievements</h4>
-                    
-                    <div class="input-group">
-                        <label for="achievements">List of Achievements</label>
-                        <textarea id="achievements" name="achievements" class="form-control" disabled>{{ user_profile.achievements }}</textarea>
-                        <small class="text-muted">To update this field, go to your profile settings</small>
-                    </div>
-                </div>
-                
-                <!-- Extracurricular Activities Section -->
-                <div class="editor-section" id="extracurricular-section">
-                    <h4 class="section-header">Extracurricular Activities</h4>
-                    
-                    <div class="input-group">
-                        <label for="extracurricular_activities">Extracurricular Activities</label>
-                        <textarea id="extracurricular_activities" name="extracurricular_activities" class="form-control" disabled>{{ user_profile.extracurricular_activities }}</textarea>
-                        <small class="text-muted">To update this field, go to your profile settings</small>
-                    </div>
-                </div>
-                
-                <!-- Form Action Buttons -->
-                <div class="action-buttons">
-                    <div class="btn-group">
-                        <a href="{% url 'resume_builder:resume_builder' %}" class="btn btn-outline">Cancel</a>
-                    </div>
-                    <div class="btn-group">
-                        <button type="submit" name="preview" class="btn btn-outline">Save & Preview</button>
-                        <button type="submit" name="download" class="btn btn-success">Save & Download</button>
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </form>
-</div>
-
+<!-- ═══════════════════════════════════════════════════════════ -->
 <style>
-/* ==== Unified Resume Builder CSS ==== */
-:root {
-  /* Main Colors */
-  --primary: #4f46e5;
-  --primary-light: #6366f1;
-  --primary-dark: #4338ca;
-  --secondary: #14b8a6;
-  --secondary-light: #5eead4;
-  --secondary-dark: #0d9488;
-  
-  /* Neutrals */
-  --gray-50: #f9fafb;
-  --gray-100: #f3f4f6;
-  --gray-200: #e5e7eb;
-  --gray-300: #d1d5db;
-  --gray-400: #9ca3af;
-  --gray-500: #6b7280;
-  --gray-600: #4b5563;
-  --gray-700: #374151;
-  --gray-800: #1f2937;
-  --gray-900: #111827;
-  
-  /* Contextual */
-  --success: #10b981;
-  --success-light: #d1fae5;
-  --warning: #f59e0b;
-  --warning-light: #fef3c7;
-  --danger: #ef4444;
-  --danger-light: #fee2e2;
-  --info: #3b82f6;
-  --info-light: #dbeafe;
+/* ── Two-column layout ──────────────────── */
+.re-two-col{display:grid;grid-template-columns:1fr 340px;gap:1.5rem;margin-bottom:1.5rem}
+.re-main{display:flex;flex-direction:column;gap:1.25rem}
+.re-sidebar{display:flex;flex-direction:column;gap:1.25rem;position:sticky;top:1rem;align-self:start;max-height:calc(100vh - 2rem);overflow-y:auto}
+
+/* ── Card ───────────────────────────────── */
+.re-card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-lg);overflow:hidden}
+.re-card-head{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;border-bottom:1px solid var(--border-color)}
+.re-card-head h2{font-size:1rem;font-weight:600;margin:0;display:flex;align-items:center;gap:.4rem;color:var(--heading-color)}
+.re-card-body{padding:1.25rem}
+
+/* ── Section toggle disabled state ──────── */
+.re-section.re-disabled .re-card-body{opacity:.35;pointer-events:none}
+
+/* ── Toggle switch ──────────────────────── */
+.re-toggle{position:relative;display:inline-block;width:44px;height:24px;cursor:pointer}
+.re-toggle input{opacity:0;width:0;height:0}
+.re-toggle-slider{position:absolute;inset:0;background:var(--border-color);border-radius:24px;transition:.3s}
+.re-toggle-slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:var(--card-bg);border-radius:50%;transition:.3s}
+.re-toggle input:checked+.re-toggle-slider{background:var(--primary-color)}
+.re-toggle input:checked+.re-toggle-slider::before{transform:translateX(20px)}
+
+/* ── Input ──────────────────────────────── */
+.re-input{width:100%;padding:.7rem .9rem;border:1px solid var(--border-color);border-radius:var(--radius);background:var(--hover-bg);color:var(--heading-color);font-size:.92rem;transition:var(--transition)}
+.re-input:focus{outline:none;border-color:var(--primary-color);box-shadow:0 0 0 3px rgba(99,102,241,.12)}
+
+/* ── Field grid (read-only profile data) ── */
+.re-field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.85rem}
+.re-field{padding:.65rem .85rem;background:var(--hover-bg);border-radius:var(--radius);border:1px solid var(--border-color)}
+.re-field-label{display:block;font-size:.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px;margin-bottom:.2rem}
+.re-field-label i{font-size:.85rem;vertical-align:middle;margin-right:.2rem}
+.re-field-value{font-size:.88rem;color:var(--heading-color);word-break:break-all}
+
+/* ── Preview text ───────────────────────── */
+.re-preview-text{font-size:.88rem;line-height:1.65;color:var(--heading-color);padding:.75rem;background:var(--hover-bg);border-radius:var(--radius);border:1px solid var(--border-color);margin:0;white-space:pre-wrap}
+
+/* ── Education ──────────────────────────── */
+.re-edu-item{display:flex;align-items:flex-start;gap:1rem}
+.re-edu-icon{width:44px;height:44px;border-radius:var(--radius);background:var(--info-light);color:var(--info-color);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+.re-edu-info{display:flex;flex-direction:column;gap:.15rem}
+.re-edu-info strong{font-size:.92rem;color:var(--heading-color)}
+.re-edu-info span{font-size:.82rem;color:var(--text-muted)}
+.re-edu-info small{font-size:.75rem;color:var(--text-muted)}
+
+/* ── Skills chips ───────────────────────── */
+.re-skill-chips{display:flex;flex-wrap:wrap;gap:.4rem}
+.re-chip{font-size:.78rem;padding:.3rem .65rem;border-radius:var(--radius-full);background:var(--info-light);color:var(--info-color);font-weight:600}
+
+/* ── Experience timeline ────────────────── */
+.re-exp-list{display:flex;flex-direction:column;gap:0;position:relative;padding-left:1.5rem}
+.re-exp-list::before{content:'';position:absolute;left:5px;top:8px;bottom:8px;width:2px;background:var(--border-color)}
+.re-exp-item{display:flex;align-items:flex-start;gap:.85rem;padding:.75rem 0;position:relative}
+.re-exp-dot{width:12px;height:12px;border-radius:50%;background:var(--primary-color);border:2px solid var(--card-bg);position:absolute;left:-1.5rem;top:1rem;z-index:1;margin-left:-1px}
+.re-exp-info{flex:1}
+.re-exp-info strong{font-size:.88rem;color:var(--heading-color);display:block}
+.re-company{font-weight:400;color:var(--text-muted)}
+.re-exp-info small{font-size:.75rem;color:var(--text-muted);display:block;margin-top:.15rem}
+.re-exp-info p{font-size:.82rem;color:var(--text-muted);margin:.35rem 0 0;line-height:1.5}
+
+/* ── Projects ───────────────────────────── */
+.re-project-grid{display:flex;flex-direction:column;gap:.75rem}
+.re-project-item{padding:.85rem;background:var(--hover-bg);border:1px solid var(--border-color);border-radius:var(--radius)}
+.re-project-item strong{font-size:.88rem;color:var(--heading-color);display:block;margin-bottom:.25rem}
+.re-project-item p{font-size:.8rem;color:var(--text-muted);margin:0;line-height:1.5}
+.re-tech-pills{margin-top:.4rem}
+.re-tech-pill{display:inline;font-size:.72rem;color:var(--text-muted);font-style:italic}
+
+/* ── Certifications ─────────────────────── */
+.re-cert-list{display:flex;flex-direction:column;gap:.5rem}
+.re-cert-item{display:flex;align-items:flex-start;gap:.65rem;padding:.5rem 0}
+.re-cert-item i{color:var(--warning-color);font-size:1.15rem;margin-top:.1rem}
+.re-cert-item strong{font-size:.85rem;color:var(--heading-color);display:block}
+.re-cert-item small{font-size:.75rem;color:var(--text-muted)}
+
+/* ── Empty hint ─────────────────────────── */
+.re-empty-hint{display:flex;align-items:center;gap:.5rem;padding:.65rem .85rem;background:var(--hover-bg);border-radius:var(--radius);font-size:.82rem;color:var(--text-muted)}
+.re-empty-hint a{color:var(--primary-color);text-decoration:none;font-weight:500}
+.re-empty-hint a:hover{text-decoration:underline}
+
+/* ── Sidebar settings ───────────────────── */
+.re-setting{margin-bottom:1rem}
+.re-setting:last-child{margin-bottom:0}
+.re-setting label{display:block;font-size:.82rem;font-weight:600;color:var(--heading-color);margin-bottom:.35rem}
+.re-color-input{width:100%;height:38px;border:1px solid var(--border-color);border-radius:var(--radius);cursor:pointer;background:var(--hover-bg);padding:2px}
+.re-select{width:100%;padding:.55rem .75rem;border:1px solid var(--border-color);border-radius:var(--radius);background:var(--hover-bg);color:var(--heading-color);font-size:.85rem}
+.re-select:focus{outline:none;border-color:var(--primary-color)}
+
+/* ── Checklist ──────────────────────────── */
+.re-checklist{display:flex;flex-direction:column;gap:.4rem}
+.re-check-item{display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:var(--text-muted);padding:.25rem 0}
+.re-check-item i{font-size:1rem}
+.re-check-item i.active{color:var(--success-color)}
+
+/* ── Buttons ────────────────────────────── */
+.re-action-stack{display:flex;flex-direction:column;gap:.5rem}
+.re-btn{display:flex;align-items:center;justify-content:center;gap:.45rem;width:100%;padding:.7rem;border-radius:var(--radius);font-size:.85rem;font-weight:600;cursor:pointer;transition:var(--transition);text-decoration:none;border:none}
+.re-btn.primary{background:var(--primary-color);color:var(--text-inverse)}
+.re-btn.primary:hover{opacity:.88}
+.re-btn.outline{background:transparent;border:1px solid var(--primary-color);color:var(--primary-color)}
+.re-btn.outline:hover{background:var(--primary-color);color:var(--text-inverse)}
+.re-btn.success{background:var(--success-color);color:#fff}
+.re-btn.success:hover{opacity:.88}
+.re-btn.ghost{background:var(--hover-bg);color:var(--heading-color)}
+.re-btn.ghost:hover{background:var(--border-color)}
 
-  /* UI Elements */
-  --background: var(--gray-50);
-  --card-bg: #ffffff;
-  --text-color: var(--gray-800);
-  --text-light: var(--gray-500);
-  --border-color: var(--gray-200);
-  --border-radius-sm: 0.375rem;
-  --border-radius: 0.5rem;
-  --border-radius-lg: 0.75rem;
-  --border-radius-xl: 1rem;
-  
-  /* Typography */
-  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  
-  /* Animation */
-  --transition-fast: all 0.2s ease;
-  --transition: all 0.3s ease;
+/* ── Responsive ─────────────────────────── */
+@media(max-width:1024px){
+    .re-two-col{grid-template-columns:1fr}
+    .re-sidebar{position:static;max-height:none}
 }
-
-/* Dark Mode Variables */
-[data-theme="dark"] {
-  --background: var(--gray-900);
-  --card-bg: var(--gray-800);
-  --text-color: var(--gray-100);
-  --text-light: var(--gray-400);
-  --border-color: var(--gray-700);
-}
-
-/* Base Styles */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: var(--font-sans);
-  background-color: var(--background);
-  color: var(--text-color);
-  line-height: 1.5;
-}
-
-html {
-  scroll-behavior: smooth;
-}
-
-/* ==== Container Layouts ==== */
-.resume-dashboard-container {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
-
-.edit-resume-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
-
-.content-section {
-  margin-bottom: 2.5rem;
-  animation: fadeIn 0.5s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* ==== Page Headers ==== */
-
-.page-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    color: var(--text-color);
-}
-
-.page-title::after {
-  content: '';
-  position: absolute;
-  bottom: -0.5rem;
-  left: 0;
-  width: 3rem;
-  height: 0.25rem;
-  background: linear-gradient(to right, var(--primary), var(--secondary));
-  border-radius: 999px;
-}
-
-/* Breadcrumb Styles */
-.breadcrumb {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--text-light);
-            font-size: 0.875rem;
-        }
-
-        .breadcrumb-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .breadcrumb-link {
-            color: var(--text-light);
-            text-decoration: none;
-            transition: var(--transition);
-        }
-
-        .breadcrumb-link:hover {
-            color: var(--primary-color);
-        }
-
-.breadcrumb-item.active {
-  color: white;
-  font-weight: 500;
-}
-
-/* ==== Section Headers ==== */
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 1rem;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-color);
-}
-
-.section-header:first-child {
-  font-size: 1.5rem;
-  color: var(--text-color);
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid var(--primary);
-}
-
-.section-header:before,
-.section-title::before {
-  content: '';
-  width: 4px;
-  height: 1.5rem;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-  margin-right: 0.75rem;
-  border-radius: 2px;
-}
-
-.section-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.section-title i {
-  color: var(--primary);
-  font-size: 1.25rem;
-}
-
-/* ==== Forms & Inputs ==== */
-.edit-form {
-  background: var(--card-bg);
-  border-radius: var(--border-radius-xl);
-  box-shadow: var(--shadow-lg);
-  overflow: hidden;
-}
-
-.edit-header {
-  background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
-  padding: 2rem;
-  border-bottom: 1px solid var(--border-color);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.edit-title {
-  font-size: 1.8rem;
-  font-weight: 600;
-  color: var(--text-color);
-  margin-bottom: 0.5rem;
-}
-
-.template-badge {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-  color: white;
-  padding: 0.25rem 0.75rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-/* Input Groups */
-.input-group {
-  margin-bottom: 1.5rem;
-}
-
-.input-group label {
-  display: block;
-  font-weight: 500;
-  color: var(--text-color);
-  margin-bottom: 0.5rem;
-  font-size: 0.95rem;
-}
-
-.form-control {
-  width: 100%;
-  border: 2px solid var(--border-color);
-  border-radius: var(--border-radius);
-  padding: 0.75rem;
-  font-size: 0.95rem;
-  transition: var(--transition);
-  background-color: var(--card-bg);
-  color: var(--text-color);
-}
-
-.form-control:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.25);
-  outline: none;
-}
-
-.form-control:disabled {
-  background-color: var(--gray-100);
-  border-color: var(--border-color);
-  color: var(--text-light);
-}
-
-textarea.form-control {
-  min-height: 120px;
-  resize: vertical;
-  line-height: 1.6;
-}
-
-.text-muted {
-  font-size: 0.875rem;
-  color: var(--text-light) !important;
-  margin-top: 0.25rem;
-}
-
-.helper-text {
-  color: var(--text-light);
-  margin-bottom: 2rem;
-  font-size: 1rem;
-  line-height: 1.6;
-}
-
-/* ==== Layout Grids ==== */
-.form-sections {
-  display: grid;
-  grid-template-columns: 300px 1fr;
-  gap: 0;
-  min-height: 80vh;
-}
-
-.section-sidebar {
-  background: var(--gray-50);
-  padding: 2rem 1.5rem;
-  border-right: 1px solid var(--border-color);
-  max-height: 80vh;
-  overflow-y: auto;
-  position: sticky;
-  top: 0;
-}
-
-.main-editor {
-  padding: 2rem;
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
-/* Grid System */
-.row {
-  display: flex;
-  flex-wrap: wrap;
-  margin: -0.5rem;
-}
-
-.col-md-6, .col-md-4 {
-  padding: 0.5rem;
-  flex: 1;
-  min-width: 250px;
-}
-
-.col-md-6 {
-  flex-basis: 50%;
-}
-
-.col-md-4 {
-  flex-basis: 33.333%;
-}
-
-/* Resume Grid */
-.resume-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
-}
-
-.template-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1.5rem;
-}
-
-.tips-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 1.5rem;
-}
-
-/* ==== Sidebar Components ==== */
-.sidebar-section {
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.sidebar-section:last-child {
-  border-bottom: none;
-}
-
-.sidebar-heading {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--text-color);
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-}
-
-.sidebar-heading:before {
-  content: '';
-  width: 4px;
-  height: 1.5rem;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-  margin-right: 0.75rem;
-  border-radius: 2px;
-}
-
-/* Toggle Section */
-.toggle-section {
-  display: flex;
-  align-items: center;
-  margin-bottom: 1rem;
-  padding: 0.75rem;
-  background: var(--card-bg);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow-sm);
-  transition: var(--transition);
-  border: 1px solid var(--border-color);
-}
-
-.toggle-section:hover {
-  box-shadow: var(--shadow);
-  transform: translateY(-1px);
-}
-
-.toggle-section label:last-child {
-  margin-left: 0.75rem;
-  font-weight: 500;
-  color: var(--text-color);
-  cursor: pointer;
-  flex: 1;
-}
-
-/* Custom Switch */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 50px;
-  height: 28px;
-}
-
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--gray-300);
-  transition: 0.4s;
-  border-radius: 28px;
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 20px;
-  width: 20px;
-  left: 4px;
-  bottom: 4px;
-  background-color: var(--card-bg);
-  transition: 0.4s;
-  border-radius: 50%;
-  box-shadow: var(--shadow-sm);
-}
-
-input:checked + .slider {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-}
-
-input:checked + .slider:before {
-  transform: translateX(22px);
-}
-
-/* Customize Options */
-.customize-option {
-  margin-bottom: 1rem;
-}
-
-.customize-option label {
-  display: block;
-  font-weight: 500;
-  color: var(--text-color);
-  margin-bottom: 0.5rem;
-}
-
-.color-picker {
-  width: 100% !important;
-}
-
-/* ==== Card Components ==== */
-.card {
-  background-color: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-lg);
-  overflow: hidden;
-  box-shadow: var(--shadow);
-  transition: var(--transition);
-}
-
-.card:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
-}
-
-.card-header {
-  background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--border-color);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.card-header h4,
-.card-header h5 {
-  margin: 0;
-  font-weight: 600;
-  color: var(--text-color);
-  font-size: 1.125rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.card-body {
-  padding: 1.5rem;
-}
-
-.card-body p {
-  margin-bottom: 0;
-  line-height: 1.6;
-  color: var(--text-color);
-}
-
-/* Resume Card Specifics */
-.resume-card {
-  position: relative;
-}
-
-.resume-card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--primary-light);
-}
-
-.resume-card-header {
-  padding: 1.25rem;
-  border-bottom: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.resume-template-badge {
-  background-color: var(--primary-light);
-  color: white;
-  font-size: 0.75rem;
-  padding: 0.25rem 0.75rem;
-  border-radius: 999px;
-  font-weight: 500;
-}
-
-.resume-card-body {
-  padding: 1.25rem;
-}
-
-.resume-stats {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.resume-stat {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: var(--text-light);
-}
-
-.resume-stat i {
-  color: var(--primary);
+@media(max-width:600px){
+    .re-field-grid{grid-template-columns:1fr}
 }
+</style>
 
-.resume-card-actions {
-  padding: 1.25rem;
-  border-top: 1px solid var(--border-color);
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-/* Template Card Specifics */
-.template-card {
-  position: relative;
-}
-
-.template-card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--primary-light);
-}
-
-.template-preview {
-  height: 200px;
-  overflow: hidden;
-  border-bottom: 1px solid var(--border-color);
-  position: relative;
-}
-
-.template-preview::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 40px;
-  background: linear-gradient(to top, var(--card-bg), transparent);
-}
-
-.template-preview img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: var(--transition);
-}
-
-.template-card:hover .template-preview img {
-  transform: scale(1.05);
-}
-
-.template-info {
-  padding: 1.25rem;
-}
-
-.template-info h4 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: var(--text-color);
-}
-
-.template-info p {
-  font-size: 0.875rem;
-  color: var(--text-light);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  margin-bottom: 1rem;
-}
-
-.template-actions {
-  padding: 0 1.25rem 1.25rem 1.25rem;
-}
-
-/* ==== Editor Sections ==== */
-.editor-section {
-  margin-bottom: 3rem;
-  padding: 2rem;
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-sm);
-  transition: var(--transition);
-}
-
-.editor-section:hover {
-  box-shadow: var(--shadow);
-}
-
-.editor-section.text-muted.opacity-50 {
-  opacity: 0.5;
-  background: var(--gray-50);
-}
-
-/* ==== Buttons ==== */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  font-weight: 500;
-  border-radius: var(--border-radius);
-  transition: var(--transition);
-  border: 2px solid transparent;
-  text-decoration: none;
-  cursor: pointer;
-  font-size: 0.875rem;
-  line-height: 1;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-  color: white;
-  border-color: var(--primary);
-}
-
-.btn-primary:hover {
-  background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3);
-}
-
-.btn-success {
-  background: linear-gradient(135deg, var(--success) 0%, #20c997 100%);
-  color: white;
-  border-color: var(--success);
-}
-
-.btn-success:hover {
-  background: linear-gradient(135deg, #20c997 0%, var(--success) 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
-}
-
-.btn-outline {
-  background: var(--card-bg);
-  color: var(--primary);
-  border-color: var(--primary);
-}
-
-.btn-outline:hover {
-  background: var(--primary);
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3);
-}
-
-.btn-add {
-  background-color: var(--primary);
-  color: white;
-  border: none;
-  padding: 0.625rem 1.25rem;
-  box-shadow: var(--shadow-sm);
-}
-
-.btn-add:hover {
-  background-color: var(--primary-dark);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow);
-}
-
-.btn-add i {
-  font-size: 1.125rem;
-}
-
-.btn-action {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--border-radius);
-  font-size: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: var(--transition);
-  text-decoration: none;
-  border: 1px solid transparent;
-}
-
-.btn-edit {
-  background-color: var(--info-light);
-  color: var(--info);
-  border-color: var(--info-light);
-}
-
-.btn-edit:hover {
-  background-color: var(--info);
-  color: white;
-}
-
-.btn-preview {
-  background-color: var(--gray-100);
-  color: var(--gray-600);
-  border-color: var(--gray-100);
-}
-
-.btn-preview:hover {
-  background-color: var(--gray-200);
-  color: var(--gray-800);
-}
-
-.btn-download {
-  background-color: var(--success-light);
-  color: var(--success);
-  border-color: var(--success-light);
-}
-
-.btn-download:hover {
-  background-color: var(--success);
-  color: white;
-}
-
-.btn-delete {
-  background-color: var(--danger-light);
-  color: var(--danger);
-  border: 1px solid var(--danger-light);
-}
-
-.btn-delete:hover {
-  background-color: var(--danger);
-  color: white;
-  border-color: var(--danger);
-}
-
-.btn-cancel {
-  background-color: var(--gray-100);
-  color: var(--gray-700);
-  border: 1px solid var(--gray-100);
-  padding: 0.625rem 1.25rem;
-}
-
-.btn-cancel:hover {
-  background-color: var(--gray-200);
-  border-color: var(--gray-200);
-}
-
-/* Button Groups */
-.btn-group {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-/* ==== Tips Section ==== */
-.tip-card {
-  background-color: var(--card-bg);
-  border-radius: var(--border-radius-lg);
-  padding: 1.5rem;
-  box-shadow: var(--shadow);
-  border: 1px solid var(--border-color);
-  transition: var(--transition);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.tip-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--primary-light);
-}
-
-.tip-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary-light), var(--primary));
-  color: white;
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-}
-
-.tip-content h4 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: var(--text-color);
-}
-
-.tip-content p {
-  font-size: 0.875rem;
-  color: var(--text-light);
-  line-height: 1.5;
-}
-
-/* ==== Alerts ==== */
-.alert {
-  padding: 1rem 1.5rem;
-  border-radius: var(--border-radius);
-  border: none;
-  font-weight: 500;
-  margin-bottom: 1rem;
-}
-
-.alert-info {
-  background: linear-gradient(135deg, var(--info-light) 0%, #bee5eb 100%);
-  color: #0c5460;
-  border-left: 4px solid var(--info);
-}
-
-/* ==== Badges & Skills ==== */
-.badge {
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  border-radius: 999px;
-  background: linear-gradient(135deg, var(--gray-100) 0%, var(--gray-50) 100%);
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-}
-
-.skills-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-/* ==== Project Styles ==== */
-.project-link {
-  color: var(--primary);
-  text-decoration: none;
-  font-weight: 500;
-  transition: var(--transition);
-}
-
-.project-link:hover {
-  color: var(--primary-light);
-}
-
-.project-tech {
-  margin-top: 1rem;
-  padding: 0.75rem;
-  background: var(--gray-50);
-  border-radius: var(--border-radius);
-  border-left: 4px solid var(--primary);
-}
-
-/* ==== Action Buttons ==== */
-.action-buttons {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 2rem;
-  background: var(--gray-50);
-  border-top: 1px solid var(--border-color);
-  margin-top: 2rem;
-  border-radius: 0 0 var(--border-radius-xl) var(--border-radius-xl);
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.resume-actions-bar {
-  position: sticky;
-  bottom: 0;
-  background-color: var(--card-bg);
-  padding: 1rem;
-  border-top: 1px solid var(--border-color);
-  display: flex;
-  justify-content: space-between;
-  z-index: 900;
-  box-shadow: var(--shadow-lg);
-}
-
-/* ==== Empty State ==== */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 1.5rem;
-  text-align: center;
-  background-color: var(--card-bg);
-  border-radius: var(--border-radius-lg);
-  border: 1px dashed var(--border-color);
-}
-
-.empty-state-image {
-  width: 180px;
-  height: auto;
-  margin-bottom: 1.5rem;
-  opacity: 0.8;
-}
-
-.empty-state h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-  color: var(--text-color);
-}
-
-.empty-state p {
-  font-size: 0.875rem;
-  color: var(--text-light);
-  max-width: 400px;
-  margin-bottom: 1.5rem;
-}
-
-/* ==== Modals ==== */
-.modal-dialog {
-  position: fixed;
-  top: 15%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  max-width: 500px;
-  z-index: 1000;
-}
-
-.modal-content {
-  background-color: var(--card-bg);
-  border-radius: var(--border-radius-lg);
-  border: none;
-  box-shadow: var(--shadow-lg);
-  overflow: hidden;
-}
-
-.modal-header {
-  border-bottom: 1px solid var(--border-color);
-  padding: 1.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.modal-header h5 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-color);
-}
-.modal-header .close {
-  font-size: 1.5rem;
-  color: var(--text-light);
-}
-.modal-header .close:hover {
-  color: var(--text-color);
-}
-.modal-body {
-  padding: 1.5rem;
-  color: var(--text-color);
-}
-.modal-footer {
-  border-top: 1px solid var(--border-color);
-  padding: 1.5rem;
-  display: flex;
-  justify-content: flex-end;
-}
-.modal-footer .btn {
-  margin-left: 0.5rem;
-}
-.modal-footer .btn-primary {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-  color: white;
-}
-.modal-footer .btn-primary:hover {
-  background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3);
-}
-.modal-footer .btn-secondary {
-  background: var(--gray-100);
-  color: var(--gray-600);
-}
-.modal-footer .btn-secondary:hover {
-  background: var(--gray-200);
-  color: var(--gray-800);
-}
-.modal-footer .btn-danger {
-  background: var(--danger-light);
-  color: var(--danger);
-}
-.modal-footer .btn-danger:hover {
-  background: var(--danger);
-  color: white;
-}
-.modal-footer .btn-danger:disabled {
-  background: var(--danger-light);
-  color: var(--text-light);
-}
-.modal-footer .btn-danger:disabled:hover {
-  background: var(--danger-light);
-  color: var(--text-light);
-}
-.modal-footer .btn-danger:disabled {
-  cursor: not-allowed;
-}
-.modal-footer .btn-danger:not(:disabled):hover {
-  cursor: pointer;
-}
-
-
-.modal-footer .btn-danger:not(:disabled):hover {
-  background: var(--danger);
-  color: white;
-}
-.modal-footer .btn-danger:not(:disabled):hover {
-  cursor: pointer;
-}
-.modal-footer .btn-danger:not(:disabled):hover {
-  background: var(--danger);
-  color: white;
-}
-.modal-footer .btn-danger:not(:disabled):hover {
-  cursor: pointer;
-}
-
-.modal-footer .btn-danger:not(:disabled):hover {
-  background: var(--danger);
-  color: white;
-}
-
-.modal-footer .btn-danger:not(:disabled):hover {
-  cursor: pointer;
-}
-
-.modal-footer .btn-danger:not(:disabled):hover {
-  background: var(--danger);
-  color: white;
-}
-    
-</style> 
-   
-<script src="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.1/spectrum.min.js"></script>
 <script>
-    $(document).ready(function() {
-        // Initialize color pickers
-        $(".color-picker").spectrum({
-            showInput: true,
-            preferredFormat: "hex",
-            showPalette: true,
-            palette: [
-                ["#4a6cf7", "#28a745", "#dc3545", "#ffc107", "#17a2b8"],
-                ["#343a40", "#6c757d", "#f8f9fa", "#e9ecef", "#dee2e6"]
-            ]
-        });
-        
-        // Toggle disabled sections based on checkbox state
-        $('input[type="checkbox"]').change(function() {
-            let sectionId = $(this).attr('name').replace('show_', '');
-            let isChecked = $(this).is(':checked');
-            
-            // Visual feedback for sections that are toggled off
-            if (sectionId === 'contact' || sectionId === 'links') {
-                sectionId = 'links'; // Both toggles affect the links section
-            }
-            
-            if (isChecked) {
-                $(`#${sectionId}-section`).removeClass('text-muted opacity-50');
-            } else {
-                $(`#${sectionId}-section`).addClass('text-muted opacity-50');
-            }
-        });
-        
-        // Form submission handling
-        $('form').on('submit', function(e) {
-            // Show loading indicator
-            if ($(document.activeElement).attr('name') === 'download') {
-                // If download button was clicked
-                showLoadingMessage('Generating your resume PDF...');
-            } else if ($(document.activeElement).attr('name') === 'preview') {
-                // If preview button was clicked
-                showLoadingMessage('Generating preview...');
-            } else {
-                // Regular save
-                showLoadingMessage('Saving your changes...');
-            }
-        });
-        
-        function showLoadingMessage(message) {
-            // Create loading overlay if it doesn't exist
-            if ($('#loading-overlay').length === 0) {
-                $('body').append(`
-                    <div id="loading-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-                    background-color: rgba(0,0,0,0.5); z-index: 9999; display: flex; justify-content: center; 
-                    align-items: center; flex-direction: column;">
-                        <div class="spinner-border text-light" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <p class="text-light mt-3" id="loading-message">${message}</p>
-                    </div>
-                `);
-            } else {
-                $('#loading-message').text(message);
-                $('#loading-overlay').show();
+function toggleSection(name){
+    const section=document.getElementById('section-'+name);
+    const cb=section.querySelector('input[type=checkbox]');
+    if(cb.checked){section.classList.remove('re-disabled')}
+    else{section.classList.add('re-disabled')}
+    updateChecklist();
+}
+function updateChecklist(){
+    const map={contact:'Contact',links:'Links',objective:'Summary',education:'Education',skills:'Skills',experience:'Experience',projects:'Projects',certifications:'Certifications',achievements:'Achievements',extracurricular:'Extracurricular'};
+    document.querySelectorAll('.re-check-item').forEach(item=>{
+        const label=item.textContent.trim();
+        for(const[key,val]of Object.entries(map)){
+            if(val===label){
+                const sec=document.getElementById('section-'+key);
+                if(!sec)break;
+                const cb=sec.querySelector('input[type=checkbox]');
+                const icon=item.querySelector('i');
+                if(cb&&cb.checked){
+                    icon.className='bx bx-check-circle active';
+                }else{
+                    icon.className='bx bx-circle';
+                }
+                break;
             }
         }
-
-        // Handle section visibility based on initial checkbox state
-        $('input[type="checkbox"]').each(function() {
-            let sectionId = $(this).attr('name').replace('show_', '');
-            let isChecked = $(this).is(':checked');
-            
-            if (sectionId === 'contact' || sectionId === 'links') {
-                sectionId = 'links'; // Both toggles affect the links section
-            }
-            
-            if (!isChecked) {
-                $(`#${sectionId}-section`).addClass('text-muted opacity-50');
-            }
-        });
-        
-        // Handle font family preview
-        $('#font_family').change(function() {
-            const selectedFont = $(this).val();
-            $('.main-editor').css('font-family', selectedFont);
-        });
-        
-        // Initialize font family preview
-        $('.main-editor').css('font-family', $('#font_family').val());
     });
+}
+// Auto-close notifications
+setTimeout(()=>{document.querySelectorAll('.notification').forEach(n=>{n.style.transition='opacity .5s';n.style.opacity='0';setTimeout(()=>n.remove(),500)})},5000);
 </script>
 {% endblock %}

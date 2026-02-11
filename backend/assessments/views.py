@@ -902,7 +902,7 @@ def _select_balanced_questions(questions_queryset, total=20):
             remaining = list(questions_queryset.exclude(
                 id__in=[q.id for q in selected]
             ).order_by('?')[:remaining_needed])
-        selected.extend(remaining)
+            selected.extend(remaining)
     
     random.shuffle(selected)
     return selected[:total]
@@ -1023,34 +1023,60 @@ def skill_intake_dashboard(request):
         if category_skills:
             skills_by_category[category.name] = category_skills
     
-    # Get skill gaps - skills in high demand but user doesn't have
-    user_skill_ids = user_skill_scores.values_list('skill_id', flat=True)
+    # Get skill gaps - skills in high demand but user doesn't have OR is below required
+    user_skill_map = {s.skill_id: s for s in user_skill_scores}
+    user_skill_ids = set(user_skill_map.keys())
     skill_gaps = []
     
     try:
-        # Find skills required by many jobs that user doesn't have
-        high_demand_skills = JobSkillRequirement.objects.exclude(
-            skill_id__in=user_skill_ids
-        ).values(
+        # All skills required by at least one job
+        all_required = JobSkillRequirement.objects.values(
             'skill__name', 'skill__category__name', 'skill_id'
         ).annotate(
             jobs_requiring=Count('job', distinct=True),
             avg_level_required=Avg('required_proficiency')
-        ).filter(
-            jobs_requiring__gte=1
-        ).order_by('-jobs_requiring')[:5]
-        
-        for demand in high_demand_skills:
+        ).filter(jobs_requiring__gte=1).order_by('-avg_level_required', '-jobs_requiring')
+
+        for demand in all_required:
+            sid = demand['skill_id']
+            required = round(demand['avg_level_required'], 1)
+            user_score = user_skill_map.get(sid)
+            current = round(user_score.verified_level, 1) if user_score else 0.0
+            gap_val = round(max(0, required - current), 1)
+
+            if gap_val <= 0:
+                continue  # user already meets/exceeds requirement
+
+            severity = 'critical' if gap_val >= 5 else ('high' if gap_val >= 3 else 'moderate')
             skill_gaps.append({
                 'skill_name': demand['skill__name'],
-                'category': demand['skill__category__name'],
+                'category': demand['skill__category__name'] or 'General',
                 'jobs_requiring': demand['jobs_requiring'],
-                'avg_level_required': round(demand['avg_level_required'], 1),
-                'skill_id': demand['skill_id']
+                'avg_level_required': required,
+                'current_level': current,
+                'gap_value': gap_val,
+                'severity': severity,
+                'skill_id': sid,
             })
     except Exception as e:
         logger.warning(f"Could not fetch skill gaps: {str(e)}")
         skill_gaps = []
+
+    total_gaps_count = len(skill_gaps)
+    displayed_gaps = skill_gaps[:6]  # Show first 6 in sidebar
+
+    # Build enriched list of ALL user skills (verified + claimed) sorted by level desc
+    all_user_skills = []
+    for score in user_skill_scores.order_by('-verified_level'):
+        all_user_skills.append({
+            'id': score.skill_id,
+            'name': score.skill.name,
+            'category': score.skill.category.name if score.skill.category else 'General',
+            'level': round(score.verified_level, 1),
+            'status': score.status,  # 'verified' or 'claimed'
+            'is_verified': score.status == 'verified',
+            'last_assessment_date': score.last_assessment_date,
+        })
     
     # Get recent assessment attempts
     recent_attempts = AssessmentAttempt.objects.filter(
@@ -1067,8 +1093,12 @@ def skill_intake_dashboard(request):
         'completion_percentage': completion_percentage,
         'avg_proficiency': avg_proficiency,
         'verified_skills': verified_skills,
+        'all_user_skills': all_user_skills,
+        'all_user_skills_count': len(all_user_skills),
         'categories': category_progress,
         'skill_gaps': skill_gaps,
+        'displayed_gaps': displayed_gaps,
+        'total_gaps_count': total_gaps_count,
         'recent_attempts': recent_attempts,
     }
     

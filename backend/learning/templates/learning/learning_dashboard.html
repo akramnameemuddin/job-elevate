@@ -1,256 +1,433 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
+
+{% block title %}Learning Hub | Job Elevate{% endblock %}
+
 {% block content %}
-<!-- Breadcrumb Navigation -->
+<!-- Breadcrumb -->
 <div class="breadcrumb">
     <div class="breadcrumb-item">
         <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
         <i class='bx bx-chevron-right'></i>
     </div>
-    <div class="breadcrumb-item">
-        <span>Learning Progress</span>
-    </div>
+    <div class="breadcrumb-item"><span>Learning Hub</span></div>
 </div>
 
-<!-- Page Title -->
+<!-- Page Header -->
 <div class="page-content-header">
-    <h1 class="page-title">Learning Progress</h1>
-    <div class="page-actions">
-        <button class="btn btn-primary">
-            <i class='bx bx-plus'></i>
-            Start New Course
-        </button>
+    <div>
+        <h1 class="page-title">Learning Hub</h1>
+        <p style="color:var(--text-light);margin-top:0.25rem;">Track your skills, close gaps, and level up your career</p>
+    </div>
+    <div class="page-actions" style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+        <a href="{% url 'learning:skill_gaps' %}" class="btn btn-secondary" style="display:inline-flex;align-items:center;gap:.4rem;">
+            <i class='bx bx-target-lock'></i> Skill Gaps
+        </a>
+        <a href="{% url 'learning:course_catalog' %}" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:.4rem;">
+            <i class='bx bx-search'></i> Browse Courses
+        </a>
     </div>
 </div>
 
 <style>
-    /* Learning Dashboard Styles - Using base theme */
-    .pending-modules-container {
-        background: var(--card-bg);
-        border-radius: var(--radius-xl);
-        padding: var(--spacing-xl);
-        margin-bottom: var(--spacing-xl);
-        box-shadow: var(--shadow-sm);
-        border: 1px solid var(--border-color);
-    }
+/* ===== Learning Hub Styles ===== */
+.lh-stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-lg, 1.25rem);
+    margin-bottom: 2rem;
+}
+.lh-stat-card {
+    background: var(--card-bg, #fff);
+    border-radius: var(--radius-lg, 12px);
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border: 1px solid var(--border-color, #e5e7eb);
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,.06));
+    transition: transform .15s, box-shadow .15s;
+}
+.lh-stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,.1)); }
+.lh-stat-icon {
+    width: 50px; height: 50px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; flex-shrink: 0;
+}
+.lh-stat-icon.blue   { background: #dbeafe; color: #2563eb; }
+.lh-stat-icon.green  { background: #dcfce7; color: #16a34a; }
+.lh-stat-icon.amber  { background: #fef3c7; color: #d97706; }
+.lh-stat-icon.purple { background: #ede9fe; color: #7c3aed; }
+.lh-stat-icon.rose   { background: #ffe4e6; color: #e11d48; }
+.dark-mode .lh-stat-icon.blue   { background: #1e3a5f; color: #60a5fa; }
+.dark-mode .lh-stat-icon.green  { background: #14532d; color: #4ade80; }
+.dark-mode .lh-stat-icon.amber  { background: #451a03; color: #fbbf24; }
+.dark-mode .lh-stat-icon.purple { background: #2e1065; color: #a78bfa; }
+.dark-mode .lh-stat-icon.rose   { background: #4c0519; color: #fb7185; }
+.lh-stat-value { font-size: 1.5rem; font-weight: 700; color: var(--heading-color, #111); line-height: 1.2; }
+.lh-stat-label { font-size: 0.8rem; color: var(--text-light, #6b7280); margin-top: 0.15rem; }
 
-    .section-title {
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-        font-size: var(--font-size-2xl);
-        font-weight: 600;
-        color: var(--heading-color);
-        margin-bottom: var(--spacing-lg);
-    }
+/* Sections */
+.lh-section {
+    background: var(--card-bg, #fff);
+    border-radius: var(--radius-xl, 16px);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border-color, #e5e7eb);
+    box-shadow: var(--shadow-sm);
+}
+.lh-section-title {
+    display: flex; align-items: center; gap: .5rem;
+    font-size: 1.15rem; font-weight: 700;
+    color: var(--heading-color, #111); margin-bottom: 1.25rem;
+}
+.lh-section-title i { color: var(--primary-color, #2563eb); font-size: 1.35rem; }
+.lh-section-title .lh-badge {
+    font-size: .7rem; background: var(--primary-color); color: #fff;
+    padding: 0.15rem 0.6rem; border-radius: 99px; font-weight: 600; margin-left: auto;
+}
 
-    .section-title i {
-        color: var(--primary-color);
-        font-size: var(--font-size-3xl);
-    }
+/* Path Cards */
+.lh-paths-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.25rem;
+}
+.lh-path-card {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg, 12px);
+    padding: 1.25rem;
+    border: 1px solid var(--border-color);
+    transition: transform .15s, box-shadow .15s;
+    display: flex; flex-direction: column;
+}
+.lh-path-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg, 0 8px 24px rgba(0,0,0,.12)); }
+.lh-path-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: .75rem; gap: .5rem; }
+.lh-path-title { font-size: 1.05rem; font-weight: 700; color: var(--heading-color); line-height: 1.35; }
+.lh-path-skill-badge {
+    font-size: .7rem; background: #dbeafe; color: #2563eb; padding: .2rem .6rem;
+    border-radius: 99px; font-weight: 600; white-space: nowrap; flex-shrink: 0;
+}
+.dark-mode .lh-path-skill-badge { background: #1e3a5f; color: #60a5fa; }
+.lh-path-desc {
+    color: var(--text-light); font-size: .85rem; line-height: 1.55;
+    margin-bottom: .75rem; flex: 1;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.lh-path-progress-bar {
+    height: 8px; background: var(--border-light, #e5e7eb); border-radius: 99px;
+    overflow: hidden; margin-bottom: .5rem;
+}
+.lh-path-progress-fill {
+    height: 100%; border-radius: 99px; transition: width .5s ease;
+    background: linear-gradient(90deg, #2563eb, #3b82f6);
+}
+.lh-path-progress-fill.complete { background: linear-gradient(90deg, #16a34a, #22c55e); }
+.lh-path-meta {
+    display: flex; justify-content: space-between; font-size: .78rem;
+    color: var(--text-light); margin-bottom: .75rem;
+}
+.lh-path-actions { margin-top: auto; }
+.lh-path-btn {
+    display: inline-flex; align-items: center; gap: .35rem;
+    padding: .5rem 1rem; border-radius: 8px; font-size: .82rem;
+    font-weight: 600; text-decoration: none; transition: all .15s;
+    border: none; cursor: pointer;
+}
+.lh-path-btn-primary {
+    background: var(--primary-color, #2563eb); color: #fff;
+}
+.lh-path-btn-primary:hover { background: #1d4ed8; }
 
-    .modules-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-        gap: var(--spacing-lg);
-    }
+/* Status badges */
+.lh-status { padding: .2rem .55rem; border-radius: 99px; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+.lh-status-not_started { background: #fef3c7; color: #92400e; }
+.lh-status-in_progress { background: #dbeafe; color: #1e40af; }
+.lh-status-completed   { background: #dcfce7; color: #166534; }
+.lh-status-paused      { background: #f3f4f6; color: #6b7280; }
+.dark-mode .lh-status-not_started { background: #451a03; color: #fbbf24; }
+.dark-mode .lh-status-in_progress { background: #1e3a5f; color: #60a5fa; }
+.dark-mode .lh-status-completed   { background: #14532d; color: #4ade80; }
 
-    .module-card {
-        background: var(--card-bg);
-        border-radius: var(--radius-lg);
-        padding: var(--spacing-lg);
-        box-shadow: var(--shadow-sm);
-        border: 1px solid var(--border-color);
-        transition: var(--transition);
-        position: relative;
-        overflow: hidden;
-    }
+/* Skill Cards */
+.lh-skills-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: .75rem;
+}
+.lh-skill-item {
+    display: flex; align-items: center; gap: .75rem;
+    padding: .75rem 1rem; border-radius: 10px;
+    border: 1px solid var(--border-color); background: var(--card-bg);
+    transition: transform .1s;
+}
+.lh-skill-item:hover { transform: translateX(3px); }
+.lh-skill-level-ring {
+    width: 44px; height: 44px; border-radius: 50%; position: relative;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .72rem; font-weight: 700; flex-shrink: 0;
+}
+.lh-skill-name { font-size: .88rem; font-weight: 600; color: var(--heading-color); }
+.lh-skill-meta { font-size: .72rem; color: var(--text-light); }
+.lh-skill-verified { color: #16a34a; }
+.lh-skill-claimed  { color: #d97706; }
 
-    .module-card.pending {
-        border-left: 4px solid var(--warning-color);
-    }
+/* Gap items */
+.lh-gaps-list { display: flex; flex-direction: column; gap: .5rem; }
+.lh-gap-item {
+    display: flex; align-items: center; gap: 1rem;
+    padding: .75rem 1rem; border-radius: 10px;
+    border: 1px solid var(--border-color); background: var(--card-bg);
+}
+.lh-gap-priority {
+    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+.lh-gap-priority.critical { background: #ef4444; }
+.lh-gap-priority.high     { background: #f59e0b; }
+.lh-gap-priority.moderate  { background: #3b82f6; }
+.lh-gap-priority.low       { background: #22c55e; }
+.lh-gap-info { flex: 1; }
+.lh-gap-name { font-weight: 600; font-size: .88rem; color: var(--heading-color); }
+.lh-gap-levels { font-size: .75rem; color: var(--text-light); }
+.lh-gap-bar {
+    width: 120px; height: 6px; background: var(--border-light, #e5e7eb);
+    border-radius: 99px; overflow: hidden; flex-shrink: 0;
+}
+.lh-gap-fill { height: 100%; border-radius: 99px; background: #ef4444; }
 
-    .module-card.in-progress {
-        border-left: 4px solid var(--primary-color);
-    }
+/* Empty state */
+.lh-empty {
+    text-align: center; padding: 2.5rem 1rem;
+    color: var(--text-light);
+}
+.lh-empty i { font-size: 3.5rem; margin-bottom: .75rem; display: block; opacity: .4; }
+.lh-empty p { margin-bottom: 1rem; }
 
-    .module-card:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-lg);
-    }
-
-    .module-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 1rem;
-    }
-
-    .module-title {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: var(--heading-color);
-        margin-bottom: 0.5rem;
-    }
-
-    .learning-dashboard-container .module-status {
-        /* Uses base badge system */
-        padding: var(--spacing-xs) var(--spacing-sm);
-        border-radius: 9999px;
-        font-size: var(--font-size-xs);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.025em;
-    }
-
-    .learning-dashboard-container .module-status.pending {
-        background: var(--warning-light);
-        color: var(--warning-color);
-    }
-
-    .learning-dashboard-container .module-status.in-progress {
-        background: var(--primary-light);
-        color: var(--primary-color);
-    }
-
-    .learning-dashboard-container .module-description {
-        color: var(--text-light);
-        margin-bottom: var(--spacing);
-        line-height: var(--line-height);
-    }
-
-    .learning-dashboard-container .module-progress {
-        background: var(--border-light);
-        border-radius: 9999px;
-        height: 8px;
-        margin: var(--spacing) 0;
-        overflow: hidden;
-    }
-
-    .learning-dashboard-container .progress-fill {
-        height: 100%;
-        background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
-        border-radius: 9999px;
-        transition: width 0.5s ease;
-    }
-
-    .learning-dashboard-container .module-meta {
-        display: flex;
-        justify-content: space-between;
-        font-size: var(--font-size-sm);
-        color: var(--text-light);
-        margin-top: var(--spacing);
-    }
-
-    .learning-dashboard-container .pending-message {
-        background: var(--warning-light);
-        border: 1px solid var(--warning-color);
-        border-radius: var(--radius-md);
-        padding: var(--spacing);
-        margin-top: var(--spacing);
-        text-align: center;
-        color: var(--warning-color);
-        font-weight: 500;
-    }
-
-    .learning-dashboard-container .pending-message i {
-        color: var(--warning-color);
-        margin-right: var(--spacing-sm);
-    }
-
-    /* Action buttons use base button system */
-    .learning-dashboard-container .btn {
-        margin-top: var(--spacing);
-    }
-
-    .learning-dashboard-container .btn:hover {
-        transform: translateY(-1px);
-    }
-
-    @media (max-width: 768px) {
-        .modules-grid {
-            grid-template-columns: 1fr;
-        }
-    }
+/* Two-col layout */
+.lh-two-col {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+}
+@media (max-width: 900px) {
+    .lh-two-col { grid-template-columns: 1fr; }
+    .lh-paths-grid { grid-template-columns: 1fr; }
+    .lh-stats-row { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+    .lh-stats-row { grid-template-columns: 1fr; }
+}
 </style>
 
-<div class="pending-modules-container">
-    <h3 class="section-title">
-        <i class='bx bx-clock'></i>
-        {% if learning_paths %}Your Learning Paths{% else %}Get Started with Learning{% endif %}
-    </h3>
-    
+<!-- ===== Stats Row ===== -->
+<div class="lh-stats-row">
+    <div class="lh-stat-card">
+        <div class="lh-stat-icon blue"><i class='bx bx-book-open'></i></div>
+        <div>
+            <div class="lh-stat-value">{{ total_paths }}</div>
+            <div class="lh-stat-label">Learning Paths</div>
+        </div>
+    </div>
+    <div class="lh-stat-card">
+        <div class="lh-stat-icon green"><i class='bx bx-check-shield'></i></div>
+        <div>
+            <div class="lh-stat-value">{{ verified_skills.count }}</div>
+            <div class="lh-stat-label">Verified Skills</div>
+        </div>
+    </div>
+    <div class="lh-stat-card">
+        <div class="lh-stat-icon amber"><i class='bx bx-target-lock'></i></div>
+        <div>
+            <div class="lh-stat-value">{{ total_gaps }}</div>
+            <div class="lh-stat-label">Skill Gaps</div>
+        </div>
+    </div>
+    <div class="lh-stat-card">
+        <div class="lh-stat-icon purple"><i class='bx bx-clipboard'></i></div>
+        <div>
+            <div class="lh-stat-value">{{ passed_assessments }}/{{ total_assessments }}</div>
+            <div class="lh-stat-label">Assessments Passed</div>
+        </div>
+    </div>
+    <div class="lh-stat-card">
+        <div class="lh-stat-icon rose"><i class='bx bx-trophy'></i></div>
+        <div>
+            <div class="lh-stat-value">{{ completed_courses_count }}</div>
+            <div class="lh-stat-label">Courses Completed</div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== Learning Paths ===== -->
+<div class="lh-section">
+    <div class="lh-section-title">
+        <i class='bx bx-map-alt'></i> Your Learning Paths
+        {% if learning_paths %}<span class="lh-badge">{{ learning_paths|length }}</span>{% endif %}
+    </div>
+
     {% if learning_paths %}
-    <div class="modules-grid">
+    <div class="lh-paths-grid">
         {% for path in learning_paths %}
-        <div class="module-card {% if path.status == 'not_started' %}pending{% else %}in-progress{% endif %}">
-            <div class="module-header">
-                <div>
-                    <h4 class="module-title">{{ path.title }}</h4>
-                    <span class="module-status {{ path.status }}">{{ path.get_status_display }}</span>
+        <div class="lh-path-card">
+            <div class="lh-path-top">
+                <div style="flex:1;">
+                    <div class="lh-path-title">{{ path.title }}</div>
                 </div>
+                <span class="lh-status lh-status-{{ path.status }}">{{ path.get_status_display }}</span>
             </div>
-            <div class="module-body">
-                <p class="module-description">{{ path.description }}</p>
-                <div class="module-progress">
-                    <div class="progress-fill" style="width: {{ path.progress_percentage|floatformat:0 }}%"></div>
-                </div>
-                <div class="module-meta">
-                    <span>{{ path.courses.count }} courses</span>
-                    <span>{{ path.progress_percentage|floatformat:0 }}% complete</span>
-                </div>
-                <a href="{% url 'learning:learning_path_detail' path.id %}" class="btn btn-primary">
+
+            {% if path.skill_gap and path.skill_gap.skill %}
+            <div style="margin-bottom:.5rem;">
+                <span class="lh-path-skill-badge">{{ path.skill_gap.skill.name }}</span>
+                {% if path.skill_gap %}
+                <span style="font-size:.72rem;color:var(--text-light);margin-left:.5rem;">
+                    {{ path.skill_gap.current_level|floatformat:1 }} → {{ path.skill_gap.required_level|floatformat:1 }}
+                </span>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <div class="lh-path-desc">{{ path.description }}</div>
+
+            <div class="lh-path-progress-bar">
+                <div class="lh-path-progress-fill {% if path.real_progress == 100 %}complete{% endif %}"
+                     style="width: {{ path.real_progress }}%"></div>
+            </div>
+            <div class="lh-path-meta">
+                <span>{{ path.total_courses }} course{{ path.total_courses|pluralize }} · {{ path.total_hours|floatformat:0 }} hrs</span>
+                <span style="font-weight:600;">{{ path.real_progress }}%</span>
+            </div>
+
+            <div class="lh-path-actions">
+                <a href="{% url 'learning:learning_path_detail' path.id %}" class="lh-path-btn lh-path-btn-primary">
                     <i class='bx bx-play'></i>
-                    {% if path.status == 'not_started' %}Start Learning{% else %}Continue{% endif %}
+                    {% if path.status == 'not_started' %}Start Learning{% elif path.status == 'completed' %}Review{% else %}Continue{% endif %}
                 </a>
             </div>
         </div>
         {% endfor %}
     </div>
     {% else %}
-    <div style="text-align: center; padding: 3rem;">
-        <i class='bx bx-book-open' style="font-size: 5rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
-        <h3>No Learning Paths Yet</h3>
-        <p style="color: var(--text-muted); margin-bottom: 2rem;">Take an assessment to identify skill gaps and get personalized learning recommendations.</p>
-        <a href="{% url 'assessments:skill_intake_dashboard' %}" class="btn btn-primary">
-            <i class='bx bx-clipboard'></i> Take Assessment
-        </a>
-        <a href="{% url 'learning:skill_gaps' %}" class="btn btn-secondary" style="margin-left: 1rem;">
-            <i class='bx bx-line-chart'></i> View Skill Gaps
-        </a>
+    <div class="lh-empty">
+        <i class='bx bx-book-open'></i>
+        <h3 style="margin-bottom:.5rem;">No Learning Paths Yet</h3>
+        <p>Take an assessment to identify skill gaps, then generate personalized learning paths.</p>
+        <div style="display:flex;justify-content:center;gap:.75rem;flex-wrap:wrap;">
+            <a href="{% url 'assessments:skill_intake_dashboard' %}" class="btn btn-primary">
+                <i class='bx bx-clipboard'></i> Take Assessment
+            </a>
+            <a href="{% url 'learning:skill_gaps' %}" class="btn btn-secondary">
+                <i class='bx bx-line-chart'></i> View Skill Gaps
+            </a>
+        </div>
     </div>
     {% endif %}
 </div>
 
-<!-- In Progress Courses Section -->
-{% if in_progress_courses %}
-<div class="pending-modules-container">
-    <h3 class="section-title">
-        <i class='bx bx-book'></i>
-        Courses in Progress
-    </h3>
-    <div class="modules-grid">
-        {% for progress in in_progress_courses %}
-        <div class="module-card in-progress">
-            <div class="module-header">
+<!-- ===== Two-Column: Skills & Gaps ===== -->
+<div class="lh-two-col">
+    <!-- Verified Skills -->
+    <div class="lh-section">
+        <div class="lh-section-title">
+            <i class='bx bx-check-shield'></i> Your Skills
+            {% if user_skill_scores %}<span class="lh-badge">{{ user_skill_scores.count }}</span>{% endif %}
+        </div>
+        {% if user_skill_scores %}
+        <div class="lh-skills-grid">
+            {% for score in user_skill_scores %}
+            <div class="lh-skill-item">
+                <div class="lh-skill-level-ring" style="background: conic-gradient(
+                    {% if score.status == 'verified' %}#16a34a{% else %}#d97706{% endif %}
+                    calc({{ score.verified_level|floatformat:0 }} * 10%),
+                    var(--border-light, #e5e7eb) 0);
+                ">
+                    <div style="width:34px;height:34px;border-radius:50%;background:var(--card-bg,#fff);display:flex;align-items:center;justify-content:center;">
+                        {{ score.verified_level|floatformat:1 }}
+                    </div>
+                </div>
                 <div>
-                    <h4 class="module-title">{{ progress.course.title }}</h4>
-                    <span class="module-status in-progress">In Progress</span>
+                    <div class="lh-skill-name">{{ score.skill.name }}</div>
+                    <div class="lh-skill-meta {% if score.status == 'verified' %}lh-skill-verified{% else %}lh-skill-claimed{% endif %}">
+                        <i class='bx {% if score.status == "verified" %}bx-check-circle{% else %}bx-time{% endif %}'></i>
+                        {{ score.status|title }}
+                        · {{ score.verified_level|floatformat:1 }}/10
+                    </div>
                 </div>
             </div>
-            <div class="module-body">
-                <p class="module-description">{{ progress.course.description|truncatewords:20 }}</p>
-                <div class="module-progress">
-                    <div class="progress-fill" style="width: {{ progress.progress_percentage|floatformat:0 }}%"></div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="lh-empty">
+            <i class='bx bx-user-check'></i>
+            <p>No skills tracked yet. Take assessments to verify your skills.</p>
+            <a href="{% url 'assessments:skill_intake_dashboard' %}" class="btn btn-primary btn-sm">
+                <i class='bx bx-clipboard'></i> Take Assessment
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Skill Gaps -->
+    <div class="lh-section">
+        <div class="lh-section-title">
+            <i class='bx bx-target-lock'></i> Skill Gaps to Close
+            {% if total_gaps %}<span class="lh-badge">{{ total_gaps }}</span>{% endif %}
+        </div>
+        {% if critical_gaps %}
+        <div class="lh-gaps-list">
+            {% for gap in critical_gaps %}
+            <div class="lh-gap-item">
+                <div class="lh-gap-priority {{ gap.priority }}"></div>
+                <div class="lh-gap-info">
+                    <div class="lh-gap-name">{{ gap.skill.name }}</div>
+                    <div class="lh-gap-levels">
+                        {{ gap.current_level|floatformat:1 }} → {{ gap.required_level|floatformat:1 }}
+                        · Gap: {{ gap.gap_value|floatformat:1 }}
+                        · {{ gap.get_priority_display }}
+                    </div>
                 </div>
-                <div class="module-meta">
-                    <span>{{ progress.course.skill.name }} • {{ progress.course.platform }}</span>
-                    <span>{{ progress.progress_percentage|floatformat:0 }}% complete</span>
+                <div class="lh-gap-bar">
+                    <div class="lh-gap-fill" style="width: {% widthratio gap.current_level gap.required_level 100 %}%; background: {% if gap.priority == 'critical' %}#ef4444{% elif gap.priority == 'high' %}#f59e0b{% else %}#3b82f6{% endif %};"></div>
                 </div>
-                <a href="{% url 'learning:my_courses' %}" class="btn btn-primary">
-                    <i class='bx bx-play'></i>
-                    Continue Learning
-                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% if total_gaps > 6 %}
+        <div style="text-align:center;margin-top:1rem;">
+            <a href="{% url 'learning:skill_gaps' %}" class="lh-path-btn lh-path-btn-primary" style="font-size:.78rem;">
+                View All {{ total_gaps }} Gaps <i class='bx bx-right-arrow-alt'></i>
+            </a>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="lh-empty">
+            <i class='bx bx-target-lock'></i>
+            <p>No skill gaps identified. Compare your skills with job requirements to find areas for improvement.</p>
+            <a href="{% url 'learning:skill_gaps' %}" class="btn btn-secondary btn-sm">
+                <i class='bx bx-analyse'></i> Analyze Gaps
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ===== In-Progress Courses ===== -->
+{% if in_progress_courses %}
+<div class="lh-section">
+    <div class="lh-section-title">
+        <i class='bx bx-play-circle'></i> Continue Learning
+    </div>
+    <div class="lh-paths-grid">
+        {% for cp in in_progress_courses %}
+        <div class="lh-path-card">
+            <div class="lh-path-top">
+                <div class="lh-path-title">{{ cp.course.title }}</div>
+                <span class="lh-path-skill-badge">{{ cp.course.skill.name }}</span>
+            </div>
+            <div class="lh-path-desc">{{ cp.course.description|truncatewords:20 }}</div>
+            <div class="lh-path-progress-bar">
+                <div class="lh-path-progress-fill" style="width: {{ cp.progress_percentage|floatformat:0 }}%"></div>
+            </div>
+            <div class="lh-path-meta">
+                <span>{{ cp.course.get_platform_display }} · {{ cp.course.get_difficulty_level_display }}</span>
+                <span style="font-weight:600;">{{ cp.progress_percentage|floatformat:0 }}%</span>
             </div>
         </div>
         {% endfor %}
@@ -258,45 +435,40 @@
 </div>
 {% endif %}
 
-<!-- Stats & Quick Actions -->
-<div class="pending-modules-container">
-    <h3 class="section-title">
-        <i class='bx bx-rocket'></i>
-        Your Progress
-    </h3>
-    <div class="modules-grid">
-        <div class="module-card" style="border-left: 4px solid var(--success-color);">
-            <div class="module-body">
-                <h4 class="module-title">{{ completed_count }} Courses Completed</h4>
-                <p class="module-description">Keep up the great work!</p>
-                <a href="{% url 'learning:my_courses' %}" class="btn btn-success">
-                    <i class='bx bx-book'></i>
-                    View My Courses
-                </a>
+<!-- ===== Quick Actions ===== -->
+<div class="lh-section">
+    <div class="lh-section-title">
+        <i class='bx bx-rocket'></i> Quick Actions
+    </div>
+    <div class="lh-stats-row" style="margin-bottom:0;">
+        <a href="{% url 'assessments:skill_intake_dashboard' %}" class="lh-stat-card" style="text-decoration:none;cursor:pointer;">
+            <div class="lh-stat-icon blue"><i class='bx bx-clipboard'></i></div>
+            <div>
+                <div style="font-weight:600;color:var(--heading-color);">Take Assessment</div>
+                <div class="lh-stat-label">Verify your skills with tests</div>
             </div>
-        </div>
-        
-        <div class="module-card" style="border-left: 4px solid var(--primary-color);">
-            <div class="module-body">
-                <h4 class="module-title">Browse Course Catalog</h4>
-                <p class="module-description">Explore courses from Coursera, Udemy, and more</p>
-                <a href="{% url 'learning:course_catalog' %}" class="btn btn-primary">
-                    <i class='bx bx-search'></i>
-                    Browse Courses
-                </a>
+        </a>
+        <a href="{% url 'learning:course_catalog' %}" class="lh-stat-card" style="text-decoration:none;cursor:pointer;">
+            <div class="lh-stat-icon green"><i class='bx bx-book'></i></div>
+            <div>
+                <div style="font-weight:600;color:var(--heading-color);">Browse Courses</div>
+                <div class="lh-stat-label">Explore learning resources</div>
             </div>
-        </div>
-        
-        <div class="module-card" style="border-left: 4px solid var(--warning-color);">
-            <div class="module-body">
-                <h4 class="module-title">Identify Skill Gaps</h4>
-                <p class="module-description">See which skills you need to develop</p>
-                <a href="{% url 'learning:skill_gaps' %}" class="btn btn-warning">
-                    <i class='bx bx-target-lock'></i>
-                    View Gaps
-                </a>
+        </a>
+        <a href="{% url 'learning:my_courses' %}" class="lh-stat-card" style="text-decoration:none;cursor:pointer;">
+            <div class="lh-stat-icon purple"><i class='bx bx-bookmarks'></i></div>
+            <div>
+                <div style="font-weight:600;color:var(--heading-color);">My Courses</div>
+                <div class="lh-stat-label">{{ enrolled_count }} enrolled · {{ completed_courses_count }} done</div>
             </div>
-        </div>
+        </a>
+        <a href="{% url 'learning:skill_gaps' %}" class="lh-stat-card" style="text-decoration:none;cursor:pointer;">
+            <div class="lh-stat-icon amber"><i class='bx bx-line-chart'></i></div>
+            <div>
+                <div style="font-weight:600;color:var(--heading-color);">Gap Analysis</div>
+                <div class="lh-stat-label">Compare with job requirements</div>
+            </div>
+        </a>
     </div>
 </div>
 

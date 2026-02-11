@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction.text import TfidfVectorizer
 from django.db.models import Count, Q, Avg, F, Case, When, Value, IntegerField, Sum, FloatField
 from django.utils import timezone
 from datetime import timedelta
@@ -14,10 +15,37 @@ from .models import JobView, JobBookmark, UserJobPreference, JobRecommendation, 
 logger = logging.getLogger(__name__)
 
 class ContentBasedRecommender:
-    """Content-based recommendation engine that matches user skills with job requirements"""
-    
+    """
+    Content-based recommendation engine that matches user skills with job requirements.
+
+    Scoring components
+    ------------------
+    1. **Skill-based score** (Jaccard similarity + coverage)  –  existing logic.
+    2. **TF-IDF text similarity**  –  compares a user's profile text (technical_skills,
+       objective, projects, certifications) against job description / requirements
+       using TF-IDF vectorisation + cosine distance.
+    3. **Preference signals**  –  experience, location, job type, industry, salary.
+
+    The final score is a configurable weighted combination:
+
+        final = SKILL_WEIGHT * skill_score
+              + TEXT_WEIGHT  * text_similarity
+              + PREF_WEIGHT  * preference_score
+
+    where SKILL_WEIGHT + TEXT_WEIGHT + PREF_WEIGHT = 1.0
+    """
+
+    # Configurable weights (must sum to 1.0)
+    SKILL_WEIGHT = 0.40   # Skill-based (Jaccard + coverage)
+    TEXT_WEIGHT  = 0.30   # TF-IDF text similarity
+    PREF_WEIGHT  = 0.30   # Other preference signals (experience, location, etc.)
+
     def __init__(self):
-        pass
+        self._tfidf = TfidfVectorizer(
+            stop_words='english',
+            max_features=5000,
+            ngram_range=(1, 2),  # unigrams + bigrams
+        )
     
     def get_skill_vector(self, skills_list):
         """Convert a list of skills to a simple vector representation"""
@@ -253,9 +281,142 @@ class ContentBasedRecommender:
 
         # Score based on how close the salary is to user's expectation
         return min(salary_ratio, 1.0)
+
+    # ------------------------------------------------------------------
+    # TF-IDF text similarity helpers
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _build_user_text(user) -> str:
+        """
+        Build a single text document from a user's profile for TF-IDF.
+        Combines technical_skills, objective, projects, certifications,
+        work experience, and other free-text fields.
+        """
+        parts: list[str] = []
+        if user.technical_skills:
+            parts.append(user.technical_skills)
+        if user.soft_skills:
+            parts.append(user.soft_skills)
+        if user.objective:
+            parts.append(user.objective)
+        if user.job_title:
+            parts.append(user.job_title)
+        if user.industry:
+            parts.append(user.industry)
+
+        # Projects (JSON list of dicts or raw string)
+        try:
+            projects = user.get_projects() if hasattr(user, 'get_projects') else []
+            for p in projects:
+                if isinstance(p, dict):
+                    parts.append(p.get('title', ''))
+                    parts.append(p.get('description', ''))
+                elif isinstance(p, str):
+                    parts.append(p)
+        except Exception:
+            pass
+
+        # Certifications
+        try:
+            certs = user.get_certifications() if hasattr(user, 'get_certifications') else []
+            for c in certs:
+                if isinstance(c, dict):
+                    parts.append(c.get('name', ''))
+                    parts.append(c.get('description', ''))
+                elif isinstance(c, str):
+                    parts.append(c)
+        except Exception:
+            pass
+
+        # Work experience description
+        if user.work_experience_description:
+            parts.append(user.work_experience_description)
+
+        return ' '.join(filter(None, parts)).lower()
+
+    @staticmethod
+    def _build_job_text(job) -> str:
+        """
+        Build a single text document from a job posting for TF-IDF.
+        Combines title, description, requirements, and skill names.
+        """
+        parts: list[str] = [
+            job.title or '',
+            job.description or '',
+            job.requirements or '',
+            job.company or '',
+        ]
+        for s in job.skills or []:
+            if isinstance(s, dict):
+                parts.append(s.get('name', ''))
+            elif isinstance(s, str):
+                parts.append(s)
+        return ' '.join(filter(None, parts)).lower()
+
+    def calculate_text_similarity(self, user, jobs) -> dict:
+        """
+        Compute TF-IDF cosine similarity between a user's profile text and
+        each job's text.
+
+        Parameters
+        ----------
+        user : User instance
+        jobs : iterable of Job instances
+
+        Returns
+        -------
+        dict  –  {job.id: similarity_score (0.0 – 1.0)}
+        """
+        user_text = self._build_user_text(user)
+        if not user_text.strip():
+            return {j.id: 0.0 for j in jobs}
+
+        job_list = list(jobs)
+        if not job_list:
+            return {}
+
+        job_texts = [self._build_job_text(j) for j in job_list]
+
+        # Filter out jobs with empty text to avoid 0-sample errors
+        valid = [(j, t) for j, t in zip(job_list, job_texts) if t.strip()]
+        if not valid:
+            return {j.id: 0.0 for j in job_list}
+
+        valid_jobs, valid_texts = zip(*valid)
+
+        # Combine into corpus: first doc is user, rest are jobs
+        corpus = [user_text] + list(valid_texts)
+
+        try:
+            tfidf_matrix = self._tfidf.fit_transform(corpus)
+            # Cosine similarity between user vector (index 0) and every job vector
+            similarities = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:]).flatten()
+            scores = {valid_jobs[i].id: float(similarities[i]) for i in range(len(valid_jobs))}
+            # Fill 0.0 for jobs whose text was empty
+            for j in job_list:
+                if j.id not in scores:
+                    scores[j.id] = 0.0
+            return scores
+        except Exception as e:
+            logger.warning("TF-IDF similarity computation failed: %s", e)
+            return {j.id: 0.0 for j in job_list}
+
     
     def recommend_jobs(self, user, limit=20):
-        """Recommend jobs based on enhanced content similarity and user preferences"""
+        """
+        Recommend jobs using an enhanced three-component scoring model:
+
+        1. **Skill score**  – Jaccard similarity + skill coverage (existing).
+        2. **Text similarity** – TF-IDF cosine distance (user profile vs job text).
+        3. **Preference score** – experience, location, job-type, industry, salary.
+
+        Final formula::
+
+            final = SKILL_WEIGHT * skill_score
+                  + TEXT_WEIGHT  * text_similarity
+                  + PREF_WEIGHT  * preference_score  (+ optional remote boost)
+        """
         try:
             # Get user's skills (combine technical + soft skills)
             user_skills = user.get_all_skills_list()
@@ -282,11 +443,19 @@ class ContentBasedRecommender:
             # Get all active jobs excluding those user has already applied to
             jobs = Job.objects.filter(status='Open').exclude(id__in=applied_job_ids)
 
+            # --- TF-IDF text similarity (computed once for all jobs) ---
+            text_scores = self.calculate_text_similarity(user, jobs)
+
             # Calculate scores for each job
             job_scores = []
             for job in jobs:
-                # Content-based features
+                # --- Component 1: Skill-based score ---
                 skill_match = self.calculate_skill_match(user_skills, job.skills)
+
+                # --- Component 2: TF-IDF text similarity ---
+                text_sim = text_scores.get(job.id, 0.0)
+
+                # --- Component 3: Preference signals (normalised average) ---
                 exp_match = self.calculate_experience_match(user_experience, job.experience)
                 location_match = self.calculate_location_match(preferred_locations, job.location)
                 job_type_match = self.calculate_job_type_match(preferred_job_types, job.job_type)
@@ -298,14 +467,19 @@ class ContentBasedRecommender:
                 )
                 salary_match = self.calculate_salary_match(min_salary, job.salary)
 
-                # Calculate weighted score with enhanced algorithm
+                preference_score = (
+                    0.30 * exp_match +
+                    0.25 * location_match +
+                    0.20 * job_type_match +
+                    0.15 * industry_match +
+                    0.10 * salary_match
+                )
+
+                # --- Final weighted combination ---
                 score = (
-                    0.35 * skill_match +      # Skills remain most important
-                    0.15 * exp_match +        # Experience
-                    0.15 * location_match +   # Location preferences
-                    0.15 * job_type_match +   # Job type preferences
-                    0.10 * industry_match +   # Industry preferences
-                    0.10 * salary_match       # Salary expectations
+                    self.SKILL_WEIGHT * skill_match +
+                    self.TEXT_WEIGHT  * text_sim +
+                    self.PREF_WEIGHT  * preference_score
                 )
 
                 # Add remote preference boost
@@ -323,6 +497,8 @@ class ContentBasedRecommender:
                     'reason': reason,
                     'match_details': {
                         'skill_match': skill_match,
+                        'text_similarity': text_sim,
+                        'preference_score': preference_score,
                         'experience_match': exp_match,
                         'location_match': location_match,
                         'job_type_match': job_type_match,

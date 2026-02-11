@@ -18,6 +18,7 @@ urlpatterns = [
     path('dashboard/', include('dashboard.urls')),
     path('recruiter/', include('recruiter.urls')),
     path('resume_builder/', include('resume_builder.urls')),
+    path('ai/', include(('agents.urls', 'agents'), namespace='agents')),
 ]
 
 # Media and static file serving in development

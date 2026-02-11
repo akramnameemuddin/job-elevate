@@ -1,426 +1,511 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
 
-{% block title %}Skill Gaps Analysis{% endblock %}
+{% block title %}Skill Gap Analysis{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div>
-        <h1><i class='bx bx-line-chart'></i> Skill Gap Analysis</h1>
-        <p>Identify areas for improvement and get personalized learning recommendations</p>
-    </div>
-</div>
+<!-- Breadcrumb -->
+<nav style="margin-bottom:.75rem;font-size:.85rem;color:var(--text-muted)">
+    <a href="{% url 'dashboard:home' %}" style="color:var(--primary-color);text-decoration:none">Home</a>
+    <span style="margin:0 .35rem">›</span>
+    <a href="{% url 'learning:learning_dashboard' %}" style="color:var(--primary-color);text-decoration:none">Learning</a>
+    <span style="margin:0 .35rem">›</span>
+    <span>Skill Gap Analysis</span>
+</nav>
 
-<div class="gaps-container">
-    <!-- Job Comparison Tool -->
-    <div class="card comparison-tool">
-        <h3><i class='bx bx-search'></i> Compare with Job Requirements</h3>
-        <p>Select a job you're interested in to see which skills you need to develop</p>
-        <form method="post" action="{% url 'learning:analyze_job_gaps' %}" class="job-select-form">
+<div class="sg-page">
+
+    <!-- ───── Header ───── -->
+    <div class="sg-header">
+        <div>
+            <h1 class="sg-title"><i class='bx bx-line-chart'></i> Skill Gap Analysis</h1>
+            <p class="sg-subtitle">Identify areas for improvement and plan your learning journey</p>
+        </div>
+        <div class="sg-header-actions">
+            <button class="sg-btn sg-btn-outline" onclick="sgToggleSection('compare')">
+                <i class='bx bx-search-alt'></i> Compare with Job
+            </button>
+            <a href="{% url 'learning:course_catalog' %}" class="sg-btn sg-btn-primary">
+                <i class='bx bx-book-open'></i> Browse Courses
+            </a>
+        </div>
+    </div>
+
+    <!-- ───── KPI Cards ───── -->
+    <div class="sg-kpi-row">
+        <div class="sg-kpi">
+            <div class="sg-kpi-icon" style="background:var(--danger-light);color:var(--danger-color)">
+                <i class='bx bx-target-lock'></i>
+            </div>
+            <div class="sg-kpi-body">
+                <span class="sg-kpi-val">{{ open_gaps_count }}</span>
+                <span class="sg-kpi-label">Open Gaps</span>
+            </div>
+        </div>
+        <div class="sg-kpi">
+            <div class="sg-kpi-icon" style="background:var(--success-light);color:var(--success-color)">
+                <i class='bx bx-check-shield'></i>
+            </div>
+            <div class="sg-kpi-body">
+                <span class="sg-kpi-val">{{ total_skills }}</span>
+                <span class="sg-kpi-label">Your Skills</span>
+            </div>
+        </div>
+        <div class="sg-kpi">
+            <div class="sg-kpi-icon" style="background:var(--warning-light);color:var(--warning-color)">
+                <i class='bx bx-time-five'></i>
+            </div>
+            <div class="sg-kpi-body">
+                <span class="sg-kpi-val">{{ total_hours_needed }}h</span>
+                <span class="sg-kpi-label">Learning Needed</span>
+            </div>
+        </div>
+        <div class="sg-kpi">
+            <div class="sg-kpi-icon" style="background:var(--primary-light);color:var(--primary-color)">
+                <i class='bx bx-shield-quarter'></i>
+            </div>
+            <div class="sg-kpi-body">
+                <span class="sg-kpi-val">{{ readiness_pct }}%</span>
+                <span class="sg-kpi-label">Readiness Score</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ───── Job Comparison (collapsible) ───── -->
+    <div id="sg-compare" class="sg-card sg-compare-card" style="display:none">
+        <div class="sg-card-head">
+            <h3><i class='bx bx-search'></i> Compare with Job Requirements</h3>
+            <button class="sg-close-btn" onclick="sgToggleSection('compare')" title="Close">
+                <i class='bx bx-x'></i>
+            </button>
+        </div>
+        <p class="sg-muted" style="margin-bottom:1rem">Select a job to identify skills you need to develop</p>
+        <form id="sg-compare-form" class="sg-compare-form">
             {% csrf_token %}
-            <div class="form-group">
-                <select name="job_id" id="job-select" required>
-                    <option value="">Select a job...</option>
+            <div class="sg-search-wrap">
+                <i class='bx bx-briefcase'></i>
+                <select name="job_id" id="sg-job-select" required>
+                    <option value="">Select a job…</option>
                     {% for job in available_jobs %}
-                    <option value="{{ job.id }}">{{ job.title }} - {{ job.company }}</option>
+                    <option value="{{ job.id }}">{{ job.title }} — {{ job.company }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <button type="submit" class="btn btn-primary">
-                <i class='bx bx-analyse'></i> Analyze Gaps
+            <button type="submit" class="sg-btn sg-btn-primary">
+                <i class='bx bx-analyse'></i> Analyze
             </button>
         </form>
+        <div id="sg-compare-result" class="sg-compare-result" style="display:none"></div>
     </div>
 
-    <!-- Current Skills Overview -->
-    <div class="card skills-overview">
-        <h3><i class='bx bx-trophy'></i> Your Verified Skills</h3>
-        <div class="skills-grid">
-            {% for profile in user_skills %}
-            <div class="skill-card">
-                <div class="skill-header">
-                    <span class="skill-name">{{ profile.skill.name }}</span>
-                    <span class="skill-level level-{{ profile.verified_level|floatformat:0 }}">
-                        {{ profile.verified_level|floatformat:1 }}/10
-                    </span>
+    <!-- ───── Charts Row ───── -->
+    <div class="sg-charts-row">
+        <!-- Radar: Current vs Required -->
+        <div class="sg-card sg-card-chart">
+            <h3 class="sg-card-title">Skill Radar</h3>
+            <p class="sg-muted">Your current level vs. required level</p>
+            <div class="sg-chart-wrap">
+                <canvas id="sgRadarChart"></canvas>
+            </div>
+            {% if not skill_gaps %}
+            <div class="sg-chart-empty">
+                <i class='bx bx-info-circle'></i>
+                <span>No gaps to display. Use "Compare with Job" above.</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Priority Breakdown -->
+        <div class="sg-card sg-card-chart">
+            <h3 class="sg-card-title">Priority Breakdown</h3>
+            <p class="sg-muted">Gap distribution by urgency</p>
+            <div class="sg-chart-wrap">
+                <canvas id="sgPriorityChart"></canvas>
+            </div>
+            <div class="sg-legend">
+                <span class="sg-legend-item"><span class="sg-dot" style="background:#ef4444"></span>Critical</span>
+                <span class="sg-legend-item"><span class="sg-dot" style="background:#f59e0b"></span>High</span>
+                <span class="sg-legend-item"><span class="sg-dot" style="background:#3b82f6"></span>Moderate</span>
+                <span class="sg-legend-item"><span class="sg-dot" style="background:#10b981"></span>Low</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ───── Your Skills Snapshot ───── -->
+    <div class="sg-card">
+        <div class="sg-card-head">
+            <h3 class="sg-card-title"><i class='bx bx-trophy'></i> Your Verified Skills</h3>
+            <span class="sg-badge sg-badge-info">{{ verified_skills.count }} verified</span>
+        </div>
+        <div class="sg-skills-grid">
+            {% for sk in verified_skills %}
+            <div class="sg-skill-chip">
+                <span class="sg-skill-name">{{ sk.skill.name }}</span>
+                <span class="sg-skill-lvl {% if sk.verified_level >= 7 %}sg-lvl-high{% elif sk.verified_level >= 5 %}sg-lvl-mid{% else %}sg-lvl-low{% endif %}">
+                    {{ sk.verified_level|floatformat:1 }}
+                </span>
+                <div class="sg-skill-bar-mini">
+                    <div style="width:{{ sk.verified_level|floatformat:0 }}0%"></div>
                 </div>
-                <div class="skill-bar">
-                    <div class="skill-fill" style="width: {{ profile.verified_level|floatformat:0 }}0%"></div>
+            </div>
+            {% empty %}
+            <div class="sg-empty-inline">
+                <i class='bx bx-info-circle'></i>
+                No verified skills yet.
+                <a href="{% url 'assessments:skill_intake_dashboard' %}">Take assessments →</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- ───── Gap List ───── -->
+    <div class="sg-card">
+        <div class="sg-card-head">
+            <h3 class="sg-card-title"><i class='bx bx-target-lock'></i> Skill Gaps ({{ open_gaps_count }})</h3>
+            <div class="sg-filter-pills">
+                <a href="{% url 'learning:skill_gaps' %}" class="sg-pill {% if not priority_filter %}sg-pill-active{% endif %}">All</a>
+                <a href="?priority=critical" class="sg-pill {% if priority_filter == 'critical' %}sg-pill-active{% endif %}" style="--pill-c:var(--danger-color)">Critical ({{ priority_counts.critical }})</a>
+                <a href="?priority=high" class="sg-pill {% if priority_filter == 'high' %}sg-pill-active{% endif %}" style="--pill-c:var(--warning-color)">High ({{ priority_counts.high }})</a>
+                <a href="?priority=moderate" class="sg-pill {% if priority_filter == 'moderate' %}sg-pill-active{% endif %}" style="--pill-c:var(--primary-color)">Moderate ({{ priority_counts.moderate }})</a>
+                <a href="?priority=low" class="sg-pill {% if priority_filter == 'low' %}sg-pill-active{% endif %}" style="--pill-c:var(--success-color)">Low ({{ priority_counts.low }})</a>
+            </div>
+        </div>
+
+        <div class="sg-gap-list">
+            {% for gap in skill_gaps %}
+            <div class="sg-gap-card sg-priority-{{ gap.priority }}">
+                <div class="sg-gap-top">
+                    <div>
+                        <h4 class="sg-gap-name">{{ gap.skill.name }}</h4>
+                        {% if gap.skill.category %}
+                        <span class="sg-gap-cat">{{ gap.skill.category.name }}</span>
+                        {% endif %}
+                    </div>
+                    <span class="sg-priority-tag sg-priority-tag-{{ gap.priority }}">{{ gap.get_priority_display }}</span>
                 </div>
-                {% if profile.certificate_earned %}
-                <div class="certificate-badge">
-                    <i class='bx bx-medal'></i> Certified
+
+                <!-- Level bar -->
+                <div class="sg-level-visual">
+                    <div class="sg-level-labels">
+                        <span>Current: <strong>{{ gap.current_level|floatformat:1 }}</strong></span>
+                        <span>Required: <strong>{{ gap.required_level|floatformat:1 }}</strong></span>
+                    </div>
+                    <div class="sg-level-track">
+                        <div class="sg-level-fill" style="width:{% widthratio gap.current_level 10 100 %}%"></div>
+                        <div class="sg-level-target" style="left:{% widthratio gap.required_level 10 100 %}%"></div>
+                    </div>
+                    <div class="sg-level-meta">
+                        <span class="sg-gap-val">Gap: {{ gap.gap_value|floatformat:1 }} pts</span>
+                        <span class="sg-gap-hrs"><i class='bx bx-time-five'></i> ~{{ gap.estimated_learning_hours }}h</span>
+                    </div>
+                </div>
+
+                {% if gap.target_job_title or gap.related_job %}
+                <div class="sg-gap-context">
+                    <i class='bx bx-briefcase'></i>
+                    Required for: <strong>{% if gap.target_job_title %}{{ gap.target_job_title }}{% elif gap.related_job %}{{ gap.related_job.title }}{% endif %}</strong>
+                </div>
+                {% endif %}
+
+                <!-- Recommended courses -->
+                {% if gap.courses %}
+                <div class="sg-gap-courses">
+                    <span class="sg-course-label"><i class='bx bx-book-reader'></i> Recommended Courses</span>
+                    <div class="sg-course-chips">
+                        {% for course in gap.courses %}
+                        <a href="{{ course.url }}" target="_blank" class="sg-course-chip" title="{{ course.title }}">
+                            <span class="sg-course-platform">{{ course.get_platform_display }}</span>
+                            {{ course.title|truncatechars:40 }}
+                            {% if course.rating > 0 %}
+                            <span class="sg-course-rating">★ {{ course.rating|floatformat:1 }}</span>
+                            {% endif %}
+                        </a>
+                        {% endfor %}
+                    </div>
                 </div>
                 {% endif %}
             </div>
             {% empty %}
-            <div class="empty-state">
-                <i class='bx bx-info-circle'></i>
-                <p>No verified skills yet. Take assessments to build your skill profile.</p>
-                <a href="{% url 'assessments:skill_intake_dashboard' %}" class="btn btn-primary">
-                    Take Assessments
-                </a>
+            <div class="sg-empty-state">
+                <div class="sg-empty-icon"><i class='bx bx-check-circle'></i></div>
+                <h4>No Skill Gaps Found</h4>
+                <p>Use the <strong>"Compare with Job"</strong> tool above to analyze your skill gaps for a target role.</p>
+                <button class="sg-btn sg-btn-primary" onclick="sgToggleSection('compare')">
+                    <i class='bx bx-search-alt'></i> Compare Now
+                </button>
             </div>
             {% endfor %}
         </div>
     </div>
 
-    <!-- Identified Skill Gaps -->
-    {% if skill_gaps %}
-    <div class="card gaps-list">
-        <div class="gaps-header">
-            <h3><i class='bx bx-target-lock'></i> Your Skill Gaps</h3>
-            <button class="btn btn-success" onclick="generateLearningPaths()">
-                <i class='bx bx-plus'></i> Generate Learning Paths
-            </button>
+    <!-- ───── Addressed Gaps ───── -->
+    {% if addressed_count > 0 %}
+    <div class="sg-card sg-card-muted">
+        <div class="sg-card-head">
+            <h3 class="sg-card-title"><i class='bx bx-check-double'></i> Addressed Gaps</h3>
+            <span class="sg-badge sg-badge-success">{{ addressed_count }}</span>
         </div>
-        <div class="gaps-grid">
-            {% for gap in skill_gaps %}
-            <div class="gap-item priority-{{ gap.priority }}">
-                <div class="gap-header">
-                    <div>
-                        <h4>{{ gap.skill.name }}</h4>
-                        <span class="gap-category">{{ gap.skill.category.name }}</span>
-                    </div>
-                    <span class="priority-badge priority-{{ gap.priority }}">
-                        {{ gap.get_priority_display }}
-                    </span>
-                </div>
-                <div class="gap-levels">
-                    <div class="level-info">
-                        <span class="label">Current</span>
-                        <span class="value">{{ gap.current_level|floatformat:1 }}/10</span>
-                    </div>
-                    <i class='bx bx-right-arrow-alt'></i>
-                    <div class="level-info">
-                        <span class="label">Required</span>
-                        <span class="value">{{ gap.required_level|floatformat:1 }}/10</span>
-                    </div>
-                </div>
-                <div class="gap-progress">
-                    <div class="progress-bar">
-                        <div class="current-progress" style="width: {{ gap.current_level|floatformat:0 }}0%"></div>
-                        <div class="required-mark" style="left: {{ gap.required_level|floatformat:0 }}0%"></div>
-                    </div>
-                </div>
-                {% if gap.related_job %}
-                <div class="gap-context">
-                    <i class='bx bx-briefcase'></i>
-                    <span>Required for: {{ gap.related_job.title }}</span>
-                </div>
-                {% endif %}
-            </div>
-            {% endfor %}
-        </div>
+        <p class="sg-muted">Skills where you've closed the gap — great work!</p>
     </div>
     {% endif %}
 
-    <!-- Recommendations -->
-    <div class="card recommendations">
-        <h3><i class='bx bx-bulb'></i> Recommended Actions</h3>
-        <div class="recommendations-list">
-            {% if not user_skills %}
-            <div class="recommendation-item">
-                <i class='bx bx-target-lock'></i>
-                <div>
-                    <strong>Build Your Skill Profile</strong>
-                    <p>Take skill assessments to establish your baseline proficiency levels</p>
-                    <a href="{% url 'assessments:skill_intake_dashboard' %}" class="link">Start Assessments →</a>
-                </div>
+    <!-- ───── Quick Actions ───── -->
+    <div class="sg-actions-row">
+        <a href="{% url 'assessments:skill_intake_dashboard' %}" class="sg-action-card">
+            <div class="sg-action-icon" style="background:var(--primary-light);color:var(--primary-color)"><i class='bx bx-edit'></i></div>
+            <div>
+                <strong>Take Assessments</strong>
+                <p>Verify your skill levels to get accurate gap data</p>
             </div>
-            {% endif %}
-            
-            {% if skill_gaps %}
-            <div class="recommendation-item">
-                <i class='bx bx-book-open'></i>
-                <div>
-                    <strong>Start Learning</strong>
-                    <p>Generate personalized learning paths to address your skill gaps</p>
-                    <button onclick="generateLearningPaths()" class="link">Generate Paths →</button>
-                </div>
+        </a>
+        <a href="{% url 'learning:course_catalog' %}" class="sg-action-card">
+            <div class="sg-action-icon" style="background:var(--success-light);color:var(--success-color)"><i class='bx bx-book-open'></i></div>
+            <div>
+                <strong>Browse Courses</strong>
+                <p>Find courses to close your skill gaps faster</p>
             </div>
-            {% endif %}
-            
-            <div class="recommendation-item">
-                <i class='bx bx-search'></i>
-                <div>
-                    <strong>Explore Courses</strong>
-                    <p>Browse our course catalog to find learning resources for any skill</p>
-                    <a href="{% url 'learning:course_catalog' %}" class="link">Browse Courses →</a>
-                </div>
+        </a>
+        <a href="{% url 'learning:learning_dashboard' %}" class="sg-action-card">
+            <div class="sg-action-icon" style="background:var(--warning-light);color:var(--warning-color)"><i class='bx bx-road'></i></div>
+            <div>
+                <strong>Learning Paths</strong>
+                <p>View your personalized learning roadmaps</p>
             </div>
-        </div>
+        </a>
     </div>
 </div>
 
+<!-- ═══════ Chart.js ═══════ -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 <script>
-function generateLearningPaths() {
-    fetch("{% url 'learning:generate_learning_path' %}", {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/json'
+document.addEventListener('DOMContentLoaded', function(){
+    const txtColor = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim() || '#333';
+    const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim() || '#e5e7eb';
+
+    /* ── Radar Chart ── */
+    const labels = {{ radar_labels|safe }};
+    const current = {{ radar_current|safe }};
+    const required = {{ radar_required|safe }};
+    if(labels.length){
+        new Chart(document.getElementById('sgRadarChart'),{
+            type:'radar',
+            data:{
+                labels:labels,
+                datasets:[
+                    {label:'Current Level', data:current, borderColor:'#6366f1', backgroundColor:'rgba(99,102,241,.18)', pointBackgroundColor:'#6366f1', pointRadius:4},
+                    {label:'Required Level', data:required, borderColor:'#ef4444', backgroundColor:'rgba(239,68,68,.10)', pointBackgroundColor:'#ef4444', borderDash:[5,5], pointRadius:4}
+                ]
+            },
+            options:{
+                responsive:true, maintainAspectRatio:false,
+                scales:{r:{beginAtZero:true, max:10, ticks:{stepSize:2, color:txtColor, backdropColor:'transparent'}, grid:{color:gridColor}, pointLabels:{color:txtColor, font:{size:11}}}},
+                plugins:{legend:{position:'bottom', labels:{color:txtColor, usePointStyle:true, padding:14}}}
+            }
+        });
+    }
+
+    /* ── Priority Doughnut ── */
+    const pc = {{ priority_counts|safe }};
+    const pData = [pc.critical||0, pc.high||0, pc.moderate||0, pc.low||0];
+    if(pData.some(v=>v>0)){
+        new Chart(document.getElementById('sgPriorityChart'),{
+            type:'doughnut',
+            data:{
+                labels:['Critical','High','Moderate','Low'],
+                datasets:[{data:pData, backgroundColor:['#ef4444','#f59e0b','#3b82f6','#10b981'], borderWidth:0, hoverOffset:6}]
+            },
+            options:{
+                responsive:true, maintainAspectRatio:false, cutout:'65%',
+                plugins:{
+                    legend:{display:false},
+                    tooltip:{callbacks:{label:ctx=>ctx.label+': '+ctx.parsed+' gaps'}}
+                }
+            }
+        });
+    } else {
+        document.getElementById('sgPriorityChart').parentElement.innerHTML='<div class="sg-chart-empty"><i class="bx bx-info-circle"></i><span>No gaps to chart yet</span></div>';
+    }
+});
+
+/* ── Toggle compare section ── */
+function sgToggleSection(id){
+    const el = document.getElementById('sg-'+id);
+    el.style.display = el.style.display==='none'?'block':'none';
+    if(el.style.display==='block') el.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+/* ── AJAX job comparison ── */
+document.getElementById('sg-compare-form').addEventListener('submit', function(e){
+    e.preventDefault();
+    const btn = this.querySelector('button[type=submit]');
+    const orig = btn.innerHTML;
+    btn.innerHTML='<i class="bx bx-loader-alt bx-spin"></i> Analyzing…';
+    btn.disabled=true;
+    const fd = new FormData(this);
+    fetch("{% url 'learning:analyze_job_gaps' %}", {
+        method:'POST',
+        headers:{'X-CSRFToken':'{{ csrf_token }}','X-Requested-With':'XMLHttpRequest','Content-Type':'application/json'},
+        body: JSON.stringify({job_id: fd.get('job_id')}),
+        credentials:'same-origin'
+    })
+    .then(r=>r.json())
+    .then(data=>{
+        const box = document.getElementById('sg-compare-result');
+        if(data.success){
+            box.innerHTML='<div class="sg-result-ok"><i class="bx bx-check-circle"></i> '+data.message+'</div>';
+            box.style.display='block';
+            setTimeout(()=>location.reload(), 1200);
+        } else {
+            box.innerHTML='<div class="sg-result-err"><i class="bx bx-error"></i> ' + (data.error||'Unknown error') + '</div>';
+            box.style.display='block';
         }
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            window.location.href = "{% url 'learning:learning_dashboard' %}";
-        } else {
-            alert('Error generating learning paths: ' + data.error);
-        }
-    });
-}
+    .catch(()=>{
+        document.getElementById('sg-compare-result').innerHTML='<div class="sg-result-err"><i class="bx bx-error"></i> Network error</div>';
+        document.getElementById('sg-compare-result').style.display='block';
+    })
+    .finally(()=>{btn.innerHTML=orig; btn.disabled=false;});
+});
 </script>
 
+<!-- ═══════ Styles ═══════ -->
 <style>
-.gaps-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
+/* ── Page ── */
+.sg-page{max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:1.5rem}
+.sg-header{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem}
+.sg-title{font-size:1.55rem;font-weight:700;display:flex;align-items:center;gap:.5rem;color:var(--text-color)}
+.sg-subtitle{color:var(--text-muted);margin-top:.25rem;font-size:.92rem}
+.sg-header-actions{display:flex;gap:.6rem;flex-wrap:wrap}
+.sg-muted{color:var(--text-muted);font-size:.85rem}
+
+/* ── Buttons ── */
+.sg-btn{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem 1.1rem;border-radius:var(--radius);font-weight:600;font-size:.85rem;cursor:pointer;border:none;transition:all .2s}
+.sg-btn-primary{background:var(--primary-color);color:#fff}
+.sg-btn-primary:hover{opacity:.88}
+.sg-btn-outline{background:transparent;border:1.5px solid var(--border-color);color:var(--text-color)}
+.sg-btn-outline:hover{border-color:var(--primary-color);color:var(--primary-color)}
+
+/* ── KPI Cards ── */
+.sg-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+.sg-kpi{display:flex;align-items:center;gap:1rem;background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:1.15rem 1.3rem}
+.sg-kpi-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
+.sg-kpi-val{font-size:1.45rem;font-weight:700;color:var(--text-color);display:block;line-height:1.1}
+.sg-kpi-label{font-size:.78rem;color:var(--text-muted)}
+
+/* ── Card ── */
+.sg-card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:1.5rem 1.6rem}
+.sg-card-muted{opacity:.72}
+.sg-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;flex-wrap:wrap;gap:.5rem}
+.sg-card-title{font-size:1.08rem;font-weight:700;display:flex;align-items:center;gap:.4rem;color:var(--text-color)}
+.sg-badge{padding:.2rem .6rem;border-radius:var(--radius);font-size:.72rem;font-weight:700}
+.sg-badge-info{background:var(--primary-light);color:var(--primary-color)}
+.sg-badge-success{background:var(--success-light);color:var(--success-color)}
+
+/* ── Compare Card ── */
+.sg-compare-card{border:1.5px dashed var(--primary-color);background:var(--card-bg)}
+.sg-compare-form{display:flex;gap:.75rem;align-items:stretch}
+.sg-search-wrap{flex:1;display:flex;align-items:center;gap:.5rem;border:1px solid var(--border-color);border-radius:var(--radius);padding:0 .8rem;background:var(--gray-50)}
+.sg-search-wrap i{color:var(--text-muted);font-size:1.15rem}
+.sg-search-wrap select{flex:1;border:none;background:transparent;padding:.65rem 0;font-size:.88rem;color:var(--text-color);outline:none}
+.sg-close-btn{background:none;border:none;font-size:1.3rem;color:var(--text-muted);cursor:pointer}
+.sg-compare-result{margin-top:1rem}
+.sg-result-ok{display:flex;align-items:center;gap:.4rem;padding:.7rem 1rem;border-radius:var(--radius);background:var(--success-light);color:var(--success-color);font-weight:600}
+.sg-result-err{display:flex;align-items:center;gap:.4rem;padding:.7rem 1rem;border-radius:var(--radius);background:var(--danger-light);color:var(--danger-color);font-weight:600}
+
+/* ── Charts Row ── */
+.sg-charts-row{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+.sg-card-chart{min-height:340px}
+.sg-chart-wrap{height:240px;position:relative}
+.sg-chart-empty{display:flex;align-items:center;justify-content:center;gap:.4rem;padding:2rem;color:var(--text-muted);font-size:.88rem}
+.sg-legend{display:flex;gap:1rem;justify-content:center;margin-top:.6rem;flex-wrap:wrap}
+.sg-legend-item{display:flex;align-items:center;gap:.3rem;font-size:.78rem;color:var(--text-muted)}
+.sg-dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+
+/* ── Skills Grid ── */
+.sg-skills-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.85rem}
+.sg-skill-chip{background:var(--gray-50);border:1px solid var(--border-color);border-radius:var(--radius);padding:.75rem 1rem;display:flex;flex-wrap:wrap;align-items:center;gap:.5rem}
+.sg-skill-name{font-weight:600;font-size:.9rem;flex:1}
+.sg-skill-lvl{padding:.15rem .55rem;border-radius:var(--radius);font-weight:700;font-size:.78rem}
+.sg-lvl-high{background:var(--success-light);color:var(--success-color)}
+.sg-lvl-mid{background:var(--warning-light);color:var(--warning-color)}
+.sg-lvl-low{background:var(--danger-light);color:var(--danger-color)}
+.sg-skill-bar-mini{width:100%;height:4px;background:var(--gray-200);border-radius:2px;overflow:hidden}
+.sg-skill-bar-mini>div{height:100%;background:linear-gradient(90deg,var(--primary-color),var(--success-color));border-radius:2px}
+.sg-empty-inline{grid-column:1/-1;padding:1rem;color:var(--text-muted);display:flex;align-items:center;gap:.5rem;font-size:.88rem}
+.sg-empty-inline a{color:var(--primary-color);font-weight:600;text-decoration:none}
+
+/* ── Filter Pills ── */
+.sg-filter-pills{display:flex;gap:.4rem;flex-wrap:wrap}
+.sg-pill{padding:.3rem .8rem;border-radius:20px;font-size:.78rem;font-weight:600;text-decoration:none;color:var(--text-muted);background:var(--gray-100);border:1px solid transparent;transition:all .15s}
+.sg-pill:hover{border-color:var(--pill-c,var(--primary-color));color:var(--pill-c,var(--primary-color))}
+.sg-pill-active{background:var(--primary-color);color:#fff!important;border-color:var(--primary-color)}
+
+/* ── Gap Cards ── */
+.sg-gap-list{display:flex;flex-direction:column;gap:1rem}
+.sg-gap-card{background:var(--gray-50);border:1px solid var(--border-color);border-left:4px solid;border-radius:var(--radius-lg);padding:1.3rem 1.4rem;transition:box-shadow .2s}
+.sg-gap-card:hover{box-shadow:var(--shadow-lg)}
+.sg-priority-critical{border-left-color:#ef4444}
+.sg-priority-high{border-left-color:#f59e0b}
+.sg-priority-moderate{border-left-color:#3b82f6}
+.sg-priority-low{border-left-color:#10b981}
+.sg-gap-top{display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.65rem}
+.sg-gap-name{font-weight:700;font-size:1rem;color:var(--text-color)}
+.sg-gap-cat{font-size:.78rem;color:var(--text-muted)}
+.sg-priority-tag{padding:.2rem .65rem;border-radius:20px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.sg-priority-tag-critical{background:var(--danger-light);color:#ef4444}
+.sg-priority-tag-high{background:var(--warning-light);color:#d97706}
+.sg-priority-tag-moderate{background:var(--primary-light);color:var(--primary-color)}
+.sg-priority-tag-low{background:var(--success-light);color:#059669}
+
+/* ── Level Visual ── */
+.sg-level-visual{margin-bottom:.6rem}
+.sg-level-labels{display:flex;justify-content:space-between;font-size:.78rem;color:var(--text-muted);margin-bottom:.35rem}
+.sg-level-labels strong{color:var(--text-color)}
+.sg-level-track{position:relative;height:10px;background:var(--gray-200);border-radius:6px;overflow:visible}
+.sg-level-fill{position:absolute;top:0;left:0;height:100%;border-radius:6px;background:linear-gradient(90deg,#6366f1,#818cf8);transition:width .4s}
+.sg-level-target{position:absolute;top:-3px;height:16px;width:3px;background:#ef4444;border-radius:2px;z-index:1}
+.sg-level-meta{display:flex;justify-content:space-between;margin-top:.4rem;font-size:.78rem;color:var(--text-muted)}
+.sg-gap-val{font-weight:600;color:var(--danger-color)}
+.sg-gap-hrs{display:flex;align-items:center;gap:.2rem}
+
+/* ── Gap Context ── */
+.sg-gap-context{display:flex;align-items:center;gap:.35rem;font-size:.82rem;color:var(--text-muted);margin-bottom:.5rem}
+.sg-gap-context i{color:var(--primary-color)}
+
+/* ── Courses ── */
+.sg-gap-courses{margin-top:.6rem;padding-top:.6rem;border-top:1px dashed var(--border-color)}
+.sg-course-label{font-size:.78rem;font-weight:600;color:var(--text-muted);display:flex;align-items:center;gap:.3rem;margin-bottom:.5rem}
+.sg-course-chips{display:flex;gap:.5rem;flex-wrap:wrap}
+.sg-course-chip{display:inline-flex;align-items:center;gap:.4rem;padding:.35rem .7rem;background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius);font-size:.78rem;color:var(--text-color);text-decoration:none;transition:all .15s}
+.sg-course-chip:hover{border-color:var(--primary-color);color:var(--primary-color)}
+.sg-course-platform{background:var(--primary-light);color:var(--primary-color);padding:.1rem .4rem;border-radius:4px;font-size:.68rem;font-weight:700}
+.sg-course-rating{color:#f59e0b;font-weight:600;font-size:.72rem}
+
+/* ── Empty State ── */
+.sg-empty-state{text-align:center;padding:3rem 1rem}
+.sg-empty-icon{font-size:3rem;color:var(--success-color);margin-bottom:.5rem}
+.sg-empty-state h4{margin:.5rem 0;color:var(--text-color)}
+.sg-empty-state p{color:var(--text-muted);font-size:.9rem;margin-bottom:1.2rem}
+
+/* ── Action Cards ── */
+.sg-actions-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+.sg-action-card{display:flex;align-items:center;gap:1rem;padding:1.15rem 1.3rem;background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-lg);text-decoration:none;color:var(--text-color);transition:all .2s}
+.sg-action-card:hover{border-color:var(--primary-color);box-shadow:var(--shadow-lg)}
+.sg-action-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+.sg-action-card strong{font-size:.92rem;display:block;margin-bottom:.15rem}
+.sg-action-card p{font-size:.78rem;color:var(--text-muted);margin:0}
+
+/* ── Responsive ── */
+@media(max-width:900px){
+    .sg-kpi-row{grid-template-columns:repeat(2,1fr)}
+    .sg-charts-row{grid-template-columns:1fr}
+    .sg-actions-row{grid-template-columns:1fr}
 }
-
-.card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    padding: 2rem;
-}
-
-.comparison-tool {
-    text-align: center;
-}
-
-.job-select-form {
-    max-width: 500px;
-    margin: 2rem auto 0;
-    display: flex;
-    gap: 1rem;
-}
-
-.job-select-form select {
-    flex: 1;
-    padding: 0.75rem;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius);
-}
-
-.skills-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.5rem;
-    margin-top: 1.5rem;
-}
-
-.skill-card {
-    padding: 1.5rem;
-    background: var(--gray-50);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius);
-}
-
-.skill-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-}
-
-.skill-name {
-    font-weight: 600;
-    font-size: 1.0625rem;
-}
-
-.skill-level {
-    padding: 0.25rem 0.75rem;
-    border-radius: var(--radius);
-    font-weight: 700;
-    font-size: 0.875rem;
-}
-
-.level-7, .level-8, .level-9, .level-10 { background: var(--success-light); color: var(--success-color); }
-.level-5, .level-6 { background: var(--warning-light); color: var(--warning-color); }
-.level-1, .level-2, .level-3, .level-4 { background: var(--danger-light); color: var(--danger-color); }
-
-.skill-bar {
-    height: 8px;
-    background: var(--gray-200);
-    border-radius: var(--radius);
-    overflow: hidden;
-}
-
-.skill-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--primary-color), var(--success-color));
-    transition: width 0.3s ease;
-}
-
-.certificate-badge {
-    margin-top: 0.75rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--success-color);
-    font-size: 0.875rem;
-    font-weight: 600;
-}
-
-.gaps-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-}
-
-.gaps-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-.gap-item {
-    padding: 1.5rem;
-    background: var(--gray-50);
-    border: 1px solid var(--border-color);
-    border-left: 4px solid;
-    border-radius: var(--radius);
-}
-
-.gap-item.priority-3 { border-left-color: var(--danger-color); }
-.gap-item.priority-2 { border-left-color: var(--warning-color); }
-.gap-item.priority-1 { border-left-color: var(--info-color); }
-
-.gap-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1rem;
-}
-
-.gap-category {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-}
-
-.priority-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: var(--radius);
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-}
-
-.priority-badge.priority-3 { background: var(--danger-light); color: var(--danger-color); }
-.priority-badge.priority-2 { background: var(--warning-light); color: var(--warning-color); }
-.priority-badge.priority-1 { background: var(--info-light); color: var(--info-color); }
-
-.gap-levels {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin: 1rem 0;
-}
-
-.level-info {
-    display: flex;
-    flex-direction: column;
-}
-
-.level-info .label {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    text-transform: uppercase;
-}
-
-.level-info .value {
-    font-size: 1.125rem;
-    font-weight: 700;
-}
-
-.gap-progress {
-    position: relative;
-    margin: 1rem 0;
-}
-
-.progress-bar {
-    height: 12px;
-    background: var(--gray-200);
-    border-radius: var(--radius);
-    position: relative;
-}
-
-.current-progress {
-    height: 100%;
-    background: var(--primary-color);
-    border-radius: var(--radius);
-    transition: width 0.3s ease;
-}
-
-.required-mark {
-    position: absolute;
-    top: -4px;
-    height: 20px;
-    width: 3px;
-    background: var(--danger-color);
-    border-radius: 2px;
-}
-
-.gap-context {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 0.75rem;
-    color: var(--text-muted);
-    font-size: 0.875rem;
-}
-
-.recommendations-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    margin-top: 1.5rem;
-}
-
-.recommendation-item {
-    display: flex;
-    gap: 1rem;
-    padding: 1.5rem;
-    background: var(--gray-50);
-    border-radius: var(--radius);
-}
-
-.recommendation-item i {
-    font-size: 2rem;
-    color: var(--primary-color);
-}
-
-.recommendation-item strong {
-    display: block;
-    margin-bottom: 0.5rem;
-}
-
-.link {
-    color: var(--primary-color);
-    text-decoration: none;
-    font-weight: 600;
-}
-
-.link:hover {
-    text-decoration: underline;
-}
-
-.empty-state {
-    grid-column: 1 / -1;
-    text-align: center;
-    padding: 3rem;
-}
-
-.empty-state i {
-    font-size: 4rem;
-    color: var(--text-muted);
-    margin-bottom: 1rem;
+@media(max-width:600px){
+    .sg-kpi-row{grid-template-columns:1fr}
+    .sg-header{flex-direction:column}
+    .sg-compare-form{flex-direction:column}
+    .sg-filter-pills{overflow-x:auto;flex-wrap:nowrap}
 }
 </style>
 {% endblock %}

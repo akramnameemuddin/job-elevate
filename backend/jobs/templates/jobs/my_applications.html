@@ -4,697 +4,272 @@
 {% block title %}My Applications{% endblock %}
 
 {% block content %}
-<!-- Breadcrumb Navigation -->
+<style>
+/* ══════════════════════════════════════════════
+   My Applications Page  (ma- namespace)
+   ══════════════════════════════════════════════ */
+.ma-stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 1rem; margin-bottom: 1.75rem;
+}
+.ma-stat {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 12px; padding: 1rem 1.25rem;
+    display: flex; align-items: center; gap: .85rem;
+    transition: transform .15s;
+}
+.ma-stat:hover { transform: translateY(-2px); }
+.ma-stat-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.35rem; flex-shrink: 0;
+}
+.ma-stat-icon.total { background: rgba(79,70,229,.12); color: var(--primary-color); }
+.ma-stat-icon.pending { background: rgba(245,158,11,.12); color: #f59e0b; }
+.ma-stat-icon.interview { background: rgba(59,130,246,.12); color: #3b82f6; }
+.ma-stat-icon.hired { background: rgba(34,197,94,.12); color: #22c55e; }
+.ma-stat h4 { font-size: .75rem; color: var(--text-muted); margin: 0 0 .1rem; text-transform: uppercase; letter-spacing: .4px; }
+.ma-stat .val { font-size: 1.35rem; font-weight: 700; color: var(--heading-color); }
+
+.ma-filter-bar {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 12px; padding: .75rem 1.15rem;
+    display: flex; align-items: center; gap: .75rem; margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+}
+.ma-search-wrap { flex: 1; min-width: 200px; position: relative; }
+.ma-search-wrap i { position: absolute; left: .75rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 1.1rem; }
+.ma-search-wrap input {
+    width: 100%; border: 1px solid var(--border-color); border-radius: 8px;
+    padding: .5rem .75rem .5rem 2.2rem; font-size: .88rem;
+    background: var(--bg-color); color: var(--text-color); transition: border-color .15s;
+}
+.ma-search-wrap input:focus { border-color: var(--primary-color); outline: none; }
+.ma-filter-select {
+    border: 1px solid var(--border-color); border-radius: 8px;
+    padding: .5rem .75rem; font-size: .85rem;
+    background: var(--bg-color); color: var(--text-color); cursor: pointer;
+}
+.ma-filter-select:focus { border-color: var(--primary-color); outline: none; }
+
+.ma-list { display: flex; flex-direction: column; gap: .85rem; }
+
+.ma-card {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 14px; padding: 1.25rem 1.5rem;
+    display: grid; grid-template-columns: auto 1fr auto;
+    align-items: center; gap: 1.25rem; transition: all .2s;
+}
+.ma-card:hover { border-color: var(--primary-color); box-shadow: 0 4px 16px rgba(0,0,0,.06); }
+
+.ma-avatar {
+    width: 50px; height: 50px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary-color), #6f42c1);
+    color: #fff; font-weight: 700; font-size: 1.1rem;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; text-transform: uppercase;
+}
+.ma-info { min-width: 0; }
+.ma-info h3 {
+    font-size: 1.05rem; font-weight: 600; color: var(--heading-color);
+    margin: 0 0 .2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ma-info h3 a { color: inherit; text-decoration: none; }
+.ma-info h3 a:hover { color: var(--primary-color); }
+.ma-meta {
+    display: flex; flex-wrap: wrap; gap: .3rem .85rem;
+    font-size: .82rem; color: var(--text-muted);
+}
+.ma-meta span { display: flex; align-items: center; gap: .3rem; }
+.ma-meta i { font-size: .95rem; }
+
+.ma-badge {
+    padding: .25rem .65rem; border-radius: 20px;
+    font-size: .72rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .3px; white-space: nowrap;
+}
+.ma-badge-applied    { background: rgba(79,70,229,.1); color: var(--primary-color); }
+.ma-badge-shortlisted { background: rgba(59,130,246,.1); color: #3b82f6; }
+.ma-badge-interview   { background: rgba(245,158,11,.1); color: #d97706; }
+.ma-badge-offered     { background: rgba(34,197,94,.1); color: #16a34a; }
+.ma-badge-hired       { background: rgba(34,197,94,.15); color: #15803d; }
+.ma-badge-rejected    { background: rgba(239,68,68,.1); color: #ef4444; }
+
+.ma-actions {
+    display: flex; flex-direction: column; align-items: flex-end; gap: .5rem;
+}
+.ma-date { font-size: .78rem; color: var(--text-muted); white-space: nowrap; }
+
+.ma-timeline { display: flex; align-items: center; gap: 0; margin-top: .5rem; }
+.ma-tl-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--border-color); flex-shrink: 0;
+}
+.ma-tl-dot.active { background: var(--primary-color); }
+.ma-tl-dot.success { background: #22c55e; }
+.ma-tl-dot.rejected { background: #ef4444; }
+.ma-tl-line { width: 28px; height: 2px; background: var(--border-color); }
+.ma-tl-line.active { background: var(--primary-color); }
+.ma-tl-line.success { background: #22c55e; }
+
+.ma-empty {
+    text-align: center; padding: 4rem 2rem;
+    background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px;
+}
+.ma-empty i { font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem; display: block; }
+.ma-empty h3 { font-size: 1.15rem; color: var(--heading-color); margin-bottom: .4rem; }
+.ma-empty p { color: var(--text-muted); font-size: .9rem; margin-bottom: 1.25rem; }
+
+@media(max-width: 640px) {
+    .ma-card { grid-template-columns: 1fr; gap: .75rem; }
+    .ma-actions { flex-direction: row; align-items: center; }
+    .ma-avatar { display: none; }
+}
+</style>
+
+<!-- Breadcrumb -->
 <div class="breadcrumb">
     <div class="breadcrumb-item">
         <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
         <i class='bx bx-chevron-right'></i>
     </div>
     <div class="breadcrumb-item">
-        <span>My Applications</span>
+        <a href="{% url 'jobs:job_listings' %}" class="breadcrumb-link">Jobs</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item"><span>My Applications</span></div>
+</div>
+
+<!-- Page Header -->
+<div class="page-content-header">
+    <div>
+        <h1 class="page-title"><i class='bx bx-send' style="color:var(--primary-color)"></i> My Applications</h1>
+        <p class="page-subtitle">Track and manage all your job applications in one place</p>
+    </div>
+    <a href="{% url 'jobs:job_listings' %}" class="btn btn-primary btn-sm">
+        <i class='bx bx-search'></i> Browse Jobs
+    </a>
+</div>
+
+{% if applications %}
+<div class="ma-stats">
+    <div class="ma-stat">
+        <div class="ma-stat-icon total"><i class='bx bx-send'></i></div>
+        <div><h4>Total</h4><div class="val">{{ applications|length }}</div></div>
+    </div>
+    <div class="ma-stat">
+        <div class="ma-stat-icon pending"><i class='bx bx-time-five'></i></div>
+        <div><h4>Pending</h4><div class="val" id="statPending">0</div></div>
+    </div>
+    <div class="ma-stat">
+        <div class="ma-stat-icon interview"><i class='bx bx-video'></i></div>
+        <div><h4>Interviews</h4><div class="val" id="statInterview">0</div></div>
+    </div>
+    <div class="ma-stat">
+        <div class="ma-stat-icon hired"><i class='bx bx-check-shield'></i></div>
+        <div><h4>Offered / Hired</h4><div class="val" id="statHired">0</div></div>
     </div>
 </div>
 
-<!-- Page Title -->
-<div class="page-content-header">
-    <h1 class="page-title">My Applications</h1>
+<div class="ma-filter-bar">
+    <div class="ma-search-wrap">
+        <i class='bx bx-search'></i>
+        <input type="text" id="maSearch" placeholder="Search by job title or company...">
+    </div>
+    <select class="ma-filter-select" id="maStatusFilter">
+        <option value="">All Statuses</option>
+        <option value="Applied">Applied</option>
+        <option value="Shortlisted">Shortlisted</option>
+        <option value="Interview">Interview</option>
+        <option value="Offered">Offered</option>
+        <option value="Hired">Hired</option>
+        <option value="Rejected">Rejected</option>
+    </select>
+    <select class="ma-filter-select" id="maSortBy">
+        <option value="newest">Newest First</option>
+        <option value="oldest">Oldest First</option>
+    </select>
 </div>
 
-<!-- Notifications -->
-{% if messages %}
-<div class="notifications">
-    {% for message in messages %}
-    <div class="notification {% if message.tags == 'success' %}notification-success{% elif message.tags == 'error' %}notification-error{% elif message.tags == 'warning' %}notification-warning{% else %}notification-info{% endif %}">
-        <i class='bx {% if message.tags == "success" %}bx-check-circle{% elif message.tags == "error" %}bx-error{% elif message.tags == "warning" %}bx-error-circle{% else %}bx-info-circle{% endif %}'></i>
-        <div class="notification-content">{{ message }}</div>
-        <button type="button" class="notification-close">
-            <i class='bx bx-x'></i>
-        </button>
+<div class="ma-list" id="maList">
+    {% for app in applications %}
+    <div class="ma-card" data-status="{{ app.status }}" data-title="{{ app.job.title|lower }}" data-company="{{ app.job.company|lower }}" data-date="{{ app.applied_at|date:'U' }}">
+        <div class="ma-avatar">{{ app.job.company|truncatechars:2 }}</div>
+        <div class="ma-info">
+            <h3><a href="{% url 'jobs:application_detail' app.id %}">{{ app.job.title }}</a></h3>
+            <div class="ma-meta">
+                <span><i class='bx bx-buildings'></i> {{ app.job.company }}</span>
+                <span><i class='bx bx-map'></i> {{ app.job.location }}</span>
+                <span><i class='bx bx-briefcase-alt-2'></i> {{ app.job.job_type }}</span>
+            </div>
+            <div class="ma-timeline">
+                {% with s=app.status %}
+                <div class="ma-tl-dot {% if s != 'Rejected' %}active{% else %}rejected{% endif %}"></div>
+                <div class="ma-tl-line {% if s == 'Shortlisted' or s == 'Interview' or s == 'Offered' or s == 'Hired' %}active{% endif %}"></div>
+                <div class="ma-tl-dot {% if s == 'Shortlisted' or s == 'Interview' or s == 'Offered' or s == 'Hired' %}active{% endif %}"></div>
+                <div class="ma-tl-line {% if s == 'Interview' or s == 'Offered' or s == 'Hired' %}active{% endif %}"></div>
+                <div class="ma-tl-dot {% if s == 'Interview' or s == 'Offered' or s == 'Hired' %}active{% endif %}"></div>
+                <div class="ma-tl-line {% if s == 'Offered' or s == 'Hired' %}success{% endif %}"></div>
+                <div class="ma-tl-dot {% if s == 'Offered' or s == 'Hired' %}success{% endif %}"></div>
+                {% endwith %}
+            </div>
+        </div>
+        <div class="ma-actions">
+            <span class="ma-badge ma-badge-{{ app.status|lower }}">{{ app.status }}</span>
+            <span class="ma-date"><i class='bx bx-calendar'></i> {{ app.applied_at|date:"M d, Y" }}</span>
+            <a href="{% url 'jobs:application_detail' app.id %}" class="btn btn-outline-primary btn-sm" style="font-size:.78rem; padding:.3rem .65rem;">
+                View Details <i class='bx bx-right-arrow-alt'></i>
+            </a>
+        </div>
     </div>
     {% endfor %}
 </div>
+
+{% else %}
+<div class="ma-empty">
+    <i class='bx bx-send'></i>
+    <h3>No applications yet</h3>
+    <p>Start applying to jobs to see your applications here</p>
+    <a href="{% url 'jobs:job_listings' %}" class="btn btn-primary"><i class='bx bx-search'></i> Browse Jobs</a>
+</div>
 {% endif %}
 
-<!-- Applications Stats Cards -->
-<div class="stats-container">
-    <div class="stat-card">
-        <div class="stat-card-content">
-            <h3 class="stat-card-title">Total Applications</h3>
-            <p class="stat-card-value">{{ applications|length }}</p>
-        </div>
-        <div class="stat-card-icon">
-            <i class='bx bx-file'></i>
-        </div>
-    </div>
-    
-    {% with pending_applications=applications|dictsortreversed:"applied_at"|dictsort:"status"|first %}
-    <div class="stat-card">
-        <div class="stat-card-content">
-            <h3 class="stat-card-title">Pending</h3>
-            <p class="stat-card-value">{{ applications|dictsort:"status"|dictsortreversed:"applied_at"|length }}</p>
-        </div>
-        <div class="stat-card-icon">
-            <i class='bx bx-time'></i>
-        </div>
-    </div>
-    {% endwith %}
-    
-    <div class="stat-card">
-        <div class="stat-card-content">
-            <h3 class="stat-card-title">Interviews</h3>
-            <p class="stat-card-value">{{ applications|dictsort:"status"|dictsortreversed:"applied_at"|length }}</p>
-        </div>
-        <div class="stat-card-icon">
-            <i class='bx bx-calendar-check'></i>
-        </div>
-    </div>
-</div>
-
-<!-- Application Filters and Controls -->
-<div class="controls-section">
-    <div class="search-filter">
-        <div class="input-with-icon">
-            <i class='bx bx-search'></i>
-            <input type="text" id="application-search" placeholder="Search applications..." class="form-control">
-        </div>
-    </div>
-    <div class="filter-options">
-        <select id="status-filter" class="form-control">
-            <option value="all">All Statuses</option>
-            <option value="Applied">Applied</option>
-            <option value="Under Review">Under Review</option>
-            <option value="Interview">Interview</option>
-            <option value="Rejected">Rejected</option>
-            <option value="Offered">Offered</option>
-            <option value="Hired">Hired</option>
-        </select>
-    </div>
-    <div class="sort-options">
-        <select id="sort-by" class="form-control">
-            <option value="newest">Newest First</option>
-            <option value="oldest">Oldest First</option>
-            <option value="status">By Status</option>
-        </select>
-    </div>
-</div>
-
-<!-- Applications Table/Cards -->
-<div class="content-section">
-    <div class="section-header">
-        <h2 class="section-title">All Applications</h2>
-    </div>
-    
-    {% if applications %}
-    <div class="applications-container">
-        {% for application in applications %}
-        <div class="application-card" data-status="{{ application.status|lower }}">
-            <div class="application-header">
-                <div class="application-title-row">
-                    <h3 class="application-job-title">{{ application.job.title }}</h3>
-                    <span class="application-status status-{{ application.status|lower }}">
-                        {{ application.status }}
-                    </span>
-                </div>
-                <div class="application-company">
-                    {{ application.job.company }}
-                </div>
-                <div class="application-meta">
-                    <span class="application-date">
-                        <i class='bx bx-calendar'></i>
-                        Applied on {{ application.applied_at|date:"M d, Y" }}
-                    </span>
-                    <span class="application-location">
-                        <i class='bx bx-map'></i>
-                        {{ application.job.location }}
-                    </span>
-                    <span class="application-type">
-                        <i class='bx bx-briefcase'></i>
-                        {{ application.job.job_type }}
-                    </span>
-                </div>
-            </div>
-            
-            <div class="application-body">
-                <div class="application-details">
-                    {% if application.resume %}
-                    <div class="resume-preview">
-                        <i class='bx bx-file-blank'></i>
-                        <span>Resume: {{ application.resume.name|slice:"20" }}{% if application.resume.name|length > 20 %}...{% endif %}</span>
-                    </div>
-                    {% endif %}
-                    
-                    {% if application.cover_letter %}
-                    <div class="cover-letter-preview">
-                        <p>{{ application.cover_letter|slice:"150" }}{% if application.cover_letter|length > 150 %}...{% endif %}</p>
-                    </div>
-                    {% endif %}
-                </div>
-                
-                <div class="application-timeline">
-                    <div class="timeline-item {% if application.status != 'Applied' %}completed{% endif %}">
-                        <div class="timeline-marker"></div>
-                        <div class="timeline-content">
-                            <h4 class="timeline-title">Applied</h4>
-                            <p class="timeline-date">{{ application.applied_at|date:"M d, Y" }}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="timeline-item {% if application.status == 'Under Review' or application.status == 'Interview' or application.status == 'Offered' or application.status == 'Hired' %}completed{% endif %}">
-                        <div class="timeline-marker"></div>
-                        <div class="timeline-content">
-                            <h4 class="timeline-title">Under Review</h4>
-                            {% if application.updated_at and application.status != 'Applied' %}
-                            <p class="timeline-date">{{ application.updated_at|date:"M d, Y" }}</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    <div class="timeline-item {% if application.status == 'Interview' or application.status == 'Offered' or application.status == 'Hired' %}completed{% endif %}">
-                        <div class="timeline-marker"></div>
-                        <div class="timeline-content">
-                            <h4 class="timeline-title">Interview</h4>
-                        </div>
-                    </div>
-                    
-                    <div class="timeline-item {% if application.status == 'Offered' or application.status == 'Hired' %}completed{% endif %}">
-                        <div class="timeline-marker"></div>
-                        <div class="timeline-content">
-                            <h4 class="timeline-title">Decision</h4>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="application-footer">
-                <div class="application-messages">
-                    <i class='bx bx-message-square-detail'></i>
-                    <span>{{ application.messages.count }} {% if application.messages.count == 1 %}message{% else %}messages{% endif %}</span>
-                </div>
-                
-                <div class="application-actions">
-                    <a href="{% url 'jobs:application_detail' application_id=application.id %}" class="btn btn-outline">
-                        <i class='bx bx-show'></i>
-                        View Details
-                    </a>
-                    <a href="{% url 'jobs:job_detail' job_id=application.job.id %}" class="btn btn-outline">
-                        <i class='bx bx-briefcase'></i>
-                        View Job
-                    </a>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <div class="empty-state">
-        <div class="empty-state-icon">
-            <i class='bx bx-file'></i>
-        </div>
-        <h3 class="empty-state-title">No Applications Yet</h3>
-        <p class="empty-state-message">You haven't applied to any jobs yet. Start your job search now!</p>
-        <a href="{% url 'jobs:job_listings' %}" class="btn btn-primary">
-            <i class='bx bx-search'></i>
-            Browse Jobs
-        </a>
-    </div>
-    {% endif %}
-</div>
-
-<style>
-    /* Sync with base.html theme variables */
-    [data-theme="light"] {
-        --stat-card-bg: var(--card-bg);
-        --stat-icon-bg: var(--primary-light);
-        --timeline-line: var(--border-color);
-        --timeline-dot: var(--primary-color);
-        --status-bg-opacity: 0.1;
-    }
-
-    [data-theme="dark"] {
-        --stat-card-bg: var(--card-bg);
-        --stat-icon-bg: rgba(59, 130, 246, 0.2);
-        --timeline-line: var(--border-color);
-        --timeline-dot: var(--primary-color);
-        --status-bg-opacity: 0.2;
-    }
-
-    /* Update existing component styles */
-    .stats-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-    }
-
-    .stat-card {
-        background-color: var(--stat-card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 0.75rem;
-        padding: 1.5rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: var(--shadow);
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .stat-card:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--shadow-hover);
-    }
-
-    .stat-card-content {
-        flex: 1;
-    }
-
-    .stat-card-title {
-        font-size: 1rem;
-        color: var(--text-muted);
-        margin-bottom: 0.5rem;
-        font-weight: 500;
-    }
-
-    .stat-card-value {
-        font-size: 1.75rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin: 0;
-    }
-
-    .stat-card-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        background-color: var(--stat-icon-bg);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--primary-color);
-    }
-
-    /* Controls Section */
-    .controls-section {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-        margin-bottom: 2rem;
-        background-color: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 0.75rem;
-        padding: 1rem;
-        box-shadow: var(--shadow);
-    }
-
-    .search-filter {
-        flex: 2;
-        min-width: 250px;
-    }
-
-    .filter-options, .sort-options {
-        flex: 1;
-        min-width: 150px;
-    }
-
-    /* Application Cards */
-    .applications-container {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-    }
-
-    .application-card {
-        background-color: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 0.75rem;
-        color: var(--text-color);
-    }
-
-    .application-card:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--shadow-hover);
-    }
-
-    .application-header {
-        padding: 1.5rem;
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .application-title-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.5rem;
-    }
-
-    .application-job-title {
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin: 0;
-        color: var(--text-primary);
-    }
-
-    .application-status {
-        padding: 0.35rem 0.75rem;
-        border-radius: 2rem;
-        font-size: 0.75rem;
-    }
-
-    /* Update status badges for both themes */
-    .status-applied {
-        background-color: rgba(var(--info-color), var(--status-bg-opacity));
-        color: var(--info-color);
-    }
-
-    .status-under-review {
-        background-color: rgba(var(--warning-color), var(--status-bg-opacity));
-        color: var(--warning-color);
-    }
-
-    .status-interview {
-        background-color: rgba(var(--success-color), var(--status-bg-opacity));
-        color: var(--success-color);
-    }
-
-    .status-rejected {
-        background-color: rgba(var(--danger-color), var(--status-bg-opacity));
-        color: var(--danger-color);
-    }
-
-    .status-offered {
-        background-color: rgba(var(--success-rgb), 0.15);
-        color: var(--success-color);
-    }
-
-    .status-hired {
-        background-color: rgba(var(--primary-rgb), 0.15);
-        color: var(--primary-color);
-    }
-
-    .application-company {
-        font-size: 1rem;
-        color: var(--text-muted);
-        margin-bottom: 1rem;
-    }
-
-    .application-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-
-    .application-meta span {
-        display: flex;
-        align-items: center;
-        gap: 0.35rem;
-        font-size: 0.875rem;
-        color: var(--text-muted);
-    }
-
-    .application-meta i {
-        font-size: 1rem;
-    }
-
-    .application-body {
-        padding: 1.5rem;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1.5rem;
-    }
-
-    @media (max-width: 768px) {
-        .application-body {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    .resume-preview {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.75rem;
-        background-color: var(--bg-light);
-        border-radius: 0.5rem;
-        margin-bottom: 1rem;
-    }
-
-    .resume-preview i {
-        font-size: 1.25rem;
-        color: var(--primary-color);
-    }
-
-    .cover-letter-preview {
-        background-color: var(--bg-light);
-        border-radius: 0.5rem;
-        padding: 1rem;
-        font-size: 0.875rem;
-        color: var(--text-muted);
-        line-height: 1.5;
-        max-height: 120px;
-        overflow: hidden;
-        position: relative;
-    }
-
-    .cover-letter-preview:after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 30px;
-        background: linear-gradient(transparent, var(--bg-light));
-    }
-
-    /* Timeline */
-    .application-timeline {
-        border-left: 2px solid var(--timeline-line);
-        padding-left: 1.5rem;
-        margin-left: 1rem;
-    }
-
-    .timeline-item {
-        display: flex;
-        gap: 0.75rem;
-        align-items: flex-start;
-    }
-
-    .timeline-marker {
-        background-color: var(--timeline-dot);
-        border: 2px solid var(--card-bg);
-    }
-
-    .timeline-content {
-        color: var(--text-color);
-    }
-
-    .timeline-title {
-        font-size: 0.875rem;
-        font-weight: 600;
-        margin: 0 0 0.25rem;
-        color: var(--text-primary);
-    }
-
-    .timeline-date {
-        font-size: 0.75rem;
-        color: var(--text-light);
-        margin: 0;
-    }
-
-    .application-footer {
-        padding: 1rem 1.5rem;
-        border-top: 1px solid var(--border-color);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .application-messages {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: var(--text-muted);
-        font-size: 0.875rem;
-    }
-
-    .application-messages i {
-        font-size: 1.25rem;
-        color: var(--primary-color);
-    }
-
-    .application-actions {
-        display: flex;
-        gap: 0.75rem;
-    }
-    .application-actions .btn {
-        padding: 0.5rem 1rem;
-        font-size: 0.9rem;
-        border-radius: 6px;
-        border: 1px solid var(--primary-color);
-        color: var(--primary-color);
-        background-color: #fff;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        transition: all 0.2s ease;
-        text-decoration: none;
-        font-weight: 500;
-    }
-
-    .application-actions .btn:hover {
-        background-color: var(--primary-color);
-        color: white;
-    }
-
-    .application-actions .btn i {
-        font-size: 1rem;
-    }
-
-
-    /* Empty state */
-    .empty-state {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 3rem 1rem;
-        text-align: center;
-        color: var(--text-color);
-        background-color: var(--card-bg);
-        border: 1px solid var(--border-color);
-    }
-
-    .empty-state-icon {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        background-color: var(--primary-color-light);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 1.5rem;
-        color: var(--text-light);
-    }
-
-    .empty-state-icon i {
-        font-size: 2.5rem;
-        color: var(--primary-color);
-    }
-
-    .empty-state-title {
-        font-size: 1.5rem;
-        margin-bottom: 0.75rem;
-        color: var(--text-primary);
-    }
-
-    .empty-state-message {
-        color: var(--text-muted);
-        margin-bottom: 1.5rem;
-        max-width: 400px;
-    }
-</style>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Notification close functionality
-    document.querySelectorAll('.notification-close').forEach(function(button) {
-        button.addEventListener('click', function() {
-            this.closest('.notification').remove();
-        });
+(function() {
+    const cards = document.querySelectorAll('.ma-card');
+    let pending = 0, interview = 0, hired = 0;
+    cards.forEach(c => {
+        const s = c.dataset.status;
+        if (s === 'Applied' || s === 'Shortlisted') pending++;
+        else if (s === 'Interview') interview++;
+        else if (s === 'Offered' || s === 'Hired') hired++;
     });
-    
-    // Application search functionality
-    const searchInput = document.getElementById('application-search');
-    searchInput.addEventListener('input', filterApplications);
-    
-    // Status filter functionality
-    const statusFilter = document.getElementById('status-filter');
-    statusFilter.addEventListener('change', filterApplications);
-    
-    // Sort functionality
-    const sortBy = document.getElementById('sort-by');
-    sortBy.addEventListener('change', sortApplications);
-    
-    function filterApplications() {
-        const searchValue = searchInput.value.toLowerCase();
-        const statusValue = statusFilter.value.toLowerCase();
-        
-        document.querySelectorAll('.application-card').forEach(function(card) {
-            const jobTitle = card.querySelector('.application-job-title').textContent.toLowerCase();
-            const company = card.querySelector('.application-company').textContent.toLowerCase();
-            const status = card.getAttribute('data-status').toLowerCase();
-            
-            // Search filter
-            const matchesSearch = jobTitle.includes(searchValue) || company.includes(searchValue);
-            
-            // Status filter
-            const matchesStatus = statusValue === 'all' || status === statusValue.toLowerCase();
-            
-            // Show/hide card based on filters
-            if (matchesSearch && matchesStatus) {
-                card.style.display = 'flex';
-            } else {
-                card.style.display = 'none';
-            }
-        });
-    }
-    
-    function sortApplications() {
-        const container = document.querySelector('.applications-container');
-        const cards = Array.from(container.querySelectorAll('.application-card'));
-        
-        cards.sort(function(a, b) {
-            const dateA = new Date(a.querySelector('.application-date').textContent.replace('Applied on ', '').trim());
-            const dateB = new Date(b.querySelector('.application-date').textContent.replace('Applied on ', '').trim());
-            const statusA = a.getAttribute('data-status');
-            const statusB = b.getAttribute('data-status');
-            
-            switch(sortBy.value) {
-                case 'newest':
-                    return dateB - dateA;
-                case 'oldest':
-                    return dateA - dateB;
-                case 'status':
-                    return statusA.localeCompare(statusB) || dateB - dateA;
-                default:
-                    return 0;
-            }
-        });
-        
-        // Clear container and append sorted cards
-        container.innerHTML = '';
-        cards.forEach(function(card) {
-            container.appendChild(card);
-        });
-    }
-});
-</script>
-<script>
-    // Sync theme with base.html
-    document.addEventListener('DOMContentLoaded', function() {
-        // Watch for theme changes from base.html
-        const observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                if (mutation.attributeName === 'data-theme') {
-                    const theme = document.documentElement.getAttribute('data-theme');
-                    updateThemeSpecificStyles(theme);
-                }
-            });
-        });
+    const el = id => document.getElementById(id);
+    if (el('statPending')) el('statPending').textContent = pending;
+    if (el('statInterview')) el('statInterview').textContent = interview;
+    if (el('statHired')) el('statHired').textContent = hired;
 
-        observer.observe(document.documentElement, {
-            attributes: true,
-            attributeFilter: ['data-theme']
+    function applyFilters() {
+        const query = (el('maSearch')?.value || '').toLowerCase();
+        const status = el('maStatusFilter')?.value || '';
+        const sort = el('maSortBy')?.value || 'newest';
+        const list = document.getElementById('maList');
+        const items = Array.from(list.children);
+        items.forEach(card => {
+            const matchText = !query || card.dataset.title.includes(query) || card.dataset.company.includes(query);
+            const matchStatus = !status || card.dataset.status === status;
+            card.style.display = (matchText && matchStatus) ? '' : 'none';
         });
-
-        // Initial theme setup
-        const theme = document.documentElement.getAttribute('data-theme');
-        updateThemeSpecificStyles(theme);
-    });
-
-    function updateThemeSpecificStyles(theme) {
-        // Add any theme-specific dynamic style updates here
-        const applicationCards = document.querySelectorAll('.application-card');
-        applicationCards.forEach(card => {
-            card.style.transition = 'background-color 0.3s, border-color 0.3s, color 0.3s';
+        const visible = items.filter(c => c.style.display !== 'none');
+        visible.sort((a, b) => {
+            const da = parseInt(a.dataset.date), db = parseInt(b.dataset.date);
+            return sort === 'newest' ? db - da : da - db;
         });
+        visible.forEach(c => list.appendChild(c));
     }
+    el('maSearch')?.addEventListener('input', applyFilters);
+    el('maStatusFilter')?.addEventListener('change', applyFilters);
+    el('maSortBy')?.addEventListener('change', applyFilters);
+})();
 </script>
 {% endblock %}

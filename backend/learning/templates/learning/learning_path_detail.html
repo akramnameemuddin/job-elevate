@@ -104,10 +104,10 @@
                             <div>
                                 <h4>{{ lpc.course.title }}</h4>
                                 <div class="course-meta">
-                                    <span class="platform-badge">{{ lpc.course.platform }}</span>
+                                    <span class="platform-badge">{{ lpc.course.get_platform_display }}</span>
                                     <span class="skill-tag">{{ lpc.course.skill.name }}</span>
-                                    <span class="difficulty-badge difficulty-{{ lpc.course.difficulty }}">
-                                        {{ lpc.course.get_difficulty_display }}
+                                    <span class="difficulty-badge difficulty-{{ lpc.course.difficulty_level }}">
+                                        {{ lpc.course.get_difficulty_level_display }}
                                     </span>
                                 </div>
                             </div>
@@ -136,7 +136,11 @@
                             </div>
                             <div class="stat">
                                 <i class='bx bx-bar-chart'></i>
-                                <span>Level {{ lpc.course.estimated_level }}/10</span>
+                                <span>Target: {{ lpc.course.target_proficiency_level|floatformat:0 }}/10</span>
+                            </div>
+                            <div class="stat">
+                                <i class='bx bx-world'></i>
+                                <span>{{ lpc.course.get_platform_display }}</span>
                             </div>
                         </div>
                         
@@ -167,8 +171,8 @@
                             </button>
                             {% endif %}
                             
-                            {% if lpc.course.external_url %}
-                            <a href="{{ lpc.course.external_url }}" target="_blank" class="btn-icon">
+                            {% if lpc.course.url %}
+                            <a href="{{ lpc.course.url }}" target="_blank" class="btn-icon" title="Open course">
                                 <i class='bx bx-link-external'></i>
                             </a>
                             {% endif %}

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ResumeTemplate, Resume
+from .models import ResumeTemplate, Resume, TailoredResume
 
 @admin.register(ResumeTemplate)
 class ResumeTemplateAdmin(admin.ModelAdmin):
@@ -45,3 +45,11 @@ class ResumeAdmin(admin.ModelAdmin):
             'fields': ('pdf_file', 'created_at', 'updated_at', 'last_downloaded', 'download_count')
         }),
     )
+
+
+@admin.register(TailoredResume)
+class TailoredResumeAdmin(admin.ModelAdmin):
+    list_display = ('user', 'job', 'status', 'match_score_before', 'match_score_after', 'created_at')
+    list_filter = ('status',)
+    search_fields = ('user__username', 'user__full_name', 'job__title')
+    readonly_fields = ('created_at', 'updated_at')

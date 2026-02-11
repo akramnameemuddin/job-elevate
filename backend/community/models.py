@@ -248,3 +248,114 @@ class UserActivity(models.Model):
     
     def __str__(self):
         return f'{self.user.username} {self.get_activity_type_display()}'
+
+
+class Event(models.Model):
+    """Virtual events, workshops, and webinars for career development"""
+    EVENT_TYPES = [
+        ('webinar', 'Webinar'),
+        ('workshop', 'Workshop'),
+        ('networking', 'Networking'),
+        ('career', 'Career Talk'),
+        ('tech', 'Tech Session'),
+    ]
+
+    title = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=260, unique=True, blank=True)
+    description = models.TextField()
+    event_type = models.CharField(max_length=20, choices=EVENT_TYPES, default='webinar')
+
+    speaker_name = models.CharField(max_length=200, blank=True)
+    speaker_title = models.CharField(max_length=200, blank=True)
+
+    start_datetime = models.DateTimeField()
+    end_datetime = models.DateTimeField()
+
+    is_free = models.BooleanField(default=True)
+    price = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    max_attendees = models.PositiveIntegerField(default=100)
+    meeting_url = models.URLField(max_length=500, blank=True)
+    image = models.ImageField(upload_to='community/events/', blank=True, null=True)
+
+    is_featured = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name='created_events'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['start_datetime']
+        indexes = [
+            models.Index(fields=['start_datetime']),
+            models.Index(fields=['event_type']),
+            models.Index(fields=['is_active']),
+        ]
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base = slugify(self.title)
+            slug = base
+            n = 1
+            while Event.objects.filter(slug=slug).exists():
+                slug = f"{base}-{n}"
+                n += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title
+
+    @property
+    def registrations_count(self):
+        return self.registrations.count()
+
+    @property
+    def is_upcoming(self):
+        return self.start_datetime > timezone.now()
+
+    @property
+    def is_live(self):
+        now = timezone.now()
+        return self.start_datetime <= now <= self.end_datetime
+
+    @property
+    def is_past(self):
+        return self.end_datetime < timezone.now()
+
+    @property
+    def spots_left(self):
+        return max(0, self.max_attendees - self.registrations_count)
+
+    @property
+    def duration_display(self):
+        delta = self.end_datetime - self.start_datetime
+        hours = delta.seconds // 3600
+        minutes = (delta.seconds % 3600) // 60
+        if hours and minutes:
+            return f"{hours}h {minutes}m"
+        elif hours:
+            return f"{hours}h"
+        return f"{minutes}m"
+
+
+class EventRegistration(models.Model):
+    """User registration / RSVP for events"""
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='registrations')
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name='event_registrations'
+    )
+    registered_at = models.DateTimeField(auto_now_add=True)
+    is_bookmarked = models.BooleanField(default=False)
+    attended = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('event', 'user')
+        ordering = ['-registered_at']
+
+    def __str__(self):
+        return f"{self.user.username} → {self.event.title}"

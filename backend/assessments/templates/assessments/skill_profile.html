@@ -1,0 +1,141 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}My Skill Profile | JobElevate{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<div class="breadcrumb">
+    <div class="breadcrumb-item">
+        <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item">
+        <a href="{% url 'assessments:skill_intake_dashboard' %}" class="breadcrumb-link">Assessments</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item"><span>Skill Profile</span></div>
+</div>
+
+<!-- Header -->
+<div class="page-content-header">
+    <h1 class="page-title"><i class='bx bx-user-check'></i> My Skill Profile</h1>
+    <p class="page-subtitle">{{ verified_count }} verified out of {{ total_count }} skills tracked</p>
+</div>
+
+<!-- Stats -->
+<div class="sp-stats">
+    <div class="sp-stat-card">
+        <div class="sp-stat-icon verified"><i class='bx bx-badge-check'></i></div>
+        <div><h3>{{ verified_count }}</h3><p>Verified</p></div>
+    </div>
+    <div class="sp-stat-card">
+        <div class="sp-stat-icon claimed"><i class='bx bx-time'></i></div>
+        <div><h3>{{ total_count|add:"-"|add:verified_count|default:total_count }}</h3><p>Pending</p></div>
+    </div>
+    <div class="sp-stat-card">
+        <div class="sp-stat-icon total"><i class='bx bx-list-check'></i></div>
+        <div><h3>{{ total_count }}</h3><p>Total</p></div>
+    </div>
+</div>
+
+<!-- Skills Table -->
+{% if user_scores %}
+<div class="sp-card">
+    <div class="sp-card-header">
+        <h2><i class='bx bx-bar-chart-alt-2'></i> All Skills</h2>
+        <a href="{% url 'assessments:browse_skills' %}" class="btn btn-primary btn-sm">
+            <i class='bx bx-plus'></i> Add Skills
+        </a>
+    </div>
+    <div class="sp-table-wrap">
+        <table class="sp-table">
+            <thead>
+                <tr>
+                    <th>Skill</th>
+                    <th>Category</th>
+                    <th>Proficiency</th>
+                    <th>Status</th>
+                    <th>Last Assessed</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for score in user_scores %}
+                <tr>
+                    <td class="sp-skill-name">{{ score.skill.name }}</td>
+                    <td><span class="sp-cat-badge">{{ score.skill.category.name|default:"—" }}</span></td>
+                    <td>
+                        <div class="sp-prof-bar-wrap">
+                            <div class="sp-prof-bar">
+                                <div class="sp-prof-fill" style="width:{% widthratio score.verified_level 10 100 %}%"></div>
+                            </div>
+                            <span class="sp-prof-val">{{ score.verified_level|floatformat:1 }}/10</span>
+                        </div>
+                    </td>
+                    <td>
+                        {% if score.status == 'verified' %}
+                        <span class="sp-status-badge verified"><i class='bx bx-check-circle'></i> Verified</span>
+                        {% else %}
+                        <span class="sp-status-badge claimed"><i class='bx bx-time'></i> Claimed</span>
+                        {% endif %}
+                    </td>
+                    <td class="sp-date">
+                        {% if score.last_assessment_date %}
+                            {{ score.last_assessment_date|timesince }} ago
+                        {% else %}—{% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'assessments:start_skill_assessment' score.skill.id %}" class="btn btn-outline btn-sm">
+                            {% if score.status == 'verified' %}<i class='bx bx-refresh'></i> Retake{% else %}<i class='bx bx-play'></i> Assess{% endif %}
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="sp-empty">
+    <i class='bx bx-ghost'></i>
+    <h3>No Skills Yet</h3>
+    <p>Browse available skills and start building your verified profile.</p>
+    <a href="{% url 'assessments:browse_skills' %}" class="btn btn-primary">Browse Skills</a>
+</div>
+{% endif %}
+
+<style>
+.sp-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1.25rem;margin-bottom:2rem}
+.sp-stat-card{display:flex;align-items:center;gap:1rem;padding:1.25rem;background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px}
+.sp-stat-icon{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.6rem}
+.sp-stat-icon.verified{background:rgba(39,174,96,.12);color:#27ae60}
+.sp-stat-icon.claimed{background:rgba(243,156,18,.12);color:#f39c12}
+.sp-stat-icon.total{background:rgba(52,152,219,.12);color:#3498db}
+.sp-stat-card h3{font-size:1.8rem;font-weight:700;margin:0;color:var(--text-color)}
+.sp-stat-card p{margin:0;color:var(--text-muted);font-size:.85rem}
+.sp-card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;overflow:hidden}
+.sp-card-header{display:flex;justify-content:space-between;align-items:center;padding:1.25rem 1.5rem;border-bottom:1px solid var(--border-color)}
+.sp-card-header h2{font-size:1.2rem;margin:0;display:flex;align-items:center;gap:.5rem;color:var(--text-color)}
+.sp-table-wrap{overflow-x:auto}
+.sp-table{width:100%;border-collapse:collapse}
+.sp-table th{text-align:left;padding:.85rem 1.25rem;font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);border-bottom:1px solid var(--border-color)}
+.sp-table td{padding:.85rem 1.25rem;border-bottom:1px solid var(--border-color);color:var(--text-color);font-size:.925rem}
+.sp-table tr:last-child td{border-bottom:none}
+.sp-skill-name{font-weight:600}
+.sp-cat-badge{background:var(--primary-light,#e3f2fd);color:var(--primary-color);padding:.2rem .6rem;border-radius:12px;font-size:.78rem;font-weight:600}
+.sp-prof-bar-wrap{display:flex;align-items:center;gap:.75rem}
+.sp-prof-bar{flex:1;height:8px;background:var(--border-color);border-radius:4px;overflow:hidden;min-width:80px}
+.sp-prof-fill{height:100%;background:linear-gradient(90deg,#3498db,#27ae60);border-radius:4px}
+.sp-prof-val{font-weight:600;font-size:.85rem;white-space:nowrap}
+.sp-status-badge{display:inline-flex;align-items:center;gap:.3rem;padding:.25rem .65rem;border-radius:16px;font-size:.78rem;font-weight:600}
+.sp-status-badge.verified{background:#e8f5e9;color:#27ae60}
+.sp-status-badge.claimed{background:#fff3e0;color:#f39c12}
+.sp-date{color:var(--text-muted);font-size:.85rem;white-space:nowrap}
+.sp-empty{text-align:center;padding:4rem 2rem;background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px}
+.sp-empty i{font-size:4rem;color:var(--text-muted);margin-bottom:1rem}
+.sp-empty h3{margin-bottom:.5rem;color:var(--text-color)}
+.sp-empty p{color:var(--text-muted);margin-bottom:1.5rem}
+@media(max-width:768px){.sp-stats{grid-template-columns:1fr}.sp-table{font-size:.85rem}.sp-table th,.sp-table td{padding:.65rem .75rem}}
+</style>
+{% endblock %}

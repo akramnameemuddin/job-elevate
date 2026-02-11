@@ -1,11 +1,304 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
-{% load jobs_extras %}
 
-{% block title %}{{ job.title }} at {{ job.company }} | JobMatch{% endblock %}
+{% block title %}{{ job.title }} at {{ job.company }} | JobElevate{% endblock %}
 
 {% block content %}
-<!-- Breadcrumb Navigation -->
+<style>
+/* Job Detail Page (jd- namespace) */
+.jd-grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+@media(min-width:1024px){ .jd-grid { grid-template-columns: 1fr 340px; } }
+@media(min-width:1200px){ .jd-grid { grid-template-columns: 1fr 360px; } }
+
+/* Hero Card */
+.jd-hero {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 16px; padding: 1.5rem; position: relative; overflow: hidden;
+}
+.jd-hero::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, var(--primary-color), #8b5cf6, #ec4899);
+}
+.jd-hero-top { display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1.25rem; }
+.jd-logo {
+    width: 56px; height: 56px; border-radius: 14px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--hover-bg); border: 1px solid var(--border-color);
+    font-size: 1.5rem; color: var(--primary-color);
+}
+.jd-logo img { width: 100%; height: 100%; object-fit: contain; border-radius: 14px; }
+.jd-hero-info { flex: 1; min-width: 0; }
+.jd-hero-title {
+    font-size: 1.35rem; font-weight: 700; color: var(--heading-color);
+    margin: 0 0 .4rem; line-height: 1.3;
+}
+.jd-hero-company { font-size: .92rem; color: var(--text-muted); margin-bottom: .6rem; }
+.jd-tags { display: flex; flex-wrap: wrap; gap: .4rem; }
+.jd-tag {
+    display: inline-flex; align-items: center; gap: .3rem;
+    padding: .3rem .65rem; border-radius: 8px; font-size: .78rem; font-weight: 500;
+    background: var(--hover-bg); color: var(--text-muted); border: 1px solid var(--border-color);
+}
+.jd-tag i { font-size: .9rem; color: var(--primary-color); }
+
+/* Action Buttons */
+.jd-actions { display: flex; flex-wrap: wrap; gap: .6rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color); }
+.jd-btn {
+    display: inline-flex; align-items: center; gap: .4rem;
+    padding: .6rem 1.1rem; border-radius: 10px; font-size: .85rem; font-weight: 600;
+    cursor: pointer; border: 1px solid var(--border-color); text-decoration: none;
+    transition: all .2s; background: var(--card-bg); color: var(--heading-color);
+}
+.jd-btn:hover { border-color: var(--primary-color); background: var(--hover-bg); }
+.jd-btn-primary { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
+.jd-btn-primary:hover { opacity: .9; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(79,70,229,.3); }
+.jd-btn-success { background: #22c55e; color: #fff; border-color: #22c55e; cursor: default; }
+.jd-btn i { font-size: 1.05rem; }
+.jd-btn-sm { padding: .4rem .75rem; font-size: .78rem; }
+
+/* Match Ring */
+.jd-match-ring { display: flex; align-items: center; gap: 1rem; padding: 1rem 0; }
+.jd-ring-svg { width: 80px; height: 80px; flex-shrink: 0; }
+.jd-ring-bg { fill: none; stroke: var(--border-color); stroke-width: 6; }
+.jd-ring-fill { fill: none; stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset .8s ease; }
+.jd-ring-fill.excellent { stroke: #22c55e; }
+.jd-ring-fill.good { stroke: #3b82f6; }
+.jd-ring-fill.moderate { stroke: #f59e0b; }
+.jd-ring-fill.low { stroke: #ef4444; }
+.jd-ring-text { font-size: 1.1rem; font-weight: 700; fill: var(--heading-color); text-anchor: middle; dominant-baseline: central; }
+.jd-ring-info h4 { font-size: .85rem; color: var(--text-muted); margin: 0 0 .15rem; }
+.jd-ring-info .jd-ring-pct { font-size: 1.5rem; font-weight: 700; color: var(--heading-color); }
+.jd-ring-info .jd-ring-label { font-size: .78rem; color: var(--text-muted); }
+
+/* Cards */
+.jd-card {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 14px; overflow: hidden;
+}
+.jd-card-head {
+    padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-color);
+    display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+}
+.jd-card-head h3 {
+    font-size: .95rem; font-weight: 600; color: var(--heading-color);
+    display: flex; align-items: center; gap: .4rem; margin: 0;
+}
+.jd-card-head h3 i { color: var(--primary-color); font-size: 1.15rem; }
+.jd-card-body { padding: 1.25rem; }
+
+/* Skill Pills */
+.jd-skill-list { display: flex; flex-wrap: wrap; gap: .5rem; }
+.jd-skill {
+    display: inline-flex; align-items: center; gap: .35rem;
+    padding: .45rem .85rem; border-radius: 10px; font-size: .82rem; font-weight: 500;
+    border: 1px solid; transition: all .15s;
+}
+.jd-skill-qualified { background: rgba(34,197,94,.08); color: #16a34a; border-color: rgba(34,197,94,.3); }
+.jd-skill-qualified i { color: #16a34a; }
+.jd-skill-improve { background: rgba(245,158,11,.08); color: #d97706; border-color: rgba(245,158,11,.3); }
+.jd-skill-improve i { color: #d97706; }
+.jd-skill-missing { background: rgba(239,68,68,.06); color: #dc2626; border-color: rgba(239,68,68,.2); }
+.jd-skill-missing i { color: #dc2626; }
+.jd-skill-neutral { background: var(--hover-bg); color: var(--heading-color); border-color: var(--border-color); }
+.jd-skill-type {
+    font-size: .65rem; padding: .1rem .35rem; border-radius: 4px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .3px; margin-left: .15rem;
+}
+.jd-type-must { background: rgba(239,68,68,.12); color: #ef4444; }
+.jd-type-important { background: rgba(245,158,11,.12); color: #d97706; }
+.jd-type-nice { background: rgba(59,130,246,.12); color: #3b82f6; }
+
+/* Status Badge */
+.jd-status {
+    font-size: .7rem; font-weight: 600; padding: .15rem .45rem;
+    border-radius: 6px; text-transform: uppercase; letter-spacing: .3px;
+}
+.jd-status-pass { background: rgba(34,197,94,.12); color: #16a34a; }
+.jd-status-fail { background: rgba(239,68,68,.1); color: #dc2626; }
+
+/* Assessment Banner */
+.jd-assess-banner {
+    display: flex; align-items: center; gap: 1rem; padding: 1rem 1.25rem;
+    background: linear-gradient(135deg, rgba(79,70,229,.06), rgba(139,92,246,.06));
+    border-radius: 12px; border: 1px solid rgba(79,70,229,.15); margin-top: 1rem;
+}
+.jd-assess-banner i { font-size: 1.8rem; color: var(--primary-color); flex-shrink: 0; }
+.jd-assess-banner .jd-assess-text { flex: 1; }
+.jd-assess-banner .jd-assess-text h4 { font-size: .88rem; color: var(--heading-color); margin: 0 0 .15rem; }
+.jd-assess-banner .jd-assess-text p { font-size: .8rem; color: var(--text-muted); margin: 0; }
+
+/* Prose */
+.jd-prose { font-size: .9rem; line-height: 1.7; color: var(--text-muted); }
+.jd-prose p { margin-bottom: .8rem; }
+.jd-prose ul { padding-left: 1.2rem; margin-bottom: .8rem; }
+.jd-prose ul li { margin-bottom: .4rem; }
+
+/* Sidebar */
+.jd-sidebar { display: flex; flex-direction: column; gap: 1.25rem; }
+@media(min-width:1024px){ .jd-sidebar { position: sticky; top: 1.5rem; align-self: start; } }
+.jd-side-card {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 14px; overflow: hidden;
+}
+.jd-side-head {
+    padding: .85rem 1.15rem; border-bottom: 1px solid var(--border-color);
+    font-size: .88rem; font-weight: 600; color: var(--heading-color);
+    display: flex; align-items: center; gap: .4rem;
+}
+.jd-side-head i { color: var(--primary-color); font-size: 1.1rem; }
+.jd-side-body { padding: 1.15rem; }
+
+/* Sidebar Tags */
+.jd-stag-list { display: flex; flex-wrap: wrap; gap: .35rem; }
+.jd-stag {
+    display: inline-flex; align-items: center; gap: .25rem;
+    padding: .3rem .6rem; border-radius: 8px; font-size: .75rem; font-weight: 500;
+}
+.jd-stag-match { background: rgba(34,197,94,.1); color: #16a34a; }
+.jd-stag-match i { font-size: .7rem; }
+.jd-stag-gap { background: var(--hover-bg); color: var(--text-muted); }
+
+/* Similar Jobs */
+.jd-sim-item {
+    display: flex; align-items: center; gap: .75rem; padding: .75rem;
+    border-radius: 10px; transition: all .15s; text-decoration: none;
+    border: 1px solid transparent; margin-bottom: .5rem;
+}
+.jd-sim-item:last-child { margin-bottom: 0; }
+.jd-sim-item:hover { background: var(--hover-bg); border-color: var(--border-color); }
+.jd-sim-info { flex: 1; min-width: 0; }
+.jd-sim-info h4 { font-size: .85rem; font-weight: 600; color: var(--heading-color); margin: 0 0 .2rem; }
+.jd-sim-meta { font-size: .75rem; color: var(--text-muted); display: flex; gap: .6rem; flex-wrap: wrap; }
+.jd-sim-meta span { display: flex; align-items: center; gap: .2rem; }
+.jd-sim-arrow { color: var(--text-muted); font-size: 1.1rem; transition: .15s; }
+.jd-sim-item:hover .jd-sim-arrow { color: var(--primary-color); transform: translateX(3px); }
+
+/* Modal */
+.jd-modal {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45);
+    z-index: 1000; align-items: flex-start; justify-content: center;
+    padding: 1rem; overflow-y: auto; backdrop-filter: blur(2px);
+}
+.jd-modal-box {
+    background: var(--card-bg); border-radius: 16px; width: 100%; max-width: 540px;
+    margin-top: 3vh; box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    animation: jdModalIn .25s ease;
+}
+@keyframes jdModalIn { from { opacity:0; transform:translateY(-10px) scale(.97); } to { opacity:1; transform:none; } }
+.jd-modal-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1.15rem 1.25rem; border-bottom: 1px solid var(--border-color);
+}
+.jd-modal-head h2 { font-size: 1.05rem; font-weight: 600; color: var(--heading-color); margin: 0; }
+.jd-modal-close {
+    width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border-color);
+    background: var(--card-bg); cursor: pointer; display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted); transition: .15s;
+}
+.jd-modal-close:hover { background: var(--hover-bg); color: var(--heading-color); }
+.jd-modal-body { padding: 1.25rem; }
+.jd-modal-foot {
+    display: flex; justify-content: flex-end; gap: .5rem;
+    padding: 1rem 1.25rem; border-top: 1px solid var(--border-color); background: var(--hover-bg);
+}
+
+/* Form */
+.jd-form-group { margin-bottom: 1.15rem; }
+.jd-form-group label { display: block; font-size: .85rem; font-weight: 600; color: var(--heading-color); margin-bottom: .4rem; }
+.jd-form-group textarea {
+    width: 100%; padding: .75rem; border: 1px solid var(--border-color);
+    border-radius: 10px; background: var(--card-bg); color: var(--heading-color);
+    font-family: inherit; font-size: .88rem; resize: vertical; min-height: 100px;
+    transition: border-color .15s;
+}
+.jd-form-group textarea:focus { border-color: var(--primary-color); outline: none; box-shadow: 0 0 0 3px rgba(79,70,229,.1); }
+.jd-form-hint { font-size: .75rem; color: var(--text-muted); margin-top: .25rem; }
+
+/* Resume Selector */
+.jd-resume-list { display: flex; flex-direction: column; gap: .4rem; max-height: 180px; overflow-y: auto; }
+.jd-resume-opt {
+    display: flex; align-items: center; gap: .65rem; padding: .65rem .85rem;
+    border: 2px solid var(--border-color); border-radius: 10px; cursor: pointer;
+    transition: all .15s; background: var(--card-bg); position: relative;
+}
+.jd-resume-opt:hover { border-color: var(--primary-color); background: var(--hover-bg); }
+.jd-resume-opt input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+.jd-resume-opt:has(input:checked) { border-color: var(--primary-color); background: rgba(79,70,229,.04); }
+.jd-resume-opt:has(input:checked) .jd-resume-check { color: var(--primary-color); opacity: 1; }
+.jd-resume-icon { font-size: 1.3rem; color: var(--primary-color); flex-shrink: 0; }
+.jd-resume-meta { flex: 1; min-width: 0; }
+.jd-resume-meta strong { display: block; font-size: .85rem; color: var(--heading-color); }
+.jd-resume-meta small { font-size: .73rem; color: var(--text-muted); }
+.jd-resume-check { font-size: 1.15rem; color: var(--border-color); opacity: .4; transition: .15s; }
+.jd-no-resume {
+    display: flex; align-items: center; gap: .75rem; padding: 1rem;
+    border: 2px dashed var(--border-color); border-radius: 10px;
+    background: var(--hover-bg); color: var(--text-muted); font-size: .85rem;
+}
+.jd-no-resume i { font-size: 1.3rem; color: var(--primary-color); }
+
+/* Match Summary */
+.jd-summary {
+    background: var(--hover-bg); border-radius: 10px; padding: .85rem 1rem;
+    margin-top: .5rem; border: 1px solid var(--border-color);
+}
+.jd-summary h4 { font-size: .85rem; font-weight: 600; color: var(--heading-color); margin: 0 0 .6rem; }
+.jd-summary-row { display: flex; align-items: center; gap: .4rem; font-size: .82rem; color: var(--text-muted); margin-bottom: .4rem; }
+.jd-summary-row:last-child { margin-bottom: 0; }
+.jd-summary-row i { font-size: .95rem; }
+.jd-summary-row i.green { color: #22c55e; }
+.jd-summary-row i.amber { color: #f59e0b; }
+.jd-summary-row i.red { color: #ef4444; }
+
+/* Share */
+.jd-share-link { display: flex; gap: .5rem; margin-bottom: 1rem; }
+.jd-share-link input {
+    flex: 1; padding: .6rem .75rem; border: 1px solid var(--border-color);
+    border-radius: 8px; background: var(--card-bg); color: var(--heading-color); font-size: .82rem;
+}
+.jd-share-btns { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+.jd-share-btn {
+    display: flex; align-items: center; justify-content: center; gap: .4rem;
+    padding: .65rem; border-radius: 10px; font-size: .82rem; font-weight: 500;
+    text-decoration: none; transition: .15s; border: 1px solid var(--border-color);
+    background: var(--card-bg); color: var(--heading-color);
+}
+.jd-share-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+.jd-share-btn.linkedin { background: #0077b5; color: #fff; border-color: #0077b5; }
+.jd-share-btn.twitter { background: #1da1f2; color: #fff; border-color: #1da1f2; }
+.jd-share-btn.email { grid-column: span 2; background: var(--hover-bg); }
+
+/* Notifications */
+.jd-notif {
+    display: flex; align-items: center; gap: .5rem; padding: .75rem 1rem;
+    border-radius: 10px; margin-bottom: .75rem; font-size: .85rem;
+    border: 1px solid var(--border-color); background: var(--card-bg);
+}
+.jd-notif.success { border-left: 4px solid #22c55e; }
+.jd-notif.success i { color: #22c55e; }
+.jd-notif.error { border-left: 4px solid #ef4444; }
+.jd-notif.error i { color: #ef4444; }
+.jd-notif.warning { border-left: 4px solid #f59e0b; }
+.jd-notif.warning i { color: #f59e0b; }
+.jd-notif span { flex: 1; color: var(--heading-color); }
+.jd-notif-close { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1rem; padding: .2rem; }
+
+/* Responsive */
+@media(max-width:640px){
+    .jd-hero { padding: 1rem; }
+    .jd-hero-title { font-size: 1.15rem; }
+    .jd-actions { flex-direction: column; }
+    .jd-actions .jd-btn { width: 100%; justify-content: center; }
+    .jd-modal-box { margin-top: 1rem; }
+}
+@media(min-width:768px){
+    .jd-hero { padding: 2rem; }
+    .jd-hero-title { font-size: 1.5rem; }
+    .jd-logo { width: 64px; height: 64px; }
+}
+</style>
+
+<!-- Breadcrumb -->
 <div class="breadcrumb">
     <div class="breadcrumb-item">
         <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
@@ -15,2450 +308,411 @@
         <a href="{% url 'jobs:job_listings' %}" class="breadcrumb-link">Job Matches</a>
         <i class='bx bx-chevron-right'></i>
     </div>
-    <div class="breadcrumb-item">
-        <span>{{ job.title }}</span>
-    </div>
+    <div class="breadcrumb-item"><span>{{ job.title }}</span></div>
 </div>
 
-<!-- Page Title -->
+<!-- Page Header -->
 <div class="page-content-header">
     <h1 class="page-title">{{ job.title }}</h1>
+    <p class="page-subtitle">{{ job.company }} &bull; {{ job.location }}</p>
 </div>
 
-<!-- Messages for notifications -->
+<!-- Messages -->
 {% if messages %}
-<div class="notification-container">
-    {% for message in messages %}
-    <div class="notification {{ message.tags }}">
-        <i class='bx
-            {% if message.tags == "success" %}bx-check-circle
-            {% elif message.tags == "error" %}bx-error
-            {% elif message.tags == "warning" %}bx-error-circle
-            {% else %}bx-info-circle{% endif %}'>
-        </i>
-        <span>{{ message }}</span>
-        <button class="notification-close"><i class='bx bx-x'></i></button>
-    </div>
-    {% endfor %}
+{% for message in messages %}
+<div class="jd-notif {{ message.tags }}">
+    <i class='bx {% if message.tags == "success" %}bx-check-circle{% elif message.tags == "error" %}bx-error{% else %}bx-info-circle{% endif %}'></i>
+    <span>{{ message }}</span>
+    <button class="jd-notif-close" onclick="this.parentNode.remove()"><i class='bx bx-x'></i></button>
 </div>
+{% endfor %}
 {% endif %}
 
-<!-- Job Detail Content -->
-<div class="content-section">
-    <!-- Job header -->
-    <div class="job-header-card">
-                <div class="job-header-content">
-                    {% if job.company_logo %}
-                    <div class="company-logo">
-                        <img src="{{ job.company_logo.url }}" alt="{{ job.company }} logo">
-                    </div>
-                    {% else %}
-                    <div class="company-logo company-placeholder">
-                        <i class='bx bx-building-house'></i>
-                    </div>
-                    {% endif %}
-                    
-                    <div class="job-header-info">
-                        <h1 class="job-title">{{ job.title }}</h1>
-                        <div class="job-meta">
-                            <div class="job-meta-item">
-                                <i class='bx bx-buildings'></i>
-                                <span>{{ job.company }}</span>
-                            </div>
-                            <div class="job-meta-item">
-                                <i class='bx bx-map'></i>
-                                <span>{{ job.location }}</span>
-                            </div>
-                            <div class="job-meta-item">
-                                <i class='bx bx-time'></i>
-                                <span>{{ job.job_type }}</span>
-                            </div>
-                            {% if job.salary %}
-                            <div class="job-meta-item">
-                                <i class='bx bx-dollar-circle'></i>
-                                <span>{{ job.salary }}</span>
-                            </div>
-                            {% endif %}
-                            <div class="job-meta-item">
-                                <i class='bx bx-calendar'></i>
-                                <span>Posted: {{ job.posted_at|date:"M d, Y" }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="job-actions">
-                    {% if not already_applied %}
-                        {% if can_apply %}
-                            <button id="applyBtn" class="btn btn-primary btn-lg">
-                                <i class='bx bx-send'></i> Apply Now
-                            </button>
-                        {% else %}
-                            <button class="btn btn-warning btn-lg" disabled>
-                                <i class='bx bx-lock'></i> Complete Required Skills First
-                            </button>
-                        {% endif %}
-                    {% else %}
-                    <button class="btn btn-success btn-lg" disabled>
-                        <i class='bx bx-check'></i> Applied
-                    </button>
-                    {% endif %}
-                    
-                    <button id="bookmarkBtn" class="btn btn-outline btn-lg {% if is_bookmarked %}bookmarked{% endif %}" data-job-id="{{ job.id }}">
-                        <i class='bx {% if is_bookmarked %}bxs-bookmark{% else %}bx-bookmark{% endif %}'></i>
-                        <span>{% if is_bookmarked %}Bookmarked{% else %}Bookmark{% endif %}</span>
-                    </button>
-                    
-                    <button class="btn btn-outline btn-lg share-btn">
-                        <i class='bx bx-share-alt'></i> Share
-                    </button>
-                </div>
-            </div>
-
-            <!-- NEW: Skill Gap Analysis Section -->
-            {% if skill_requirements %}
-            <div class="content-section skill-gap-section">
-                <div class="section-header">
-                    <h2 class="section-title">
-                        <i class='bx bx-bar-chart'></i> Skill Requirements & Your Match
-                    </h2>
-                    <span class="match-badge {% if match_score >= 80 %}excellent{% elif match_score >= 60 %}good{% else %}low{% endif %}">
-                        {{ match_score }}% Overall Match
-                    </span>
-                </div>
-                
-                <div class="section-content">
-                    <!-- Verified Skills -->
-                    {% if verified_skills %}
-                    <div class="skill-category-box verified-box">
-                        <h3><i class='bx bx-check-circle'></i> ✅ Verified Skills ({{ verified_skills|length }})</h3>
-                        <div class="skills-grid">
-                            {% for skill_data in verified_skills %}
-                            <div class="skill-requirement-card verified">
-                                <div class="skill-header">
-                                    <strong>{{ skill_data.skill.name }}</strong>
-                                    <span class="criticality-badge {{ skill_data.criticality|lower }}">
-                                        {{ skill_data.criticality }}
-                                    </span>
-                                </div>
-                                <div class="skill-levels">
-                                    <div class="level-bar">
-                                        <div class="level-label">Required:</div>
-                                        <div class="level-progress">
-                                            <div class="progress-bar-bg">
-                                                <div class="progress-bar-fill required" style="width: {{ skill_data.required_proficiency|floatformat:0|multiply:10 }}%"></div>
-                                            </div>
-                                            <span class="level-value">{{ skill_data.required_proficiency }}/10</span>
-                                        </div>
-                                    </div>
-                                    <div class="level-bar">
-                                        <div class="level-label">Your Level:</div>
-                                        <div class="level-progress">
-                                            <div class="progress-bar-bg">
-                                                <div class="progress-bar-fill current" style="width: {{ skill_data.user_proficiency|floatformat:0|multiply:10 }}%"></div>
-                                            </div>
-                                            <span class="level-value verified-badge">{{ skill_data.user_proficiency }}/10 ✓</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="skill-status qualified">
-                                    <i class='bx bx-check'></i> Qualified
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
-                    
-                    <!-- Partial Skills -->
-                    {% if partial_skills %}
-                    <div class="skill-category-box partial-box">
-                        <h3><i class='bx bx-time'></i> ⚠️ Partially Qualified ({{ partial_skills|length }})</h3>
-                        <div class="skills-grid">
-                            {% for skill_data in partial_skills %}
-                            <div class="skill-requirement-card partial">
-                                <div class="skill-header">
-                                    <strong>{{ skill_data.skill.name }}</strong>
-                                    <span class="criticality-badge {{ skill_data.criticality|lower }}">
-                                        {{ skill_data.criticality }}
-                                    </span>
-                                </div>
-                                <div class="skill-levels">
-                                    <div class="level-bar">
-                                        <div class="level-label">Required:</div>
-                                        <div class="level-progress">
-                                            <div class="progress-bar-bg">
-                                                <div class="progress-bar-fill required" style="width: {{ skill_data.required_proficiency|floatformat:0|multiply:10 }}%"></div>
-                                            </div>
-                                            <span class="level-value">{{ skill_data.required_proficiency }}/10</span>
-                                        </div>
-                                    </div>
-                                    <div class="level-bar">
-                                        <div class="level-label">Your Level:</div>
-                                        <div class="level-progress">
-                                            <div class="progress-bar-bg">
-                                                <div class="progress-bar-fill current" style="width: {{ skill_data.user_proficiency|floatformat:0|multiply:10 }}%"></div>
-                                            </div>
-                                            <span class="level-value">{{ skill_data.user_proficiency }}/10</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="skill-gap-info">
-                                    <span class="gap-amount">Gap: {{ skill_data.gap|floatformat:1 }} points</span>
-                                    <a href="{% url 'assessments:start_assessment_from_job' job.id skill_data.skill_id %}" class="btn btn-sm btn-warning">
-                                        <i class='bx bx-trending-up'></i> Retake Assessment
-                                    </a>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
-                    
-                    <!-- Missing Skills -->
-                    {% if missing_skills %}
-                    <div class="skill-category-box missing-box">
-                        <h3><i class='bx bx-x-circle'></i> ❌ Skills to Learn ({{ missing_skills|length }})</h3>
-                        <div class="skills-grid">
-                            {% for skill_data in missing_skills %}
-                            <div class="skill-requirement-card missing">
-                                <div class="skill-header">
-                                    <strong>{{ skill_data.skill.name }}</strong>
-                                    <span class="criticality-badge {{ skill_data.criticality|lower }}">
-                                        {% if skill_data.is_mandatory %}
-                                            🔒 Mandatory
-                                        {% else %}
-                                            {{ skill_data.criticality }}
-                                        {% endif %}
-                                    </span>
-                                </div>
-                                <div class="skill-levels">
-                                    <div class="level-bar">
-                                        <div class="level-label">Required:</div>
-                                        <div class="level-progress">
-                                            <div class="progress-bar-bg">
-                                                <div class="progress-bar-fill required" style="width: {{ skill_data.required_proficiency|floatformat:0|multiply:10 }}%"></div>
-                                            </div>
-                                            <span class="level-value">{{ skill_data.required_proficiency }}/10</span>
-                                        </div>
-                                    </div>
-                                    <div class="level-bar">
-                                        <div class="level-label">Your Level:</div>
-                                        <div class="level-progress">
-                                            <div class="progress-bar-bg">
-                                                <div class="progress-bar-fill current" style="width: 0%"></div>
-                                            </div>
-                                            <span class="level-value not-verified">Not Verified</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="skill-gap-info">
-                                    {% if skill_data.is_claimed %}
-                                        <a href="{% url 'assessments:start_assessment_from_job' job.id skill_data.skill_id %}" class="btn btn-sm btn-primary">
-                                            <i class='bx bx-book-reader'></i> Take Assessment
-                                        </a>
-                                    {% else %}
-                                        <a href="{% url 'jobs:claim_skill_from_job' job.id skill_data.skill_id %}" class="btn btn-sm btn-primary">
-                                            <i class='bx bx-plus-circle'></i> Add & Take Assessment
-                                        </a>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
-                    
-                    <!-- Action Banner -->
-                    {% if missing_skills or partial_skills %}
-                    <div class="action-banner">
-                        <div class="banner-content">
-                            <i class='bx bx-info-circle'></i>
-                            <div>
-                                <strong>Ready to close the gap?</strong>
-                                <p>Take assessments to verify your skills and increase your match score!</p>
-                            </div>
-                        </div>
-                        <a href="{% url 'assessments:skill_intake_dashboard' %}" class="btn btn-primary">
-                            <i class='bx bx-brain'></i> Go to Skill Diagnostic
-                        </a>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- Job description -->
-            <div class="content-section">
-                <div class="section-header">
-                    <h2 class="section-title"><i class='bx bx-detail'></i> Job Description</h2>
-                </div>
-                <div class="section-content job-description">
-                    {{ job.description|linebreaks }}
-                </div>
-            </div>
-
-            <!-- Job requirements -->
-            <div class="content-section">
-                <div class="section-header">
-                    <h2 class="section-title"><i class='bx bx-list-check'></i> Requirements</h2>
-                </div>
-                <div class="section-content">
-                    {% if job.requirements %}
-                        {{ job.requirements|linebreaks }}
-                    {% else %}
-                        <p>No specific requirements listed.</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Skills required -->
-            <div class="content-section">
-                <div class="section-header">
-                    <h2 class="section-title"><i class='bx bx-brain'></i> Skills Required</h2>
-                </div>
-                <div class="section-content">
-                    {% if skill_requirements %}
-                    <div class="skills-requirements-grid">
-                        {% for req in skill_requirements %}
-                        <div class="skill-req-card">
-                            <div class="skill-req-header">
-                                <span class="skill-name">{{ req.skill.name }}</span>
-                                {% if req.is_mandatory %}
-                                <span class="mandatory-badge">
-                                    <i class='bx bx-lock-alt'></i> Mandatory
-                                </span>
-                                {% endif %}
-                            </div>
-                            <div class="skill-req-body">
-                                <div class="proficiency-required">
-                                    <span class="label">Required Level:</span>
-                                    <div class="proficiency-bar">
-                                        <div class="proficiency-fill" style="width: {{ req.required_proficiency|multiply:10 }}%"></div>
-                                    </div>
-                                    <span class="proficiency-value">{{ req.required_proficiency }}/10</span>
-                                </div>
-                                <div class="criticality-badge-container">
-                                    <span class="criticality-badge {{ req.skill_type }}">
-                                        {% if req.skill_type == 'must_have' %}
-                                            <i class='bx bx-star'></i> Must Have
-                                        {% elif req.skill_type == 'important' %}
-                                            <i class='bx bx-info-circle'></i> Important
-                                        {% else %}
-                                            <i class='bx bx-check-circle'></i> Nice to Have
-                                        {% endif %}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% elif job.skills %}
-                    <!-- Fallback: Show basic skills from job.skills -->
-                    <div class="empty-skills-state" style="background: var(--hover-bg); padding: 1.5rem; border-radius: 12px;">
-                        <i class='bx bx-info-circle' style="font-size: 2rem; color: var(--primary-color);"></i>
-                        <p style="margin: 1rem 0 0.5rem;">This job requires the following skills:</p>
-                        <div class="skills-container" style="justify-content: center; margin-top: 1rem;">
-                            {% for skill in job.skills %}
-                                {% if skill.name %}
-                                    <span class="skill-tag" style="background: var(--primary-color); color: white; border: none;">
-                                        {{ skill.name }}
-                                    </span>
-                                {% elif skill %}
-                                    <span class="skill-tag" style="background: var(--primary-color); color: white; border: none;">
-                                        {{ skill }}
-                                    </span>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                        <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-light);">
-                            <i class='bx bx-error-circle'></i> Detailed skill proficiency levels not available for this job.
-                        </p>
-                    </div>
-                    {% else %}
-                    <div class="empty-skills-state">
-                        <i class='bx bx-info-circle'></i>
-                        <p>No specific skills requirements defined for this position.</p>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-            <!-- About the company -->
-            <div class="content-section">
-                <div class="section-header">
-                    <h2 class="section-title"><i class='bx bx-building'></i> About {{ job.company }}</h2>
-                </div>
-                <div class="section-content">
-                    {% if company_description %}
-                        {{ company_description|linebreaks }}
-                    {% else %}
-                        <p>No company description available.</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Right sidebar: Match score and similar jobs -->
-        <div class="job-sidebar">
-            <!-- Match score card -->
-            <div class="sidebar-card match-score-card">
-                <div class="card-header">
-                    <h3><i class='bx bx-analyse'></i> Match Analysis</h3>
-                </div>
-                <div class="card-body">
-                    <div class="match-score-indicator">
-                        <div class="score-circle {% if match_score >= 80 %}excellent{% elif match_score >= 60 %}good{% elif match_score >= 40 %}moderate{% else %}low{% endif %}">
-                            <span class="score-number">{{ match_score }}%</span>
-                            <span class="score-label">Match</span>
-                        </div>
-                    </div>
-                    
-                    <div class="skills-match">
-                        <h4><i class='bx bx-check-circle'></i> Your Matching Skills ({{ matching_skills|length }})</h4>
-                        <div class="skills-container">
-                            {% for skill_name in matching_skills %}
-                            <span class="skill-tag skill-match"><i class='bx bx-check'></i> {{ skill_name }}</span>
-                            {% empty %}
-                            <p>You don't have any matching skills yet.</p>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    
-                    <div class="skills-missing">
-                        <h4><i class='bx bx-x-circle'></i> Skills to Develop ({{ skills_to_develop|length }})</h4>
-                        <div class="skills-container">
-                            {% for skill in skills_to_develop %}
-                                {% if skill.status == 'partial' %}
-                                <span class="skill-tag skill-partial" title="You have {{ skill.user_level }}/{{ skill.required_level }} - Need improvement">
-                                    {{ skill.name }} <small>({{ skill.user_level }}/{{ skill.required_level }})</small>
-                                </span>
-                                {% elif skill.not_in_db %}
-                                <span class="skill-tag" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid #f59e0b;" title="Skill not in system yet - Contact admin to add">
-                                    {{ skill.name }} <small><i class='bx bx-error-circle'></i></small>
-                                </span>
-                                {% else %}
-                                <span class="skill-tag skill-missing" title="Not verified - Add to profile and take assessment">
-                                    {{ skill.name }}
-                                </span>
-                                {% endif %}
-                            {% empty %}
-                            <p>You have all the required skills!</p>
-                            {% endfor %}
-                        </div>
-                        {% if skills_to_develop %}
-                        <div style="margin-top: 1rem; padding: 0.75rem; background: var(--hover-bg); border-radius: 8px; font-size: 0.9rem;">
-                            <p style="margin: 0 0 0.5rem 0; color: var(--text-light);">
-                                <i class='bx bx-info-circle'></i> 
-                                <strong>{{ skills_to_develop|length }} skill{{ skills_to_develop|length|pluralize }}</strong> need{{ skills_to_develop|length|pluralize:"s," }} development.
-                            </p>
-                            <a href="{% url 'assessments:job_skill_gap_analysis' job.id %}" class="btn btn-sm" style="background: var(--primary-color); color: white; text-decoration: none; padding: 0.4rem 0.8rem; border-radius: 6px; display: inline-block; margin-top: 0.5rem;">
-                                <i class='bx bx-plus-circle'></i> Add Skills & Take Assessments
-                            </a>
-                        </div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="skill-gap-action" style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
-                        <a href="{% url 'assessments:job_skill_gap_analysis' job.id %}" class="btn btn-primary btn-block">
-                            <i class='bx bx-chart-bar'></i> View Detailed Skill Gap Analysis
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Similar jobs card -->
-            <div class="sidebar-card similar-jobs-card">
-                <div class="card-header">
-                    <h3><i class='bx bx-list-ul'></i> Similar Jobs</h3>
-                </div>
-                <div class="card-body">
-                    <div class="similar-jobs-list">
-                        {% for similar_job in similar_jobs %}
-                        <a href="{% url 'jobs:job_detail' similar_job.id %}" class="similar-job-item">
-                            <div class="similar-job-info">
-                                <h4>{{ similar_job.title }}</h4>
-                                <div class="job-meta">
-                                    <span><i class='bx bx-buildings'></i> {{ similar_job.company }}</span>
-                                    <span><i class='bx bx-map'></i> {{ similar_job.location }}</span>
-                                    {% if similar_job.salary %}
-                                    <span><i class='bx bx-dollar-circle'></i> {{ similar_job.salary }}</span>
-                                    {% endif %}
-                                </div>
-                                <div class="job-type-badge">{{ similar_job.job_type }}</div>
-                            </div>
-                            <i class='bx bx-right-arrow-alt'></i>
-                        </a>
-                        {% empty %}
-                        <p>No similar jobs found.</p>
-                        {% endfor %}
-                    </div>
-                </div>
+<!-- HERO CARD -->
+<div class="jd-hero">
+    <div class="jd-hero-top">
+        {% if job.company_logo %}
+        <div class="jd-logo"><img src="{{ job.company_logo.url }}" alt="{{ job.company }}"></div>
+        {% else %}
+        <div class="jd-logo"><i class='bx bx-building-house'></i></div>
+        {% endif %}
+        <div class="jd-hero-info">
+            <h2 class="jd-hero-title">{{ job.title }}</h2>
+            <div class="jd-hero-company">{{ job.company }}</div>
+            <div class="jd-tags">
+                <span class="jd-tag"><i class='bx bx-map'></i> {{ job.location }}</span>
+                <span class="jd-tag"><i class='bx bx-time'></i> {{ job.job_type }}</span>
+                {% if job.salary %}<span class="jd-tag"><i class='bx bx-dollar-circle'></i> {{ job.salary }}</span>{% endif %}
+                {% if job.experience %}<span class="jd-tag"><i class='bx bx-briefcase'></i> {{ job.experience }}+ yrs</span>{% endif %}
+                <span class="jd-tag"><i class='bx bx-calendar'></i> {{ job.posted_at|timesince }} ago</span>
             </div>
         </div>
     </div>
+
+    <div class="jd-actions">
+        {% if not already_applied %}
+        <button id="jdApplyBtn" class="jd-btn jd-btn-primary"><i class='bx bx-send'></i> Apply Now</button>
+        {% else %}
+        <span class="jd-btn jd-btn-success"><i class='bx bx-check'></i> Applied</span>
+        {% endif %}
+
+        <a href="{% url 'resume_builder:resume_analyzer' job.id %}" class="jd-btn">
+            <i class='bx bx-analyse'></i> Analyze Resume
+        </a>
+        <a href="{% url 'resume_builder:tailor_for_job' job.id %}" class="jd-btn">
+            <i class='bx bx-bot'></i> AI Tailor Resume
+        </a>
+
+        <button id="jdBookmarkBtn" class="jd-btn {% if is_bookmarked %}jd-btn-primary{% endif %}" data-job-id="{{ job.id }}">
+            <i class='bx {% if is_bookmarked %}bxs-bookmark{% else %}bx-bookmark{% endif %}'></i>
+            {% if is_bookmarked %}Saved{% else %}Save{% endif %}
+        </button>
+        <button class="jd-btn" id="jdShareBtn"><i class='bx bx-share-alt'></i> Share</button>
+    </div>
 </div>
 
-<!-- Application Modal -->
-<div id="applicationModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>Apply for {{ job.title }}</h2>
-            <button class="close-modal"><i class='bx bx-x'></i></button>
+<!-- TWO-COLUMN GRID -->
+<div class="jd-grid">
+    <!-- Main Column -->
+    <div>
+        <!-- Skills & Your Fit -->
+        {% if skill_requirements or job.skills %}
+        <div class="jd-card" style="margin-bottom:1.25rem;">
+            <div class="jd-card-head">
+                <h3><i class='bx bx-target-lock'></i> Skills & Your Fit</h3>
+                <span class="jd-status {% if match_score >= 70 %}jd-status-pass{% else %}jd-status-fail{% endif %}">
+                    {{ match_score }}% Match
+                </span>
+            </div>
+            <div class="jd-card-body">
+                {% if skill_requirements %}
+                <div class="jd-skill-list">
+                    {% for s in verified_skills %}
+                    <span class="jd-skill jd-skill-qualified">
+                        <i class='bx bx-check-circle'></i> {{ s.skill.name }}
+                        {% if s.skill_type == 'must_have' %}<span class="jd-skill-type jd-type-must">Must Have</span>{% endif %}
+                    </span>
+                    {% endfor %}
+
+                    {% for s in partial_skills %}
+                    <span class="jd-skill jd-skill-improve">
+                        <i class='bx bx-up-arrow-alt'></i> {{ s.skill.name }}
+                        {% if s.skill_type == 'must_have' %}<span class="jd-skill-type jd-type-must">Must Have</span>
+                        {% elif s.skill_type == 'important' %}<span class="jd-skill-type jd-type-important">Important</span>{% endif %}
+                    </span>
+                    {% endfor %}
+
+                    {% for s in missing_skills %}
+                    <span class="jd-skill jd-skill-missing">
+                        <i class='bx bx-x'></i> {{ s.skill.name }}
+                        {% if s.is_mandatory %}<span class="jd-skill-type jd-type-must">Must Have</span>{% endif %}
+                    </span>
+                    {% endfor %}
+                </div>
+
+                <!-- Legend -->
+                <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:1rem; font-size:.75rem; color:var(--text-muted);">
+                    <span style="display:flex;align-items:center;gap:.25rem;"><i class='bx bx-check-circle' style="color:#16a34a;"></i> Qualified</span>
+                    <span style="display:flex;align-items:center;gap:.25rem;"><i class='bx bx-up-arrow-alt' style="color:#d97706;"></i> Needs Improvement</span>
+                    <span style="display:flex;align-items:center;gap:.25rem;"><i class='bx bx-x' style="color:#dc2626;"></i> Not Verified</span>
+                </div>
+
+                {% elif job.skills %}
+                <div class="jd-skill-list">
+                    {% for skill_data in job.skills %}
+                    <span class="jd-skill jd-skill-neutral">
+                        {% if skill_data.name %}{{ skill_data.name }}{% else %}{{ skill_data }}{% endif %}
+                    </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if partial_skills or missing_skills %}
+                <div class="jd-assess-banner">
+                    <i class='bx bx-brain'></i>
+                    <div class="jd-assess-text">
+                        <h4>Verify your skills to boost your match</h4>
+                        <p>Take quick assessments to prove your proficiency and stand out to recruiters.</p>
+                    </div>
+                    <a href="{% url 'assessments:job_skill_gap_analysis' job.id %}" class="jd-btn jd-btn-primary jd-btn-sm">
+                        <i class='bx bx-play'></i> Start
+                    </a>
+                </div>
+                {% endif %}
+            </div>
         </div>
-        <div class="modal-body">
-            <form action="{% url 'jobs:apply_for_job' job.id %}" method="post" enctype="multipart/form-data" id="applicationForm">
+        {% endif %}
+
+        <!-- Job Description -->
+        <div class="jd-card" style="margin-bottom:1.25rem;">
+            <div class="jd-card-head"><h3><i class='bx bx-detail'></i> Job Description</h3></div>
+            <div class="jd-card-body jd-prose">{{ job.description|linebreaks }}</div>
+        </div>
+
+        <!-- Requirements -->
+        {% if job.requirements %}
+        <div class="jd-card" style="margin-bottom:1.25rem;">
+            <div class="jd-card-head"><h3><i class='bx bx-list-check'></i> Requirements</h3></div>
+            <div class="jd-card-body jd-prose">{{ job.requirements|linebreaks }}</div>
+        </div>
+        {% endif %}
+
+        <!-- About Company -->
+        <div class="jd-card" style="margin-bottom:1.25rem;">
+            <div class="jd-card-head"><h3><i class='bx bx-building'></i> About {{ job.company }}</h3></div>
+            <div class="jd-card-body jd-prose">
+                {% if company_description %}{{ company_description|linebreaks }}{% else %}<p>No company description available.</p>{% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="jd-sidebar">
+        <!-- Match Overview -->
+        <div class="jd-side-card">
+            <div class="jd-side-head"><i class='bx bx-analyse'></i> Your Match</div>
+            <div class="jd-side-body">
+                <div class="jd-match-ring">
+                    <svg class="jd-ring-svg" viewBox="0 0 80 80">
+                        <circle class="jd-ring-bg" cx="40" cy="40" r="34"/>
+                        <circle class="jd-ring-fill {% if match_score >= 80 %}excellent{% elif match_score >= 60 %}good{% elif match_score >= 40 %}moderate{% else %}low{% endif %}"
+                                cx="40" cy="40" r="34"
+                                stroke-dasharray="213.6"
+                                transform="rotate(-90 40 40)"
+                                style="stroke-dashoffset: calc(213.6 - (213.6 * {{ match_score }} / 100))"/>
+                        <text class="jd-ring-text" x="40" y="40">{{ match_score }}%</text>
+                    </svg>
+                    <div class="jd-ring-info">
+                        <div class="jd-ring-pct">{% if match_score >= 80 %}Excellent{% elif match_score >= 60 %}Good{% elif match_score >= 40 %}Fair{% else %}Low{% endif %}</div>
+                        <div class="jd-ring-label">{{ skills_qualified }} of {{ total_skills_required }} skills matched</div>
+                    </div>
+                </div>
+
+                {% if matching_skills %}
+                <div style="margin-top:1rem;">
+                    <div style="font-size:.78rem;font-weight:600;color:var(--text-muted);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.3px;">Qualified Skills</div>
+                    <div class="jd-stag-list">
+                        {% for name in matching_skills %}
+                        <span class="jd-stag jd-stag-match"><i class='bx bx-check'></i> {{ name }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if skills_to_develop %}
+                <div style="margin-top:1rem;">
+                    <div style="font-size:.78rem;font-weight:600;color:var(--text-muted);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.3px;">Needs Work</div>
+                    <div class="jd-stag-list">
+                        {% for skill in skills_to_develop %}
+                        <span class="jd-stag jd-stag-gap">{{ skill.name }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <div style="margin-top:1.15rem; padding-top:1rem; border-top:1px solid var(--border-color);">
+                    <a href="{% url 'assessments:job_skill_gap_analysis' job.id %}" class="jd-btn jd-btn-primary" style="width:100%;justify-content:center;">
+                        <i class='bx bx-bar-chart'></i> Full Skill Analysis
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {% if similar_jobs %}
+        <div class="jd-side-card">
+            <div class="jd-side-head"><i class='bx bx-list-ul'></i> Similar Jobs</div>
+            <div class="jd-side-body" style="padding:.75rem;">
+                {% for sj in similar_jobs %}
+                <a href="{% url 'jobs:job_detail' sj.id %}" class="jd-sim-item">
+                    <div class="jd-sim-info">
+                        <h4>{{ sj.title }}</h4>
+                        <div class="jd-sim-meta">
+                            <span><i class='bx bx-buildings'></i> {{ sj.company }}</span>
+                            <span><i class='bx bx-map'></i> {{ sj.location }}</span>
+                        </div>
+                    </div>
+                    <i class='bx bx-chevron-right jd-sim-arrow'></i>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- APPLICATION MODAL -->
+<div id="jdApplyModal" class="jd-modal">
+    <div class="jd-modal-box">
+        <div class="jd-modal-head">
+            <h2>Apply for {{ job.title }}</h2>
+            <button class="jd-modal-close" data-close><i class='bx bx-x'></i></button>
+        </div>
+        <div class="jd-modal-body">
+            <form action="{% url 'jobs:apply_for_job' job.id %}" method="post" id="jdApplyForm">
                 {% csrf_token %}
-                
-                <div class="form-group">
-                    <label for="cover_letter">Cover Letter</label>
-                    <textarea id="cover_letter" name="cover_letter" rows="6" placeholder="Introduce yourself and explain why you're a good fit for this position..."></textarea>
-                    <small class="form-text">Personalize your application to stand out to the employer.</small>
+
+                <div class="jd-form-group">
+                    <label>Cover Letter</label>
+                    <textarea name="cover_letter" placeholder="Tell the employer why you're a great fit..."></textarea>
+                    <div class="jd-form-hint">A strong cover letter personalised to the role really helps.</div>
                 </div>
-                
-                <div class="form-group">
-                    <label for="resume">Resume</label>
-                    <div class="file-upload-container">
-                        <input type="file" id="resume" name="resume" accept=".pdf,.doc,.docx">
-                        <label for="resume" class="file-upload-label">
-                            <i class='bx bx-upload'></i>
-                            <span id="file-name">Upload Resume (PDF, DOC, DOCX)</span>
+
+                <div class="jd-form-group">
+                    <label>Select Resume</label>
+                    {% if user_resumes or tailored_resumes %}
+                    <div class="jd-resume-list">
+                        {% for tr in tailored_resumes %}
+                        <label class="jd-resume-opt" style="border-color:var(--primary-color);background:rgba(79,70,229,.03);">
+                            <input type="radio" name="tailored_resume_id" value="{{ tr.id }}" {% if forloop.first and not user_resumes %}checked{% endif %} onchange="document.querySelectorAll('input[name=resume_id]').forEach(r=>r.checked=false)">
+                            <i class='bx bx-bot jd-resume-icon' style="color:#7c3aed;"></i>
+                            <div class="jd-resume-meta">
+                                <strong>AI Tailored for {{ tr.job.title|truncatewords:5 }}</strong>
+                                <small>{{ tr.match_score_after }}% match &middot; {{ tr.updated_at|timesince }} ago</small>
+                            </div>
+                            <i class='bx bx-check-circle jd-resume-check'></i>
                         </label>
+                        {% endfor %}
+                        {% for resume in user_resumes %}
+                        <label class="jd-resume-opt">
+                            <input type="radio" name="resume_id" value="{{ resume.id }}" {% if forloop.first and not tailored_resumes %}checked{% endif %} onchange="document.querySelectorAll('input[name=tailored_resume_id]').forEach(r=>r.checked=false)">
+                            <i class='bx bx-file jd-resume-icon'></i>
+                            <div class="jd-resume-meta">
+                                <strong>{{ resume.title }}</strong>
+                                <small>Updated {{ resume.updated_at|timesince }} ago</small>
+                            </div>
+                            <i class='bx bx-check-circle jd-resume-check'></i>
+                        </label>
+                        {% endfor %}
                     </div>
-                    <small class="form-text">Max file size: 5MB</small>
-                </div>
-                
-                <div class="match-summary">
-                    <h4>Application Summary</h4>
-                    <div class="summary-item">
-                        <i class='bx bx-check-circle'></i>
-                        <span>Your profile matches <strong>{{ match_score }}%</strong> of job requirements</span>
+                    <div class="jd-form-hint">
+                        Pick a resume from your account.
+                        <a href="{% url 'resume_builder:resume_builder' %}" target="_blank">Create new</a>
+                        {% if not tailored_resumes %}
+                        &middot; <a href="{% url 'resume_builder:tailor_for_job' job.id %}" target="_blank">AI Tailor for this job</a>
+                        {% endif %}
                     </div>
-                    <div class="summary-item">
-                        <i class='bx bx-check-circle'></i>
-                        <span>You have <strong>{{ matching_skills|length }}</strong> matching skills</span>
-                    </div>
-                    <div class="summary-item">
+                    {% else %}
+                    <div class="jd-no-resume">
                         <i class='bx bx-info-circle'></i>
-                        <span>You're missing <strong>{{ missing_skills|length }}</strong> skills for this role</span>
+                        <div>
+                            <p style="margin:0 0 .4rem;">No resumes yet.</p>
+                            <a href="{% url 'resume_builder:resume_builder' %}" class="jd-btn jd-btn-sm" target="_blank">
+                                <i class='bx bx-plus'></i> Create Resume
+                            </a>
+                            <a href="{% url 'resume_builder:tailor_for_job' job.id %}" class="jd-btn jd-btn-sm" target="_blank" style="margin-left:.5rem;">
+                                <i class='bx bx-bot'></i> AI Tailor
+                            </a>
+                        </div>
                     </div>
+                    {% endif %}
                 </div>
-                
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline close-modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Submit Application</button>
+
+                <div class="jd-summary">
+                    <h4>Quick Summary</h4>
+                    <div class="jd-summary-row"><i class='bx bx-check-circle green'></i> Profile matches <strong>{{ match_score }}%</strong> of requirements</div>
+                    <div class="jd-summary-row"><i class='bx bx-check-circle green'></i> <strong>{{ matching_skills|length }}</strong> skills qualified</div>
+                    {% if skills_to_develop %}
+                    <div class="jd-summary-row"><i class='bx bx-info-circle amber'></i> <strong>{{ skills_to_develop|length }}</strong> skills need work</div>
+                    {% endif %}
                 </div>
             </form>
         </div>
+        <div class="jd-modal-foot">
+            <button class="jd-btn" data-close>Cancel</button>
+            <button type="submit" form="jdApplyForm" class="jd-btn jd-btn-primary" {% if not user_resumes and not tailored_resumes %}disabled title="Create a resume first"{% endif %}>
+                <i class='bx bx-send'></i> Submit Application
+            </button>
+        </div>
     </div>
 </div>
 
-<!-- Share Modal -->
-<div id="shareModal" class="modal">
-    <div class="modal-content modal-sm">
-        <div class="modal-header">
+<!-- SHARE MODAL -->
+<div id="jdShareModal" class="jd-modal">
+    <div class="jd-modal-box" style="max-width:420px;">
+        <div class="jd-modal-head">
             <h2>Share This Job</h2>
-            <button class="close-modal"><i class='bx bx-x'></i></button>
+            <button class="jd-modal-close" data-close><i class='bx bx-x'></i></button>
         </div>
-        <div class="modal-body">
-            <div class="share-link-container">
-                <input type="text" id="shareLink" value="{{ request.build_absolute_uri }}" readonly>
-                <button id="copyShareLink" class="btn btn-outline">
-                    <i class='bx bx-copy'></i> Copy
-                </button>
+        <div class="jd-modal-body">
+            <div class="jd-share-link">
+                <input type="text" id="jdShareLink" value="{{ request.build_absolute_uri }}" readonly>
+                <button class="jd-btn jd-btn-sm" id="jdCopyLink"><i class='bx bx-copy'></i> Copy</button>
             </div>
-            
-            <div class="social-share-buttons">
-                <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.build_absolute_uri|urlencode }}" target="_blank" class="social-share-btn linkedin">
+            <div class="jd-share-btns">
+                <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.build_absolute_uri|urlencode }}" target="_blank" class="jd-share-btn linkedin">
                     <i class='bx bxl-linkedin'></i> LinkedIn
                 </a>
-                <a href="https://twitter.com/intent/tweet?text=Check%20out%20this%20job:%20{{ job.title|urlencode }}%20at%20{{ job.company|urlencode }}&url={{ request.build_absolute_uri|urlencode }}" target="_blank" class="social-share-btn twitter">
+                <a href="https://twitter.com/intent/tweet?text={{ job.title|urlencode }}%20at%20{{ job.company|urlencode }}&url={{ request.build_absolute_uri|urlencode }}" target="_blank" class="jd-share-btn twitter">
                     <i class='bx bxl-twitter'></i> Twitter
                 </a>
-                <a href="mailto:?subject=Job%20Opportunity:%20{{ job.title|urlencode }}%20at%20{{ job.company|urlencode }}&body=I%20found%20this%20job%20that%20might%20interest%20you:%20{{ request.build_absolute_uri|urlencode }}" class="social-share-btn email">
+                <a href="mailto:?subject=Job:%20{{ job.title|urlencode }}&body={{ request.build_absolute_uri|urlencode }}" class="jd-share-btn email">
                     <i class='bx bx-envelope'></i> Email
                 </a>
             </div>
         </div>
     </div>
-<style>
-    /* Job Detail Styles - Using Unified Design System */
+</div>
 
-    /* Job Detail Content - Inherit base template layout */
-
-    /* Breadcrumb */
-    .breadcrumb {
-        display: flex;
-        align-items: center;
-        margin-bottom: 1rem;
-        font-size: 0.8rem;
-        color: var(--text-light);
-        flex-wrap: wrap;
-    }
-
-    .breadcrumb-link {
-        color: var(--primary-color);
-        text-decoration: none;
-        transition: var(--transition);
-    }
-
-    .breadcrumb-link:hover {
-        color: var(--primary-dark);
-    }
-
-    .breadcrumb-separator {
-        margin: 0 0.25rem;
-        display: flex;
-        align-items: center;
-        color: var(--text-light);
-    }
-
-    .breadcrumb-item.active {
-        color: var(--text-color);
-        font-weight: 500;
-        word-break: break-word;
-    }
-
-    /* Job Detail Layout - Using Unified Design System */
-
-    /* Mobile-first responsive design */
-    @media (max-width: 480px) {
-        .job-header-card {
-            padding: 1rem;
-        }
-
-        .job-actions {
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .btn {
-            width: 100%;
-            justify-content: center;
-        }
-    }
-
-    /* Job Header Card - Mobile Optimized */
-    .job-header-card {
-        background: var(--card-bg);
-        border-radius: var(--radius-lg);
-        padding: 1rem;
-        box-shadow: var(--card-shadow);
-        border: 1px solid var(--border-color);
-        margin-bottom: 1rem;
-        transition: var(--transition);
-    }
-
-    .job-header-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .company-logo {
-        width: 60px;
-        height: 60px;
-        min-width: 60px;
-        border-radius: var(--radius-lg);
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: var(--hover-bg);
-        border: 1px solid var(--border-color);
-    }
-
-    .company-logo img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-    }
-
-    .company-placeholder {
-        background: var(--primary-light);
-        color: var(--primary-color);
-        font-size: 1.5rem;
-    }
-
-    .job-header-info {
-        flex: 1;
-        min-width: 0;
-        width: 100%;
-    }
-
-    .job-title {
-        font-size: 1.25rem;
-        font-weight: 700;
-        margin: 0 0 0.75rem;
-        color: var(--text-color);
-        line-height: 1.3;
-        word-break: break-word;
-        text-align: center;
-    }
-
-    .job-meta {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-        align-items: center;
-    }
-
-    .job-meta-item {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        font-size: 0.85rem;
-        color: var(--text-light);
-        text-align: center;
-    }
-
-    .job-meta-item i {
-        font-size: 1rem;
-        color: var(--primary-color);
-        min-width: 1rem;
-    }
-
-    /* Job Actions - Mobile Optimized */
-    .job-actions {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid var(--border-color);
-    }
-
-    .btn {
-        padding: 0.875rem 1rem;
-        border-radius: var(--radius-md);
-        font-weight: 500;
-        font-size: 0.9rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        cursor: pointer;
-        transition: var(--transition);
-        text-decoration: none;
-        border: none;
-        width: 100%;
-        white-space: nowrap;
-    }
-
-    .btn-lg {
-        padding: 1rem 1.25rem;
-        font-size: 1rem;
-    }
-
-    .btn-primary {
-        background: var(--primary-color);
-        color: var(--white);
-    }
-
-    .btn-primary:hover {
-        background: var(--primary-dark);
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-lg);
-    }
-
-    .btn-outline {
-        background: transparent;
-        color: var(--text-color);
-        border: 1px solid var(--border-color);
-    }
-
-    .btn-outline:hover {
-        background: var(--hover-bg);
-        border-color: var(--primary-color);
-    }
-
-    .btn-success {
-        background: var(--success-color);
-        color: var(--white);
-    }
-
-    .bookmarked {
-        background: var(--primary-light);
-        color: var(--primary-color);
-        border-color: var(--primary-color);
-    }
-
-    /* Content Sections */
-    .content-section {
-        background: var(--card-bg);
-        border-radius: var(--radius-lg);
-        box-shadow: var(--card-shadow);
-        border: 1px solid var(--border-color);
-        margin-bottom: 1rem;
-        overflow: hidden;
-        transition: var(--transition);
-    }
-
-    .section-header {
-        padding: 1rem;
-        border-bottom: 1px solid var(--border-color);
-        background: var(--hover-bg);
-    }
-
-    .section-title {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 1rem;
-        font-weight: 600;
-        margin: 0;
-        color: var(--text-color);
-        flex-wrap: wrap;
-    }
-
-    .section-title i {
-        color: var(--primary-color);
-        font-size: 1.2rem;
-        min-width: 1.2rem;
-    }
-
-    .section-content {
-        padding: 1rem;
-    }
-
-    .job-description {
-        line-height: 1.6;
-        color: var(--text-color);
-        font-size: 0.9rem;
-    }
-
-    .job-description p {
-        margin-bottom: 1rem;
-    }
-
-    .job-description ul {
-        padding-left: 1.25rem;
-        margin-bottom: 1rem;
-    }
-
-    .job-description ul li {
-        margin-bottom: 0.5rem;
-    }
-
-    /* Skills - Mobile Optimized */
-    .skills-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin-top: 0.75rem;
-    }
-
-    .skill-tag {
-        display: inline-flex;
-        align-items: center;
-        background: var(--hover-bg);
-        color: var(--text-color);
-        padding: 0.375rem 0.75rem;
-        border-radius: 1rem;
-        font-size: 0.8rem;
-        border: 1px solid var(--border-color);
-        transition: var(--transition);
-    }
-
-    .skill-match {
-        background: rgba(46, 204, 113, 0.15);
-        color: #10b981;
-        border-color: rgba(46, 204, 113, 0.3);
-    }
-
-    .skill-match i {
-        margin-right: 0.25rem;
-        font-size: 0.75rem;
-    }
-
-    .skill-partial {
-        background: rgba(245, 158, 11, 0.15);
-        color: #f59e0b;
-        border-color: rgba(245, 158, 11, 0.3);
-    }
-
-    .skill-partial small {
-        opacity: 0.8;
-        font-size: 0.75rem;
-        margin-left: 0.25rem;
-    }
-
-    .skill-missing {
-        background: var(--hover-bg);
-        color: var(--text-light);
-        opacity: 0.8;
-    }
-
-    /* Skills Requirements Grid */
-    .skills-requirements-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 1rem;
-        margin-top: 1rem;
-    }
-
-    .skill-req-card {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 0.5rem;
-        padding: 1rem;
-        transition: var(--transition);
-    }
-
-    .skill-req-card:hover {
-        border-color: var(--primary-color);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .skill-req-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.75rem;
-        padding-bottom: 0.75rem;
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .skill-name {
-        font-weight: 600;
-        font-size: 1rem;
-        color: var(--text-color);
-    }
-
-    .mandatory-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.25rem;
-        padding: 0.25rem 0.5rem;
-        background: #FEE2E2;
-        color: #991B1B;
-        border-radius: 0.25rem;
-        font-size: 0.75rem;
-        font-weight: 500;
-    }
-
-    .skill-req-body {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .proficiency-required {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .proficiency-required .label {
-        font-size: 0.813rem;
-        color: var(--text-secondary);
-        min-width: 90px;
-    }
-
-    .proficiency-bar {
-        flex: 1;
-        height: 8px;
-        background: var(--hover-bg);
-        border-radius: 4px;
-        overflow: hidden;
-    }
-
-    .proficiency-fill {
-        height: 100%;
-        background: linear-gradient(90deg, var(--primary-color), var(--primary-hover));
-        border-radius: 4px;
-        transition: width 0.3s;
-    }
-
-    .proficiency-value {
-        font-weight: 600;
-        color: var(--text-color);
-        font-size: 0.875rem;
-        min-width: 45px;
-    }
-
-    .criticality-badge-container {
-        display: flex;
-        justify-content: flex-start;
-    }
-
-    .criticality-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.25rem;
-        padding: 0.375rem 0.75rem;
-        border-radius: 0.375rem;
-        font-size: 0.813rem;
-        font-weight: 500;
-    }
-
-    .criticality-badge.must_have {
-        background: rgba(239, 68, 68, 0.15);
-        color: #ef4444;
-    }
-
-    .criticality-badge.important {
-        background: rgba(245, 158, 11, 0.15);
-        color: #f59e0b;
-    }
-
-    .criticality-badge.nice_to_have {
-        background: rgba(59, 130, 246, 0.15);
-        color: #3b82f6;
-    }
-
-    .empty-skills-state {
-        text-align: center;
-        padding: 2rem;
-        color: var(--text-secondary);
-    }
-
-    .empty-skills-state i {
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
-        opacity: 0.5;
-    }
-
-    .empty-skills-state p {
-        margin: 0;
-        font-size: 0.875rem;
-    }
-
-
-    /* Sidebar - Mobile First */
-    .job-sidebar {
-        position: static;
-        width: 100%;
-        height: auto;
-    }
-
-    .sidebar-card {
-        background: var(--card-bg);
-        border-radius: var(--radius-lg);
-        box-shadow: var(--card-shadow);
-        border: 1px solid var(--border-color);
-        margin-bottom: 1rem;
-        overflow: hidden;
-        transition: var(--transition);
-    }
-
-    .card-header {
-        padding: 1rem;
-        border-bottom: 1px solid var(--border-color);
-        background: var(--hover-bg);
-    }
-
-    .card-header h3 {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin: 0;
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--text-color);
-    }
-
-    .card-header h3 i {
-        color: var(--primary-color);
-    }
-
-    .card-body {
-        padding: 1rem;
-    }
-
-    /* Match Score - Mobile Optimized */
-    .match-score-indicator {
-        display: flex;
-        justify-content: center;
-        margin: 1rem 0;
-    }
-
-    .score-circle {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        background: var(--hover-bg);
-        border: 6px solid var(--border-color);
-        transition: var(--transition);
-    }
-
-    .score-circle.excellent {
-        background: rgba(46, 204, 113, 0.15);
-        border-color: var(--success-color);
-    }
-
-    .score-circle.good {
-        background: var(--success-light);
-        border-color: var(--success-color);
-    }
-
-    .score-circle.moderate {
-        background: rgba(255, 193, 7, 0.15);
-        border-color: var(--warning-color);
-    }
-
-    .score-circle.low {
-        background: rgba(231, 76, 60, 0.15);
-        border-color: var(--danger-color);
-    }
-
-    .score-number {
-        font-size: 1.5rem;
-        font-weight: 700;
-        line-height: 1;
-        color: var(--text-color);
-    }
-
-    .score-label {
-        font-size: 0.8rem;
-        opacity: 0.8;
-        margin-top: 0.25rem;
-        color: var(--text-light);
-    }
-
-    .skills-match, .skills-missing {
-        margin-top: 1rem;
-    }
-
-    .skills-match h4, .skills-missing h4 {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.9rem;
-        margin-bottom: 0.75rem;
-        color: var(--text-color);
-        flex-wrap: wrap;
-    }
-
-    .skills-match h4 i {
-        color: var(--success-color);
-    }
-
-    .skills-missing h4 i {
-        color: var(--danger-color);
-    }
-
-    /* Similar Jobs - Mobile Optimized */
-    .similar-jobs-list {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .similar-job-item {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-        padding: 0.75rem;
-        border-radius: var(--radius-md);
-        background: var(--hover-bg);
-        transition: var(--transition);
-        text-decoration: none;
-        border: 1px solid var(--border-color);
-    }
-
-    .similar-job-item:hover {
-        background: var(--primary-light);
-        border-color: var(--primary-color);
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-lg);
-    }
-
-    .similar-job-info {
-        flex: 1;
-        min-width: 0;
-    }
-
-    .similar-job-info h4 {
-        margin: 0 0 0.5rem;
-        font-size: 0.9rem;
-        color: var(--text-color);
-        font-weight: 600;
-        word-break: break-word;
-    }
-
-    .similar-job-item .job-meta {
-        flex-direction: row;
-        gap: 1rem;
-        font-size: 0.75rem;
-        color: var(--text-light);
-        align-items: flex-start;
-    }
-
-    .similar-job-item .job-meta span {
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-    }
-
-    .similar-job-item i.bx-right-arrow-alt {
-        color: var(--primary-color);
-        font-size: 1.25rem;
-        opacity: 0.7;
-        transition: var(--transition);
-        align-self: center;
-        transform: rotate(90deg);
-    }
-
-    .similar-job-item:hover i.bx-right-arrow-alt {
-        transform: rotate(90deg) translateY(-3px);
-    }
-
-    /* Enhanced Notification Area */
-    .notification-area {
-        position: fixed;
-        top: 80px;
-        right: var(--spacing);
-        left: var(--spacing);
-        z-index: var(--z-tooltip);
-        display: flex;
-        flex-direction: column;
-        gap: var(--spacing-sm);
-        pointer-events: none;
-        max-width: 500px;
-        margin: 0 auto;
-    }
-
-    .notification {
-        display: flex;
-        align-items: flex-start;
-        padding: var(--spacing) var(--spacing-lg);
-        border-radius: var(--radius-lg);
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        box-shadow: var(--shadow-lg);
-        animation: slideInFromTop 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        pointer-events: auto;
-        position: relative;
-        backdrop-filter: blur(10px);
-    }
-
-    @keyframes slideInFromTop {
-        from {
-            transform: translateY(-100px) scale(0.95);
-            opacity: 0;
-        }
-        to {
-            transform: translateY(0) scale(1);
-            opacity: 1;
-        }
-    }
-
-    @keyframes slideOutToTop {
-        from {
-            transform: translateY(0) scale(1);
-            opacity: 1;
-        }
-        to {
-            transform: translateY(-100px) scale(0.95);
-            opacity: 0;
-        }
-    }
-
-    .notification.removing {
-        animation: slideOutToTop 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-    }
-
-    .notification i {
-        font-size: 1.1rem;
-        margin-right: 0.5rem;
-        margin-top: 0.125rem;
-        min-width: 1.1rem;
-    }
-
-    .notification span {
-        flex: 1;
-        font-size: 0.85rem;
-        color: var(--text-color);
-        line-height: 1.4;
-    }
-
-    .notification.success {
-        border-left: 4px solid var(--success-color);
-    }
-
-    .notification.success i {
-        color: var(--success-color);
-    }
-
-    .notification.error {
-        border-left: 4px solid var(--danger-color);
-    }
-
-    .notification.error i {
-        color: var(--danger-color);
-    }
-
-    .notification.warning {
-        border-left: 4px solid var(--warning-color);
-    }
-
-    .notification.warning i {
-        color: var(--warning-color);
-    }
-
-    .notification.info {
-        border-left: 4px solid var(--info-color);
-    }
-
-    .notification.info i {
-        color: var(--info-color);
-    }
-
-    .close-btn {
-        background: transparent;
-        border: none;
-        color: var(--text-light);
-        cursor: pointer;
-        font-size: 1rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 1.75rem;
-        height: 1.75rem;
-        border-radius: 50%;
-        transition: var(--transition);
-        margin-left: 0.5rem;
-        min-width: 1.75rem;
-    }
-
-    .close-btn:hover {
-        background: var(--hover-bg);
-        color: var(--text-color);
-    }
-
-    /* Modal Styles - Mobile Optimized */
-    .modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 1000;
-        align-items: flex-start;
-        justify-content: center;
-        padding: 1rem;
-        overflow-y: auto;
-    }
-
-    .modal-content {
-        background: var(--card-bg);
-        border-radius: var(--radius-lg);
-        width: 100%;
-        max-width: 100%;
-        max-height: calc(100vh - 2rem);
-        overflow-y: auto;
-        box-shadow: var(--shadow-lg);
-        animation: modal-in 0.3s ease;
-        margin-top: 1rem;
-    }
-
-    .modal-sm {
-        max-width: 100%;
-    }
-
-    @keyframes modal-in {
-        from {
-            opacity: 0;
-            transform: scale(0.95);
-        }
-        to {
-            opacity: 1;
-            transform: scale(1);
-        }
-    }
-
-    .modal-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1rem;
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .modal-header h2 {
-        margin: 0;
-        font-size: 1.1rem;
-        color: var(--text-color);
-        word-break: break-word;
-        flex: 1;
-        padding-right: 1rem;
-    }
-
-    .close-modal {
-        background: none;
-        border: none;
-        font-size: 1.25rem;
-        cursor: pointer;
-        color: var(--text-light);
-        transition: var(--transition);
-        padding: 0.25rem;
-        border-radius: var(--radius-sm);
-        min-width: 2rem;
-        height: 2rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .close-modal:hover {
-        background: var(--hover-bg);
-        color: var(--text-color);
-    }
-
-    .modal-body {
-        padding: 1rem;
-    }
-
-    .modal-footer {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-        padding: 1rem;
-        border-top: 1px solid var(--border-color);
-        background: var(--hover-bg);
-    }
-
-    .modal-footer .btn {
-        width: 100%;
-        justify-content: center;
-        margin: 0;
-    }
-
-    /* Form Elements - Mobile Optimized */
-    .form-group {
-        margin-bottom: 1.25rem;
-    }
-
-    .form-group label {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-weight: 500;
-        color: var(--text-color);
-        font-size: 0.9rem;
-    }
-
-    textarea, input[type="text"], input[type="file"] {
-        width: 100%;
-        padding: 0.75rem;
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-md);
-        background: var(--card-bg);
-        color: var(--text-color);
-        font-family: inherit;
-        font-size: 0.9rem;
-        resize: vertical;
-        transition: var(--transition);
-        box-sizing: border-box;
-    }
-
-    textarea {
-        min-height: 120px;
-    }
-
-    textarea:focus, input[type="text"]:focus {
-        border-color: var(--primary-color);
-        outline: none;
-        box-shadow: 0 0 0 3px var(--primary-light);
-    }
-
-    .form-text {
-        display: block;
-        margin-top: 0.25rem;
-        font-size: 0.8rem;
-        color: var(--text-light);
-    }
-
-    .file-upload-container {
-        position: relative;
-    }
-
-    input[type="file"] {
-        position: absolute;
-        top: 0;
-        left: 0;
-        opacity: 0;
-        width: 100%;
-        height: 100%;
-        cursor: pointer;
-    }
-
-    .file-upload-label {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        padding: 1rem;
-        border: 2px dashed var(--border-color);
-        border-radius: var(--radius-md);
-        background: var(--hover-bg);
-        cursor: pointer;
-        text-align: center;
-        transition: var(--transition);
-        color: var(--text-color);
-        font-size: 0.9rem;
-    }
-
-    .file-upload-label:hover {
-        border-color: var(--primary-color);
-        background: var(--primary-light);
-    }
-
-    /* Match Summary - Mobile Optimized */
-    .match-summary {
-        background: var(--hover-bg);
-        border-radius: var(--radius-md);
-        padding: 0.75rem;
-        margin-top: 1rem;
-        border: 1px solid var(--border-color);
-    }
-
-    .match-summary h4 {
-        margin: 0 0 0.75rem;
-        font-size: 0.9rem;
-        color: var(--text-color);
-    }
-
-    .summary-item {
-        display: flex;
-        align-items: flex-start;
-        gap: 0.5rem;
-        margin-bottom: 0.75rem;
-        font-size: 0.85rem;
-        color: var(--text-color);
-        line-height: 1.4;
-    }
-
-    .summary-item:last-child {
-        margin-bottom: 0;
-    }
-
-    .summary-item i {
-        color: var(--primary-color);
-        min-width: 1rem;
-        margin-top: 0.125rem;
-    }
-
-    /* Share Modal - Mobile Optimized */
-    .share-link-container {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        margin-bottom: 1rem;
-    }
-
-    .share-link-container input {
-        flex: 1;
-        padding: 0.75rem;
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-md);
-        background: var(--card-bg);
-        color: var(--text-color);
-        font-size: 0.85rem;
-    }
-
-    .share-link-container .btn {
-        width: 100%;
-        border-radius: var(--radius-md);
-    }
-
-    .social-share-buttons {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .social-share-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        padding: 0.875rem;
-        border-radius: var(--radius-md);
-        background: var(--hover-bg);
-        color: var(--text-color);
-        text-decoration: none;
-        font-weight: 500;
-        transition: var(--transition);
-        border: 1px solid var(--border-color);
-        font-size: 0.9rem;
-    }
-
-    .social-share-btn:hover {
-        transform: translateY(-1px);
-        box-shadow: var(--shadow);
-    }
-
-    .social-share-btn.linkedin {
-        background: var(--info-color);
-        color: var(--white);
-        border-color: var(--info-color);
-    }
-
-    .social-share-btn.twitter {
-        background: var(--primary-color);
-        color: var(--white);
-        border-color: var(--primary-color);
-    }
-
-    .social-share-btn.email {
-        background: var(--primary-light);
-        color: var(--primary-color);
-        border-color: var(--primary-color);
-    }
-
-    /* Desktop Styles - Progressive Enhancement */
-    @media (min-width: 640px) {
-
-        .breadcrumb {
-            font-size: 0.875rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .breadcrumb-separator {
-            margin: 0 0.5rem;
-        }
-
-        .job-header-card {
-            padding: 1.5rem;
-        }
-
-        .job-header-content {
-            flex-direction: row;
-            align-items: flex-start;
-            text-align: left;
-        }
-
-        .company-logo {
-            width: 70px;
-            height: 70px;
-            min-width: 70px;
-        }
-
-        .job-title {
-            font-size: 1.5rem;
-            text-align: left;
-        }
-
-        .job-meta {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            align-items: start;
-        }
-
-        .job-meta-item {
-            justify-content: flex-start;
-            font-size: 0.9rem;
-        }
-
-        .job-actions {
-            flex-direction: row;
-            gap: 1rem;
-        }
-
-        .btn {
-            width: auto;
-            min-width: 140px;
-        }
-
-        .section-header {
-            padding: 1.25rem;
-        }
-
-        .section-content {
-            padding: 1.25rem;
-        }
-
-        .section-title {
-            font-size: 1.1rem;
-        }
-
-        .job-description {
-            font-size: 1rem;
-        }
-
-        .score-circle {
-            width: 110px;
-            height: 110px;
-            border-width: 7px;
-        }
-
-        .score-number {
-            font-size: 1.75rem;
-        }
-
-        .score-label {
-            font-size: 0.85rem;
-        }
-
-        .similar-job-item {
-            flex-direction: row;
-            align-items: center;
-            padding: 1rem;
-        }
-
-        .similar-job-item .job-meta {
-            flex-direction: row;
-            gap: 1rem;
-        }
-
-        .similar-job-item i.bx-right-arrow-alt {
-            transform: rotate(0deg);
-            align-self: center;
-        }
-
-        .similar-job-item:hover i.bx-right-arrow-alt {
-            transform: translateX(3px);
-        }
-
-        .modal-content {
-            max-width: 500px;
-            margin-top: 2rem;
-        }
-
-        .modal-header {
-            padding: 1.25rem;
-        }
-
-        .modal-body {
-            padding: 1.25rem;
-        }
-
-        .modal-footer {
-            flex-direction: row;
-            justify-content: flex-end;
-            padding: 1rem 1.25rem;
-        }
-
-        .modal-footer .btn {
-            width: auto;
-            min-width: 120px;
-        }
-
-        .share-link-container {
-            flex-direction: row;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            overflow: hidden;
-        }
-
-        .share-link-container input {
-            border: none;
-            border-radius: 0;
-        }
-
-        .share-link-container .btn {
-            border-radius: 0;
-            width: auto;
-        }
-
-        .social-share-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.75rem;
-        }
-
-        .social-share-btn.email {
-            grid-column: span 2;
-        }
-    }
-
-    @media (min-width: 768px) {
-        .job-main-content {
-            gap: 1.5rem;
-        }
-
-        .job-header-card {
-            padding: 2rem;
-        }
-
-        .company-logo {
-            width: 80px;
-            height: 80px;
-            min-width: 80px;
-        }
-
-        .job-title {
-            font-size: 1.75rem;
-        }
-
-        .btn-lg {
-            padding: 1rem 1.5rem;
-            font-size: 1rem;
-        }
-
-        .section-header {
-            padding: 1.5rem;
-        }
-
-        .section-content {
-            padding: 1.5rem;
-        }
-
-        .section-title {
-            font-size: 1.25rem;
-        }
-
-        .card-body {
-            padding: 1.25rem;
-        }
-
-        .score-circle {
-            width: 120px;
-            height: 120px;
-            border-width: 8px;
-        }
-
-        .score-number {
-            font-size: 2rem;
-        }
-
-        .score-label {
-            font-size: 0.9rem;
-        }
-
-        .modal-content {
-            max-width: 600px;
-        }
-
-        .social-share-btn.email {
-            grid-column: span 2;
-        }
-    }
-
-    @media (min-width: 1024px) {
-        .job-main-content {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 2rem;
-        }
-
-        .job-sidebar {
-            position: sticky;
-            top: 2rem;
-            align-self: start;
-            height: fit-content;
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .job-main-content {
-            grid-template-columns: 1fr 350px;
-        }
-    }
-
-    /* Accessibility improvements */
-    @media (prefers-reduced-motion: reduce) {
-        * {
-            transition: none !important;
-            animation: none !important;
-        }
-    }
-
-    /* High contrast mode support */
-    @media (prefers-contrast: high) {
-        .btn-outline {
-            border-width: 2px;
-        }
-
-        .skill-tag {
-            border-width: 2px;
-        }
-
-        .notification {
-            border-width: 2px;
-        }
-    }
-
-    /* Focus styles for better accessibility */
-    .btn:focus,
-    input:focus,
-    textarea:focus,
-    select:focus {
-        outline: 2px solid var(--primary-color);
-        outline-offset: 2px;
-    }
-
-    /* Loading states */
-    .btn:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: none;
-    }
-
-    .btn:disabled:hover {
-        transform: none;
-        box-shadow: none;
-    }
-
-    /* Print styles */
-    @media print {
-        .job-sidebar,
-        .job-actions,
-        .modal {
-            display: none !important;
-        }
-
-        .job-main-content {
-            display: block;
-        }
-
-        .content-section {
-            box-shadow: none;
-            border: 1px solid var(--border-color);
-            margin-bottom: 1rem;
-        }
-
-        .job-header-card {
-            border: 2px solid var(--text-color);
-        }
-    }
-
-    /* Touch improvements for mobile */
-    @media (pointer: coarse) {
-        .btn {
-            min-height: 44px;
-        }
-
-        .close-btn,
-        .close-modal {
-            min-height: 44px;
-            min-width: 44px;
-        }
-
-        .similar-job-item {
-            min-height: 60px;
-        }
-    }
-
-    /* NEW: Skill Gap Analysis Styles */
-    .skill-gap-section {
-        background: linear-gradient(135deg, rgba(73, 103, 229, 0.1), rgba(99, 102, 241, 0.1));
-        border: 2px solid var(--primary-color);
-        color: var(--text-color);
-    }
-
-    .skill-gap-section .section-header {
-        border-bottom-color: var(--border-color);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .skill-gap-section .section-title {
-        color: var(--text-color);
-    }
-
-    .match-badge {
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 0.9rem;
-    }
-
-    .match-badge.excellent {
-        background: #27ae60;
-        color: #fff;
-    }
-
-    .match-badge.good {
-        background: #3498db;
-        color: #fff;
-    }
-
-    .match-badge.low {
-        background: #e74c3c;
-        color: #fff;
-    }
-
-    .skill-category-box {
-        background: #fff;
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        color: #2c3e50;
-    }
-
-    .skill-category-box h3 {
-        font-size: 1.2rem;
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .verified-box {
-        border-left: 4px solid #27ae60;
-    }
-
-    .partial-box {
-        border-left: 4px solid #f39c12;
-    }
-
-    .missing-box {
-        border-left: 4px solid #e74c3c;
-    }
-
-    .skills-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 1rem;
-    }
-
-    .skill-requirement-card {
-        background: #f8f9fa;
-        border-radius: 8px;
-        padding: 1rem;
-        border: 2px solid #ecf0f1;
-    }
-
-    .skill-requirement-card.verified {
-        border-color: #27ae60;
-        background: #e8f5e9;
-    }
-
-    .skill-requirement-card.partial {
-        border-color: #f39c12;
-        background: #fff9e6;
-    }
-
-    .skill-requirement-card.missing {
-        border-color: #e74c3c;
-        background: #ffebee;
-    }
-
-    .skill-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
-    }
-
-    .skill-header strong {
-        font-size: 1.1rem;
-        color: #2c3e50;
-    }
-
-    .criticality-badge {
-        padding: 0.3rem 0.8rem;
-        border-radius: 12px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-    }
-
-    .criticality-badge.must {
-        background: #e74c3c;
-        color: #fff;
-    }
-
-    .criticality-badge.important {
-        background: #f39c12;
-        color: #fff;
-    }
-
-    .criticality-badge.nice {
-        background: #3498db;
-        color: #fff;
-    }
-
-    .skill-levels {
-        display: flex;
-        flex-direction: column;
-        gap: 0.8rem;
-        margin-bottom: 1rem;
-    }
-
-    .level-bar {
-        display: flex;
-        flex-direction: column;
-        gap: 0.3rem;
-    }
-
-    .level-label {
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #7f8c8d;
-    }
-
-    .level-progress {
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-    }
-
-    .progress-bar-bg {
-        flex: 1;
-        height: 10px;
-        background: #ecf0f1;
-        border-radius: 5px;
-        overflow: hidden;
-    }
-
-    .progress-bar-fill {
-        height: 100%;
-        border-radius: 5px;
-        transition: width 0.3s ease;
-    }
-
-    .progress-bar-fill.required {
-        background: linear-gradient(90deg, #e74c3c, #c0392b);
-    }
-
-    .progress-bar-fill.current {
-        background: linear-gradient(90deg, #3498db, #27ae60);
-    }
-
-    .level-value {
-        font-weight: 600;
-        color: #2c3e50;
-        min-width: 60px;
-    }
-
-    .level-value.verified-badge {
-        color: #27ae60;
-    }
-
-    .level-value.not-verified {
-        color: #e74c3c;
-        font-size: 0.85rem;
-    }
-
-    .skill-status {
-        padding: 0.5rem;
-        border-radius: 6px;
-        text-align: center;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.3rem;
-    }
-
-    .skill-status.qualified {
-        background: #27ae60;
-        color: #fff;
-    }
-
-    .skill-gap-info {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .gap-amount {
-        font-weight: 600;
-        color: #e74c3c;
-    }
-
-    .action-banner {
-        background: #fff;
-        border-radius: 12px;
-        padding: 1.5rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border: 2px solid #3498db;
-    }
-
-    .banner-content {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .banner-content i {
-        font-size: 2rem;
-        color: #3498db;
-    }
-
-    .banner-content strong {
-        display: block;
-        margin-bottom: 0.3rem;
-        color: #2c3e50;
-    }
-
-    .banner-content p {
-        margin: 0;
-        color: #7f8c8d;
-    }
-
-    @media (max-width: 768px) {
-        .skills-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .action-banner {
-            flex-direction: column;
-            gap: 1rem;
-            text-align: center;
-        }
-    }
-</style>
+<!-- JAVASCRIPT -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Modal functionality
-    const applyBtn = document.getElementById('applyBtn');
-    const shareBtn = document.querySelector('.share-btn');
-    const applicationModal = document.getElementById('applicationModal');
-    const shareModal = document.getElementById('shareModal');
-    const closeModalBtns = document.querySelectorAll('.close-modal');
-    
-    // Open application modal
-    if (applyBtn) {
-        applyBtn.addEventListener('click', function() {
-            applicationModal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        });
-    }
-    
-    // Open share modal
-    if (shareBtn) {
-        shareBtn.addEventListener('click', function() {
-            shareModal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        });
-    }
-    
-    // Close any modal
-    closeModalBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            applicationModal.style.display = 'none';
-            shareModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-        });
+    function openModal(el) { el.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+    function closeModal(el) { el.style.display = 'none'; document.body.style.overflow = ''; }
+
+    const applyModal = document.getElementById('jdApplyModal');
+    const shareModal = document.getElementById('jdShareModal');
+
+    document.getElementById('jdApplyBtn')?.addEventListener('click', () => openModal(applyModal));
+    document.getElementById('jdShareBtn')?.addEventListener('click', () => openModal(shareModal));
+
+    document.querySelectorAll('[data-close]').forEach(b => {
+        b.addEventListener('click', () => { closeModal(applyModal); closeModal(shareModal); });
     });
-    
-    // Close modal when clicking outside
-    window.addEventListener('click', function(event) {
-        if (event.target === applicationModal) {
-            applicationModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }
-        if (event.target === shareModal) {
-            shareModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }
+    [applyModal, shareModal].forEach(m => {
+        m?.addEventListener('click', e => { if (e.target === m) closeModal(m); });
     });
-    
-    // File upload functionality
-    const resumeInput = document.getElementById('resume');
-    const fileNameDisplay = document.getElementById('file-name');
-    
-    if (resumeInput && fileNameDisplay) {
-        resumeInput.addEventListener('change', function() {
-            if (this.files.length > 0) {
-                fileNameDisplay.textContent = this.files[0].name;
-            } else {
-                fileNameDisplay.textContent = 'Upload Resume (PDF, DOC, DOCX)';
-            }
-        });
-    }
-    
-    // Copy share link functionality
-    const copyShareLinkBtn = document.getElementById('copyShareLink');
-    const shareLinkInput = document.getElementById('shareLink');
-    
-    if (copyShareLinkBtn && shareLinkInput) {
-        copyShareLinkBtn.addEventListener('click', function() {
-            shareLinkInput.select();
-            document.execCommand('copy');
-            
-            // Change button text temporarily
-            const originalText = this.innerHTML;
-            this.innerHTML = '<i class="bx bx-check"></i> Copied!';
-            
-            setTimeout(() => {
-                this.innerHTML = originalText;
-            }, 2000);
-        });
-    }
-    
-    // Bookmark functionality
-    const bookmarkBtn = document.getElementById('bookmarkBtn');
-    
-    if (bookmarkBtn) {
-        bookmarkBtn.addEventListener('click', function() {
-            const jobId = this.getAttribute('data-job-id');
-            const isBookmarked = this.classList.contains('bookmarked');
-            
-            // Send AJAX request to bookmark/unbookmark
-            fetch(`/jobs/bookmark/${jobId}/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: JSON.stringify({
-                    action: isBookmarked ? 'unbookmark' : 'bookmark'
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    // Toggle bookmark status
-                    if (isBookmarked) {
-                        bookmarkBtn.classList.remove('bookmarked');
-                        bookmarkBtn.innerHTML = '<i class="bx bx-bookmark"></i> <span>Bookmark</span>';
-                    } else {
-                        bookmarkBtn.classList.add('bookmarked');
-                        bookmarkBtn.innerHTML = '<i class="bx bxs-bookmark"></i> <span>Bookmarked</span>';
-                    }
-                    
-                    // Show notification
-                    showNotification(data.message, 'success');
-                } else {
-                    // Show error notification
-                    showNotification(data.message || 'An error occurred', 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showNotification('An error occurred while processing your request', 'error');
-            });
-        });
-    }
-    
-    // Notification handling
-    function showNotification(message, type = 'info') {
-        const notificationArea = document.querySelector('.notification-area');
-        
-        if (!notificationArea) {
-            // Create notification area if it doesn't exist
-            const mainContent = document.querySelector('.main-content');
-            const newNotificationArea = document.createElement('div');
-            newNotificationArea.className = 'notification-area';
-            mainContent.insertBefore(newNotificationArea, mainContent.firstChild);
-            
-            showNotification(message, type);
-            return;
-        }
-        
-        // Create notification element
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        
-        // Choose icon based on notification type
-        let iconClass = 'bx-info-circle';
-        if (type === 'success') iconClass = 'bx-check-circle';
-        else if (type === 'error') iconClass = 'bx-error';
-        else if (type === 'warning') iconClass = 'bx-error-circle';
-        
-        notification.innerHTML = `
-            <i class="bx ${iconClass}"></i>
-            <span>${message}</span>
-            <button class="close-btn"><i class="bx bx-x"></i></button>
-        `;
-        
-        notificationArea.appendChild(notification);
-        
-        // Add event listener for close button
-        const closeBtn = notification.querySelector('.close-btn');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', function() {
-                removeNotification(notification);
-            });
-        }
 
-        // Auto remove after 5 seconds
-        setTimeout(() => {
-            if (notification.parentNode) {
-                removeNotification(notification);
-            }
-        }, 5000);
-    }
+    document.getElementById('jdCopyLink')?.addEventListener('click', function() {
+        const inp = document.getElementById('jdShareLink');
+        inp.select(); document.execCommand('copy');
+        this.innerHTML = '<i class="bx bx-check"></i> Copied!';
+        setTimeout(() => { this.innerHTML = '<i class="bx bx-copy"></i> Copy'; }, 2000);
+    });
 
-    // Enhanced notification removal with animation
-    function removeNotification(notification) {
-        if (!notification || !notification.parentNode) return;
-
-        notification.classList.add('removing');
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.remove();
+    const bmBtn = document.getElementById('jdBookmarkBtn');
+    bmBtn?.addEventListener('click', function() {
+        const jobId = this.dataset.jobId;
+        const isBookmarked = this.classList.contains('jd-btn-primary');
+        fetch('/jobs/bookmark/' + jobId + '/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify({ action: isBookmarked ? 'unbookmark' : 'bookmark' })
+        })
+        .then(r => r.json())
+        .then(d => {
+            if (d.status === 'success') {
+                this.classList.toggle('jd-btn-primary');
+                const icon = this.querySelector('i');
+                if (isBookmarked) { icon.className = 'bx bx-bookmark'; this.lastChild.textContent = ' Save'; }
+                else { icon.className = 'bx bxs-bookmark'; this.lastChild.textContent = ' Saved'; }
             }
-        }, 300);
-    }
-    
-    // Get CSRF token from cookies
+        }).catch(() => {});
+    });
+
+    document.getElementById('jdApplyForm')?.addEventListener('submit', function(e) {
+        const btn = document.querySelector('[form="jdApplyForm"][type="submit"]');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Submitting...';
+    });
+
     function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
+        const cookies = document.cookie.split(';');
+        for (let c of cookies) {
+            c = c.trim();
+            if (c.startsWith(name + '=')) return decodeURIComponent(c.substring(name.length + 1));
         }
-        return cookieValue;
+        return null;
     }
-    
-    // Form validation for application submission
-    const applicationForm = document.getElementById('applicationForm');
-    
-    if (applicationForm) {
-        applicationForm.addEventListener('submit', function(event) {
-            const coverLetter = document.getElementById('cover_letter').value.trim();
-            const resume = document.getElementById('resume').files;
-            
-            let isValid = true;
-            
-            // Validate cover letter
-            if (!coverLetter) {
-                showNotification('Please provide a cover letter', 'error');
-                isValid = false;
-            }
-            
-            // Validate resume
-            if (resume.length === 0) {
-                showNotification('Please upload your resume', 'error');
-                isValid = false;
-            } else {
-                // Check file size (max 5MB)
-                const fileSize = resume[0].size / 1024 / 1024; // in MB
-                if (fileSize > 5) {
-                    showNotification('Resume file size should not exceed 5MB', 'error');
-                    isValid = false;
-                }
-                
-                // Check file type
-                const fileType = resume[0].name.split('.').pop().toLowerCase();
-                if (!['pdf', 'doc', 'docx'].includes(fileType)) {
-                    showNotification('Please upload resume in PDF, DOC, or DOCX format', 'error');
-                    isValid = false;
-                }
-            }
-            
-            if (!isValid) {
-                event.preventDefault();
-            } else {
-                // Show loading state
-                const submitBtn = applicationForm.querySelector('button[type="submit"]');
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Submitting...';
-            }
-        });
-    }
-    
-    // Close notifications already on page
-    document.querySelectorAll('.notification .close-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const notification = this.parentNode;
-            removeNotification(notification);
-        });
-    });
 });
 </script>
 {% endblock %}

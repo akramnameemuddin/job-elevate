@@ -1,0 +1,433 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}AI Resume Review – {{ job.title }}{% endblock %}
+
+{% block content %}
+<style>
+/* ══════════════════════════════════════════════
+   AI Resume Review Page  (ar- namespace)
+   ══════════════════════════════════════════════ */
+
+/* ── Stats row ── */
+.ar-stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 1rem; margin-bottom: 1.75rem;
+}
+.ar-stat {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 12px; padding: 1rem 1.25rem;
+    display: flex; align-items: center; gap: .85rem;
+}
+.ar-stat-icon {
+    width: 42px; height: 42px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; flex-shrink: 0;
+}
+.ar-stat-icon.before { background: rgba(239,68,68,.12); color: #ef4444; }
+.ar-stat-icon.after  { background: rgba(34,197,94,.12); color: #22c55e; }
+.ar-stat-icon.total  { background: rgba(79,70,229,.12); color: var(--primary-color); }
+.ar-stat-icon.high   { background: rgba(239,68,68,.12); color: #ef4444; }
+.ar-stat h4 { font-size: .78rem; color: var(--text-muted); margin: 0 0 .15rem; text-transform: uppercase; letter-spacing: .4px; }
+.ar-stat .val { font-size: 1.35rem; font-weight: 700; color: var(--heading-color); }
+
+/* ── Two-column layout ── */
+.ar-body { display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem; }
+@media(max-width:900px){ .ar-body { grid-template-columns: 1fr; } }
+
+/* ── Suggestion cards ── */
+.ar-section-title {
+    font-size: 1rem; font-weight: 600; color: var(--heading-color);
+    margin-bottom: .75rem; display: flex; align-items: center; gap: .5rem;
+}
+.ar-section-title .badge {
+    font-size: .7rem; padding: .15rem .55rem; border-radius: 20px;
+    font-weight: 600; color: #fff;
+}
+.badge-high   { background: #ef4444; }
+.badge-medium { background: #f59e0b; }
+.badge-low    { background: #6b7280; }
+
+.ar-sug-list { display: flex; flex-direction: column; gap: .85rem; }
+
+.ar-sug {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 12px; padding: 1rem 1.15rem;
+    transition: all .2s; position: relative;
+}
+.ar-sug:hover { border-color: var(--primary-color); }
+.ar-sug.accepted { border-left: 4px solid #22c55e; }
+.ar-sug.rejected { border-left: 4px solid #ef4444; opacity: .55; }
+
+.ar-sug-top { display: flex; align-items: flex-start; justify-content: space-between; gap: .5rem; margin-bottom: .5rem; }
+.ar-sug-badges { display: flex; gap: .35rem; flex-wrap: wrap; }
+.ar-sug-badges .tag {
+    font-size: .68rem; padding: .12rem .5rem; border-radius: 6px;
+    font-weight: 600; text-transform: uppercase; letter-spacing: .3px;
+}
+.tag-section { background: rgba(79,70,229,.1); color: var(--primary-color); }
+.tag-add     { background: rgba(34,197,94,.1); color: #16a34a; }
+.tag-improve { background: rgba(245,158,11,.1); color: #d97706; }
+.tag-reorder { background: rgba(59,130,246,.1); color: #2563eb; }
+.tag-remove  { background: rgba(239,68,68,.1); color: #ef4444; }
+
+.ar-sug-actions { display: flex; gap: .3rem; flex-shrink: 0; }
+.ar-sug-actions button {
+    width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border-color);
+    background: var(--card-bg); cursor: pointer; display: flex;
+    align-items: center; justify-content: center; font-size: 1rem;
+    transition: all .15s; color: var(--text-muted);
+}
+.ar-sug-actions button:hover { transform: scale(1.1); }
+.ar-sug-actions .btn-accept:hover, .ar-sug-actions .btn-accept.active { background: #dcfce7; color: #16a34a; border-color: #16a34a; }
+.ar-sug-actions .btn-reject:hover, .ar-sug-actions .btn-reject.active { background: #fee2e2; color: #ef4444; border-color: #ef4444; }
+
+.ar-sug-body { font-size: .88rem; color: var(--text-muted); line-height: 1.55; }
+.ar-sug-body .current { color: #ef4444; text-decoration: line-through; margin-bottom: .3rem; font-size: .82rem; }
+.ar-sug-body .suggested { color: var(--heading-color); font-weight: 500; margin-bottom: .3rem; }
+.ar-sug-body .reason { font-style: italic; font-size: .8rem; color: var(--text-muted); }
+
+/* ── Sidebar ── */
+.ar-sidebar { display: flex; flex-direction: column; gap: 1.25rem; }
+
+.ar-side-card {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 12px; padding: 1.15rem 1.25rem;
+}
+.ar-side-card h3 {
+    font-size: .9rem; font-weight: 600; color: var(--heading-color);
+    margin: 0 0 .75rem; display: flex; align-items: center; gap: .4rem;
+}
+
+/* Keyword pills */
+.ar-kw-list { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .5rem; }
+.ar-kw {
+    font-size: .72rem; padding: .2rem .55rem; border-radius: 6px;
+    font-weight: 500;
+}
+.ar-kw.matched { background: rgba(34,197,94,.12); color: #16a34a; }
+.ar-kw.missing { background: rgba(239,68,68,.12); color: #ef4444; }
+
+/* Match donut (small) */
+.ar-donut-wrap { display: flex; align-items: center; gap: 1rem; margin-bottom: .5rem; }
+.ar-donut-wrap svg { flex-shrink: 0; }
+.ar-donut-label { font-size: .82rem; color: var(--text-muted); }
+.ar-donut-label strong { font-size: 1.3rem; color: var(--heading-color); display: block; }
+
+/* Accepted counter */
+.ar-counter {
+    font-size: .85rem; color: var(--text-muted);
+    display: flex; justify-content: space-between; padding: .3rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+.ar-counter:last-child { border-bottom: none; }
+.ar-counter .cval { font-weight: 600; color: var(--heading-color); }
+
+/* ── Final actions bar ── */
+.ar-final-bar {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 12px; padding: 1rem 1.25rem;
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 1.5rem; flex-wrap: wrap; gap: .75rem;
+}
+.ar-final-bar .info { font-size: .88rem; color: var(--text-muted); }
+.ar-final-bar .info strong { color: var(--heading-color); }
+.ar-final-btns { display: flex; gap: .5rem; }
+
+/* ── Applied state banner ── */
+.ar-applied-banner {
+    background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.3);
+    border-radius: 12px; padding: 1.15rem 1.5rem;
+    display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;
+}
+.ar-applied-banner i { font-size: 1.8rem; color: #22c55e; }
+.ar-applied-banner .text h3 { font-size: 1.05rem; color: #16a34a; margin: 0 0 .15rem; font-weight: 600; }
+.ar-applied-banner .text p  { color: var(--text-muted); font-size: .85rem; margin: 0; }
+</style>
+
+<!-- Breadcrumb -->
+<div class="breadcrumb">
+    <div class="breadcrumb-item">
+        <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item">
+        <a href="{% url 'resume_builder:resume_builder' %}" class="breadcrumb-link">Resume Builder</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item">
+        <span>AI Review</span>
+    </div>
+</div>
+
+<!-- Page Header -->
+<div class="page-content-header">
+    <div>
+        <h1 class="page-title"><i class='bx bx-bot' style="color:var(--primary-color)"></i> AI Resume Agent</h1>
+        <p class="page-subtitle">Tailoring your resume for <strong>{{ job.title }}</strong> at <strong>{{ job.company }}</strong></p>
+    </div>
+    <div style="display:flex; gap:.5rem; flex-shrink:0;">
+        <a href="{% url 'resume_builder:regenerate' tailored_id=tailored.id %}" class="btn btn-outline-secondary btn-sm"
+           onclick="return confirm('Re-run AI analysis? Current selections will be lost.')">
+            <i class='bx bx-refresh'></i> Re-analyse
+        </a>
+        <a href="{% url 'jobs:job_detail' job.id %}" class="btn btn-outline-secondary btn-sm">
+            <i class='bx bx-arrow-back'></i> Back to Job
+        </a>
+    </div>
+</div>
+
+    {% if tailored.status == 'applied' %}
+    <!-- Applied banner -->
+    <div class="ar-applied-banner">
+        <i class='bx bx-check-circle'></i>
+        <div class="text">
+            <h3>Suggestions Applied!</h3>
+            <p>Your match score improved from {{ tailored.match_score_before }}% to {{ tailored.match_score_after }}%. You can now download the tailored resume or apply to the job.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Stats row -->
+    <div class="ar-stats">
+        <div class="ar-stat">
+            <div class="ar-stat-icon before"><i class='bx bx-target-lock'></i></div>
+            <div>
+                <h4>Before Match</h4>
+                <div class="val">{{ tailored.match_score_before }}%</div>
+            </div>
+        </div>
+        {% if tailored.status == 'applied' %}
+        <div class="ar-stat">
+            <div class="ar-stat-icon after"><i class='bx bx-trophy'></i></div>
+            <div>
+                <h4>After Match</h4>
+                <div class="val">{{ tailored.match_score_after }}%</div>
+            </div>
+        </div>
+        {% endif %}
+        <div class="ar-stat">
+            <div class="ar-stat-icon total"><i class='bx bx-bulb'></i></div>
+            <div>
+                <h4>Suggestions</h4>
+                <div class="val">{{ counts.total }}</div>
+            </div>
+        </div>
+        <div class="ar-stat">
+            <div class="ar-stat-icon high"><i class='bx bx-error-circle'></i></div>
+            <div>
+                <h4>High Priority</h4>
+                <div class="val">{{ counts.high }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Two-column -->
+    <div class="ar-body">
+        <!-- Left: suggestions -->
+        <div class="ar-main">
+            {% if high_priority %}
+            <div class="ar-section-title">
+                <i class='bx bx-error-circle' style="color:#ef4444"></i>
+                High Priority
+                <span class="badge badge-high">{{ high_priority|length }}</span>
+            </div>
+            <div class="ar-sug-list" style="margin-bottom:1.5rem;">
+                {% for s in high_priority %}
+                {% include 'resume_builder/_suggestion_card.html' with sug=s %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if medium_priority %}
+            <div class="ar-section-title">
+                <i class='bx bx-info-circle' style="color:#f59e0b"></i>
+                Medium Priority
+                <span class="badge badge-medium">{{ medium_priority|length }}</span>
+            </div>
+            <div class="ar-sug-list" style="margin-bottom:1.5rem;">
+                {% for s in medium_priority %}
+                {% include 'resume_builder/_suggestion_card.html' with sug=s %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if low_priority %}
+            <div class="ar-section-title">
+                <i class='bx bx-dots-horizontal-rounded' style="color:#6b7280"></i>
+                Nice-to-Have
+                <span class="badge badge-low">{{ low_priority|length }}</span>
+            </div>
+            <div class="ar-sug-list" style="margin-bottom:1.5rem;">
+                {% for s in low_priority %}
+                {% include 'resume_builder/_suggestion_card.html' with sug=s %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if not suggestions %}
+            <div style="text-align:center; padding:3rem; color:var(--text-muted);">
+                <i class='bx bx-check-double' style="font-size:2.5rem; color:#22c55e;"></i>
+                <p>Your resume is already well-aligned with this job!</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right sidebar -->
+        <div class="ar-sidebar">
+            <!-- Keyword analysis -->
+            <div class="ar-side-card">
+                <h3><i class='bx bx-search-alt' style="color:var(--primary-color)"></i> Keyword Analysis</h3>
+                {% if tailored.keywords_matched %}
+                <p style="font-size:.78rem; color:var(--text-muted); margin-bottom:.35rem; font-weight:600;">MATCHED</p>
+                <div class="ar-kw-list">
+                    {% for kw in tailored.keywords_matched %}
+                    <span class="ar-kw matched">{{ kw }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% if tailored.keywords_missing %}
+                <p style="font-size:.78rem; color:var(--text-muted); margin-bottom:.35rem; margin-top:.5rem; font-weight:600;">MISSING</p>
+                <div class="ar-kw-list">
+                    {% for kw in tailored.keywords_missing %}
+                    <span class="ar-kw missing">{{ kw }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Progress -->
+            <div class="ar-side-card" id="progressCard">
+                <h3><i class='bx bx-bar-chart-alt-2' style="color:var(--primary-color)"></i> Review Progress</h3>
+                <div class="ar-counter">
+                    <span>Total Suggestions</span>
+                    <span class="cval" id="cntTotal">{{ counts.total }}</span>
+                </div>
+                <div class="ar-counter">
+                    <span>✅ Accepted</span>
+                    <span class="cval" id="cntAccepted" style="color:#16a34a;">{{ counts.accepted }}</span>
+                </div>
+                <div class="ar-counter">
+                    <span>❌ Rejected</span>
+                    <span class="cval" id="cntRejected" style="color:#ef4444;">{{ counts.rejected }}</span>
+                </div>
+                <div class="ar-counter">
+                    <span>⏳ Pending</span>
+                    <span class="cval" id="cntPending">{{ counts.pending }}</span>
+                </div>
+            </div>
+
+            <!-- Current resume snapshot -->
+            <div class="ar-side-card">
+                <h3><i class='bx bx-user' style="color:var(--primary-color)"></i> Your Profile Snapshot</h3>
+                {% if skills %}
+                <p style="font-size:.78rem; font-weight:600; color:var(--text-muted); margin-bottom:.3rem;">SKILLS</p>
+                <div class="ar-kw-list" style="margin-bottom:.6rem;">
+                    {% for s in skills|slice:":12" %}
+                    <span class="ar-kw matched">{{ s }}</span>
+                    {% endfor %}
+                    {% if skills|length > 12 %}
+                    <span class="ar-kw" style="background:var(--hover-bg); color:var(--text-muted);">+{{ skills|length|add:"-12" }} more</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+                {% if work_experience %}
+                <p style="font-size:.78rem; font-weight:600; color:var(--text-muted); margin-bottom:.3rem;">EXPERIENCE</p>
+                {% for w in work_experience|slice:":2" %}
+                <p style="font-size:.82rem; color:var(--heading-color); margin: .15rem 0;">{{ w.title }} – {{ w.company }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Final action bar -->
+    {% if tailored.status != 'applied' %}
+    <div class="ar-final-bar">
+        <div class="info">
+            <i class='bx bx-info-circle'></i>
+            Review each suggestion, then click <strong>Apply &amp; Finalize</strong> to generate your tailored resume.
+        </div>
+        <div class="ar-final-btns">
+            <form method="post" action="{% url 'resume_builder:accept_all' tailored_id=tailored.id %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-primary btn-sm"><i class='bx bx-check-double'></i> Accept All</button>
+            </form>
+            <form method="post" action="{% url 'resume_builder:apply_finalize' tailored_id=tailored.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary">
+                    <i class='bx bx-rocket'></i> Apply &amp; Finalize
+                </button>
+            </form>
+        </div>
+    </div>
+    {% else %}
+    <div class="ar-final-bar">
+        <div class="info">
+            Your tailored resume is ready! Match improved from <strong>{{ tailored.match_score_before }}%</strong> to <strong>{{ tailored.match_score_after }}%</strong>.
+        </div>
+        <div class="ar-final-btns">
+            <a href="{% url 'resume_builder:preview_tailored' tailored_id=tailored.id %}" class="btn btn-outline-primary btn-sm" target="_blank">
+                <i class='bx bx-show'></i> Preview
+            </a>
+            <a href="{% url 'resume_builder:download_tailored' tailored_id=tailored.id %}" class="btn btn-outline-secondary btn-sm">
+                <i class='bx bx-download'></i> Download PDF
+            </a>
+            <a href="{% url 'jobs:job_detail' job.id %}" class="btn btn-primary">
+                <i class='bx bx-send'></i> Go Apply
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+<!-- ── JavaScript for accept / reject toggling ── -->
+<script>
+const CSRF = '{{ csrf_token }}';
+const TAILORED_ID = {{ tailored.id }};
+
+async function toggleSuggestion(sugId, accepted) {
+    const card = document.querySelector(`[data-sug-id="${sugId}"]`);
+    if (!card) return;
+
+    // If already in that state, reset to pending
+    const currentState = card.dataset.state;
+    let newAccepted = accepted;
+    if (currentState === String(accepted)) {
+        newAccepted = null;
+    }
+
+    try {
+        const res = await fetch(`/resume_builder/ai/accept/${TAILORED_ID}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': CSRF,
+            },
+            body: JSON.stringify({ suggestion_id: sugId, accepted: newAccepted })
+        });
+        const data = await res.json();
+        if (data.ok) {
+            // Update card state
+            card.classList.remove('accepted', 'rejected');
+            if (newAccepted === true) { card.classList.add('accepted'); card.dataset.state = 'true'; }
+            else if (newAccepted === false) { card.classList.add('rejected'); card.dataset.state = 'false'; }
+            else { card.dataset.state = ''; }
+
+            // Update button active states
+            const btnAccept = card.querySelector('.btn-accept');
+            const btnReject = card.querySelector('.btn-reject');
+            btnAccept.classList.toggle('active', newAccepted === true);
+            btnReject.classList.toggle('active', newAccepted === false);
+
+            // Update counters
+            if (data.counts) {
+                const el = (id) => document.getElementById(id);
+                if (el('cntAccepted')) el('cntAccepted').textContent = data.counts.accepted;
+                if (el('cntRejected')) el('cntRejected').textContent = data.counts.rejected;
+                if (el('cntPending'))  el('cntPending').textContent = data.counts.total - data.counts.accepted - data.counts.rejected;
+            }
+        }
+    } catch(e) { console.error('Toggle error', e); }
+}
+</script>
+{% endblock %}

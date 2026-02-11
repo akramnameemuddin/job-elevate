@@ -21,8 +21,8 @@ try:
     from google.genai import types
     # Initialize with new SDK
     GEMINI_CLIENT = genai.Client(api_key=settings.GOOGLE_API_KEY)
-    # Use stable model with free tier quota (gemini-2.5-flash is latest stable)
-    GEMINI_MODEL = 'models/gemini-2.5-flash'
+    # Use gemini-2.5-flash-lite (confirmed free-tier quota available)
+    GEMINI_MODEL = 'models/gemini-2.5-flash-lite'
     GEMINI_AVAILABLE = True
     API_VERSION = 'new'  # Flag for new API
     logger.info(f"✓ AI enabled as FALLBACK using {GEMINI_MODEL} (templates still preferred)")
@@ -172,9 +172,19 @@ Example for {skill_name}:
         # Generate with retry logic and exponential backoff
         import time
         
+        # Circuit-breaker: skip immediately if quota is known to be exhausted
+        try:
+            from agents.circuit_breaker import is_open as _cb_open, record_error as _cb_record
+            if _cb_open():
+                logger.info("Circuit breaker OPEN – skipping AI question generation")
+                return []
+            _breaker_ok = True
+        except ImportError:
+            _breaker_ok = False
+
         max_retries = 3
         retry_delays = [2, 5, 10]  # seconds
-        models_to_try = [self.model_name, 'models/gemini-1.5-flash']  # Fallback model
+        models_to_try = [self.model_name, 'models/gemini-2.5-flash-lite']  # Fallback model
         
         response_text = None  # Initialize outside loops
         success = False
@@ -245,6 +255,8 @@ Example for {skill_name}:
                             break  # Try next model
                     elif 'RESOURCE_EXHAUSTED' in error_msg or '429' in error_msg:
                         logger.error(f"❌ API RATE LIMIT HIT: {error_msg}")
+                        if _breaker_ok:
+                            _cb_record(e)
                         return []  # Don't retry on rate limit
                     elif 'quota' in error_msg.lower():
                         logger.error(f"❌ API QUOTA EXCEEDED: {error_msg}")

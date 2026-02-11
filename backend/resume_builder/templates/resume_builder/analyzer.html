@@ -1,0 +1,319 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Resume Analyzer — {{ job.title }} | JobElevate{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<div class="breadcrumb">
+    <div class="breadcrumb-item">
+        <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item">
+        <a href="{% url 'jobs:job_listings' %}" class="breadcrumb-link">Jobs</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item"><span>Resume Analyzer</span></div>
+</div>
+
+<!-- Page Header -->
+<div class="page-content-header">
+    <h1 class="page-title"><i class='bx bx-analyse'></i> Resume Analyzer</h1>
+    <p class="page-subtitle">See how your profile matches <strong>{{ job.title }}</strong> at {{ job.company|default:"—" }}</p>
+</div>
+
+<!-- Messages -->
+{% if messages %}
+<div class="notification-container">
+    {% for message in messages %}
+    <div class="notification {{ message.tags }}">
+        <i class='bx {% if message.tags == "success" %}bx-check-circle{% elif message.tags == "error" %}bx-error{% else %}bx-info-circle{% endif %}'></i>
+        <span>{{ message }}</span>
+        <button class="notification-close" onclick="this.parentElement.remove()"><i class='bx bx-x'></i></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- ═══ Match Score Banner ═══ -->
+<div class="ra-banner">
+    <div class="ra-score-ring">
+        <svg viewBox="0 0 36 36">
+            <circle class="ra-ring-bg" cx="18" cy="18" r="15.9"></circle>
+            <circle class="ra-ring-fill {% if match_score >= 70 %}high{% elif match_score >= 40 %}med{% else %}low{% endif %}"
+                    cx="18" cy="18" r="15.9"
+                    stroke-dasharray="{{ match_score }}, 100"
+                    stroke-dashoffset="25"></circle>
+        </svg>
+        <span class="ra-ring-val">{{ match_score }}%</span>
+    </div>
+    <div class="ra-banner-info">
+        <h2>
+            {% if match_score >= 70 %}Strong Match!
+            {% elif match_score >= 40 %}Partial Match
+            {% else %}Needs Improvement
+            {% endif %}
+        </h2>
+        <p>Your profile covers <strong>{{ matched_skills|length }}</strong> of <strong>{{ total_job_skills }}</strong> required skills for this position.</p>
+    </div>
+    <div class="ra-banner-actions">
+        <a href="{% url 'resume_builder:tailor_for_job' job.id %}" class="ra-btn primary"><i class='bx bx-brain'></i> AI Tailor Resume</a>
+        {% if has_resume %}
+        <a href="{% url 'jobs:job_detail' job.id %}" class="ra-btn outline"><i class='bx bx-arrow-back'></i> Back to Job</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ═══ Two-Column: Skills + Details ═══ -->
+<div class="ra-two-col">
+
+    <!-- ── LEFT: Skill Comparison ──────────────── -->
+    <div class="ra-card">
+        <div class="ra-card-head">
+            <h2><i class='bx bx-git-compare'></i> Skill Comparison</h2>
+            <div class="ra-legend">
+                <span class="ra-legend-dot match"></span> Matched
+                <span class="ra-legend-dot missing"></span> Missing
+            </div>
+        </div>
+        <div class="ra-card-body">
+            {% if matched_skills or missing_skills %}
+            <div class="ra-skill-section">
+                <h3 class="ra-section-label matched"><i class='bx bx-check-circle'></i> Matched Skills ({{ matched_skills|length }})</h3>
+                <div class="ra-skill-chips">
+                    {% for skill in matched_skills %}
+                    <span class="ra-chip match">{{ skill }}</span>
+                    {% empty %}
+                    <span class="ra-no-items">No matching skills found</span>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="ra-skill-section">
+                <h3 class="ra-section-label missing"><i class='bx bx-x-circle'></i> Missing Skills ({{ missing_skills|length }})</h3>
+                <div class="ra-skill-chips">
+                    {% for skill in missing_skills %}
+                    <span class="ra-chip missing">{{ skill }}</span>
+                    {% empty %}
+                    <span class="ra-no-items">You have all required skills!</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <div class="ra-empty">
+                <i class='bx bx-info-circle'></i>
+                <p>No skill data available for this job.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ── RIGHT: Job & Profile Summary ────────── -->
+    <div class="ra-sidebar-stack">
+
+        <!-- Job Summary -->
+        <div class="ra-card">
+            <div class="ra-card-head"><h2><i class='bx bx-briefcase'></i> Job Requirements</h2></div>
+            <div class="ra-card-body">
+                <div class="ra-detail">
+                    <span class="ra-detail-label">Position</span>
+                    <span class="ra-detail-value">{{ job.title }}</span>
+                </div>
+                <div class="ra-detail">
+                    <span class="ra-detail-label">Company</span>
+                    <span class="ra-detail-value">{{ job.company|default:"—" }}</span>
+                </div>
+                <div class="ra-detail">
+                    <span class="ra-detail-label">Location</span>
+                    <span class="ra-detail-value">{{ job.location|default:"—" }}</span>
+                </div>
+                {% if job.experience_required %}
+                <div class="ra-detail">
+                    <span class="ra-detail-label">Experience</span>
+                    <span class="ra-detail-value">{{ job.experience_required }}</span>
+                </div>
+                {% endif %}
+                {% if job.salary_range %}
+                <div class="ra-detail">
+                    <span class="ra-detail-label">Salary</span>
+                    <span class="ra-detail-value">{{ job.salary_range }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Your Profile Snapshot -->
+        <div class="ra-card">
+            <div class="ra-card-head"><h2><i class='bx bx-user'></i> Your Profile</h2></div>
+            <div class="ra-card-body">
+                <div class="ra-profile-row">
+                    <div class="ra-profile-avatar">{{ user_initials }}</div>
+                    <div class="ra-profile-info">
+                        <strong>{{ user.full_name }}</strong>
+                        <small>{{ user.email }}</small>
+                    </div>
+                </div>
+                <div class="ra-detail">
+                    <span class="ra-detail-label">Your Skills</span>
+                    <span class="ra-detail-value">{{ user_skills_count }} skills</span>
+                </div>
+                <div class="ra-detail">
+                    <span class="ra-detail-label">Experience</span>
+                    <span class="ra-detail-value">{{ experience_count }} position{{ experience_count|pluralize }}</span>
+                </div>
+                <div class="ra-detail">
+                    <span class="ra-detail-label">Projects</span>
+                    <span class="ra-detail-value">{{ projects_count }} project{{ projects_count|pluralize }}</span>
+                </div>
+                <div class="ra-detail">
+                    <span class="ra-detail-label">Profile Strength</span>
+                    <div class="ra-strength-bar">
+                        <div class="ra-strength-fill" style="width:{{ profile_strength }}%"></div>
+                    </div>
+                    <span class="ra-detail-value" style="font-size:.75rem">{{ profile_strength }}%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendations -->
+        <div class="ra-card">
+            <div class="ra-card-head"><h2><i class='bx bx-bulb'></i> Recommendations</h2></div>
+            <div class="ra-card-body">
+                <div class="ra-rec-list">
+                    {% if missing_skills %}
+                    <div class="ra-rec-item">
+                        <i class='bx bx-brain' style="color:var(--primary-color)"></i>
+                        <div>
+                            <strong>AI Tailor Your Resume</strong>
+                            <p>Let AI rewrite your resume to better match this job's requirements.</p>
+                            <a href="{% url 'resume_builder:tailor_for_job' job.id %}" class="ra-rec-link">Start AI Tailoring →</a>
+                        </div>
+                    </div>
+                    <div class="ra-rec-item">
+                        <i class='bx bx-book-open' style="color:var(--info-color)"></i>
+                        <div>
+                            <strong>Learn Missing Skills</strong>
+                            <p>Take assessments and courses to fill your skill gaps.</p>
+                            <a href="{% url 'learning:learning_dashboard' %}" class="ra-rec-link">Go to Learning Hub →</a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="ra-rec-item">
+                        <i class='bx bx-check-circle' style="color:var(--success-color)"></i>
+                        <div>
+                            <strong>You're a Great Fit!</strong>
+                            <p>Your profile matches all required skills. Tailor your resume for even better results.</p>
+                            <a href="{% url 'resume_builder:tailor_for_job' job.id %}" class="ra-rec-link">AI Tailor Anyway →</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if not has_resume %}
+                    <div class="ra-rec-item">
+                        <i class='bx bx-file-blank' style="color:var(--warning-color)"></i>
+                        <div>
+                            <strong>Create a Resume First</strong>
+                            <p>Build a resume from your profile before tailoring it for this job.</p>
+                            <a href="{% url 'resume_builder:resume_builder' %}" class="ra-rec-link">Go to Resume Builder →</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<style>
+/* ── Banner ─────────────────────────────── */
+.ra-banner{display:flex;align-items:center;gap:1.5rem;padding:1.5rem;background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-lg);margin-bottom:1.5rem;flex-wrap:wrap}
+.ra-score-ring{position:relative;width:80px;height:80px;flex-shrink:0}
+.ra-score-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ra-ring-bg{fill:none;stroke:var(--border-color);stroke-width:3}
+.ra-ring-fill{fill:none;stroke-width:3;stroke-linecap:round;transition:stroke-dasharray .6s ease}
+.ra-ring-fill.high{stroke:var(--success-color)}
+.ra-ring-fill.med{stroke:var(--warning-color)}
+.ra-ring-fill.low{stroke:var(--danger-color)}
+.ra-ring-val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;color:var(--heading-color)}
+.ra-banner-info{flex:1;min-width:200px}
+.ra-banner-info h2{font-size:1.25rem;margin:0 0 .25rem;color:var(--heading-color)}
+.ra-banner-info p{font-size:.88rem;color:var(--text-muted);margin:0}
+.ra-banner-actions{display:flex;gap:.75rem;flex-wrap:wrap}
+.ra-btn{display:inline-flex;align-items:center;gap:.4rem;padding:.65rem 1.1rem;border-radius:var(--radius);font-size:.85rem;font-weight:600;text-decoration:none;transition:var(--transition);cursor:pointer;border:none}
+.ra-btn.primary{background:var(--primary-color);color:var(--text-inverse)}
+.ra-btn.primary:hover{opacity:.88}
+.ra-btn.outline{background:transparent;border:1px solid var(--border-color);color:var(--heading-color)}
+.ra-btn.outline:hover{background:var(--hover-bg)}
+
+/* ── Two-column ─────────────────────────── */
+.ra-two-col{display:grid;grid-template-columns:1.5fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
+.ra-sidebar-stack{display:flex;flex-direction:column;gap:1.5rem}
+
+/* ── Card ───────────────────────────────── */
+.ra-card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-lg);overflow:hidden}
+.ra-card-head{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;border-bottom:1px solid var(--border-color)}
+.ra-card-head h2{font-size:1rem;font-weight:600;margin:0;display:flex;align-items:center;gap:.4rem;color:var(--heading-color)}
+.ra-card-body{padding:1.25rem}
+
+/* ── Legend ──────────────────────────────── */
+.ra-legend{display:flex;align-items:center;gap:.85rem;font-size:.75rem;color:var(--text-muted)}
+.ra-legend-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:.2rem}
+.ra-legend-dot.match{background:var(--success-color)}
+.ra-legend-dot.missing{background:var(--danger-color)}
+
+/* ── Skill sections ─────────────────────── */
+.ra-skill-section{margin-bottom:1.5rem}
+.ra-skill-section:last-child{margin-bottom:0}
+.ra-section-label{font-size:.88rem;font-weight:600;margin:0 0 .65rem;display:flex;align-items:center;gap:.35rem}
+.ra-section-label.matched{color:var(--success-color)}
+.ra-section-label.missing{color:var(--danger-color)}
+.ra-skill-chips{display:flex;flex-wrap:wrap;gap:.4rem}
+.ra-chip{font-size:.78rem;padding:.3rem .65rem;border-radius:var(--radius-full);font-weight:600}
+.ra-chip.match{background:var(--success-light);color:var(--success-color)}
+.ra-chip.missing{background:var(--danger-light);color:var(--danger-color)}
+.ra-no-items{font-size:.82rem;color:var(--text-muted);font-style:italic}
+
+/* ── Details ────────────────────────────── */
+.ra-detail{display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--border-color)}
+.ra-detail:last-child{border-bottom:none}
+.ra-detail-label{font-size:.82rem;color:var(--text-muted);font-weight:500}
+.ra-detail-value{font-size:.85rem;color:var(--heading-color);font-weight:600}
+
+/* ── Profile row ────────────────────────── */
+.ra-profile-row{display:flex;align-items:center;gap:.85rem;margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border-color)}
+.ra-profile-avatar{width:44px;height:44px;border-radius:var(--radius);background:var(--primary-color);color:var(--text-inverse);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.92rem;flex-shrink:0}
+.ra-profile-info{display:flex;flex-direction:column}
+.ra-profile-info strong{font-size:.92rem;color:var(--heading-color)}
+.ra-profile-info small{font-size:.75rem;color:var(--text-muted)}
+
+/* ── Strength bar ───────────────────────── */
+.ra-strength-bar{flex:1;height:6px;background:var(--border-color);border-radius:3px;overflow:hidden;margin:0 .65rem}
+.ra-strength-fill{height:100%;background:linear-gradient(90deg,var(--primary-color),var(--success-color));border-radius:3px;transition:width .4s ease}
+
+/* ── Recommendations ────────────────────── */
+.ra-rec-list{display:flex;flex-direction:column;gap:1rem}
+.ra-rec-item{display:flex;align-items:flex-start;gap:.85rem}
+.ra-rec-item i{font-size:1.3rem;flex-shrink:0;margin-top:.1rem}
+.ra-rec-item strong{font-size:.88rem;color:var(--heading-color);display:block;margin-bottom:.15rem}
+.ra-rec-item p{font-size:.78rem;color:var(--text-muted);margin:0 0 .3rem;line-height:1.4}
+.ra-rec-link{font-size:.78rem;color:var(--primary-color);text-decoration:none;font-weight:600}
+.ra-rec-link:hover{text-decoration:underline}
+
+/* ── Empty ──────────────────────────────── */
+.ra-empty{text-align:center;padding:2rem 1rem}
+.ra-empty i{font-size:2rem;color:var(--text-muted);margin-bottom:.5rem}
+.ra-empty p{color:var(--text-muted);margin:0}
+
+/* ── Responsive ─────────────────────────── */
+@media(max-width:1024px){.ra-two-col{grid-template-columns:1fr}}
+@media(max-width:600px){
+    .ra-banner{flex-direction:column;text-align:center}
+    .ra-banner-actions{justify-content:center}
+}
+</style>
+
+<script>
+setTimeout(()=>{document.querySelectorAll('.notification').forEach(n=>{n.style.transition='opacity .5s';n.style.opacity='0';setTimeout(()=>n.remove(),500)})},5000);
+</script>
+{% endblock %}

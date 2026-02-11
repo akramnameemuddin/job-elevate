@@ -19,21 +19,21 @@
     <div class="stat-card critical">
         <div class="stat-icon"><i class='bx bx-error-circle'></i></div>
         <div class="stat-info">
-            <h3>{{ critical_gaps.count }}</h3>
+            <h3>{{ critical_gaps|length }}</h3>
             <p>Critical Gaps</p>
         </div>
     </div>
     <div class="stat-card high">
         <div class="stat-icon"><i class='bx bx-error'></i></div>
         <div class="stat-info">
-            <h3>{{ high_gaps.count }}</h3>
+            <h3>{{ high_gaps|length }}</h3>
             <p>High Priority</p>
         </div>
     </div>
     <div class="stat-card moderate">
         <div class="stat-icon"><i class='bx bx-info-circle'></i></div>
         <div class="stat-info">
-            <h3>{{ moderate_gaps.count }}</h3>
+            <h3>{{ moderate_gaps|length }}</h3>
             <p>Moderate Priority</p>
         </div>
     </div>
@@ -51,7 +51,7 @@
 <div class="card gap-section">
     <div class="section-header critical">
         <h3><i class='bx bx-error-circle'></i> Critical Gaps</h3>
-        <span class="badge badge-critical">{{ critical_gaps.count }}</span>
+        <span class="badge badge-critical">{{ critical_gaps|length }}</span>
     </div>
     <div class="gaps-list">
         {% for gap in critical_gaps %}
@@ -117,7 +117,7 @@
 <div class="card gap-section">
     <div class="section-header high">
         <h3><i class='bx bx-error'></i> High Priority Gaps</h3>
-        <span class="badge badge-high">{{ high_gaps.count }}</span>
+        <span class="badge badge-high">{{ high_gaps|length }}</span>
     </div>
     <div class="gaps-list">
         {% for gap in high_gaps %}
@@ -179,7 +179,7 @@
 <div class="card gap-section">
     <div class="section-header moderate">
         <h3><i class='bx bx-info-circle'></i> Moderate Priority Gaps</h3>
-        <span class="badge badge-moderate">{{ moderate_gaps.count }}</span>
+        <span class="badge badge-moderate">{{ moderate_gaps|length }}</span>
     </div>
     <div class="gaps-list">
         {% for gap in moderate_gaps %}

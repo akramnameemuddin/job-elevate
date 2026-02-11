@@ -3,82 +3,179 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.utils import timezone
-from django.db.models import Q, Count, Avg, F
+from django.db.models import Q, Count, Avg, F, Sum
 from django.views.decorators.http import require_http_methods
 import json
 
 from .models import Course, SkillGap, LearningPath, LearningPathCourse, CourseProgress
-from assessments.models import UserSkillProfile, Skill
+from assessments.models import UserSkillProfile, Skill, UserSkillScore, AssessmentAttempt
 from recruiter.models import Job
 
 
 @login_required
 def learning_dashboard(request):
-    """Main learning dashboard showing paths and progress"""
-    # Get user's learning paths
-    learning_paths = LearningPath.objects.filter(
-        user=request.user
-    ).select_related('skill_gap', 'skill_gap__skill').prefetch_related('courses')
-    
-    # Get in-progress courses
+    """Main learning dashboard showing paths, skills, and progress"""
+    user = request.user
+
+    # ---- Learning Paths (with course counts) ----
+    learning_paths = (
+        LearningPath.objects.filter(user=user)
+        .select_related('skill_gap', 'skill_gap__skill')
+        .prefetch_related('courses')
+        .annotate(num_courses=Count('learningpathcourse'))
+    )
+
+    # Enrich each path with computed completions
+    for path in learning_paths:
+        lpc_qs = LearningPathCourse.objects.filter(learning_path=path)
+        path.total_courses = lpc_qs.count()
+        path.completed_courses = lpc_qs.filter(is_completed=True).count()
+        path.real_progress = (
+            round(path.completed_courses / path.total_courses * 100)
+            if path.total_courses > 0 else 0
+        )
+        path.total_hours = sum(
+            lpc.course.duration_hours
+            for lpc in lpc_qs.select_related('course')
+        )
+
+    # ---- Skill Scores (from assessments) ----
+    user_skill_scores = (
+        UserSkillScore.objects.filter(user=user)
+        .select_related('skill', 'skill__category')
+        .order_by('-verified_level')
+    )
+    verified_skills = user_skill_scores.filter(status='verified')
+    claimed_skills = user_skill_scores.filter(status='claimed')
+
+    # ---- Assessment Stats ----
+    total_assessments = AssessmentAttempt.objects.filter(user=user, status='completed').count()
+    passed_assessments = AssessmentAttempt.objects.filter(user=user, status='completed', passed=True).count()
+
+    # ---- Skill Gaps ----
+    skill_gaps_qs = SkillGap.objects.filter(user=user, is_addressed=False).select_related('skill')
+    critical_gaps = skill_gaps_qs.filter(priority__in=['critical', 'high']).order_by('-gap_value')[:6]
+    total_gaps = skill_gaps_qs.count()
+
+    # ---- Course Progress ----
     in_progress_courses = CourseProgress.objects.filter(
-        user=request.user,
-        status='in_progress'
+        user=user, status='in_progress'
     ).select_related('course', 'course__skill')[:5]
-    
-    # Get completed courses count
-    completed_count = CourseProgress.objects.filter(
-        user=request.user,
-        status='completed'
-    ).count()
-    
-    # Get skill gaps
-    critical_gaps = SkillGap.objects.filter(
-        user=request.user,
-        is_addressed=False,
-        priority__in=['critical', 'high']
-    ).select_related('skill')[:5]
-    
-    # Get user skills
-    skill_profiles = UserSkillProfile.objects.filter(
-        user=request.user
-    ).select_related('skill')
-    
+
+    completed_courses_count = CourseProgress.objects.filter(user=user, status='completed').count()
+    enrolled_count = CourseProgress.objects.filter(user=user).exclude(status='completed').count()
+
+    total_learning_hours = (
+        CourseProgress.objects.filter(user=user)
+        .aggregate(total=Sum('time_spent_hours'))['total'] or 0
+    )
+
+    # ---- Top Skills for Radar ----
+    top_skills = list(verified_skills[:8].values_list('skill__name', 'verified_level'))
+
     context = {
         'learning_paths': learning_paths,
         'in_progress_courses': in_progress_courses,
-        'completed_count': completed_count,
+        'completed_courses_count': completed_courses_count,
+        'enrolled_count': enrolled_count,
+        'total_learning_hours': total_learning_hours,
         'critical_gaps': critical_gaps,
-        'skill_profiles': skill_profiles,
+        'total_gaps': total_gaps,
+        'user_skill_scores': user_skill_scores,
+        'verified_skills': verified_skills,
+        'claimed_skills': claimed_skills,
+        'total_assessments': total_assessments,
+        'passed_assessments': passed_assessments,
         'total_paths': learning_paths.count(),
         'active_paths': learning_paths.filter(status__in=['not_started', 'in_progress']).count(),
+        'top_skills': top_skills,
     }
-    
+
     return render(request, 'learning/learning_dashboard.html', context)
 
 
 @login_required
 def skill_gaps(request):
     """Show all skill gaps with job matching"""
-    # Get user skills
-    user_skills = UserSkillProfile.objects.filter(
-        user=request.user
-    ).select_related('skill', 'skill__category')
-    
-    # Get skill gaps
-    skill_gaps = SkillGap.objects.filter(
-        user=request.user
-    ).select_related('skill', 'skill__category', 'related_job').order_by('-priority', '-gap_value')
-    
-    # Get available jobs for gap analysis
-    available_jobs = Job.objects.filter(status='Open').distinct()
-    
+    user = request.user
+
+    # ── User skills ──
+    user_skills = UserSkillScore.objects.filter(
+        user=user,
+    ).select_related('skill', 'skill__category').order_by('-verified_level')
+
+    verified_skills = user_skills.filter(status='verified')
+    total_skills = user_skills.count()
+
+    # ── Skill gaps ──
+    all_gaps = SkillGap.objects.filter(user=user).select_related(
+        'skill', 'skill__category', 'related_job',
+    ).order_by('-priority_score', '-gap_value')
+
+    open_gaps = all_gaps.filter(is_addressed=False)
+    addressed_gaps = all_gaps.filter(is_addressed=True)
+
+    # Priority breakdown for chart
+    priority_counts = {
+        'critical': open_gaps.filter(priority='critical').count(),
+        'high': open_gaps.filter(priority='high').count(),
+        'moderate': open_gaps.filter(priority='moderate').count(),
+        'low': open_gaps.filter(priority='low').count(),
+    }
+    total_open = open_gaps.count()
+
+    # Total learning hours needed
+    total_hours_needed = open_gaps.aggregate(h=Sum('estimated_learning_hours'))['h'] or 0
+
+    # Average gap severity
+    avg_severity = open_gaps.aggregate(a=Avg('gap_severity'))['a'] or 0
+    avg_severity_pct = round(avg_severity * 100)
+
+    # Skill readiness score: verified_skills avg level vs 10
+    avg_verified = verified_skills.aggregate(a=Avg('verified_level'))['a'] or 0
+    readiness_pct = round(avg_verified * 10)  # 0-100
+
+    # ── Radar data (top 8 skills: current vs required) ──
+    radar_gaps = open_gaps[:8]
+    radar_labels = [g.skill.name for g in radar_gaps]
+    radar_current = [float(g.current_level) for g in radar_gaps]
+    radar_required = [float(g.required_level) for g in radar_gaps]
+
+    # ── Courses recommended per gap ──
+    for gap in open_gaps:
+        gap.courses = Course.objects.filter(
+            skill=gap.skill, is_active=True,
+        ).order_by('-rating')[:3]
+
+    # ── Available jobs for comparison ──
+    available_jobs = Job.objects.filter(status='Open').distinct()[:50]
+
+    # ── Filter support ──
+    priority_filter = request.GET.get('priority', '')
+    if priority_filter:
+        filtered_gaps = open_gaps.filter(priority=priority_filter)
+    else:
+        filtered_gaps = open_gaps
+
     context = {
         'user_skills': user_skills,
-        'skill_gaps': skill_gaps,
+        'verified_skills': verified_skills,
+        'total_skills': total_skills,
+        'skill_gaps': filtered_gaps,
+        'open_gaps_count': total_open,
+        'addressed_count': addressed_gaps.count(),
+        'priority_counts': priority_counts,
+        'total_hours_needed': total_hours_needed,
+        'avg_severity_pct': avg_severity_pct,
+        'readiness_pct': readiness_pct,
+        'avg_verified': round(avg_verified, 1),
+        'radar_labels': json.dumps(radar_labels),
+        'radar_current': json.dumps(radar_current),
+        'radar_required': json.dumps(radar_required),
         'available_jobs': available_jobs,
+        'priority_filter': priority_filter,
     }
-    
+
     return render(request, 'learning/skill_gaps.html', context)
 
 
@@ -260,7 +357,6 @@ def generate_learning_path(request):
                 skill_gap=gap,
                 title=path_title,
                 description=f"Personalized learning path to improve your {gap.skill.name} skills",
-                target_skill_level=gap.required_level,
                 status='not_started'
             )
             

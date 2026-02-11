@@ -374,8 +374,11 @@ def get_candidates(request, job_id=None):
             applications = applications.filter(applicant__experience__gte=int(min_exp))
     
     if location:
-        # Search for location in user profile
-        applications = applications.filter(applicant__organization__icontains=location)
+        # Search in preferred_location field (synced from job preferences) and organization
+        applications = applications.filter(
+            Q(applicant__preferred_location__icontains=location) |
+            Q(applicant__organization__icontains=location)
+        )
     
     # Prepare response data with enhanced match scores
     from jobs.skill_based_matching_engine import SkillBasedJobMatcher
@@ -386,13 +389,16 @@ def get_candidates(request, job_id=None):
         matcher = SkillBasedJobMatcher(app.applicant)
         match_analysis = matcher.calculate_job_match(app.job)
         
+        # Determine location: prefer preferred_location, fall back to organization
+        candidate_location = app.applicant.preferred_location or app.applicant.organization or 'Not specified'
+        
         candidates.append({
             'id': app.id,
             'name': app.applicant.full_name,
             'job_title': app.job.title if job_id is None else None,
             'skills': app.applicant.get_skills_list(),
             'experience': app.applicant.experience or 0,
-            'location': app.applicant.organization or 'Not specified',
+            'location': candidate_location,
             'match': app.match_score,
             'match_percentage': match_analysis.get('overall_score', 0),
             'eligibility_status': match_analysis.get('eligibility_status', 'Unknown'),
