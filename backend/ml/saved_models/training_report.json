@@ -1,12 +1,12 @@
 {
   "model_name": "Random Forest Classifier",
   "n_estimators": 200,
-  "training_time_seconds": 1.87,
+  "training_time_seconds": 1.82,
   "dataset": {
-    "n_real_samples": 21,
-    "n_synthetic_samples": 2000,
-    "n_total_samples": 2021,
-    "positive_ratio": 0.3542800593765463,
+    "n_real_samples": 20,
+    "n_synthetic_samples": 500,
+    "n_total_samples": 520,
+    "positive_ratio": 0.38076923076923075,
     "feature_names": [
       "skill_match_ratio",
       "total_matched_skills",
@@ -34,75 +34,75 @@
     ]
   },
   "metrics": {
-    "accuracy": 0.7284,
-    "precision": 0.6813,
-    "recall": 0.4336,
-    "f1_score": 0.5299,
-    "roc_auc": 0.7643,
-    "cv_f1_mean": 0.4219,
-    "cv_f1_std": 0.0656
+    "accuracy": 0.6731,
+    "precision": 0.5938,
+    "recall": 0.475,
+    "f1_score": 0.5278,
+    "roc_auc": 0.7051,
+    "cv_f1_mean": 0.4431,
+    "cv_f1_std": 0.0626
   },
   "confusion_matrix": [
     [
-      233,
-      29
+      51,
+      13
     ],
     [
-      81,
-      62
+      21,
+      19
     ]
   ],
   "classification_report": {
     "Not Fit": {
-      "precision": 0.7420382165605095,
-      "recall": 0.8893129770992366,
-      "f1-score": 0.8090277777777778,
-      "support": 262.0
+      "precision": 0.7083333333333334,
+      "recall": 0.796875,
+      "f1-score": 0.75,
+      "support": 64.0
     },
     "Good Fit": {
-      "precision": 0.6813186813186813,
-      "recall": 0.43356643356643354,
-      "f1-score": 0.5299145299145299,
-      "support": 143.0
+      "precision": 0.59375,
+      "recall": 0.475,
+      "f1-score": 0.5277777777777778,
+      "support": 40.0
     },
-    "accuracy": 0.7283950617283951,
+    "accuracy": 0.6730769230769231,
     "macro avg": {
-      "precision": 0.7116784489395954,
-      "recall": 0.6614397053328351,
-      "f1-score": 0.6694711538461539,
-      "support": 405.0
+      "precision": 0.6510416666666667,
+      "recall": 0.6359375,
+      "f1-score": 0.6388888888888888,
+      "support": 104.0
     },
     "weighted avg": {
-      "precision": 0.7205989732529011,
-      "recall": 0.7283950617283951,
-      "f1-score": 0.7104766803840877,
-      "support": 405.0
+      "precision": 0.6642628205128206,
+      "recall": 0.6730769230769231,
+      "f1-score": 0.6645299145299146,
+      "support": 104.0
     }
   },
   "feature_importance": {
-    "skill_match_ratio": 0.1175,
-    "experience_delta": 0.0703,
-    "avg_matched_proficiency": 0.067,
-    "profile_completeness": 0.0564,
-    "text_similarity": 0.0556,
-    "min_matched_proficiency": 0.0555,
-    "cgpa_normalized": 0.0539,
-    "overconfidence_avg": 0.0528,
-    "avg_proficiency_gap": 0.0526,
-    "max_proficiency_gap": 0.0519,
-    "experience_ratio": 0.0502,
-    "assessment_pass_rate": 0.0492,
-    "missing_mandatory_count": 0.048,
-    "avg_assessment_score": 0.0475,
-    "total_required_skills": 0.0284,
-    "num_projects": 0.0252,
-    "num_verified_skills": 0.0229,
-    "total_matched_skills": 0.0215,
-    "meets_experience_req": 0.0177,
-    "num_certifications": 0.0177,
-    "num_internships": 0.0163,
-    "education_level": 0.0141,
-    "has_work_experience": 0.008
+    "skill_match_ratio": 0.1311,
+    "experience_delta": 0.0707,
+    "experience_ratio": 0.0635,
+    "max_proficiency_gap": 0.0613,
+    "overconfidence_avg": 0.0603,
+    "profile_completeness": 0.059,
+    "avg_assessment_score": 0.0561,
+    "min_matched_proficiency": 0.0553,
+    "avg_matched_proficiency": 0.0551,
+    "text_similarity": 0.0526,
+    "cgpa_normalized": 0.0507,
+    "avg_proficiency_gap": 0.0506,
+    "assessment_pass_rate": 0.0476,
+    "missing_mandatory_count": 0.0414,
+    "total_required_skills": 0.0217,
+    "num_verified_skills": 0.0197,
+    "num_certifications": 0.0196,
+    "num_projects": 0.0196,
+    "total_matched_skills": 0.0176,
+    "num_internships": 0.0147,
+    "meets_experience_req": 0.0134,
+    "education_level": 0.0119,
+    "has_work_experience": 0.0065
   },
   "feature_names": [
     "skill_match_ratio",

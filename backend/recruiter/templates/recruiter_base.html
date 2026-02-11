@@ -155,7 +155,7 @@
     <!-- Sidebar -->
     <aside class="rb-sidebar" id="rbSidebar">
         <div class="rb-sidebar-header">
-            <a href="/recruiter/" class="rb-logo">
+            <a href="{% url 'recruiter:recruiter_dashboard' %}" class="rb-logo">
                 <div class="rb-logo-icon"><i class='bx bxs-briefcase-alt'></i></div>
                 <span class="rb-logo-text">JobElevate</span>
             </a>
@@ -163,17 +163,17 @@
         <ul class="rb-nav">
             <div class="rb-nav-section">Main</div>
             <li class="rb-nav-item">
-                <a href="/recruiter/" class="{% block nav_dashboard %}{% endblock %}">
+                <a href="{% url 'recruiter:recruiter_dashboard' %}" class="{% block nav_dashboard %}{% endblock %}">
                     <i class='bx bxs-dashboard'></i> Dashboard
                 </a>
             </li>
             <li class="rb-nav-item">
-                <a href="/recruiter/#manage-jobs" class="{% block nav_jobs %}{% endblock %}">
+                <a href="{% url 'recruiter:recruiter_dashboard' %}#manage-jobs" class="{% block nav_jobs %}{% endblock %}">
                     <i class='bx bxs-briefcase'></i> Manage Jobs
                 </a>
             </li>
             <li class="rb-nav-item">
-                <a href="/recruiter/#candidates" class="{% block nav_candidates %}{% endblock %}">
+                <a href="{% url 'recruiter:recruiter_dashboard' %}#candidates" class="{% block nav_candidates %}{% endblock %}">
                     <i class='bx bxs-user-detail'></i> Candidates
                 </a>
             </li>
@@ -185,7 +185,7 @@
             </li>
             <div class="rb-nav-section">Account</div>
             <li class="rb-nav-item">
-                <a href="/recruiter/#profile" class="{% block nav_profile %}{% endblock %}">
+                <a href="{% url 'recruiter:recruiter_dashboard' %}#profile" class="{% block nav_profile %}{% endblock %}">
                     <i class='bx bxs-user-circle'></i> Profile
                 </a>
             </li>
@@ -205,7 +205,7 @@
                     <div class="rb-avatar">{% block user_initials %}{% endblock %}</div>
                 </button>
                 <div class="rb-dropdown" id="userDropdown">
-                    <a href="/recruiter/#profile"><i class='bx bx-user'></i> Profile</a>
+                    <a href="{% url 'recruiter:recruiter_dashboard' %}#profile"><i class='bx bx-user'></i> Profile</a>
                     <div class="divider"></div>
                     <a href="{% url 'accounts:logout' %}" class="danger"><i class='bx bx-log-out'></i> Logout</a>
                 </div>
@@ -215,6 +215,48 @@
 
     <!-- Main -->
     <main class="rb-main">
+        <!-- ═══ Global Toast Notifications ═══ -->
+        {% if messages %}
+        <div id="je-toast-container" style="position:fixed;top:24px;right:24px;z-index:99999;display:flex;flex-direction:column;gap:10px;max-width:420px;width:calc(100% - 48px);">
+            {% for message in messages %}
+            <div class="je-toast je-toast-{{ message.tags|default:'info' }}" role="alert"
+                 style="display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:10px;
+                        box-shadow:0 4px 24px rgba(0,0,0,.12);font-size:.935rem;line-height:1.4;
+                        opacity:0;transform:translateX(40px);transition:all .35s ease;
+                        {% if message.tags == 'success' %}background:#e8f9ee;border-left:4px solid #22c55e;color:#15713a;
+                        {% elif message.tags == 'error' %}background:#fef2f2;border-left:4px solid #ef4444;color:#991b1b;
+                        {% elif message.tags == 'warning' %}background:#fffbeb;border-left:4px solid #f59e0b;color:#92400e;
+                        {% else %}background:#eff6ff;border-left:4px solid #3b82f6;color:#1e40af;{% endif %}">
+                <i class='bx {% if message.tags == "success" %}bx-check-circle{% elif message.tags == "error" %}bx-error{% elif message.tags == "warning" %}bx-error-circle{% else %}bx-info-circle{% endif %}'
+                   style="font-size:1.35rem;flex-shrink:0;"></i>
+                <span style="flex:1;">{{ message }}</span>
+                <button onclick="this.parentElement.style.opacity='0';this.parentElement.style.transform='translateX(40px)';setTimeout(()=>this.parentElement.remove(),350);"
+                        style="background:none;border:none;cursor:pointer;padding:2px;opacity:.5;font-size:1.2rem;">
+                    <i class='bx bx-x'></i>
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+        <script>
+        (function(){
+            var toasts=document.querySelectorAll('.je-toast');
+            toasts.forEach(function(t,i){
+                setTimeout(function(){t.style.opacity='1';t.style.transform='translateX(0)';},i*120);
+            });
+            setTimeout(function(){
+                toasts.forEach(function(t,i){
+                    setTimeout(function(){
+                        t.style.opacity='0';t.style.transform='translateX(40px)';
+                        setTimeout(function(){t.remove();},350);
+                    },i*100);
+                });
+                var c=document.getElementById('je-toast-container');
+                if(c)setTimeout(function(){c.remove();},toasts.length*100+500);
+            },4500);
+        })();
+        </script>
+        {% endif %}
+
         {% block content %}{% endblock %}
     </main>
 

@@ -258,7 +258,7 @@
     </a>
     {% endif %}
     {% if match_score >= 60 %}
-    <a href="{% url 'jobs:apply' job.id %}" class="btn btn-success">
+    <a href="{% url 'jobs:apply_to_job' job.id %}" class="btn btn-success">
         <i class='bx bx-send'></i> Apply for this Job
     </a>
     {% endif %}

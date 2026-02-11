@@ -317,16 +317,7 @@
     <p class="page-subtitle">{{ job.company }} &bull; {{ job.location }}</p>
 </div>
 
-<!-- Messages -->
-{% if messages %}
-{% for message in messages %}
-<div class="jd-notif {{ message.tags }}">
-    <i class='bx {% if message.tags == "success" %}bx-check-circle{% elif message.tags == "error" %}bx-error{% else %}bx-info-circle{% endif %}'></i>
-    <span>{{ message }}</span>
-    <button class="jd-notif-close" onclick="this.parentNode.remove()"><i class='bx bx-x'></i></button>
-</div>
-{% endfor %}
-{% endif %}
+
 
 <!-- HERO CARD -->
 <div class="jd-hero">

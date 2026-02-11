@@ -23,19 +23,7 @@
     </div>
 </div>
 
-<!-- Messages for notifications -->
-{% if messages %}
-<div class="notification-container">
-    {% for message in messages %}
-    <div class="notification {{ message.tags }}">
-        <i class='bx bx-check-circle'></i>
-        <span>{{ message }}</span>
-        <button class="notification-close"><i class='bx bx-x'></i></button>
-    </div>
-    {% endfor %}
 
-</div>
-{% endif %}
 
 <div class="profile-container">
     <div class="card card-elevated profile-header">
@@ -1376,19 +1364,6 @@
             previewProfilePhoto(event);
         });
     }
-
-    // Notification Close
-    const notificationCloseButtons = document.querySelectorAll('.notification-close');
-    notificationCloseButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const notification = button.closest('.notification');
-            notification.style.opacity = '0';
-            setTimeout(() => {
-                notification.remove();
-            }, 300);
-        });
-    });
-    
 
     // Skills Tags Visualization
     const techSkillsInput = document.getElementById('technical_skills');

@@ -9,10 +9,13 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import json
+import logging
 from .models import User
 from .utils import generate_otp, send_email_otp, is_otp_valid, send_password_reset_otp
 from datetime import timedelta, datetime
 from django.contrib.auth.hashers import make_password
+
+logger = logging.getLogger('accounts')
 
 
 # Homepage
@@ -33,7 +36,7 @@ def signup(request):
                 # Second step - verify OTP and create user
                 return handle_signup_step2(request)
         except Exception as e:
-            print(f"[SIGNUP] Error in signup view: {str(e)}")
+            logger.error("[SIGNUP] Error in signup view: %s", e, exc_info=True)
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': False, 
@@ -195,7 +198,7 @@ def handle_signup_step1(request):
             })
             
     except Exception as e:
-        print(f"[SIGNUP STEP1] Error: {str(e)}")
+        logger.error("[SIGNUP STEP1] Error: %s", e, exc_info=True)
         return JsonResponse({
             'success': False, 
             'message': 'An error occurred during registration. Please try again.'
@@ -305,14 +308,14 @@ def handle_signup_step2(request):
         })
         
     except IntegrityError as e:
-        print(f"[SIGNUP STEP2] IntegrityError: {str(e)}")
+        logger.error("[SIGNUP STEP2] IntegrityError: %s", e)
         return JsonResponse({
             'success': False, 
             'message': 'Failed to create account. Username, email or phone number might already exist.'
         })
 
     except Exception as e:
-        print(f"[SIGNUP STEP2] Unexpected error: {str(e)}")
+        logger.error("[SIGNUP STEP2] Unexpected error: %s", e, exc_info=True)
         return JsonResponse({
             'success': False, 
             'message': 'Failed to create account. Please try again.'
@@ -348,7 +351,7 @@ def resend_otp(request):
             })
             
     except Exception as e:
-        print(f"[RESEND OTP] Error: {str(e)}")
+        logger.error("[RESEND OTP] Error: %s", e, exc_info=True)
         return JsonResponse({
             'success': False, 
             'message': 'Failed to send OTP. Please try again.'
@@ -394,7 +397,7 @@ def login(request):
                 return render(request, 'accounts/login.html')
 
         except Exception as e:
-            print(f"[LOGIN ERROR] {str(e)}")
+            logger.error("[LOGIN ERROR] %s", e, exc_info=True)
             messages.error(request, "An error occurred during login. Please try again.")
             return render(request, 'accounts/login.html')
 
@@ -424,7 +427,7 @@ def delete_account(request):
             messages.success(request, "Your account has been deleted successfully.")
             return redirect('accounts:home')
         except Exception as e:
-            print(f"[DELETE ACCOUNT] Error: {str(e)}")
+            logger.error("[DELETE ACCOUNT] Error: %s", e, exc_info=True)
             messages.error(request, "An error occurred while deleting your account.")
             return redirect('accounts:profile')
     
@@ -616,7 +619,7 @@ def forgot_password(request):
                     return render(request, 'accounts/login.html')
                 
         except Exception as e:
-            print(f"[FORGOT PASSWORD] Error: {str(e)}")
+            logger.error("[FORGOT PASSWORD] Error: %s", e, exc_info=True)
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': False, 
@@ -660,7 +663,7 @@ def resend_reset_otp(request):
             })
             
     except Exception as e:
-        print(f"[RESEND RESET OTP] Error: {str(e)}")
+        logger.error("[RESEND RESET OTP] Error: %s", e, exc_info=True)
         return JsonResponse({
             'success': False, 
             'message': 'Failed to send reset code. Please try again.'

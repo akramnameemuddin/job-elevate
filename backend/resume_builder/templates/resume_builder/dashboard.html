@@ -19,18 +19,7 @@
     <p class="page-subtitle">Create, customize, and download professional resumes built from your profile</p>
 </div>
 
-<!-- Messages -->
-{% if messages %}
-<div class="notification-container">
-    {% for message in messages %}
-    <div class="notification {{ message.tags }}">
-        <i class='bx {% if message.tags == "success" %}bx-check-circle{% elif message.tags == "error" %}bx-error{% elif message.tags == "warning" %}bx-error-circle{% else %}bx-info-circle{% endif %}'></i>
-        <span>{{ message }}</span>
-        <button class="notification-close" onclick="this.parentElement.remove()"><i class='bx bx-x'></i></button>
-    </div>
-    {% endfor %}
-</div>
-{% endif %}
+
 
 <!-- ═══ Stats Row ═══ -->
 <div class="rb-stats">
@@ -359,7 +348,7 @@
 
 <script>
 function openDeleteModal(resumeId){
-    document.getElementById('rb-delete-form').action='/resume_builder/delete/'+resumeId+'/';
+    document.getElementById('rb-delete-form').action='{% url "resume_builder:delete_resume" 0 %}'.replace('0', resumeId);
     document.getElementById('rb-delete-overlay').style.display='flex';
 }
 function closeDeleteModal(){
@@ -371,7 +360,6 @@ document.addEventListener('keydown',function(e){
 document.getElementById('rb-delete-overlay').addEventListener('click',function(e){
     if(e.target===this)closeDeleteModal();
 });
-// Auto-close notifications
-setTimeout(()=>{document.querySelectorAll('.notification').forEach(n=>{n.style.transition='opacity .5s';n.style.opacity='0';setTimeout(()=>n.remove(),500)})},5000);
+// Auto-close notifications handled by base.html
 </script>
 {% endblock %}

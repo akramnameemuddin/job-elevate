@@ -12,7 +12,7 @@
                     <h2 class="mb-1">{{ skill_profile.skill.name }}</h2>
                     <p class="text-muted mb-0">Track your learning journey and improvement over time</p>
                 </div>
-                <a href="{% url 'assessments:skill_dashboard' %}" class="btn btn-outline-primary">
+                <a href="{% url 'assessments:skill_intake_dashboard' %}" class="btn btn-outline-primary">
                     <i class='bx bx-arrow-back me-1'></i>Back to Dashboard
                 </a>
             </div>
@@ -156,7 +156,7 @@
                     </div>
                     {% endif %}
 
-                    <a href="{% url 'assessments:retake_assessment' skill_profile.skill.id %}" class="btn btn-outline-primary w-100 mt-3">
+                    <a href="{% url 'assessments:start_assessment_direct' skill_profile.skill.id %}" class="btn btn-outline-primary w-100 mt-3">
                         <i class='bx bx-refresh me-1'></i>Retake Assessment
                     </a>
                 </div>

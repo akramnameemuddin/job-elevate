@@ -73,7 +73,7 @@
     
     <!-- Add Comment Form -->
     <div class="add-comment-form">
-        <form method="post" action="/community/?section=add-comment&slug={{ current_post.slug }}" id="comment-form">
+        <form method="post" action="{% url 'community:community' %}?section=add-comment&slug={{ current_post.slug }}" id="comment-form">
             {% csrf_token %}
             <div class="form-group">
                 <textarea name="content" rows="3" class="form-control" placeholder="Write your comment..." required></textarea>

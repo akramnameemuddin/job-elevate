@@ -23,18 +23,7 @@
     <p class="page-subtitle">See how your profile matches <strong>{{ job.title }}</strong> at {{ job.company|default:"—" }}</p>
 </div>
 
-<!-- Messages -->
-{% if messages %}
-<div class="notification-container">
-    {% for message in messages %}
-    <div class="notification {{ message.tags }}">
-        <i class='bx {% if message.tags == "success" %}bx-check-circle{% elif message.tags == "error" %}bx-error{% else %}bx-info-circle{% endif %}'></i>
-        <span>{{ message }}</span>
-        <button class="notification-close" onclick="this.parentElement.remove()"><i class='bx bx-x'></i></button>
-    </div>
-    {% endfor %}
-</div>
-{% endif %}
+
 
 <!-- ═══ Match Score Banner ═══ -->
 <div class="ra-banner">
@@ -313,7 +302,4 @@
 }
 </style>
 
-<script>
-setTimeout(()=>{document.querySelectorAll('.notification').forEach(n=>{n.style.transition='opacity .5s';n.style.opacity='0';setTimeout(()=>n.remove(),500)})},5000);
-</script>
 {% endblock %}

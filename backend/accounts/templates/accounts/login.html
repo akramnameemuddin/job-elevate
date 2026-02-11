@@ -759,11 +759,11 @@
 
                 <div class="nav-menu" id="nav-menu">
                     <a href="/" class="nav-link">Home</a>
-                    <a href="/signup/" class="nav-link">Sign Up</a>
+                    <a href="{% url 'accounts:signup' %}" class="nav-link">Sign Up</a>
                 </div>
 
                 <div class="nav-actions">
-                    <a href="/signup/" class="btn btn-primary">Get Started</a>
+                    <a href="{% url 'accounts:signup' %}" class="btn btn-primary">Get Started</a>
                 </div>
 
                 <button class="mobile-menu-toggle" id="mobile-menu-toggle">
@@ -808,6 +808,7 @@
                                 {{ message }}
                             </div>
                         {% endfor %}
+                        <script>setTimeout(()=>{document.querySelectorAll('.alert').forEach(a=>{a.style.transition='opacity .5s';a.style.opacity='0';setTimeout(()=>a.remove(),500)})},5000);</script>
                     {% endif %}
 
                     <div id="login-message-container"></div>
@@ -851,7 +852,7 @@
                         </div>
 
                         <div class="signup-link">
-                            Don't have an account? <a href="/signup/">Sign up</a>
+                            Don't have an account? <a href="{% url 'accounts:signup' %}">Sign up</a>
                         </div>
                     </form>
                 </div>

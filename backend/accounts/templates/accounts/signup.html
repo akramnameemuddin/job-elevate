@@ -940,11 +940,11 @@
 
                 <div class="nav-menu" id="nav-menu">
                     <a href="/" class="nav-link">Home</a>
-                    <a href="/login/" class="nav-link">Login</a>
+                    <a href="{% url 'accounts:login' %}" class="nav-link">Login</a>
                 </div>
 
                 <div class="nav-actions">
-                    <a href="/login/" class="btn btn-secondary">Login</a>
+                    <a href="{% url 'accounts:login' %}" class="btn btn-secondary">Login</a>
                 </div>
 
                 <button class="mobile-menu-toggle" id="mobile-menu-toggle">
@@ -976,6 +976,7 @@
                             {{ message }}
                         </div>
                     {% endfor %}
+                    <script>setTimeout(()=>{document.querySelectorAll('.alert').forEach(a=>{a.style.transition='opacity .5s';a.style.opacity='0';setTimeout(()=>a.remove(),500)})},5000);</script>
                 {% endif %}
 
                 <!-- Step Indicator -->
@@ -1115,7 +1116,7 @@
                     </form>
 
                     <div class="login-link">
-                        Already have an account? <a href="/login/">Sign in here</a>
+                        Already have an account? <a href="{% url 'accounts:login' %}">Sign in here</a>
                     </div>
                 </div>
 
