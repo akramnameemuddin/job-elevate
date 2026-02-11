@@ -120,7 +120,9 @@
             <h3 class="sg-card-title">Priority Breakdown</h3>
             <p class="sg-muted">Gap distribution by urgency</p>
             <div class="sg-chart-wrap">
-                <canvas id="sgPriorityChart"></canvas>
+                <div class="sg-chart-wrap-doughnut">
+                    <canvas id="sgPriorityChart"></canvas>
+                </div>
             </div>
             <div class="sg-legend">
                 <span class="sg-legend-item"><span class="sg-dot" style="background:#ef4444"></span>Critical</span>
@@ -298,8 +300,8 @@ document.addEventListener('DOMContentLoaded', function(){
             },
             options:{
                 responsive:true, maintainAspectRatio:false,
-                scales:{r:{beginAtZero:true, max:10, ticks:{stepSize:2, color:txtColor, backdropColor:'transparent'}, grid:{color:gridColor}, pointLabels:{color:txtColor, font:{size:11}}}},
-                plugins:{legend:{position:'bottom', labels:{color:txtColor, usePointStyle:true, padding:14}}}
+                scales:{r:{beginAtZero:true, max:10, ticks:{stepSize:2, color:txtColor, backdropColor:'transparent'}, grid:{color:gridColor}, pointLabels:{color:txtColor, font:{size:12}}}},
+                plugins:{legend:{position:'bottom', labels:{color:txtColor, usePointStyle:true, padding:12}}}
             }
         });
     }
@@ -312,10 +314,10 @@ document.addEventListener('DOMContentLoaded', function(){
             type:'doughnut',
             data:{
                 labels:['Critical','High','Moderate','Low'],
-                datasets:[{data:pData, backgroundColor:['#ef4444','#f59e0b','#3b82f6','#10b981'], borderWidth:0, hoverOffset:6}]
+                datasets:[{data:pData, backgroundColor:['#ef4444','#f59e0b','#3b82f6','#10b981'], borderWidth:2, borderColor:'var(--card-bg)', hoverOffset:6}]
             },
             options:{
-                responsive:true, maintainAspectRatio:false, cutout:'65%',
+                responsive:true, maintainAspectRatio:false, cutout:'60%',
                 plugins:{
                     legend:{display:false},
                     tooltip:{callbacks:{label:ctx=>ctx.label+': '+ctx.parsed+' gaps'}}
@@ -371,11 +373,11 @@ document.getElementById('sg-compare-form').addEventListener('submit', function(e
 <!-- ═══════ Styles ═══════ -->
 <style>
 /* ── Page ── */
-.sg-page{max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:1.5rem}
-.sg-header{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem}
-.sg-title{font-size:1.55rem;font-weight:700;display:flex;align-items:center;gap:.5rem;color:var(--text-color)}
+.sg-page{display:flex;flex-direction:column;gap:1.5rem}
+.sg-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+.sg-title{font-size:1.55rem;font-weight:700;display:flex;align-items:center;gap:.5rem;color:var(--text-color);margin:0}
 .sg-subtitle{color:var(--text-muted);margin-top:.25rem;font-size:.92rem}
-.sg-header-actions{display:flex;gap:.6rem;flex-wrap:wrap}
+.sg-header-actions{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
 .sg-muted{color:var(--text-muted);font-size:.85rem}
 
 /* ── Buttons ── */
@@ -387,10 +389,10 @@ document.getElementById('sg-compare-form').addEventListener('submit', function(e
 
 /* ── KPI Cards ── */
 .sg-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
-.sg-kpi{display:flex;align-items:center;gap:1rem;background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:1.15rem 1.3rem}
-.sg-kpi-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
-.sg-kpi-val{font-size:1.45rem;font-weight:700;color:var(--text-color);display:block;line-height:1.1}
-.sg-kpi-label{font-size:.78rem;color:var(--text-muted)}
+.sg-kpi{display:flex;align-items:center;gap:.85rem;background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:1rem 1.15rem}
+.sg-kpi-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+.sg-kpi-val{font-size:1.35rem;font-weight:700;color:var(--text-color);display:block;line-height:1.1}
+.sg-kpi-label{font-size:.76rem;color:var(--text-muted)}
 
 /* ── Card ── */
 .sg-card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:1.5rem 1.6rem}
@@ -413,19 +415,24 @@ document.getElementById('sg-compare-form').addEventListener('submit', function(e
 .sg-result-err{display:flex;align-items:center;gap:.4rem;padding:.7rem 1rem;border-radius:var(--radius);background:var(--danger-light);color:var(--danger-color);font-weight:600}
 
 /* ── Charts Row ── */
-.sg-charts-row{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
-.sg-card-chart{min-height:340px}
-.sg-chart-wrap{height:240px;position:relative}
+.sg-charts-row{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;align-items:start}
+.sg-card-chart{display:flex;flex-direction:column;padding:1.5rem}
+.sg-card-chart .sg-card-title{flex-shrink:0;margin:0 0 .2rem}
+.sg-card-chart .sg-muted{flex-shrink:0;margin:0 0 1rem}
+.sg-chart-wrap{position:relative;width:100%;height:220px;display:flex;align-items:center;justify-content:center}
+.sg-chart-wrap canvas{width:100%!important;height:100%!important}
+.sg-chart-wrap-doughnut{width:190px;height:190px;margin:0 auto}
+.sg-chart-wrap-doughnut canvas{width:100%!important;height:100%!important}
 .sg-chart-empty{display:flex;align-items:center;justify-content:center;gap:.4rem;padding:2rem;color:var(--text-muted);font-size:.88rem}
-.sg-legend{display:flex;gap:1rem;justify-content:center;margin-top:.6rem;flex-wrap:wrap}
+.sg-legend{display:flex;gap:1rem;justify-content:center;margin-top:.75rem;flex-wrap:wrap;flex-shrink:0}
 .sg-legend-item{display:flex;align-items:center;gap:.3rem;font-size:.78rem;color:var(--text-muted)}
 .sg-dot{width:10px;height:10px;border-radius:50%;display:inline-block}
 
 /* ── Skills Grid ── */
-.sg-skills-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.85rem}
-.sg-skill-chip{background:var(--gray-50);border:1px solid var(--border-color);border-radius:var(--radius);padding:.75rem 1rem;display:flex;flex-wrap:wrap;align-items:center;gap:.5rem}
-.sg-skill-name{font-weight:600;font-size:.9rem;flex:1}
-.sg-skill-lvl{padding:.15rem .55rem;border-radius:var(--radius);font-weight:700;font-size:.78rem}
+.sg-skills-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.85rem}
+.sg-skill-chip{background:var(--gray-50);border:1px solid var(--border-color);border-radius:var(--radius);padding:.75rem 1rem;display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;min-width:0}
+.sg-skill-name{font-weight:600;font-size:.9rem;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.sg-skill-lvl{padding:.15rem .55rem;border-radius:var(--radius);font-weight:700;font-size:.78rem;flex-shrink:0}
 .sg-lvl-high{background:var(--success-light);color:var(--success-color)}
 .sg-lvl-mid{background:var(--warning-light);color:var(--warning-color)}
 .sg-lvl-low{background:var(--danger-light);color:var(--danger-color)}
@@ -489,23 +496,28 @@ document.getElementById('sg-compare-form').addEventListener('submit', function(e
 
 /* ── Action Cards ── */
 .sg-actions-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
-.sg-action-card{display:flex;align-items:center;gap:1rem;padding:1.15rem 1.3rem;background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-lg);text-decoration:none;color:var(--text-color);transition:all .2s}
+.sg-action-card{display:flex;align-items:center;gap:1rem;padding:1.1rem 1.2rem;background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-lg);text-decoration:none;color:var(--text-color);transition:all .2s}
 .sg-action-card:hover{border-color:var(--primary-color);box-shadow:var(--shadow-lg)}
-.sg-action-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
-.sg-action-card strong{font-size:.92rem;display:block;margin-bottom:.15rem}
+.sg-action-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0}
+.sg-action-card strong{font-size:.9rem;display:block;margin-bottom:.15rem}
 .sg-action-card p{font-size:.78rem;color:var(--text-muted);margin:0}
 
 /* ── Responsive ── */
-@media(max-width:900px){
+@media(max-width:1100px){
     .sg-kpi-row{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:900px){
     .sg-charts-row{grid-template-columns:1fr}
+    .sg-chart-wrap{height:250px}
+    .sg-chart-wrap-doughnut{width:210px;height:210px}
     .sg-actions-row{grid-template-columns:1fr}
 }
 @media(max-width:600px){
     .sg-kpi-row{grid-template-columns:1fr}
-    .sg-header{flex-direction:column}
+    .sg-header{flex-direction:column;align-items:flex-start}
     .sg-compare-form{flex-direction:column}
     .sg-filter-pills{overflow-x:auto;flex-wrap:nowrap}
+    .sg-skills-grid{grid-template-columns:1fr}
 }
 </style>
 {% endblock %}

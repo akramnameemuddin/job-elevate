@@ -32,7 +32,6 @@ urlpatterns = [
     
     # Analytics
     path('analytics/', views.job_analytics, name='job_analytics'),
-    path('toggle-bookmark/<int:job_id>/', views.toggle_bookmark, name='toggle_bookmark'),
 
     
     # API endpoints

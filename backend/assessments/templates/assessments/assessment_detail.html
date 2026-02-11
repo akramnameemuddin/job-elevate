@@ -87,7 +87,7 @@
                 <i class='bx bx-play-circle'></i> Continue Assessment
             </a>
             {% else %}
-            <form method="post" action="{% url 'assessments:start_assessment' assessment.id %}">
+            <form method="post" action="{% url 'assessments:start_assessment_direct' assessment.id %}">
                 {% csrf_token %}
                 <div class="rules">
                     <h4>Important Rules:</h4>

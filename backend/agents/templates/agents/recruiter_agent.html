@@ -167,7 +167,7 @@
 {% block content %}
 <!-- Breadcrumb -->
 <div class="ra-breadcrumb">
-    <a href="/recruiter/">Dashboard</a>
+    <a href="{% url 'recruiter:recruiter_dashboard' %}">Dashboard</a>
     <i class='bx bx-chevron-right'></i>
     <span>AI Recruiter Agent</span>
 </div>
@@ -209,7 +209,7 @@
         <button type="submit" class="ra-launch"><i class='bx bx-sort-alt-2'></i> Rank Candidates</button>
     </form>
     {% if not my_jobs %}
-    <p class="ra-trigger-note"><i class='bx bx-info-circle'></i> You haven't posted any jobs yet. <a href="/recruiter/">Go to dashboard</a> to post a job first.</p>
+    <p class="ra-trigger-note"><i class='bx bx-info-circle'></i> You haven't posted any jobs yet. <a href="{% url 'recruiter:recruiter_dashboard' %}">Go to dashboard</a> to post a job first.</p>
     {% endif %}
 </div>
 

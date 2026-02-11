@@ -301,21 +301,7 @@
     </div>
 </div>
 
-<!-- Messages -->
-{% if messages %}
-<div class="jl-messages">
-    {% for message in messages %}
-    <div class="jl-msg {% if message.tags %}{{ message.tags }}{% endif %}">
-        {% if message.tags == 'success' %}<i class='bx bx-check-circle'></i>
-        {% elif message.tags == 'error' %}<i class='bx bx-error'></i>
-        {% elif message.tags == 'warning' %}<i class='bx bx-error-circle'></i>
-        {% else %}<i class='bx bx-info-circle'></i>{% endif %}
-        <p>{{ message }}</p>
-        <button class="jl-msg-close" onclick="this.parentElement.remove()"><i class='bx bx-x'></i></button>
-    </div>
-    {% endfor %}
-</div>
-{% endif %}
+
 
 <!-- ═══ Recommended For You ═══ -->
 {% if recommended_jobs %}

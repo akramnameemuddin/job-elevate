@@ -25,17 +25,7 @@
         </a>
     </div>
 
-    <!-- Messages -->
-    {% if messages %}
-    <div class="pref-alerts">
-        {% for message in messages %}
-        <div class="pref-alert pref-alert-{{ message.tags|default:'info' }}">
-            <span>{{ message }}</span>
-            <button type="button" onclick="this.parentElement.remove()"><i class='bx bx-x'></i></button>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
+
 
     <!-- Main Form -->
     <form method="POST" action="{% url 'jobs:update_job_preferences' %}" id="pref-form">

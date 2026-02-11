@@ -126,6 +126,31 @@ DEMO_USERS = [
 ]
 
 # ══════════════════════════════════════════════════════════════════
+#  Demo Recruiters (1 per company — 4 companies, 2 jobs each)
+# ══════════════════════════════════════════════════════════════════
+DEMO_RECRUITERS = [
+    {
+        'username': 'rec_techmahindra', 'full_name': 'Anil Kapoor',
+        'email': 'anil.rec@demo.com', 'company_name': 'TechMahindra',
+    },
+    {
+        'username': 'rec_zoho', 'full_name': 'Lakshmi Venkatesh',
+        'email': 'lakshmi.rec@demo.com', 'company_name': 'Zoho Corporation',
+    },
+    {
+        'username': 'rec_fractal', 'full_name': 'Sanjay Mishra',
+        'email': 'sanjay.rec@demo.com', 'company_name': 'Fractal Analytics',
+    },
+    {
+        'username': 'rec_amazon', 'full_name': 'Divya Krishnan',
+        'email': 'divya.rec@demo.com', 'company_name': 'Amazon',
+    },
+]
+
+# Maps each DEMO_JOBS index → DEMO_RECRUITERS index (1 recruiter per company)
+JOB_RECRUITER_MAP = [0, 2, 1, 3, 2, 1, 0, 3]
+
+# ══════════════════════════════════════════════════════════════════
 #  Demo Jobs (8 real-looking Indian tech roles)
 # ══════════════════════════════════════════════════════════════════
 DEMO_JOBS = [
@@ -138,7 +163,7 @@ DEMO_JOBS = [
         'requirements': 'Strong Python, ORM, database design. Experience with Docker preferred.',
     },
     {
-        'title': 'ML Engineer Intern', 'company': 'AI Startup Labs',
+        'title': 'ML Engineer Intern', 'company': 'Fractal Analytics',
         'location': 'Bengaluru', 'job_type': 'Internship',
         'skills': ['Python', 'Machine Learning', 'TensorFlow', 'NumPy', 'Pandas'],
         'experience': 0, 'salary': '25,000 - 40,000 /month',
@@ -154,7 +179,7 @@ DEMO_JOBS = [
         'requirements': 'HTML/CSS mastery, JavaScript ES6+, React or Vue.',
     },
     {
-        'title': 'DevOps Engineer', 'company': 'Infosys',
+        'title': 'DevOps Engineer', 'company': 'Amazon',
         'location': 'Pune', 'job_type': 'Full-time',
         'skills': ['Docker', 'Kubernetes', 'AWS', 'Jenkins', 'Terraform'],
         'experience': 2, 'salary': '8,00,000 - 12,00,000',
@@ -162,7 +187,7 @@ DEMO_JOBS = [
         'requirements': '2+ years in DevOps, strong Linux and scripting skills.',
     },
     {
-        'title': 'Data Analyst', 'company': 'Deloitte',
+        'title': 'Data Analyst', 'company': 'Fractal Analytics',
         'location': 'Hyderabad', 'job_type': 'Full-time',
         'skills': ['SQL', 'Python', 'Power BI', 'Excel', 'Data Modelling'],
         'experience': 0, 'salary': '4,00,000 - 7,00,000',
@@ -170,15 +195,15 @@ DEMO_JOBS = [
         'requirements': 'Strong SQL, advanced Excel, any BI tool.',
     },
     {
-        'title': 'MERN Stack Developer', 'company': 'Razorpay',
+        'title': 'MERN Stack Developer', 'company': 'Zoho Corporation',
         'location': 'Bengaluru', 'job_type': 'Full-time',
         'skills': ['React', 'Node.js', 'MongoDB', 'Express', 'JavaScript'],
         'experience': 1, 'salary': '7,00,000 - 11,00,000',
-        'description': 'Full-stack development for payment gateway dashboard.',
+        'description': 'Full-stack development for enterprise product suite.',
         'requirements': 'Proficiency in React, Node.js, MongoDB, REST APIs.',
     },
     {
-        'title': 'Java Backend Developer', 'company': 'Wipro',
+        'title': 'Java Backend Developer', 'company': 'TechMahindra',
         'location': 'Bengaluru', 'job_type': 'Full-time',
         'skills': ['Java', 'Spring Boot', 'Microservices', 'SQL', 'Docker'],
         'experience': 2, 'salary': '7,00,000 - 10,00,000',
@@ -268,19 +293,24 @@ class Command(BaseCommand):
             User.objects.filter(email__endswith='@demo.com').delete()
             Job.objects.filter(title__in=[j['title'] for j in DEMO_JOBS]).delete()
 
-        # ── Recruiter account ─────────────────────────────────────
-        recruiter, cr = User.objects.get_or_create(
-            username='demo_recruiter',
-            defaults={
-                'email': 'recruiter@demo.com',
-                'full_name': 'Demo Recruiter',
-                'user_type': 'recruiter',
-                'email_verified': True,
-            },
-        )
-        if cr:
-            recruiter.set_password('demo1234')
-            recruiter.save()
+        # ── Recruiter accounts (1 per company) ─────────────────
+        recruiters = []
+        for r in DEMO_RECRUITERS:
+            obj, cr = User.objects.get_or_create(
+                username=r['username'],
+                defaults={
+                    'email': r['email'],
+                    'full_name': r['full_name'],
+                    'user_type': 'recruiter',
+                    'company_name': r['company_name'],
+                    'email_verified': True,
+                },
+            )
+            if cr:
+                obj.set_password('demo1234')
+                obj.save()
+                self.stdout.write(f'  + Recruiter: {obj.full_name} ({r["company_name"]})')
+            recruiters.append(obj)
 
         # ── Users ─────────────────────────────────────────────────
         users = []
@@ -320,10 +350,13 @@ class Command(BaseCommand):
                 s.strip() for s in (user.technical_skills or '').split(',') if s.strip()
             ]
             for sn in skill_names:
-                skill_obj, _ = Skill.objects.get_or_create(
-                    name=sn, category=cat,
-                    defaults={'description': f'{sn} skill', 'is_active': True},
-                )
+                # Find existing skill by name (case-insensitive) before creating
+                skill_obj = Skill.objects.filter(name__iexact=sn).first()
+                if not skill_obj:
+                    skill_obj, _ = Skill.objects.get_or_create(
+                        name=sn, category=cat,
+                        defaults={'description': f'{sn} skill', 'is_active': True},
+                    )
                 base = _PROF.get(sn.lower(), 6.0)
                 verified = rng.random() < 0.7
                 vl = round(max(1.0, min(10.0, base + rng.uniform(-1.5, 1.5))), 1)
@@ -342,11 +375,12 @@ class Command(BaseCommand):
 
         # ── Jobs ──────────────────────────────────────────────────
         jobs = []
-        for j in DEMO_JOBS:
+        for i, j in enumerate(DEMO_JOBS):
+            rec = recruiters[JOB_RECRUITER_MAP[i]]
             obj, cr = Job.objects.get_or_create(
                 title=j['title'], company=j['company'],
                 defaults={
-                    'posted_by': recruiter,
+                    'posted_by': rec,
                     'location': j['location'],
                     'job_type': j['job_type'],
                     'skills': j['skills'],
@@ -374,7 +408,7 @@ class Command(BaseCommand):
         # ── Summary ───────────────────────────────────────────────
         self.stdout.write('')
         self.stdout.write(self.style.SUCCESS('Demo data seeded successfully!'))
-        self.stdout.write(f'  Users:        {len(users)} (+ 1 recruiter)')
+        self.stdout.write(f'  Users:        {len(users)} (+ {len(recruiters)} recruiters)')
         self.stdout.write(f'  Jobs:         {len(jobs)}')
         self.stdout.write(f'  Applications: {app_count}')
         pos = sum(1 for _, _, s in DEMO_APPLICATIONS if s in ('Hired', 'Offered', 'Interview', 'Shortlisted'))

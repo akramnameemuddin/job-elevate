@@ -17,7 +17,7 @@ from django.views.decorators.http import require_http_methods
 from django.db.models import Q
 
 from .models import (
-    Skill, QuestionBank, AssessmentAttempt, 
+    Skill, SkillCategory, QuestionBank, AssessmentAttempt, 
     UserAnswer, UserSkillScore
 )
 from .ai_service import question_generator
@@ -1126,19 +1126,17 @@ def job_skill_gap_analysis(request, job_id):
         ).select_related('skill')
     }
     
+    # Also get user profile skills for broader matching
+    user_profile_skills_lower = [s.lower() for s in request.user.get_all_skills_list()]
+    
     # Analyze gaps and create objects matching my_skill_gaps.html template expectations
     matched_skills = []
     partial_skills = []
     all_gaps = []
     
-    for requirement in job_requirements:
-        skill = requirement.skill
-        user_score = user_skill_scores.get(skill.id)
-        current_level = user_score.verified_level if user_score else 0
-        required_level = requirement.required_proficiency
-        
-        # Create gap object with all required fields for template
-        gap_obj = type('obj', (object,), {
+    def _make_gap_obj(skill, current_level, required_level):
+        """Build a gap object with all fields the template needs."""
+        return type('obj', (object,), {
             'skill': skill,
             'skill_id': skill.id,
             'skill_name': skill.name,
@@ -1147,19 +1145,64 @@ def job_skill_gap_analysis(request, job_id):
             'user_level': current_level,
             'gap_value': max(0, required_level - current_level),
             'priority_score': (required_level - current_level) * (required_level / 10),
-            'has_skill': user_score is not None,
+            'has_skill': current_level > 0,
             'meets_requirement': current_level >= required_level,
             'related_job': job,
         })()
-        
-        if gap_obj.meets_requirement:
-            matched_skills.append(gap_obj)
-        elif gap_obj.has_skill:
-            partial_skills.append(gap_obj)
-        else:
-            all_gaps.append(gap_obj)
+
+    if job_requirements.exists():
+        # ── Path A: detailed JobSkillRequirement records exist ────
+        for requirement in job_requirements:
+            skill = requirement.skill
+            user_score = user_skill_scores.get(skill.id)
+            current_level = user_score.verified_level if user_score else 0
+            required_level = requirement.required_proficiency
+
+            gap_obj = _make_gap_obj(skill, current_level, required_level)
+
+            if gap_obj.meets_requirement:
+                matched_skills.append(gap_obj)
+            elif gap_obj.has_skill:
+                partial_skills.append(gap_obj)
+            else:
+                all_gaps.append(gap_obj)
+    elif job.skills:
+        # ── Path B: fallback to job.skills JSON list ──────────────
+        default_category, _ = SkillCategory.objects.get_or_create(
+            name='Technical', defaults={'description': 'Technical skills'},
+        )
+        for skill_data in job.skills:
+            skill_name = skill_data.get('name') if isinstance(skill_data, dict) else skill_data
+            if not skill_name:
+                continue
+
+            # Look up or create the Skill row
+            skill = Skill.objects.filter(name__iexact=skill_name).first()
+            if not skill:
+                skill, _ = Skill.objects.get_or_create(
+                    name=skill_name, category=default_category,
+                    defaults={'description': f'{skill_name} skill', 'is_active': True},
+                )
+
+            # Determine user's current level
+            user_score = user_skill_scores.get(skill.id)
+            current_level = user_score.verified_level if user_score else 0
+            if current_level == 0 and skill.name.lower() in user_profile_skills_lower:
+                current_level = 3.0  # Profile-claimed baseline
+
+            # Use a sensible default required level (7/10) for JSON-only skills
+            required_level = 7.0
+
+            gap_obj = _make_gap_obj(skill, current_level, required_level)
+
+            if gap_obj.meets_requirement:
+                matched_skills.append(gap_obj)
+            elif gap_obj.has_skill:
+                partial_skills.append(gap_obj)
+            else:
+                all_gaps.append(gap_obj)
     
-    total_skills_required = len(job_requirements)
+    total_skills_required = len(matched_skills) + len(partial_skills) + len(all_gaps)
     match_score = (len(matched_skills) / total_skills_required * 100) if total_skills_required else 0
     
     # Categorize ALL non-matching skills (including partial) by priority for my_skill_gaps.html template

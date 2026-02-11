@@ -15,11 +15,13 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from datetime import timedelta
 import json
+import logging
 
 from .models import Post, Comment, Like, Follow, Tag, Notification, UserActivity, Event, EventRegistration
 from .forms import PostForm, CommentForm, PostFilterForm
 from .utils import create_notification, create_activity, get_user_stats, get_trending_posts, get_suggested_users, get_popular_tags
 
+logger = logging.getLogger(__name__)
 User = get_user_model()
 
 @method_decorator(login_required, name='dispatch')
@@ -109,7 +111,7 @@ class CommunityView(View):
                 'unread_notifications_count': unread_count,
             }
         except Exception as e:
-            print(f"Error in base context: {e}")
+            logger.error("Error in base context: %s", e)
             return {
                 'user': request.user,
                 'popular_tags': [],
