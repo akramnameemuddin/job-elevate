@@ -3,9 +3,12 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.db.models import Count, Q
+from django.db.models.functions import TruncDate
 from django.db import transaction
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
+from datetime import timedelta
 import json
 import logging
 
@@ -63,6 +66,75 @@ def get_dashboard_stats(request):
         'active_jobs': active_jobs,
         'applicants': total_applicants,
         'hired': hired_applicants
+    })
+
+
+@login_required
+def get_chart_data(request):
+    """API endpoint returning data for dashboard charts"""
+    if request.user.user_type != 'recruiter':
+        return JsonResponse({'error': 'Access denied'}, status=403)
+
+    user = request.user
+
+    # 1) Application-status breakdown (for doughnut chart)
+    status_qs = (
+        Application.objects.filter(job__posted_by=user)
+        .values('status')
+        .annotate(count=Count('id'))
+        .order_by('status')
+    )
+    status_labels = []
+    status_counts = []
+    for row in status_qs:
+        status_labels.append(row['status'])
+        status_counts.append(row['count'])
+
+    # 2) Jobs by type (for bar chart)
+    type_qs = (
+        Job.objects.filter(posted_by=user)
+        .values('job_type')
+        .annotate(count=Count('id'))
+        .order_by('job_type')
+    )
+    type_labels = [r['job_type'] for r in type_qs]
+    type_counts = [r['count'] for r in type_qs]
+
+    # 3) Applications over the last 30 days (for line chart)
+    thirty_days_ago = timezone.now() - timedelta(days=30)
+    daily_qs = (
+        Application.objects.filter(job__posted_by=user, applied_at__gte=thirty_days_ago)
+        .annotate(day=TruncDate('applied_at'))
+        .values('day')
+        .annotate(count=Count('id'))
+        .order_by('day')
+    )
+    daily_labels = [r['day'].strftime('%b %d') for r in daily_qs]
+    daily_counts = [r['count'] for r in daily_qs]
+
+    # 4) Hiring pipeline / funnel
+    pipeline_stages = ['Applied', 'Shortlisted', 'Interview', 'Offered', 'Hired']
+    pipeline_counts = []
+    for stage in pipeline_stages:
+        cnt = Application.objects.filter(job__posted_by=user, status=stage).count()
+        pipeline_counts.append(cnt)
+
+    # 5) Job status breakdown (Open / Closed / Paused / Filled)
+    job_status_qs = (
+        Job.objects.filter(posted_by=user)
+        .values('status')
+        .annotate(count=Count('id'))
+        .order_by('status')
+    )
+    job_status_labels = [r['status'] for r in job_status_qs]
+    job_status_counts = [r['count'] for r in job_status_qs]
+
+    return JsonResponse({
+        'application_status': {'labels': status_labels, 'data': status_counts},
+        'jobs_by_type': {'labels': type_labels, 'data': type_counts},
+        'daily_applications': {'labels': daily_labels, 'data': daily_counts},
+        'hiring_pipeline': {'labels': pipeline_stages, 'data': pipeline_counts},
+        'job_status': {'labels': job_status_labels, 'data': job_status_counts},
     })
 
 @login_required

@@ -98,12 +98,8 @@ def job_listings(request):
             )
             sal_match = content_rec.calculate_salary_match(pref_min_salary, job.salary)
             
-            pref_score = (
-                0.30 * exp_match +
-                0.25 * loc_match +
-                0.20 * jt_match +
-                0.15 * ind_match +
-                0.10 * sal_match
+            pref_score = content_rec.calculate_preference_score(
+                exp_match, loc_match, jt_match, ind_match, sal_match
             )
             
             score = (
@@ -183,6 +179,14 @@ def job_listings(request):
         status='Open'
     ).values_list('location', flat=True).distinct().order_by('location')
     
+    # Check if user has set job preferences
+    try:
+        user_preferences = request.user.job_preferences
+        has_preferences = True
+    except UserJobPreference.DoesNotExist:
+        user_preferences = None
+        has_preferences = False
+
     # Context for the template
     context = {
         'jobs': jobs_page,
@@ -198,6 +202,8 @@ def job_listings(request):
         'sort_by': sort_by,
         'total_jobs': len(jobs_list),
         'has_filters': bool(search_query or location_filter or job_type_filter),
+        'has_preferences': has_preferences,
+        'user_preferences': user_preferences,
     }
     
     return render(request, 'jobs/job_listings.html', context)

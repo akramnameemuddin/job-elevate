@@ -7,6 +7,7 @@ urlpatterns = [
     # Dashboard routes
     path('', views.recruiter_dashboard, name='recruiter_dashboard'),
     path('api/stats/', views.get_dashboard_stats, name='get_dashboard_stats'),
+    path('api/chart-data/', views.get_chart_data, name='get_chart_data'),
     
     # Job routes
     path('api/jobs/', views.get_jobs, name='get_jobs'),
