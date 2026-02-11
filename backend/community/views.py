@@ -16,7 +16,7 @@ from django.utils import timezone
 from datetime import timedelta
 import json
 
-from .models import Post, Comment, Like, Follow, Tag, Notification, UserActivity
+from .models import Post, Comment, Like, Follow, Tag, Notification, UserActivity, Event, EventRegistration
 from .forms import PostForm, CommentForm, PostFilterForm
 from .utils import create_notification, create_activity, get_user_stats, get_trending_posts, get_suggested_users, get_popular_tags
 
@@ -289,6 +289,15 @@ class CommunityView(View):
         page_number = 1  # For AJAX, we'll start with page 1
         return paginator.get_page(page_number)
     
+    def _get_post_detail_context(self, request):
+        """Get context for post-detail section loaded via full page (non-AJAX)"""
+        slug = request.GET.get('slug')
+        if not slug:
+            raise Http404('Post slug is required')
+        post = get_object_or_404(Post, slug=slug, is_active=True)
+        post.increment_views()
+        return self._get_post_detail_data(request, post)
+
     def _get_post_detail_data(self, request, post):
         """Get post detail context data"""
         comments = Comment.objects.select_related('author').filter(
@@ -885,6 +894,139 @@ def user_profile_view(request, username):
 def tag_posts_view(request, slug):
     """Redirect to community view with tag posts"""
     return redirect(f'/community/?section=tag-posts&tag={slug}')
+
+
+# ── Events views ──────────────────────────────────────────────
+
+@login_required
+def events_view(request):
+    """Virtual events listing page (workshops, webinars, career sessions)"""
+    now = timezone.now()
+
+    # Filters
+    category = request.GET.get('category', 'all')
+    search_q = request.GET.get('q', '').strip()
+    time_filter = request.GET.get('time', 'upcoming')     # upcoming | past | all
+
+    events_qs = Event.objects.filter(is_active=True).annotate(
+        registration_count=Count('registrations')
+    ).select_related('created_by')
+
+    if category and category != 'all':
+        events_qs = events_qs.filter(event_type=category)
+    if search_q:
+        events_qs = events_qs.filter(
+            Q(title__icontains=search_q) | Q(description__icontains=search_q)
+        )
+    if time_filter == 'upcoming':
+        events_qs = events_qs.filter(start_datetime__gt=now).order_by('start_datetime')
+    elif time_filter == 'past':
+        events_qs = events_qs.filter(end_datetime__lt=now).order_by('-start_datetime')
+    else:
+        events_qs = events_qs.order_by('start_datetime')
+
+    paginator = Paginator(events_qs, 9)
+    page = request.GET.get('page', 1)
+    events = paginator.get_page(page)
+
+    # Featured event (next upcoming featured, or first upcoming)
+    featured = Event.objects.filter(
+        is_active=True, is_featured=True, start_datetime__gt=now
+    ).annotate(registration_count=Count('registrations')).first()
+    if not featured:
+        featured = Event.objects.filter(
+            is_active=True, start_datetime__gt=now
+        ).annotate(registration_count=Count('registrations')).first()
+
+    # Stats
+    upcoming_count = Event.objects.filter(is_active=True, start_datetime__gt=now).count()
+    live_count = Event.objects.filter(is_active=True, start_datetime__lte=now, end_datetime__gte=now).count()
+    total_attendees = EventRegistration.objects.count()
+
+    # User registrations
+    user_registered_ids = set(
+        EventRegistration.objects.filter(user=request.user).values_list('event_id', flat=True)
+    )
+    user_bookmarked_ids = set(
+        EventRegistration.objects.filter(user=request.user, is_bookmarked=True).values_list('event_id', flat=True)
+    )
+
+    context = {
+        'events': events,
+        'featured_event': featured,
+        'category': category,
+        'search_q': search_q,
+        'time_filter': time_filter,
+        'upcoming_count': upcoming_count,
+        'live_count': live_count,
+        'total_attendees': total_attendees,
+        'user_registered_ids': user_registered_ids,
+        'user_bookmarked_ids': user_bookmarked_ids,
+        'event_types': Event.EVENT_TYPES,
+    }
+    return render(request, 'community/events.html', context)
+
+
+@login_required
+@require_POST
+def toggle_event_registration(request):
+    """AJAX: register / unregister for an event"""
+    try:
+        event_id = request.POST.get('event_id')
+        if not event_id:
+            return JsonResponse({'error': 'Event ID required'}, status=400)
+
+        event = get_object_or_404(Event, id=event_id, is_active=True)
+
+        reg, created = EventRegistration.objects.get_or_create(
+            event=event, user=request.user
+        )
+        if not created:
+            reg.delete()
+            return JsonResponse({
+                'success': True,
+                'registered': False,
+                'registrations_count': event.registrations_count,
+                'spots_left': event.spots_left,
+            })
+
+        if event.spots_left <= 0:
+            reg.delete()
+            return JsonResponse({'error': 'No spots left'}, status=400)
+
+        return JsonResponse({
+            'success': True,
+            'registered': True,
+            'registrations_count': event.registrations_count,
+            'spots_left': event.spots_left,
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@require_POST
+def toggle_event_bookmark(request):
+    """AJAX: bookmark / un-bookmark an event"""
+    try:
+        event_id = request.POST.get('event_id')
+        if not event_id:
+            return JsonResponse({'error': 'Event ID required'}, status=400)
+
+        event = get_object_or_404(Event, id=event_id, is_active=True)
+
+        reg, created = EventRegistration.objects.get_or_create(
+            event=event, user=request.user
+        )
+        reg.is_bookmarked = not reg.is_bookmarked
+        reg.save()
+
+        return JsonResponse({
+            'success': True,
+            'bookmarked': reg.is_bookmarked,
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 # Create the main community view instance
 community_view = CommunityView.as_view()

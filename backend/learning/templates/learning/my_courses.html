@@ -4,574 +4,371 @@
 {% block title %}My Courses{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div>
-        <h1><i class='bx bx-book-bookmark'></i> My Courses</h1>
-        <p>Track your learning progress and continue where you left off</p>
+<style>
+/* ══════════════════════════════════════════════
+   My Courses Page  (mc- namespace)
+   ══════════════════════════════════════════════ */
+.mc-stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 1rem; margin-bottom: 1.5rem;
+}
+.mc-stat {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 12px; padding: 1rem 1.25rem;
+    display: flex; align-items: center; gap: .85rem;
+    transition: transform .15s;
+}
+.mc-stat:hover { transform: translateY(-2px); }
+.mc-stat-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.35rem; flex-shrink: 0;
+}
+.mc-stat-icon.active   { background: rgba(59,130,246,.12); color: #3b82f6; }
+.mc-stat-icon.done     { background: rgba(34,197,94,.12); color: #22c55e; }
+.mc-stat-icon.hours    { background: rgba(245,158,11,.12); color: #f59e0b; }
+.mc-stat-icon.certs    { background: rgba(139,92,246,.12); color: #8b5cf6; }
+.mc-stat h4 { font-size: .72rem; color: var(--text-muted); margin: 0 0 .1rem; text-transform: uppercase; letter-spacing: .4px; }
+.mc-stat .val { font-size: 1.35rem; font-weight: 700; color: var(--heading-color); }
+
+/* ── Filter tabs ── */
+.mc-tabs {
+    display: flex; gap: .5rem; margin-bottom: 1.25rem;
+    border-bottom: 2px solid var(--border-color); padding-bottom: 0;
+}
+.mc-tab {
+    padding: .55rem 1rem; font-size: .85rem; font-weight: 600;
+    color: var(--text-muted); background: none; border: none;
+    border-bottom: 2px solid transparent; margin-bottom: -2px;
+    cursor: pointer; transition: all .15s; white-space: nowrap;
+}
+.mc-tab:hover { color: var(--heading-color); }
+.mc-tab.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
+
+/* ── Course cards ── */
+.mc-list { display: flex; flex-direction: column; gap: 1rem; }
+
+.mc-card {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 14px; padding: 1.25rem 1.5rem;
+    transition: all .2s; display: flex; flex-direction: column; gap: .85rem;
+}
+.mc-card:hover { border-color: var(--primary-color); box-shadow: 0 4px 16px rgba(0,0,0,.06); }
+
+.mc-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+.mc-card-info { flex: 1; min-width: 0; }
+.mc-card-info h3 {
+    font-size: 1.05rem; font-weight: 600; color: var(--heading-color); margin: 0 0 .35rem;
+}
+.mc-card-meta { display: flex; flex-wrap: wrap; gap: .4rem; }
+.mc-badge {
+    font-size: .7rem; font-weight: 600; padding: .15rem .5rem;
+    border-radius: 6px; white-space: nowrap;
+}
+.mc-badge.platform { background: rgba(79,70,229,.1); color: var(--primary-color); }
+.mc-badge.skill    { background: var(--hover-bg); color: var(--text-color); }
+.mc-badge.beginner      { background: rgba(34,197,94,.1); color: #16a34a; }
+.mc-badge.intermediate  { background: rgba(245,158,11,.1); color: #d97706; }
+.mc-badge.advanced      { background: rgba(239,68,68,.1); color: #dc2626; }
+
+.mc-status-badge {
+    font-size: .72rem; font-weight: 600; padding: .25rem .65rem;
+    border-radius: 20px; display: flex; align-items: center; gap: .25rem;
+    white-space: nowrap; flex-shrink: 0;
+}
+.mc-status-badge.completed { background: rgba(34,197,94,.1); color: #16a34a; }
+.mc-status-badge.progress  { background: rgba(59,130,246,.1); color: #3b82f6; }
+
+.mc-desc { font-size: .85rem; color: var(--text-muted); line-height: 1.5; }
+
+/* Progress bar */
+.mc-progress-wrap { display: flex; flex-direction: column; gap: .3rem; }
+.mc-progress-head { display: flex; justify-content: space-between; align-items: center; }
+.mc-progress-head span { font-size: .78rem; color: var(--text-muted); }
+.mc-progress-pct { font-weight: 700; color: var(--primary-color); }
+.mc-progress-bar {
+    height: 8px; border-radius: 4px; background: var(--hover-bg); overflow: hidden;
+}
+.mc-progress-fill {
+    height: 100%; border-radius: 4px;
+    background: linear-gradient(90deg, var(--primary-color), #22c55e);
+    transition: width .6s ease;
+}
+
+/* Stat row */
+.mc-stat-row { display: flex; gap: 1.5rem; font-size: .8rem; color: var(--text-muted); }
+.mc-stat-row span { display: flex; align-items: center; gap: .3rem; }
+
+/* Card footer */
+.mc-card-footer {
+    display: flex; gap: .5rem; flex-wrap: wrap; padding-top: .65rem;
+    border-top: 1px solid var(--border-color); margin-top: auto;
+}
+.mc-link-btn {
+    width: 34px; height: 34px; border-radius: 8px;
+    border: 1px solid var(--border-color); background: var(--card-bg);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; color: var(--text-muted); text-decoration: none;
+    transition: all .15s;
+}
+.mc-link-btn:hover { border-color: var(--primary-color); color: var(--primary-color); }
+
+/* ── Empty state ── */
+.mc-empty {
+    text-align: center; padding: 4rem 2rem;
+    background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px;
+}
+.mc-empty i { font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem; display: block; }
+.mc-empty h3 { font-size: 1.15rem; color: var(--heading-color); margin-bottom: .4rem; }
+.mc-empty p { color: var(--text-muted); font-size: .9rem; margin-bottom: 1.25rem; }
+
+/* ── Modal ── */
+.mc-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45);
+    z-index: 1040; align-items: center; justify-content: center;
+}
+.mc-overlay.open { display: flex; }
+.mc-modal {
+    background: var(--card-bg); border-radius: 14px; width: 90%; max-width: 420px;
+    box-shadow: 0 16px 48px rgba(0,0,0,.15);
+}
+.mc-modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1.15rem 1.5rem; border-bottom: 1px solid var(--border-color);
+}
+.mc-modal-header h3 { font-size: 1rem; font-weight: 600; color: var(--heading-color); margin: 0; }
+.mc-modal-close {
+    background: none; border: none; font-size: 1.3rem; cursor: pointer;
+    color: var(--text-muted); transition: color .15s;
+}
+.mc-modal-close:hover { color: var(--heading-color); }
+.mc-modal-body { padding: 1.5rem; }
+.mc-modal-body p { font-size: .88rem; color: var(--text-muted); margin-bottom: 1rem; }
+.mc-slider-val {
+    text-align: center; font-size: 2rem; font-weight: 700;
+    color: var(--primary-color); margin: .75rem 0 1rem;
+}
+.mc-modal-body input[type="range"] {
+    width: 100%; accent-color: var(--primary-color);
+}
+.mc-modal-body label { display: flex; align-items: center; gap: .5rem; font-size: .85rem; cursor: pointer; color: var(--text-color); }
+.mc-modal-footer {
+    display: flex; justify-content: flex-end; gap: .5rem;
+    padding: 1rem 1.5rem; border-top: 1px solid var(--border-color);
+}
+</style>
+
+<!-- Breadcrumb -->
+<div class="breadcrumb">
+    <div class="breadcrumb-item">
+        <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
+        <i class='bx bx-chevron-right'></i>
     </div>
-    <a href="{% url 'learning:course_catalog' %}" class="btn btn-primary">
+    <div class="breadcrumb-item">
+        <a href="{% url 'learning:learning_dashboard' %}" class="breadcrumb-link">Learning</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item"><span>My Courses</span></div>
+</div>
+
+<!-- Page Header -->
+<div class="page-content-header">
+    <div>
+        <h1 class="page-title"><i class='bx bx-book-bookmark' style="color:var(--primary-color)"></i> My Courses</h1>
+        <p class="page-subtitle">Track your learning progress and continue where you left off</p>
+    </div>
+    <a href="{% url 'learning:course_catalog' %}" class="btn btn-primary btn-sm">
         <i class='bx bx-plus'></i> Browse Courses
     </a>
 </div>
 
-<div class="courses-container">
-    <!-- Stats Overview -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <i class='bx bx-book'></i>
-            <div>
-                <strong>{{ active_courses }}</strong>
-                <span>Active Courses</span>
-            </div>
-        </div>
-        
-        <div class="stat-card">
-            <i class='bx bx-check-circle'></i>
-            <div>
-                <strong>{{ completed_courses }}</strong>
-                <span>Completed</span>
-            </div>
-        </div>
-        
-        <div class="stat-card">
-            <i class='bx bx-time'></i>
-            <div>
-                <strong>{{ total_hours }}</strong>
-                <span>Hours Learned</span>
-            </div>
-        </div>
-        
-        <div class="stat-card">
-            <i class='bx bx-medal'></i>
-            <div>
-                <strong>{{ certificates_earned }}</strong>
-                <span>Certificates</span>
-            </div>
-        </div>
+<!-- Stats -->
+<div class="mc-stats">
+    <div class="mc-stat">
+        <div class="mc-stat-icon active"><i class='bx bx-book'></i></div>
+        <div><h4>Active</h4><div class="val">{{ active_courses }}</div></div>
     </div>
-
-    <!-- Filters -->
-    <div class="filters-bar">
-        <div class="filter-tabs">
-            <button class="filter-tab active" data-filter="all" onclick="filterCourses('all')">
-                All Courses ({{ progress_list.count }})
-            </button>
-            <button class="filter-tab" data-filter="in-progress" onclick="filterCourses('in-progress')">
-                In Progress ({{ active_courses }})
-            </button>
-            <button class="filter-tab" data-filter="completed" onclick="filterCourses('completed')">
-                Completed ({{ completed_courses }})
-            </button>
-        </div>
+    <div class="mc-stat">
+        <div class="mc-stat-icon done"><i class='bx bx-check-circle'></i></div>
+        <div><h4>Completed</h4><div class="val">{{ completed_courses }}</div></div>
     </div>
-
-    <!-- Courses List -->
-    <div class="courses-list" id="courses-list">
-        {% for progress in progress_list %}
-        <div class="course-progress-card" data-status="{% if progress.completed %}completed{% else %}in-progress{% endif %}">
-            <div class="course-header">
-                <div class="course-info">
-                    <h3>{{ progress.course.title }}</h3>
-                    <div class="course-meta">
-                        <span class="platform-badge">{{ progress.course.platform }}</span>
-                        <span class="skill-tag">{{ progress.course.skill.name }}</span>
-                        <span class="difficulty-badge difficulty-{{ progress.course.difficulty }}">
-                            {{ progress.course.get_difficulty_display }}
-                        </span>
-                    </div>
-                </div>
-                
-                {% if progress.completed %}
-                <div class="completion-badge">
-                    <i class='bx bx-check-circle'></i>
-                    <span>Completed</span>
-                </div>
-                {% else %}
-                <div class="status-badge">
-                    <i class='bx bx-time'></i>
-                    <span>In Progress</span>
-                </div>
-                {% endif %}
-            </div>
-            
-            <div class="course-body">
-                <p class="course-description">{{ progress.course.description|truncatewords:30 }}</p>
-                
-                <div class="progress-section">
-                    <div class="progress-header">
-                        <span>Progress</span>
-                        <span class="progress-percentage">{{ progress.progress_percentage|floatformat:0 }}%</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: {{ progress.progress_percentage|floatformat:0 }}%"></div>
-                    </div>
-                </div>
-                
-                <div class="course-stats-row">
-                    <div class="stat-item">
-                        <i class='bx bx-time'></i>
-                        <span>{{ progress.time_spent }} of {{ progress.course.duration_hours }}h</span>
-                    </div>
-                    {% if progress.last_accessed %}
-                    <div class="stat-item">
-                        <i class='bx bx-calendar'></i>
-                        <span>Last accessed {{ progress.last_accessed|timesince }} ago</span>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <div class="course-footer">
-                {% if progress.completed %}
-                    {% if progress.certificate_url %}
-                    <a href="{{ progress.certificate_url }}" target="_blank" class="btn btn-success">
-                        <i class='bx bx-medal'></i> View Certificate
-                    </a>
-                    {% endif %}
-                    <button class="btn btn-secondary" onclick="updateProgress({{ progress.id }}, 0)">
-                        <i class='bx bx-revision'></i> Review Again
-                    </button>
-                {% else %}
-                    <button class="btn btn-primary" onclick="continueLearning('{{ progress.course.external_url }}', {{ progress.id }})">
-                        <i class='bx bx-play'></i> Continue Learning
-                    </button>
-                    <button class="btn btn-outline" onclick="showProgressModal({{ progress.id }}, {{ progress.progress_percentage|floatformat:0 }})">
-                        <i class='bx bx-edit'></i> Update Progress
-                    </button>
-                {% endif %}
-                
-                {% if progress.course.external_url %}
-                <a href="{{ progress.course.external_url }}" target="_blank" class="btn-icon" title="Open in {{ progress.course.platform }}">
-                    <i class='bx bx-link-external'></i>
-                </a>
-                {% endif %}
-            </div>
-        </div>
-        {% empty %}
-        <div class="empty-state">
-            <i class='bx bx-book-open'></i>
-            <h3>No Enrolled Courses</h3>
-            <p>Start your learning journey by enrolling in courses from our catalog</p>
-            <a href="{% url 'learning:course_catalog' %}" class="btn btn-primary">
-                <i class='bx bx-search'></i> Browse Courses
-            </a>
-        </div>
-        {% endfor %}
+    <div class="mc-stat">
+        <div class="mc-stat-icon hours"><i class='bx bx-time'></i></div>
+        <div><h4>Hours Learned</h4><div class="val">{{ total_hours }}</div></div>
+    </div>
+    <div class="mc-stat">
+        <div class="mc-stat-icon certs"><i class='bx bx-medal'></i></div>
+        <div><h4>Certificates</h4><div class="val">{{ certificates_earned }}</div></div>
     </div>
 </div>
 
-<!-- Progress Update Modal -->
-<div id="progress-modal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Update Progress</h3>
-            <button class="modal-close" onclick="closeProgressModal()">
-                <i class='bx bx-x'></i>
-            </button>
+<!-- Tabs -->
+<div class="mc-tabs">
+    <button class="mc-tab active" data-filter="all" onclick="mcFilter('all', this)">All ({{ progress_list.count }})</button>
+    <button class="mc-tab" data-filter="in-progress" onclick="mcFilter('in-progress', this)">In Progress ({{ active_courses }})</button>
+    <button class="mc-tab" data-filter="completed" onclick="mcFilter('completed', this)">Completed ({{ completed_courses }})</button>
+</div>
+
+<!-- Course List -->
+<div class="mc-list" id="mcList">
+    {% for progress in progress_list %}
+    <div class="mc-card" data-status="{% if progress.status == 'completed' %}completed{% else %}in-progress{% endif %}">
+        <div class="mc-card-top">
+            <div class="mc-card-info">
+                <h3>{{ progress.course.title }}</h3>
+                <div class="mc-card-meta">
+                    <span class="mc-badge platform">{{ progress.course.platform }}</span>
+                    <span class="mc-badge skill">{{ progress.course.skill.name }}</span>
+                    <span class="mc-badge {{ progress.course.difficulty_level }}">
+                        {{ progress.course.get_difficulty_level_display }}
+                    </span>
+                </div>
+            </div>
+            {% if progress.status == 'completed' %}
+            <span class="mc-status-badge completed"><i class='bx bx-check-circle'></i> Completed</span>
+            {% else %}
+            <span class="mc-status-badge progress"><i class='bx bx-time'></i> In Progress</span>
+            {% endif %}
         </div>
-        <div class="modal-body">
+
+        {% if progress.course.description %}
+        <p class="mc-desc">{{ progress.course.description|truncatewords:30 }}</p>
+        {% endif %}
+
+        <div class="mc-progress-wrap">
+            <div class="mc-progress-head">
+                <span>Progress</span>
+                <span class="mc-progress-pct">{{ progress.progress_percentage|floatformat:0 }}%</span>
+            </div>
+            <div class="mc-progress-bar">
+                <div class="mc-progress-fill" style="width: {{ progress.progress_percentage|floatformat:0 }}%;"></div>
+            </div>
+        </div>
+
+        <div class="mc-stat-row">
+            <span><i class='bx bx-time'></i> {{ progress.time_spent_hours }}h of {{ progress.course.duration_hours }}h</span>
+            {% if progress.last_accessed_at %}
+            <span><i class='bx bx-calendar'></i> {{ progress.last_accessed_at|timesince }} ago</span>
+            {% endif %}
+        </div>
+
+        <div class="mc-card-footer">
+            {% if progress.status == 'completed' %}
+                {% if progress.certificate_url %}
+                <a href="{{ progress.certificate_url }}" target="_blank" class="btn btn-success btn-sm" style="font-size:.78rem;">
+                    <i class='bx bx-medal'></i> Certificate
+                </a>
+                {% endif %}
+                <button class="btn btn-outline-secondary btn-sm" style="font-size:.78rem;"
+                        onclick="mcUpdateProgress({{ progress.id }}, 0)">
+                    <i class='bx bx-revision'></i> Review Again
+                </button>
+            {% else %}
+                <button class="btn btn-primary btn-sm" style="font-size:.78rem;"
+                        onclick="mcContinue('{{ progress.course.url }}', {{ progress.id }})">
+                    <i class='bx bx-play'></i> Continue
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" style="font-size:.78rem;"
+                        onclick="mcShowModal({{ progress.id }}, {{ progress.progress_percentage|floatformat:0 }})">
+                    <i class='bx bx-edit'></i> Update
+                </button>
+            {% endif %}
+            {% if progress.course.url %}
+            <a href="{{ progress.course.url }}" target="_blank" class="mc-link-btn" title="Open on {{ progress.course.platform }}">
+                <i class='bx bx-link-external'></i>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="mc-empty">
+        <i class='bx bx-book-open'></i>
+        <h3>No Enrolled Courses</h3>
+        <p>Start your learning journey by enrolling in courses from our catalog</p>
+        <a href="{% url 'learning:course_catalog' %}" class="btn btn-primary">
+            <i class='bx bx-search'></i> Browse Courses
+        </a>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Progress Modal -->
+<div class="mc-overlay" id="mcOverlay">
+    <div class="mc-modal">
+        <div class="mc-modal-header">
+            <h3>Update Progress</h3>
+            <button class="mc-modal-close" onclick="mcCloseModal()"><i class='bx bx-x'></i></button>
+        </div>
+        <div class="mc-modal-body">
             <p>How much of the course have you completed?</p>
-            <input type="range" id="progress-slider" min="0" max="100" value="0" oninput="updateSliderValue(this.value)">
-            <div class="progress-value"><span id="slider-value">0</span>%</div>
-            
-            <label class="checkbox-label">
-                <input type="checkbox" id="mark-completed">
-                <span>Mark as completed</span>
+            <input type="range" id="mcSlider" min="0" max="100" value="0" oninput="document.getElementById('mcSliderVal').textContent=this.value">
+            <div class="mc-slider-val"><span id="mcSliderVal">0</span>%</div>
+            <label>
+                <input type="checkbox" id="mcComplete">
+                Mark as completed
             </label>
         </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeProgressModal()">Cancel</button>
-            <button class="btn btn-primary" onclick="saveProgress()">Save Progress</button>
+        <div class="mc-modal-footer">
+            <button class="btn btn-outline-secondary btn-sm" onclick="mcCloseModal()">Cancel</button>
+            <button class="btn btn-primary btn-sm" onclick="mcSave()">Save</button>
         </div>
     </div>
 </div>
 
 <script>
-let currentProgressId = null;
+const MC_CSRF = '{{ csrf_token }}';
+let mcProgressId = null;
 
-function filterCourses(filter) {
-    const cards = document.querySelectorAll('.course-progress-card');
-    const tabs = document.querySelectorAll('.filter-tab');
-    
-    tabs.forEach(tab => {
-        tab.classList.toggle('active', tab.dataset.filter === filter);
-    });
-    
-    cards.forEach(card => {
-        if (filter === 'all') {
-            card.style.display = 'flex';
-        } else if (filter === 'in-progress') {
-            card.style.display = card.dataset.status === 'in-progress' ? 'flex' : 'none';
-        } else if (filter === 'completed') {
-            card.style.display = card.dataset.status === 'completed' ? 'flex' : 'none';
-        }
+function mcFilter(f, btn) {
+    document.querySelectorAll('.mc-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.mc-card').forEach(c => {
+        c.style.display = (f === 'all' || c.dataset.status === f) ? '' : 'none';
     });
 }
 
-function continueLearning(url, progressId) {
+function mcContinue(url, pid) {
     if (url) {
-        // Update last accessed time
         fetch("{% url 'learning:update_course_progress' %}", {
             method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                progress_id: progressId,
-                update_access: true
-            })
+            headers: { 'X-CSRFToken': MC_CSRF, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ progress_id: pid, update_access: true })
         });
-        
         window.open(url, '_blank');
     }
 }
 
-function showProgressModal(progressId, currentProgress) {
-    currentProgressId = progressId;
-    document.getElementById('progress-slider').value = currentProgress;
-    document.getElementById('slider-value').textContent = currentProgress;
-    document.getElementById('mark-completed').checked = currentProgress >= 100;
-    document.getElementById('progress-modal').style.display = 'flex';
+function mcShowModal(pid, cur) {
+    mcProgressId = pid;
+    document.getElementById('mcSlider').value = cur;
+    document.getElementById('mcSliderVal').textContent = cur;
+    document.getElementById('mcComplete').checked = cur >= 100;
+    document.getElementById('mcOverlay').classList.add('open');
+}
+function mcCloseModal() {
+    document.getElementById('mcOverlay').classList.remove('open');
+    mcProgressId = null;
 }
 
-function closeProgressModal() {
-    document.getElementById('progress-modal').style.display = 'none';
-    currentProgressId = null;
+function mcSave() {
+    const pct = document.getElementById('mcSlider').value;
+    const done = document.getElementById('mcComplete').checked;
+    mcUpdateProgress(mcProgressId, pct, done);
+    mcCloseModal();
 }
 
-function updateSliderValue(value) {
-    document.getElementById('slider-value').textContent = value;
-    document.getElementById('mark-completed').checked = value >= 100;
-}
-
-function saveProgress() {
-    const progress = document.getElementById('progress-slider').value;
-    const completed = document.getElementById('mark-completed').checked;
-    
-    updateProgress(currentProgressId, progress, completed);
-    closeProgressModal();
-}
-
-function updateProgress(progressId, progress, completed = null) {
+function mcUpdateProgress(pid, pct, done) {
     fetch("{% url 'learning:update_course_progress' %}", {
         method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/json'
-        },
+        headers: { 'X-CSRFToken': MC_CSRF, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            progress_id: progressId,
-            progress_percentage: progress,
-            completed: completed !== null ? completed : progress >= 100
+            progress_id: pid,
+            progress_percentage: pct,
+            completed: done !== undefined ? done : pct >= 100
         })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert('Error updating progress: ' + data.error);
-        }
-    });
+    .then(r => r.json())
+    .then(d => { if (d.success) location.reload(); else alert('Error: ' + d.error); });
 }
 </script>
-
-<style>
-.courses-container {
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-.stat-card {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1.5rem;
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-}
-
-.stat-card i {
-    font-size: 2.5rem;
-    color: var(--primary-color);
-}
-
-.stat-card strong {
-    display: block;
-    font-size: 2rem;
-    font-weight: 700;
-}
-
-.stat-card span {
-    color: var(--text-muted);
-    font-size: 0.875rem;
-}
-
-.filters-bar {
-    margin-bottom: 2rem;
-}
-
-.filter-tabs {
-    display: flex;
-    gap: 1rem;
-    border-bottom: 2px solid var(--border-color);
-}
-
-.filter-tab {
-    padding: 1rem 1.5rem;
-    background: none;
-    border: none;
-    border-bottom: 3px solid transparent;
-    font-weight: 600;
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.filter-tab.active {
-    color: var(--primary-color);
-    border-bottom-color: var(--primary-color);
-}
-
-.courses-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-.course-progress-card {
-    display: flex;
-    flex-direction: column;
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    padding: 2rem;
-}
-
-.course-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1.5rem;
-}
-
-.course-info h3 {
-    margin-bottom: 0.75rem;
-}
-
-.course-meta {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-}
-
-.platform-badge {
-    padding: 0.25rem 0.75rem;
-    background: var(--primary-light);
-    color: var(--primary-color);
-    border-radius: var(--radius);
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
-.skill-tag {
-    padding: 0.25rem 0.75rem;
-    background: var(--gray-100);
-    border-radius: var(--radius);
-    font-size: 0.75rem;
-}
-
-.difficulty-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: var(--radius);
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: capitalize;
-}
-
-.difficulty-beginner { background: var(--success-light); color: var(--success-color); }
-.difficulty-intermediate { background: var(--warning-light); color: var(--warning-color); }
-.difficulty-advanced { background: var(--danger-light); color: var(--danger-color); }
-
-.completion-badge, .status-badge {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: var(--radius);
-    font-weight: 600;
-}
-
-.completion-badge {
-    background: var(--success-light);
-    color: var(--success-color);
-}
-
-.status-badge {
-    background: var(--warning-light);
-    color: var(--warning-color);
-}
-
-.course-description {
-    color: var(--text-muted);
-    margin-bottom: 1.5rem;
-    line-height: 1.6;
-}
-
-.progress-section {
-    margin-bottom: 1rem;
-}
-
-.progress-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-}
-
-.progress-percentage {
-    font-weight: 700;
-    color: var(--primary-color);
-}
-
-.progress-bar {
-    height: 12px;
-    background: var(--gray-200);
-    border-radius: var(--radius);
-    overflow: hidden;
-}
-
-.progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--primary-color), var(--success-color));
-    transition: width 0.3s ease;
-}
-
-.course-stats-row {
-    display: flex;
-    gap: 2rem;
-    margin-bottom: 1.5rem;
-}
-
-.stat-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--text-muted);
-    font-size: 0.875rem;
-}
-
-.course-footer {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-}
-
-.btn-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius);
-    color: var(--text-color);
-    transition: all 0.2s;
-}
-
-.btn-icon:hover {
-    background: var(--gray-100);
-}
-
-.btn-outline {
-    background: transparent;
-    border: 1px solid var(--border-color);
-    color: var(--text-color);
-}
-
-.btn-outline:hover {
-    background: var(--gray-50);
-}
-
-/* Modal Styles */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background: var(--card-bg);
-    border-radius: var(--radius-lg);
-    width: 90%;
-    max-width: 500px;
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.modal-close {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: var(--text-muted);
-}
-
-.modal-body {
-    padding: 2rem 1.5rem;
-}
-
-.modal-body input[type="range"] {
-    width: 100%;
-    margin: 1.5rem 0;
-}
-
-.progress-value {
-    text-align: center;
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--primary-color);
-    margin-bottom: 1.5rem;
-}
-
-.modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
-    padding: 1.5rem;
-    border-top: 1px solid var(--border-color);
-}
-
-.empty-state {
-    text-align: center;
-    padding: 4rem 2rem;
-}
-
-.empty-state i {
-    font-size: 5rem;
-    color: var(--text-muted);
-    margin-bottom: 1rem;
-}
-</style>
 {% endblock %}

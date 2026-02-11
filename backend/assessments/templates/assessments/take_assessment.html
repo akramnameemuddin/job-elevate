@@ -262,6 +262,17 @@
     text-align: center;
     margin: 2rem 0;
 }
+
+.difficulty-badge {
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-full);
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.difficulty-badge.easy { background: var(--success-light); color: var(--success-color); }
+.difficulty-badge.medium { background: var(--warning-light); color: var(--warning-color); }
+.difficulty-badge.hard { background: var(--danger-light); color: var(--danger-color); }
 </style>
 
 <script>
@@ -365,7 +376,7 @@ function saveCurrentAnswer() {
     
     console.log('Saving answer:', {question_id: questionId, answer: answer});
     
-    fetch(`/assessments/submit-answer/{{ attempt.id }}/`, {
+    fetch(`{% url 'assessments:submit_answer' attempt.id %}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -417,7 +428,7 @@ function submitAssessment() {
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class=\"bx bx-loader-alt bx-spin\"></i> Submitting...';
     
-    fetch(`/assessments/submit/{{ attempt.id }}/`, {
+    fetch(`{% url 'assessments:submit_assessment' attempt.id %}`, {
         method: 'POST',
         headers: {
             'X-CSRFToken': '{{ csrf_token }}'
@@ -430,7 +441,7 @@ function submitAssessment() {
         return response;
     })
     .then(() => {
-        window.location.href = `/assessments/result/{{ attempt.id }}/`;
+        window.location.href = `{% url 'assessments:assessment_result' attempt.id %}`;
     })
     .catch(error => {
         console.error('Error submitting assessment:', error);

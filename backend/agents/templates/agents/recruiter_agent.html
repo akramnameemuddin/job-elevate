@@ -1,0 +1,468 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobElevate - AI Recruiter Agent</title>
+    <script>
+        (function() {
+            const storedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', storedTheme);
+        })();
+    </script>
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3b82f6; --primary-hover: #2563eb; --secondary-color: #8b5cf6;
+            --background-color: #f8fafc; --card-bg: #ffffff; --text-color: #1f2937;
+            --text-light: #6b7280; --sidebar-bg: #ffffff; --sidebar-active: #eff6ff;
+            --border-color: #e5e7eb; --hover-bg: #f3f4f6;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.03);
+            --shadow: 0 4px 6px -1px rgba(0,0,0,.07); --shadow-lg: 0 10px 25px -5px rgba(0,0,0,.1);
+            --transition: all .25s cubic-bezier(.4,0,.2,1);
+            --danger: #ef4444; --success: #10b981; --warning: #f59e0b;
+            --radius-md: 10px; --radius-lg: 16px; --radius-full: 9999px;
+        }
+        [data-theme="dark"] {
+            --primary-color: #58a6ff; --primary-hover: #79c0ff; --secondary-color: #a5a5ff;
+            --background-color: #0d1117; --card-bg: #161b22; --text-color: #f0f6fc;
+            --text-light: #8b949e; --sidebar-bg: #161b22; --sidebar-active: rgba(88,166,255,.12);
+            --border-color: #30363d; --hover-bg: #21262d;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',system-ui,-apple-system,sans-serif; }
+        body { background:var(--background-color); color:var(--text-color); line-height:1.5; }
+
+        /* ── Sidebar ─────────────────────────────── */
+        .sidebar { width:260px; height:100vh; background:var(--sidebar-bg); border-right:1px solid var(--border-color);
+                    position:fixed; left:0; top:0; z-index:1000; padding:1.5rem 0; overflow-y:auto; display:flex; flex-direction:column; }
+        .sidebar-header { padding:0 1.5rem; margin-bottom:2rem; }
+        .logo { display:flex; align-items:center; gap:.75rem; text-decoration:none; }
+        .logo-icon { width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg,var(--primary-color),var(--secondary-color));
+                     color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.5rem; box-shadow: 0 4px 12px rgba(59,130,246,.25); }
+        .logo-text { font-weight:700; font-size:1.25rem; color:var(--text-color); }
+        .nav-links { list-style:none; padding:0 .75rem; flex:1; }
+        .nav-section-title { font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; color:var(--text-light);
+                             padding:1.25rem .75rem .5rem; font-weight:600; display:block; }
+        .nav-item { margin-bottom:2px; }
+        .nav-link { display:flex; align-items:center; gap:.75rem; padding:.7rem .85rem; border-radius:var(--radius-md);
+                    color:var(--text-color); text-decoration:none; font-size:.9rem; transition:var(--transition); }
+        .nav-link:hover { background:var(--hover-bg); }
+        .nav-link.active { background:var(--sidebar-active); color:var(--primary-color); font-weight:600; }
+        .nav-link i { font-size:1.25rem; }
+
+        /* ── Navbar ──────────────────────────────── */
+        .navbar { position:fixed; top:0; left:260px; right:0; height:60px; background:var(--card-bg);
+                  border-bottom:1px solid var(--border-color); display:flex; align-items:center;
+                  justify-content:space-between; padding:0 1.5rem; z-index:999; }
+        .navbar-left { display:flex; align-items:center; gap:1rem; }
+        .navbar-right { display:flex; align-items:center; gap:1rem; }
+        .navbar-right a { color:var(--text-color); text-decoration:none; font-size:.9rem; transition:color .2s; }
+        .navbar-right a:hover { color:var(--primary-color); }
+        .theme-toggle { background:none; border:none; cursor:pointer; font-size:1.25rem; color:var(--text-color); padding:.5rem;
+                        border-radius:8px; transition:var(--transition); }
+        .theme-toggle:hover { background:var(--hover-bg); }
+
+        /* ── Main ────────────────────────────────── */
+        .main-content { margin-left:260px; margin-top:60px; padding:1.75rem; min-height:calc(100vh - 60px); }
+
+        /* ── Cards ───────────────────────────────── */
+        .agent-card { background:var(--card-bg); border-radius:var(--radius-lg); padding:1.75rem;
+                      margin-bottom:1.5rem; box-shadow:var(--shadow-sm); border:1px solid var(--border-color);
+                      transition: box-shadow .25s ease; }
+        .agent-card:hover { box-shadow:var(--shadow); }
+        .agent-card h3 { margin-bottom:1.1rem; color:var(--text-color); font-size:1.1rem; display:flex; align-items:center; gap:.5rem; }
+        .agent-card h3 i { font-size:1.3rem; color:var(--primary-color); }
+
+        /* ── Trigger card ────────────────────────── */
+        .trigger-card { background:linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%); color:#fff; border:none; }
+        .trigger-card h3, .trigger-card h3 i { color:#fff; }
+        .trigger-card p { opacity:.9; margin-bottom:1.25rem; line-height:1.6; }
+        .trigger-card label { color:rgba(255,255,255,.85); }
+        .trigger-card .form-control {
+            background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.25);
+            color:#fff; backdrop-filter:blur(4px);
+        }
+        .trigger-card .form-control option { color:var(--text-color); background:var(--card-bg); }
+
+        /* ── Form ────────────────────────────────── */
+        .form-control { padding:.65rem .85rem; border:1px solid var(--border-color); border-radius:var(--radius-md);
+                        background:var(--card-bg); color:var(--text-color); font-size:.9rem; transition:border-color .2s; }
+        .form-control:focus { outline:none; border-color:var(--primary-color); box-shadow:0 0 0 3px rgba(59,130,246,.12); }
+        .btn-launch { padding:.65rem 1.5rem; background:#fff; color:var(--primary-color); border:none;
+                      border-radius:var(--radius-md); cursor:pointer; font-weight:700; font-size:.95rem;
+                      display:inline-flex; align-items:center; gap:.5rem; transition:transform .15s, box-shadow .15s; }
+        .btn-launch:hover { transform:translateY(-1px); box-shadow:0 4px 14px rgba(0,0,0,.2); }
+
+        /* ── Candidate card ──────────────────────── */
+        .candidate-card { display:flex; align-items:flex-start; gap:1.25rem; padding:1.25rem;
+                          border:1px solid var(--border-color); border-radius:var(--radius-lg);
+                          margin-bottom:.85rem; transition: all .25s ease; }
+        .candidate-card:hover { border-color:var(--primary-color); transform:translateX(4px); background:var(--hover-bg); }
+
+        /* Score ring */
+        .score-ring { position:relative; width:64px; height:64px; flex-shrink:0; }
+        .score-ring svg { transform:rotate(-90deg); width:64px; height:64px; }
+        .score-ring .ring-bg { fill:none; stroke:var(--border-color); stroke-width:5; }
+        .score-ring .ring-fg { fill:none; stroke-width:5; stroke-linecap:round;
+                               transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1); }
+        .score-ring .score-text { position:absolute; inset:0; display:flex; align-items:center;
+                                  justify-content:center; font-weight:800; font-size:.95rem; }
+        .rank-num { position:absolute; top:-6px; right:-6px; width:22px; height:22px; border-radius:50%;
+                    display:flex; align-items:center; justify-content:center; font-size:.7rem; font-weight:700;
+                    color:#fff; z-index:2; }
+        .rank-gold { background:#f59e0b; }
+        .rank-silver { background:#9ca3af; }
+        .rank-bronze { background:#b45309; }
+        .rank-default { background:var(--primary-color); }
+
+        .candidate-info { flex:1; min-width:0; }
+        .candidate-name { font-weight:700; font-size:1rem; }
+        .candidate-type { font-size:.82rem; color:var(--text-light); }
+        .candidate-explain { font-size:.85rem; color:var(--text-light); margin-top:.4rem; line-height:1.5; }
+
+        /* Component grid */
+        .component-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:.6rem; margin-top:.85rem; }
+        .component-chip { padding:.55rem .75rem; border-radius:var(--radius-md); background:var(--hover-bg); text-align:center; }
+        .component-chip .val { font-size:1.05rem; font-weight:700; color:var(--primary-color); }
+        .component-chip .lbl { font-size:.72rem; color:var(--text-light); text-transform:capitalize; }
+
+        /* ── Skill bar ───────────────────────────── */
+        .skill-bar-row { display:flex; align-items:center; gap:1rem; padding:.7rem 0; border-bottom:1px solid var(--border-color); }
+        .skill-bar-row:last-child { border-bottom:none; }
+        .skill-name { min-width:100px; font-weight:600; font-size:.9rem; }
+        .skill-req { font-size:.8rem; color:var(--text-light); min-width:60px; text-align:right; }
+        .skill-bar { flex:1; height:10px; background:var(--border-color); border-radius:5px; overflow:hidden; }
+        .skill-fill { height:100%; border-radius:5px; transition:width .8s cubic-bezier(.4,0,.2,1);
+                      background:linear-gradient(90deg, var(--primary-color), var(--secondary-color)); }
+        .diff-pct { font-size:.85rem; font-weight:700; min-width:50px; text-align:right; }
+
+        /* ── Feedback card ────────────────────────── */
+        .feedback-summary { font-size:.95rem; line-height:1.7; padding:1rem 1.25rem; border-radius:var(--radius-md);
+                            background:var(--hover-bg); margin-bottom:1rem; }
+        .feedback-pills { display:flex; flex-wrap:wrap; gap:.4rem; }
+        .feedback-pill { display:inline-flex; align-items:center; gap:.3rem; padding:.3rem .8rem;
+                         border-radius:var(--radius-full); font-size:.82rem; font-weight:600;
+                         background:rgba(99,102,241,.1); color:var(--secondary-color); border:1px solid rgba(99,102,241,.2); }
+
+        /* ── Loading ─────────────────────────────── */
+        .loading-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:9999;
+                           align-items:center; justify-content:center; }
+        .loading-overlay.active { display:flex; }
+        .loading-box { background:var(--card-bg); padding:2.5rem 3.5rem; border-radius:20px;
+                       text-align:center; box-shadow:0 25px 50px rgba(0,0,0,.15); }
+        .loading-box .spinner { width:48px; height:48px; border:4px solid var(--border-color);
+                                border-top-color:var(--primary-color); border-radius:50%;
+                                animation:spin .7s linear infinite; margin:0 auto 1.25rem; }
+        .loading-box p { font-weight:600; font-size:1rem; }
+        .loading-box small { display:block; margin-top:.35rem; opacity:.6; font-size:.85rem; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+
+        /* ── Breadcrumb ──────────────────────────── */
+        .page-header { margin-bottom:1.5rem; }
+        .page-title { font-size:1.5rem; font-weight:700; display:flex; align-items:center; gap:.5rem; }
+        .breadcrumb { display:flex; align-items:center; gap:.25rem; margin-top:.35rem; font-size:.85rem; color:var(--text-light); }
+        .breadcrumb a { color:var(--primary-color); text-decoration:none; }
+
+        /* ── Table ────────────────────────────────── */
+        .history-table { width:100%; border-collapse:collapse; }
+        .history-table th { padding:.65rem; text-align:left; font-size:.8rem; text-transform:uppercase;
+                            letter-spacing:.04em; opacity:.7; border-bottom:2px solid var(--border-color); }
+        .history-table td { padding:.65rem; border-bottom:1px solid var(--border-color); }
+        .status-pill { display:inline-flex; align-items:center; gap:.3rem; padding:.2rem .65rem;
+                       border-radius:20px; font-size:.8rem; font-weight:600; }
+        .status-completed { background:#ecfdf5; color:#059669; }
+        .status-failed { background:#fef2f2; color:#dc2626; }
+        .status-running { background:#eff6ff; color:#2563eb; }
+
+        #results-area { display:none; }
+
+        /* ── Animations ──────────────────────────── */
+        .fade-in { animation:fadeSlideUp .45s ease both; }
+        @keyframes fadeSlideUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        .fade-in:nth-child(2) { animation-delay:.08s; }
+        .fade-in:nth-child(3) { animation-delay:.16s; }
+
+        /* ── No applicants empty state ───────────── */
+        .empty-state { text-align:center; padding:2.5rem 1rem; }
+        .empty-state i { font-size:3rem; color:var(--text-light); opacity:.4; display:block; margin-bottom:.75rem; }
+        .empty-state p { opacity:.6; font-size:.95rem; }
+
+        /* ── Mobile ──────────────────────────────── */
+        .mobile-menu-toggle { display:none; background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-color); }
+        @media (max-width:768px) {
+            .sidebar { transform:translateX(-100%); transition:transform .3s; }
+            .sidebar.active { transform:translateX(0); }
+            .navbar, .main-content { margin-left:0; }
+            .mobile-menu-toggle { display:block; }
+            .component-grid { grid-template-columns:repeat(2,1fr); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a href="/recruiter/" class="logo">
+                <div class="logo-icon"><i class='bx bx-briefcase-alt-2'></i></div>
+                <span class="logo-text">JobElevate</span>
+            </a>
+        </div>
+        <ul class="nav-links">
+            <span class="nav-section-title">Main</span>
+            <li class="nav-item">
+                <a href="/recruiter/" class="nav-link">
+                    <i class='bx bxs-dashboard'></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <span class="nav-section-title">AI Tools</span>
+            <li class="nav-item">
+                <a href="{% url 'agents:recruiter_agent' %}" class="nav-link active">
+                    <i class='bx bx-target-lock'></i>
+                    <span>AI Recruiter Agent</span>
+                </a>
+            </li>
+            <span class="nav-section-title">Account</span>
+            <li class="nav-item">
+                <a href="/recruiter/" class="nav-link">
+                    <i class='bx bxs-user-circle'></i>
+                    <span>Profile</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('active')">
+                <i class="bx bx-menu"></i>
+            </button>
+            <strong>AI Recruiter Agent</strong>
+        </div>
+        <div class="navbar-right">
+            <button class="theme-toggle" onclick="toggleTheme()"><i class="bx bx-moon" id="theme-icon"></i></button>
+            <a href="/recruiter/">Back to Dashboard</a>
+            <a href="{% url 'accounts:logout' %}"><i class="bx bx-log-out"></i> Logout</a>
+        </div>
+    </nav>
+
+    <!-- Main -->
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title"><i class='bx bx-target-lock' style="color:var(--primary-color);"></i> AI Recruiter Agent</h1>
+            <div class="breadcrumb">
+                <a href="/recruiter/">Home</a>
+                <i class='bx bx-chevron-right'></i>
+                <span>Recruiter Agent</span>
+            </div>
+        </div>
+
+        <div class="loading-overlay" id="loading">
+            <div class="loading-box">
+                <div class="spinner"></div>
+                <p>AI agent is ranking candidates…</p>
+                <small>Analysing skills, assessments & proficiency fit</small>
+            </div>
+        </div>
+
+        <!-- Job selector (gradient card) -->
+        <div class="agent-card trigger-card">
+            <h3><i class='bx bx-search-alt'></i> Select a Job to Rank Applicants</h3>
+            <p>The AI agent will evaluate all applicants using verified skills, assessment scores, and proficiency fit to produce a ranked shortlist.</p>
+            <form id="recruiter-form" method="post" style="display:flex;gap:1rem;align-items:end;flex-wrap:wrap;">
+                {% csrf_token %}
+                <div>
+                    <label for="job_id" style="display:block;margin-bottom:.35rem;font-weight:600;">Your Jobs</label>
+                    <select name="job_id" id="job_id" class="form-control" style="min-width:300px;" required>
+                        <option value="">— choose a job —</option>
+                        {% for j in my_jobs %}
+                            <option value="{{ j.id }}" {% if job and job.id == j.id %}selected{% endif %}>
+                                {{ j.title }} @ {{ j.company }} ({{ j.applicant_count }} applicants)
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn-launch"><i class='bx bx-sort-alt-2'></i> Rank Candidates</button>
+            </form>
+            {% if not my_jobs %}
+            <p style="margin-top:1rem;opacity:.85;"><i class='bx bx-info-circle'></i> You haven't posted any jobs yet. <a href="/recruiter/" style="color:#fff;text-decoration:underline;">Go to dashboard</a> to post a job first.</p>
+            {% endif %}
+        </div>
+
+        <!-- Results -->
+        <div id="results-area">
+            <div class="agent-card fade-in">
+                <h3><i class='bx bx-trophy'></i> Candidate Rankings</h3>
+                <div id="candidates-list"></div>
+            </div>
+
+            <div class="agent-card fade-in">
+                <h3><i class='bx bx-bar-chart-alt-2'></i> Skill Importance</h3>
+                <div id="skill-importance"></div>
+            </div>
+
+            <div class="agent-card fade-in">
+                <h3><i class='bx bx-message-rounded-detail'></i> Agent Feedback</h3>
+                <div id="feedback"></div>
+            </div>
+        </div>
+
+        {% if recent_runs %}
+        <div class="agent-card">
+            <h3><i class='bx bx-history'></i> Recent Rankings</h3>
+            <table class="history-table">
+                <thead><tr>
+                    <th>Run</th><th>Status</th><th>Date</th>
+                </tr></thead>
+                <tbody>
+                {% for run in recent_runs %}
+                    <tr>
+                        <td style="font-weight:600;">#{{ run.id }}</td>
+                        <td>
+                            <span class="status-pill {% if run.status == 'completed' %}status-completed{% elif run.status == 'failed' %}status-failed{% else %}status-running{% endif %}">
+                                <i class='bx {% if run.status == "completed" %}bx-check{% elif run.status == "failed" %}bx-x{% else %}bx-loader-alt{% endif %}'></i>
+                                {{ run.status }}
+                            </span>
+                        </td>
+                        <td style="color:var(--text-light);font-size:.9rem;">{{ run.started_at|date:"M d, Y H:i" }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+
+<script>
+// Theme toggle
+function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    document.getElementById('theme-icon').className = next === 'dark' ? 'bx bx-sun' : 'bx bx-moon';
+}
+(function() {
+    const t = localStorage.getItem('theme') || 'light';
+    document.getElementById('theme-icon').className = t === 'dark' ? 'bx bx-sun' : 'bx bx-moon';
+})();
+
+function scoreColor(s) {
+    if (s >= .7) return '#22c55e';
+    if (s >= .4) return '#f59e0b';
+    return '#ef4444';
+}
+
+function scoreRingSvg(score, rank) {
+    const pct = (score * 100).toFixed(0);
+    const c = 28, r = 25.5, circ = 2 * Math.PI * r;
+    const offset = circ * (1 - score);
+    const color = scoreColor(score);
+    const rankCls = rank === 1 ? 'rank-gold' : rank === 2 ? 'rank-silver' : rank === 3 ? 'rank-bronze' : 'rank-default';
+    return `
+    <div class="score-ring">
+        <svg viewBox="0 0 56 56">
+            <circle class="ring-bg" cx="${c}" cy="${c}" r="${r}"/>
+            <circle class="ring-fg" cx="${c}" cy="${c}" r="${r}"
+                    stroke="${color}" stroke-dasharray="${circ}" stroke-dashoffset="${offset}"/>
+        </svg>
+        <div class="score-text" style="color:${color};">${pct}%</div>
+        <div class="rank-num ${rankCls}">${rank}</div>
+    </div>`;
+}
+
+document.getElementById('recruiter-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    document.getElementById('loading').classList.add('active');
+    const data = new FormData(e.target);
+    try {
+        const resp = await fetch(window.location.href, { method: 'POST', body: data });
+        if (!resp.ok) throw new Error('Server error (' + resp.status + ')');
+        const json = await resp.json();
+        if (json.error) { alert('Error: ' + json.error); return; }
+        renderResults(json);
+    } catch (err) {
+        alert('Error: ' + err.message);
+    } finally {
+        document.getElementById('loading').classList.remove('active');
+    }
+});
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function renderResults(data) {
+    const area = document.getElementById('results-area');
+    area.style.display = 'block';
+    area.querySelectorAll('.fade-in').forEach(el => { el.style.animation = 'none'; el.offsetHeight; el.style.animation = ''; });
+
+    // Candidates
+    const cands = data.ranked_candidates || [];
+    if (cands.length === 0) {
+        document.getElementById('candidates-list').innerHTML = `
+            <div class="empty-state"><i class='bx bx-user-x'></i><p>No applicants for this job yet.</p></div>`;
+    } else {
+        document.getElementById('candidates-list').innerHTML = cands.map((c, i) => {
+            const rank = i + 1;
+            const comps = c.score_components || {};
+            return `
+            <div class="candidate-card">
+                ${scoreRingSvg(c.fit_score, rank)}
+                <div class="candidate-info">
+                    <span class="candidate-name">${esc(c.full_name)}</span>
+                    <span class="candidate-type">${esc(c.user_type)}</span>
+                    ${c.explanation ? `<div class="candidate-explain">${esc(c.explanation)}</div>` : ''}
+                    <div class="component-grid">
+                        ${Object.entries(comps).map(([k, v]) => `
+                            <div class="component-chip">
+                                <div class="val">${(v * 100).toFixed(0)}%</div>
+                                <div class="lbl">${k.replace(/_/g, ' ')}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // Skill importance (bar chart)
+    const si = data.skill_importance || [];
+    if (si.length === 0) {
+        document.getElementById('skill-importance').innerHTML = '<p style="opacity:.5;">—</p>';
+    } else {
+        const maxDiff = Math.max(...si.map(s => s.differentiating_power), 0.01);
+        document.getElementById('skill-importance').innerHTML = si.map(s => {
+            const pct = ((s.differentiating_power / maxDiff) * 100).toFixed(0);
+            const diffPct = (s.differentiating_power * 100).toFixed(0);
+            return `
+            <div class="skill-bar-row">
+                <span class="skill-name">${s.skill}</span>
+                <span class="skill-req">req ${s.required_proficiency}/10</span>
+                <div class="skill-bar"><div class="skill-fill" style="width:${pct}%;"></div></div>
+                <span class="diff-pct" style="color:${scoreColor(s.differentiating_power)};">${diffPct}%</span>
+            </div>`;
+        }).join('');
+    }
+
+    // Feedback
+    const fb = data.feedback || {};
+    let fbHtml = '';
+    if (fb.summary) fbHtml += `<div class="feedback-summary">${fb.summary}</div>`;
+    if (fb.key_differentiators && fb.key_differentiators.length) {
+        fbHtml += `<p style="font-weight:600;margin-bottom:.5rem;"><i class='bx bx-star' style="color:var(--warning);"></i> Key Differentiators</p>`;
+        fbHtml += `<div class="feedback-pills" style="margin-bottom:1rem;">` +
+            fb.key_differentiators.map(d => `<span class="feedback-pill"><i class='bx bx-check-circle'></i> ${d}</span>`).join('') + `</div>`;
+    }
+    if (fb.most_important_skills && fb.most_important_skills.length) {
+        fbHtml += `<p style="font-weight:600;margin-bottom:.5rem;"><i class='bx bx-brain' style="color:var(--secondary-color);"></i> Most Important Skills</p>`;
+        fbHtml += `<div class="feedback-pills">` +
+            fb.most_important_skills.map(s => `<span class="feedback-pill" style="background:rgba(16,185,129,.1);color:var(--success);border-color:rgba(16,185,129,.2);"><i class='bx bx-code-alt'></i> ${s}</span>`).join('') + `</div>`;
+    }
+    document.getElementById('feedback').innerHTML = fbHtml || '<p style="opacity:.5;">No feedback generated.</p>';
+
+    area.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+</script>
+</body>
+</html>

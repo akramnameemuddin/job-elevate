@@ -59,6 +59,10 @@ class User(AbstractUser):
 
     
     extracurricular_activities = models.TextField(_('extracurricular activities'), blank=True, null=True)
+    # Location field for job seekers (synced from job preferences)
+    preferred_location = models.CharField(_('preferred location'), max_length=255, blank=True, null=True,
+                                          help_text='Primary preferred work location')
+    
     company_name = models.CharField(_('company name'), max_length=255, blank=True, null=True)
     company_website = models.URLField(_('company website'), blank=True, null=True)
     company_description = models.TextField(_('company description'), blank=True, null=True)

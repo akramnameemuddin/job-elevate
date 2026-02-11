@@ -82,9 +82,9 @@
                         <i class='bx bx-play'></i> Take Assessment Now
                     </a>
                 {% else %}
-                    <a href="{% url 'assessments:claim_skill' skill.id %}" class="btn btn-primary btn-sm">
+                    <button class="btn btn-primary btn-sm" onclick="claimSkill({{ skill.id }})">
                         <i class='bx bx-plus-circle'></i> Add & Assess
-                    </a>
+                    </button>
                 {% endif %}
             </div>
         </div>
@@ -170,9 +170,9 @@
                             <i class='bx bx-play'></i> Take Assessment
                         </a>
                     {% else %}
-                        <a href="{% url 'assessments:claim_skill' skill.id %}" class="btn btn-primary btn-sm">
+                        <button class="btn btn-primary btn-sm" onclick="claimSkill({{ skill.id }})">
                             <i class='bx bx-plus-circle'></i> Add & Assess
-                        </a>
+                        </button>
                     {% endif %}
                 </div>
             </div>
@@ -401,5 +401,31 @@
     }
 }
 </style>
+
+<script>
+function claimSkill(skillId) {
+    fetch("{% url 'assessments:claim_skill' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ skill_id: skillId, self_rating: 5 })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            // Redirect to start assessment
+            window.location.href = `/assessments/start/${skillId}/`;
+        } else {
+            alert(data.error || 'Failed to claim skill');
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('Error claiming skill. Please try again.');
+    });
+}
+</script>
 
 {% endblock %}

@@ -711,7 +711,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Animate score circle
     setTimeout(() => {
         const scoreCircle = document.querySelector('.score-fill');
-        const score = 82; // 82%
+        const score = {{ percentage }};
         const circumference = 2 * Math.PI * 50; // radius = 50
         const offset = circumference - (score / 100) * circumference;
         scoreCircle.style.strokeDasharray = `${circumference - offset}, ${circumference}`;
@@ -729,7 +729,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 1000);
     
     // Certificate sharing
-    document.querySelector('.certificate-actions .btn-primary').addEventListener('click', function() {
+    const shareBtn = document.querySelector('.certificate-actions .btn-primary');
+    if (shareBtn) {
+        shareBtn.addEventListener('click', function() {
         if (navigator.share) {
             navigator.share({
                 title: 'My JobElevate Certificate',
@@ -744,6 +746,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     });
+    }
 });
 </script>
 

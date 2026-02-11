@@ -1,0 +1,34 @@
+{% comment %}
+Reusable suggestion card — included from ai_review.html
+Context: sug = single suggestion dict
+{% endcomment %}
+<div class="ar-sug {% if sug.accepted == True %}accepted{% elif sug.accepted == False %}rejected{% endif %}"
+     data-sug-id="{{ sug.id }}"
+     data-state="{% if sug.accepted == True %}true{% elif sug.accepted == False %}false{% endif %}">
+    <div class="ar-sug-top">
+        <div class="ar-sug-badges">
+            <span class="tag tag-section">{{ sug.section }}</span>
+            <span class="tag tag-{{ sug.type }}">{{ sug.type }}</span>
+        </div>
+        <div class="ar-sug-actions">
+            <button class="btn-accept {% if sug.accepted == True %}active{% endif %}"
+                    onclick="toggleSuggestion('{{ sug.id }}', true)" title="Accept">
+                <i class='bx bx-check'></i>
+            </button>
+            <button class="btn-reject {% if sug.accepted == False %}active{% endif %}"
+                    onclick="toggleSuggestion('{{ sug.id }}', false)" title="Reject">
+                <i class='bx bx-x'></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="ar-sug-body">
+        {% if sug.current %}
+        <div class="current"><i class='bx bx-minus-circle' style="font-size:.75rem;"></i> {{ sug.current }}</div>
+        {% endif %}
+        <div class="suggested"><i class='bx bx-plus-circle' style="font-size:.75rem; color:#22c55e;"></i> {{ sug.suggested }}</div>
+        {% if sug.reason %}
+        <div class="reason"><i class='bx bx-bulb' style="font-size:.75rem;"></i> {{ sug.reason }}</div>
+        {% endif %}
+    </div>
+</div>

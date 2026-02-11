@@ -1,1103 +1,377 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
+
+{% block title %}Resume Builder | JobElevate{% endblock %}
+
 {% block content %}
-<style>
-/* Resume Builder Dashboard Styles - Using base theme variables */
-
-/* Resume Builder Dashboard Styles - Using Unified Design System */
-
-/* Content sections use standard spacing */
-.content-section {
-  margin-bottom: 1.5rem;
-  animation: fadeIn 0.5s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Action buttons use base button system with size variants */
-
-/* ==== Resume Cards ==== */
-.resume-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
-}
-
-.resume-card {
-  background-color: var(--card-bg);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-  transition: var(--transition);
-  border: 1px solid var(--border-color);
-  position: relative;
-}
-
-.resume-card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--primary-light);
-}
-
-.resume-card-header {
-  padding: var(--spacing);
-  border-bottom: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.resume-card-header h4 {
-  font-size: var(--font-size-lg);
-  font-weight: 600;
-  color: var(--text-color);
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  margin: 0;
-}
-
-.resume-template-badge {
-  background-color: var(--primary-color);
-  color: var(--white);
-  font-size: var(--font-size-xs);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-full);
-  font-weight: 500;
-}
-
-.resume-card-body {
-  padding: var(--spacing);
-}
-
-.resume-stats {
-  display: flex;
-  gap: var(--spacing);
-  flex-wrap: wrap;
-}
-
-.resume-stat {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  font-size: var(--font-size-sm);
-  color: var(--text-light);
-}
-
-.resume-stat i {
-  color: var(--primary);
-}
-
-.resume-card-actions {
-  padding: var(--spacing);
-  border-top: 1px solid var(--border-color);
-  display: flex;
-  gap: var(--spacing-sm);
-  flex-wrap: wrap;
-}
-
-/* ==== Template Cards ==== */
-.template-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1.5rem;
-}
-
-.template-card {
-  background-color: var(--card-bg);
-  border-radius: var(--border-radius-lg);
-  overflow: hidden;
-  box-shadow: var(--shadow);
-  transition: var(--transition);
-  border: 1px solid var(--border-color);
-}
-
-.template-card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--primary-light);
-}
-
-.template-preview {
-  height: 200px;
-  overflow: hidden;
-  border-bottom: 1px solid var(--border-color);
-  position: relative;
-}
-
-.template-preview::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 40px;
-  background: linear-gradient(to top, var(--card-bg), transparent);
-}
-
-.template-preview img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: var(--transition);
-}
-
-.template-card:hover .template-preview img {
-  transform: scale(1.05);
-}
-
-.template-info {
-  padding: var(--spacing);
-}
-
-.template-info h4 {
-  font-size: var(--font-size-lg);
-  font-weight: 600;
-  margin-bottom: var(--spacing-sm);
-  color: var(--text-color);
-}
-
-.template-info p {
-  font-size: var(--font-size-sm);
-  color: var(--text-light);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  margin-bottom: var(--spacing);
-}
-
-.template-actions {
-  padding: 0 var(--spacing) var(--spacing) var(--spacing);
-}
-
-/* ==== Tips Section ==== */
-.tips-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: var(--spacing-lg);
-}
-
-.tip-card {
-  background-color: var(--card-bg);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
-  box-shadow: var(--shadow);
-  border: 1px solid var(--border-color);
-  transition: var(--transition);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.tip-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--primary-light);
-}
-
-.tip-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary-light), var(--primary));
-  color: white;
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-}
-
-.tip-content h4 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: var(--text-color);
-}
-
-.tip-content p {
-  font-size: 0.875rem;
-  color: var(--text-light);
-  line-height: 1.5;
-}
-
-/* ==== Empty State ==== */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 1.5rem;
-  text-align: center;
-  background-color: var(--card-bg);
-  border-radius: var(--border-radius-lg);
-  border: 1px dashed var(--border-color);
-}
-
-.empty-state-image {
-  width: 180px;
-  height: auto;
-  margin-bottom: 1.5rem;
-  opacity: 0.8;
-}
-
-.empty-state h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-  color: var(--text-color);
-}
-
-.empty-state p {
-  font-size: 0.875rem;
-  color: var(--text-light);
-  max-width: 400px;
-  margin-bottom: 1.5rem;
-}
-
-/* ==== Modal ==== */
-.modal-dialog {
-  position: fixed;
-  top: 15%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  max-width: 500px;
-  z-index: 1000;
-}
-
-.modal-content {
-  background-color: var(--card-bg);
-  border-radius: var(--border-radius-lg);
-  border: none;
-  box-shadow: var(--shadow-lg);
-  overflow: hidden;
-}
-
-.modal-header {
-  border-bottom: 1px solid var(--border-color);
-  padding: 1.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.modal-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-color);
-}
-
-/* Button styling - using unified design system */
-.btn-close {
-  background: none;
-  border: none;
-  color: var(--text-light);
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0;
-  transition: var(--transition);
-}
-
-.btn-close:hover {
-  color: var(--text-color);
-}
-
-.btn-cancel {
-  background: var(--hover-bg);
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.btn-cancel:hover {
-  background: var(--border-color);
-}
-
-.modal-body {
-  padding: 1.5rem;
-  color: var(--text-color);
-}
-
-.modal-footer {
-  border-top: 1px solid var(--border-color);
-  padding: 1.25rem;
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-}
-
-/* ==== Notification ==== */
-.notification-container {
-  position: fixed;
-  top: 1.5rem;
-  right: 1.5rem;
-  z-index: 1050;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  max-width: 350px;
-}
-
-.notification {
-  display: flex;
-  align-items: center;
-  padding: 1rem;
-  border-radius: var(--border-radius);
-  background-color: var(--card-bg);
-  box-shadow: var(--shadow-md);
-  animation: slideIn 0.3s ease-out;
-  border-left: 3px solid var(--primary);
-  color: var(--text-color);
-}
-
-.notification.success {
-  border-left-color: var(--success);
-}
-
-.notification.warning {
-  border-left-color: var(--warning);
-}
-
-.notification.error {
-  border-left-color: var(--danger);
-}
-
-.notification i:first-child {
-  font-size: 1.25rem;
-  margin-right: 0.75rem;
-  color: var(--primary);
-}
-
-.notification.success i:first-child {
-  color: var(--success);
-}
-
-.notification.warning i:first-child {
-  color: var(--warning);
-}
-
-.notification.error i:first-child {
-  color: var(--danger);
-}
-
-.notification span {
-  flex: 1;
-  font-size: 0.875rem;
-}
-
-.notification-close {
-  background: none;
-  border: none;
-  color: var(--text-light);
-  font-size: 1.125rem;
-  cursor: pointer;
-  margin-left: 0.75rem;
-  transition: var(--transition-fast);
-}
-
-.notification-close:hover {
-  color: var(--text-color);
-}
-
-.notification.fade-out {
-  animation: fadeOut 0.3s ease-out forwards;
-}
-
-@keyframes slideIn {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes fadeOut {
-  from { transform: translateX(0); opacity: 1; }
-  to { transform: translateX(100%); opacity: 0; }
-}
-
-/* ==== Responsive Design ==== */
-@media (max-width: 768px) {
-  .resume-grid,
-  .template-grid,
-  .tips-container {
-    grid-template-columns: 1fr;
-  }
-  
-  .resume-card-actions {
-    justify-content: center;
-  }
-  
-  .section-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--spacing);
-  }
-
-  .page-header {
-    margin-bottom: var(--spacing-lg);
-  }
-  
-  .page-title {
-    font-size: 1.5rem;
-  }
-}
-
-/* ==== Features for Resume Wizard ==== */
-.wizard-progress {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: var(--spacing-xl);
-  position: relative;
-  padding: 0 var(--spacing);
-}
-
-.wizard-progress::before {
-  content: '';
-  position: absolute;
-  top: 16px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background-color: var(--border-color);
-  z-index: 1;
-}
-
-.wizard-step {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 36px;
-}
-
-.step-number {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background-color: var(--card-bg);
-  border: 2px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 0.875rem;
-  margin-bottom: 0.5rem;
-  transition: var(--transition);
-}
-
-.step-label {
-  font-size: 0.75rem;
-  color: var(--text-light);
-  text-align: center;
-  white-space: nowrap;
-  position: absolute;
-  top: 48px;
-  transform: translateX(-50%);
-  left: 50%;
-}
-
-.wizard-step.active .step-number {
-  background-color: var(--primary);
-  border-color: var(--primary);
-  color: white;
-}
-
-.wizard-step.active .step-label {
-  color: var(--primary);
-  font-weight: 500;
-}
-
-.wizard-step.completed .step-number {
-  background-color: var(--success);
-  border-color: var(--success);
-  color: white;
-}
-
-.wizard-step.completed .step-number::after {
-  content: '✓';
-}
-
-.resume-actions-bar {
-  position: sticky;
-  bottom: 0;
-  background-color: var(--card-bg);
-  padding: 1rem;
-  border-top: 1px solid var(--border-color);
-  display: flex;
-  justify-content: space-between;
-  z-index: 900;
-  box-shadow: var(--shadow-lg);
-}
-
-/* Resume Template Customization */
-.color-palette {
-  display: flex;
-  gap: 0.75rem;
-  margin: 1rem 0;
-}
-
-.color-option {
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: var(--transition);
-  position: relative;
-  border: 2px solid transparent;
-}
-
-.color-option:hover {
-  transform: scale(1.1);
-}
-
-.color-option.active {
-  border-color: var(--text-color);
-}
-
-.color-option.active::after {
-  content: '✓';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: white;
-  font-weight: bold;
-  font-size: 0.875rem;
-}
-
-/* Font Selection */
-.font-selection {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin: 1rem 0;
-}
-
-.font-option {
-  padding: 0.5rem 1rem;
-  border-radius: var(--border-radius);
-  border: 1px solid var(--border-color);
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.font-option:hover {
-  border-color: var(--primary);
-}
-
-.font-option.active {
-  background-color: var(--primary);
-  color: white;
-  border-color: var(--primary);
-}
-
-/* ==== Animation Effects ==== */
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
-}
-
-.highlight-feature {
-  animation: pulse 2s infinite;
-}
-
-/* ==== Resume Preview ==== */
-.resume-preview-container {
-  padding: 2rem;
-  background-color: var(--card-bg);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow);
-  position: relative;
-}
-
-.resume-preview-actions {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  display: flex;
-  gap: 0.5rem;
-}
-
-.preview-toggle {
-  position: relative;
-  display: inline-block;
-  width: 200px;
-  margin: 1rem 0;
-}
-
-.preview-toggle-label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.5rem 1rem;
-  border-radius: var(--border-radius);
-  background-color: var(--gray-100);
-  cursor: pointer;
-}
-
-.preview-toggle-option {
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: var(--transition-fast);
-}
-
-.preview-toggle-slider {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100px;
-  height: 100%;
-  background-color: var(--primary);
-  border-radius: var(--border-radius);
-  transition: var(--transition);
-}
-
-.preview-toggle-input:checked + .preview-toggle-slider {
-  transform: translateX(100px);
-}
-
-.preview-toggle-option.active {
-  color: white;
-}
-
-/* Print Preview */
-@media print {
-  .main-content {
-    margin: 0;
-    padding: 0rem;
-  }
-  
-  .resume-preview-container {
-    box-shadow: none;
-    padding: 0;
-  }
-  
-  .resume-preview-actions,
-  .resume-actions-bar,
-  .navbar,
-  .sidebar,
-  .page-header,
-  .footer {
-    display: none !important;
-  }
-}
-    </style>
-</style>
-
-<!-- Breadcrumb Navigation -->
+<!-- Breadcrumb -->
 <div class="breadcrumb">
     <div class="breadcrumb-item">
         <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
         <i class='bx bx-chevron-right'></i>
     </div>
-    <div class="breadcrumb-item">
-        <span>Resume Builder</span>
-    </div>
+    <div class="breadcrumb-item"><span>Resume Builder</span></div>
 </div>
 
-<!-- Page Title -->
+<!-- Page Header -->
 <div class="page-content-header">
-    <h1 class="page-title">Resume Builder</h1>
-    <div class="page-actions">
-        <button class="btn btn-primary" onclick="showCreateResumeModal()">
-            <i class='bx bx-plus'></i>
-            Create New Resume
-        </button>
+    <h1 class="page-title"><i class='bx bx-file-blank'></i> Resume Builder</h1>
+    <p class="page-subtitle">Create, customize, and download professional resumes built from your profile</p>
+</div>
+
+<!-- Messages -->
+{% if messages %}
+<div class="notification-container">
+    {% for message in messages %}
+    <div class="notification {{ message.tags }}">
+        <i class='bx {% if message.tags == "success" %}bx-check-circle{% elif message.tags == "error" %}bx-error{% elif message.tags == "warning" %}bx-error-circle{% else %}bx-info-circle{% endif %}'></i>
+        <span>{{ message }}</span>
+        <button class="notification-close" onclick="this.parentElement.remove()"><i class='bx bx-x'></i></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- ═══ Stats Row ═══ -->
+<div class="rb-stats">
+    <div class="rb-stat">
+        <div class="rb-stat-icon blue"><i class='bx bx-file'></i></div>
+        <div class="rb-stat-body"><h3>{{ total_resumes }}</h3><p>My Resumes</p></div>
+    </div>
+    <div class="rb-stat">
+        <div class="rb-stat-icon green"><i class='bx bx-download'></i></div>
+        <div class="rb-stat-body"><h3>{{ total_downloads }}</h3><p>Downloads</p></div>
+    </div>
+    <div class="rb-stat">
+        <div class="rb-stat-icon purple"><i class='bx bx-user-check'></i></div>
+        <div class="rb-stat-body"><h3>{{ profile_completeness }}%</h3><p>Profile Ready</p></div>
+    </div>
+    <div class="rb-stat">
+        <div class="rb-stat-icon orange"><i class='bx bx-brain'></i></div>
+        <div class="rb-stat-body"><h3>{{ tailored_resumes|length }}</h3><p>AI Tailored</p></div>
     </div>
 </div>
 
-    <!-- My Resumes Section -->
-    <section class="content-section">
-        <div class="section-header">
-            <h2 class="section-title"><i class='bx bx-file'></i> My Resumes</h2>
+<!-- ═══ Main Two-Column Layout ═══ -->
+<div class="rb-two-col">
+
+    <!-- ── LEFT: My Resumes ──────────────────────── -->
+    <div class="rb-card">
+        <div class="rb-card-head">
+            <h2><i class='bx bx-file'></i> My Resumes</h2>
+            <span class="rb-count-badge">{{ total_resumes }}</span>
+        </div>
+        <div class="rb-card-body">
+            {% if user_resumes %}
+            <div class="rb-resume-grid">
+                {% for resume in user_resumes %}
+                <div class="rb-resume-tile">
+                    <div class="rb-resume-icon">
+                        <span>{{ user_initials }}</span>
+                    </div>
+                    <div class="rb-resume-info">
+                        <strong>{{ resume.title }}</strong>
+                        <span class="rb-resume-meta">
+                            <i class='bx bx-palette'></i> {{ resume.template.name }}
+                            &middot; Updated {{ resume.updated_at|timesince }} ago
+                        </span>
+                        <div class="rb-section-pills">
+                            {% if resume.show_skills %}<span class="rb-pill">Skills</span>{% endif %}
+                            {% if resume.show_experience %}<span class="rb-pill">Experience</span>{% endif %}
+                            {% if resume.show_projects %}<span class="rb-pill">Projects</span>{% endif %}
+                            {% if resume.show_education %}<span class="rb-pill">Education</span>{% endif %}
+                        </div>
+                    </div>
+                    <div class="rb-resume-actions">
+                        <a href="{% url 'resume_builder:edit_resume' resume.id %}" class="rb-action-btn" title="Edit"><i class='bx bx-edit'></i></a>
+                        <a href="{% url 'resume_builder:preview_resume' resume.id %}" class="rb-action-btn" title="Preview"><i class='bx bx-show'></i></a>
+                        <a href="{% url 'resume_builder:download_resume' resume.id %}" class="rb-action-btn green" title="Download"><i class='bx bx-download'></i></a>
+                        <button class="rb-action-btn danger" onclick="openDeleteModal({{ resume.id }})" title="Delete"><i class='bx bx-trash'></i></button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="rb-empty">
+                <i class='bx bx-file-blank'></i>
+                <h3>No Resumes Yet</h3>
+                <p>Choose a template below to auto-build your first resume from your profile data.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ── RIGHT: Sidebar ────────────────────────── -->
+    <div class="rb-sidebar-stack">
+
+        <!-- Profile Readiness -->
+        <div class="rb-card">
+            <div class="rb-card-head"><h2><i class='bx bx-user-check'></i> Profile Readiness</h2></div>
+            <div class="rb-card-body" style="text-align:center">
+                <div class="rb-progress-ring">
+                    <svg viewBox="0 0 36 36">
+                        <circle class="rb-ring-bg" cx="18" cy="18" r="15.9"></circle>
+                        <circle class="rb-ring-fill" cx="18" cy="18" r="15.9"
+                                stroke-dasharray="{{ profile_completeness }}, 100"
+                                stroke-dashoffset="25"></circle>
+                    </svg>
+                    <span class="rb-ring-val">{{ profile_completeness }}%</span>
+                </div>
+                <p class="rb-progress-hint">
+                    {% if profile_completeness < 50 %}
+                    Complete your profile for a stronger resume
+                    {% elif profile_completeness < 80 %}
+                    Good progress — add more details!
+                    {% else %}
+                    Your profile is resume-ready!
+                    {% endif %}
+                </p>
+                <a href="{% url 'dashboard:profile' %}" class="rb-link-btn"><i class='bx bx-edit'></i> Update Profile</a>
+            </div>
         </div>
 
-        <!-- Resume Grid with Cards -->
-        {% if user_resumes %}
-        <div class="resume-grid">
-            {% for resume in user_resumes %}
-            <div class="card card-elevated resume-card" data-id="{{ resume.id }}">
-                <div class="card-header">
-                    <div class="d-flex justify-between align-center">
-                        <h4 class="card-title mb-0">{{ resume.title }}</h4>
-                        <span class="badge bg-primary">{{ resume.template.name }}</span>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="resume-stats">
-                        <div class="resume-stat d-flex align-center mb-2">
-                            <i class='bx bx-calendar text-muted mr-2'></i>
-                            <span class="text-muted">Updated: {{ resume.updated_at|date:"M d, Y" }}</span>
+        <!-- AI Tailored Resumes -->
+        {% if tailored_resumes %}
+        <div class="rb-card">
+            <div class="rb-card-head">
+                <h2><i class='bx bx-brain'></i> AI Tailored</h2>
+                <span class="rb-count-badge purple">{{ tailored_resumes|length }}</span>
+            </div>
+            <div class="rb-card-body">
+                <div class="rb-tailored-list">
+                    {% for tr in tailored_resumes %}
+                    <a href="{% url 'resume_builder:ai_review' tr.id %}" class="rb-tailored-item">
+                        <div class="rb-tailored-info">
+                            <strong>{{ tr.job.title|truncatechars:26 }}</strong>
+                            <small>{{ tr.job.company|default:"—" }} &middot; {{ tr.get_status_display }}</small>
                         </div>
-                        <div class="resume-stat">
-                            <i class='bx bx-show text-muted mr-2'></i>
-                            <div class="d-flex flex-wrap">
-                                {% if resume.show_contact %}<span class="badge bg-light text-primary mr-1 mb-1">Contact</span>{% endif %}
-                                {% if resume.show_objective %}<span class="badge bg-light text-primary mr-1 mb-1">Objective</span>{% endif %}
-                                {% if resume.show_education %}<span class="badge bg-light text-primary mr-1 mb-1">Education</span>{% endif %}
-                                {% if resume.show_skills %}<span class="badge bg-light text-primary mr-1 mb-1">Skills</span>{% endif %}
-                                {% if resume.show_experience %}<span class="badge bg-light text-primary mr-1 mb-1">Experience</span>{% endif %}
-                                {% if resume.show_projects %}<span class="badge bg-light text-primary mr-1 mb-1">Projects</span>{% endif %}
-                            </div>
+                        <div style="display:flex;align-items:center;gap:.4rem;">
+                            {% if tr.status == 'applied' %}
+                            <a href="{% url 'resume_builder:download_tailored' tr.id %}" class="rb-action-btn green" title="Download PDF" onclick="event.stopPropagation()"><i class='bx bx-download'></i></a>
+                            {% endif %}
+                            <span class="rb-match-pill {% if tr.match_score_after >= 70 %}high{% elif tr.match_score_after >= 40 %}med{% else %}low{% endif %}">
+                                {{ tr.match_score_after }}%
+                            </span>
                         </div>
-                    </div>
+                    </a>
+                    {% endfor %}
                 </div>
-                <div class="card-footer">
-                    <div class="d-flex flex-wrap">
-                        <a href="{% url 'resume_builder:edit_resume' resume.id %}" class="btn btn-sm btn-primary mr-2 mb-2">
-                            <i class='bx bx-edit'></i> Edit
-                        </a>
-                        <a href="{% url 'resume_builder:preview_resume' resume.id %}" class="btn btn-sm btn-outline-primary mr-2 mb-2">
-                            <i class='bx bx-show'></i> Preview
-                        </a>
-                        <a href="{% url 'resume_builder:download_resume' resume.id %}" class="btn btn-sm btn-outline-success mr-2 mb-2">
-                            <i class='bx bx-download'></i> Download
-                        </a>
-                        <button class="btn btn-sm btn-outline-danger mb-2" data-resume-id="{{ resume.id }}">
-                            <i class='bx bx-trash'></i> Delete
-                        </button>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Quick Actions -->
+        <div class="rb-card">
+            <div class="rb-card-head"><h2><i class='bx bx-bolt'></i> Quick Actions</h2></div>
+            <div class="rb-card-body">
+                <div class="rb-qa">
+                    <a href="{% url 'dashboard:profile' %}" class="rb-qa-btn"><i class='bx bx-user'></i> Edit Profile</a>
+                    <a href="{% url 'jobs:job_listings' %}" class="rb-qa-btn"><i class='bx bx-briefcase'></i> Browse Jobs</a>
+                    <a href="{% url 'assessments:skill_profile' %}" class="rb-qa-btn"><i class='bx bx-badge-check'></i> Skill Profile</a>
+                    <a href="{% url 'learning:learning_dashboard' %}" class="rb-qa-btn"><i class='bx bx-book-open'></i> Learning Hub</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ═══ Templates Section ═══ -->
+<div class="rb-card" style="margin-bottom:1.5rem">
+    <div class="rb-card-head">
+        <h2><i class='bx bx-grid-alt'></i> Choose a Template</h2>
+        <span class="rb-count-badge">{{ resume_templates|length }}</span>
+    </div>
+    <div class="rb-card-body">
+        {% if resume_templates %}
+        <div class="rb-template-grid">
+            {% for template in resume_templates %}
+            <div class="rb-template-tile">
+                <div class="rb-template-preview">
+                    {% if template.preview_image %}
+                    <img src="{{ template.preview_image.url }}" alt="{{ template.name }}">
+                    {% else %}
+                    <div class="rb-template-placeholder"><i class='bx bx-file-blank'></i></div>
+                    {% endif %}
+                </div>
+                <div class="rb-template-bottom">
+                    <div class="rb-template-info">
+                        <strong>{{ template.name }}</strong>
+                        <p>{{ template.description|truncatechars:70 }}</p>
                     </div>
+                    <a href="{% url 'resume_builder:create_resume' %}?template_id={{ template.id }}" class="rb-use-btn">
+                        <i class='bx bx-plus'></i> Use Template
+                    </a>
                 </div>
             </div>
             {% endfor %}
         </div>
         {% else %}
-        <div class="empty-state">
-            <img src="{% static 'images/empty-resume.png' %}" alt="No Resumes" class="empty-state-image">
-            <h3>No Resumes Created Yet</h3>
-            <p>Create your first resume to get started with your job search.</p>
-            <button id="browse-templates-btn" class="btn btn-primary">Browse All Templates</button>
-        </div>
-        {% endif %}
-    </section>
-
-    <!-- Resume Templates Section -->
-    <section class="content-section">
-        <div class="section-header">
-            <h2 class="section-title"><i class='bx bx-grid-alt'></i> Resume Templates</h2>
-        </div>
-
-        <div class="template-grid">
-            {% for template in resume_templates %}
-                <div class="template-card">
-                    <div class="template-preview">
-                      {% if template.preview_image %}
-                          <img src="{{ template.preview_image.url }}" alt="{{ template.name }} Template Preview">
-                      {% else %}
-                          <img src="{% static 'images/template-default.png' %}" alt="{{ template.name }} Template Preview">
-                      {% endif %}
-                    </div>
-                    <div class="template-info">
-                        <h4>{{ template.name }}</h4>
-                        <p>{{ template.description }}</p>
-                    </div>
-                    <div class="template-actions">
-                        <a href="{% url 'resume_builder:create_resume' %}?template_id={{ template.id }}" class="btn btn-primary use-template-btn">Use Template</a>
-                    </div>
-                </div>
-            {% empty %}
-                <p>No resume templates available.</p>
-            {% endfor %}
-        </div>
-    </section>
-
-    <!-- Resume Tips Section -->
-    <section class="content-section">
-        <div class="section-header">
-            <h2 class="section-title"><i class='bx bx-bulb'></i> Resume Tips</h2>
-        </div>
-
-        <!-- Tips Container -->
-        <div class="tips-container">
-            <!-- Tip Card 1 -->
-            <div class="tip-card">
-                <div class="tip-icon">
-                    <i class='bx bx-target-lock'></i>
-                </div>
-                <div class="tip-content">
-                    <h4>Tailor for Each Job</h4>
-                    <p>Customize your resume for each position by highlighting relevant skills and experiences that match the job description.</p>
-                </div>
-            </div>
-
-            <!-- Tip Card 2 -->
-            <div class="tip-card">
-                <div class="tip-icon">
-                    <i class='bx bx-trending-up'></i>
-                </div>
-                <div class="tip-content">
-                    <h4>Use Action Verbs</h4>
-                    <p>Start bullet points with strong action verbs like "achieved," "implemented," or "led" to showcase your accomplishments.</p>
-                </div>
-            </div>
-
-            <!-- Tip Card 3 -->
-            <div class="tip-card">
-                <div class="tip-icon">
-                    <i class='bx bx-search'></i>
-                </div>
-                <div class="tip-content">
-                    <h4>Keywords Matter</h4>
-                    <p>Include industry-specific keywords to pass through Applicant Tracking Systems (ATS) that screen resumes.</p>
-                </div>
-            </div>
-
-            <!-- Tip Card 4 -->
-            <div class="tip-card">
-                <div class="tip-icon">
-                    <i class='bx bx-check-double'></i>
-                </div>
-                <div class="tip-content">
-                    <h4>Proofread Carefully</h4>
-                    <p>Eliminate typos and grammatical errors by carefully reviewing your resume or having someone else look it over.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Modal for Deleting Resume -->
-    <div class="modal-dialog" id="delete-resume-modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Delete Resume</h5>
-                <button class="btn-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to delete this resume? This action cannot be undone.</p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-cancel">Cancel</button>
-                <form id="delete-resume-form" method="post" action="">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger">Delete</button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Notification Container -->
-    <div class="notification-container">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="notification {{ message.tags }}">
-                    {% if message.tags == 'success' %}
-                        <i class="fas fa-check-circle"></i>
-                    {% elif message.tags == 'error' %}
-                        <i class="fas fa-exclamation-circle"></i>
-                    {% elif message.tags == 'warning' %}
-                        <i class="fas fa-exclamation-triangle"></i>
-                    {% else %}
-                        <i class="fas fa-info-circle"></i>
-                    {% endif %}
-                    <span>{{ message }}</span>
-                    <button class="notification-close"><i class="fas fa-times"></i></button>
-                </div>
-            {% endfor %}
+        <div class="rb-empty-sm"><p>No templates available yet.</p></div>
         {% endif %}
     </div>
+</div>
+
+<!-- ═══ Delete Modal ═══ -->
+<div class="rb-overlay" id="rb-delete-overlay" style="display:none">
+    <div class="rb-modal">
+        <div class="rb-modal-head">
+            <h3>Delete Resume</h3>
+            <button class="rb-modal-close" onclick="closeDeleteModal()">&times;</button>
+        </div>
+        <div class="rb-modal-body">
+            <p>Are you sure you want to delete this resume? This action cannot be undone.</p>
+        </div>
+        <div class="rb-modal-foot">
+            <button class="rb-btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+            <form id="rb-delete-form" method="post">
+                {% csrf_token %}
+                <button type="submit" class="rb-btn-danger">Delete</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<style>
+/* ── Stats ──────────────────────────────── */
+.rb-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.25rem;margin-bottom:1.75rem}
+.rb-stat{display:flex;align-items:center;gap:1rem;padding:1.2rem;background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-lg);transition:var(--transition)}
+.rb-stat:hover{box-shadow:var(--shadow)}
+.rb-stat-icon{width:54px;height:54px;border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0}
+.rb-stat-icon.blue{background:var(--info-light);color:var(--info-color)}
+.rb-stat-icon.green{background:var(--success-light);color:var(--success-color)}
+.rb-stat-icon.purple{background:var(--secondary-light,rgba(139,92,246,.12));color:var(--secondary-color,#8b5cf6)}
+.rb-stat-icon.orange{background:var(--warning-light);color:var(--warning-color)}
+.rb-stat-body h3{font-size:1.6rem;font-weight:700;margin:0;color:var(--heading-color)}
+.rb-stat-body p{margin:0;color:var(--text-muted);font-size:.82rem}
+
+/* ── Two-column ─────────────────────────── */
+.rb-two-col{display:grid;grid-template-columns:1.6fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
+.rb-sidebar-stack{display:flex;flex-direction:column;gap:1.5rem}
+
+/* ── Card shell ─────────────────────────── */
+.rb-card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-lg);overflow:hidden}
+.rb-card-head{display:flex;justify-content:space-between;align-items:center;padding:1.15rem 1.4rem;border-bottom:1px solid var(--border-color)}
+.rb-card-head h2{font-size:1.1rem;font-weight:600;margin:0;display:flex;align-items:center;gap:.45rem;color:var(--heading-color)}
+.rb-card-body{padding:1.4rem}
+
+.rb-count-badge{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 .55rem;border-radius:var(--radius-full);font-size:.82rem;font-weight:700;background:var(--primary-color);color:var(--text-inverse)}
+.rb-count-badge.purple{background:var(--secondary-color,#8b5cf6)}
+
+/* ── Resume Tiles ───────────────────────── */
+.rb-resume-grid{display:flex;flex-direction:column;gap:.75rem}
+
+.rb-resume-tile{display:flex;align-items:center;gap:1rem;padding:1rem;background:var(--hover-bg);border:1px solid var(--border-color);border-radius:var(--radius);transition:var(--transition)}
+.rb-resume-tile:hover{box-shadow:var(--shadow-sm);border-color:var(--primary-color)}
+
+.rb-resume-icon{width:48px;height:48px;border-radius:var(--radius);background:var(--primary-color);color:var(--text-inverse);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.95rem;flex-shrink:0}
+
+.rb-resume-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:.2rem}
+.rb-resume-info strong{font-size:.92rem;color:var(--heading-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rb-resume-meta{font-size:.75rem;color:var(--text-muted);display:flex;align-items:center;gap:.25rem}
+.rb-resume-meta i{font-size:.85rem}
+
+.rb-section-pills{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.25rem}
+.rb-pill{font-size:.65rem;padding:.1rem .45rem;border-radius:var(--radius-full);background:var(--info-light);color:var(--info-color);font-weight:600}
+
+.rb-resume-actions{display:flex;gap:.35rem;flex-shrink:0}
+.rb-action-btn{width:34px;height:34px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;background:var(--card-bg);border:1px solid var(--border-color);color:var(--heading-color);cursor:pointer;transition:var(--transition);text-decoration:none;font-size:1rem}
+.rb-action-btn:hover{background:var(--primary-color);color:var(--text-inverse);border-color:var(--primary-color)}
+.rb-action-btn.green:hover{background:var(--success-color);border-color:var(--success-color)}
+.rb-action-btn.danger:hover{background:var(--danger-color);border-color:var(--danger-color)}
+
+/* ── Profile Readiness Ring ─────────────── */
+.rb-progress-ring{position:relative;width:90px;height:90px;margin:0 auto .75rem}
+.rb-progress-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.rb-ring-bg{fill:none;stroke:var(--border-color);stroke-width:3}
+.rb-ring-fill{fill:none;stroke:var(--success-color);stroke-width:3;stroke-linecap:round;transition:stroke-dasharray .6s ease}
+.rb-ring-val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:var(--heading-color)}
+.rb-progress-hint{font-size:.82rem;color:var(--text-muted);margin-bottom:.75rem}
+.rb-link-btn{display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .85rem;border-radius:var(--radius);background:var(--hover-bg);color:var(--heading-color);text-decoration:none;font-size:.82rem;font-weight:500;transition:var(--transition)}
+.rb-link-btn:hover{background:var(--primary-color);color:var(--text-inverse)}
+
+/* ── Tailored List ──────────────────────── */
+.rb-tailored-list{display:flex;flex-direction:column;gap:.5rem}
+.rb-tailored-item{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.75rem;border-radius:var(--radius);background:var(--hover-bg);text-decoration:none;transition:var(--transition)}
+.rb-tailored-item:hover{background:var(--border-color)}
+.rb-tailored-info{min-width:0}
+.rb-tailored-info strong{display:block;font-size:.85rem;color:var(--heading-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rb-tailored-info small{font-size:.72rem;color:var(--text-muted)}
+.rb-match-pill{padding:.2rem .55rem;border-radius:var(--radius-full);font-size:.72rem;font-weight:700;flex-shrink:0}
+.rb-match-pill.high{background:var(--success-light);color:var(--success-color)}
+.rb-match-pill.med{background:var(--warning-light);color:var(--warning-color)}
+.rb-match-pill.low{background:var(--danger-light);color:var(--danger-color)}
+
+/* ── Quick Actions ──────────────────────── */
+.rb-qa{display:flex;flex-direction:column;gap:.5rem}
+.rb-qa-btn{display:flex;align-items:center;gap:.65rem;padding:.75rem .95rem;background:var(--hover-bg);border-radius:var(--radius);text-decoration:none;color:var(--heading-color);font-size:.88rem;font-weight:500;transition:var(--transition)}
+.rb-qa-btn:hover{background:var(--primary-color);color:var(--text-inverse);transform:translateX(3px)}
+.rb-qa-btn i{font-size:1.2rem}
+
+/* ── Template Grid ──────────────────────── */
+.rb-template-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1.25rem}
+.rb-template-tile{background:var(--hover-bg);border:1px solid var(--border-color);border-radius:var(--radius-lg);overflow:hidden;transition:var(--transition)}
+.rb-template-tile:hover{box-shadow:var(--shadow);border-color:var(--primary-color);transform:translateY(-3px)}
+.rb-template-preview{height:160px;overflow:hidden;border-bottom:1px solid var(--border-color);position:relative;background:var(--card-bg)}
+.rb-template-preview img{width:100%;height:100%;object-fit:cover;transition:var(--transition)}
+.rb-template-tile:hover .rb-template-preview img{transform:scale(1.05)}
+.rb-template-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:3rem}
+.rb-template-bottom{padding:1rem}
+.rb-template-info{margin-bottom:.75rem}
+.rb-template-info strong{display:block;font-size:.92rem;color:var(--heading-color);margin-bottom:.25rem}
+.rb-template-info p{font-size:.78rem;color:var(--text-muted);margin:0;line-height:1.4}
+.rb-use-btn{display:flex;align-items:center;justify-content:center;gap:.4rem;width:100%;padding:.55rem;border-radius:var(--radius);background:var(--primary-color);color:var(--text-inverse);text-decoration:none;font-size:.82rem;font-weight:600;transition:var(--transition)}
+.rb-use-btn:hover{opacity:.88;transform:translateY(-1px)}
+
+/* ── Empty States ───────────────────────── */
+.rb-empty{text-align:center;padding:3rem 1rem}
+.rb-empty i{font-size:3.5rem;color:var(--text-muted);margin-bottom:.75rem}
+.rb-empty h3{color:var(--heading-color);margin-bottom:.4rem}
+.rb-empty p{color:var(--text-muted);margin-bottom:1.25rem}
+.rb-empty-sm{text-align:center;padding:2rem 1rem}
+.rb-empty-sm p{color:var(--text-muted);margin:0}
+
+/* ── Delete Modal ───────────────────────── */
+.rb-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;display:flex;align-items:center;justify-content:center}
+.rb-modal{background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-lg);width:90%;max-width:420px;box-shadow:var(--shadow-lg)}
+.rb-modal-head{display:flex;justify-content:space-between;align-items:center;padding:1.15rem 1.4rem;border-bottom:1px solid var(--border-color)}
+.rb-modal-head h3{margin:0;font-size:1.1rem;color:var(--heading-color)}
+.rb-modal-close{background:none;border:none;font-size:1.4rem;color:var(--text-muted);cursor:pointer}
+.rb-modal-close:hover{color:var(--heading-color)}
+.rb-modal-body{padding:1.4rem}
+.rb-modal-body p{color:var(--text-muted);margin:0}
+.rb-modal-foot{display:flex;justify-content:flex-end;gap:.75rem;padding:1rem 1.4rem;border-top:1px solid var(--border-color)}
+.rb-btn-cancel{padding:.5rem 1rem;border-radius:var(--radius);border:1px solid var(--border-color);background:var(--hover-bg);color:var(--heading-color);cursor:pointer;font-size:.85rem;transition:var(--transition)}
+.rb-btn-cancel:hover{background:var(--border-color)}
+.rb-btn-danger{padding:.5rem 1rem;border-radius:var(--radius);border:none;background:var(--danger-color);color:#fff;cursor:pointer;font-size:.85rem;font-weight:600;transition:var(--transition)}
+.rb-btn-danger:hover{opacity:.88}
+
+/* ── Responsive ─────────────────────────── */
+@media(max-width:1100px){.rb-two-col{grid-template-columns:1fr}}
+@media(max-width:700px){
+    .rb-stats{grid-template-columns:repeat(2,1fr)}
+    .rb-template-grid{grid-template-columns:1fr}
+    .rb-resume-tile{flex-direction:column;text-align:center}
+    .rb-resume-actions{justify-content:center}
+}
+</style>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // ====== Notification System ======
-        const notificationCloseButtons = document.querySelectorAll('.notification-close');
-        notificationCloseButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const notification = this.closest('.notification');
-                notification.classList.add('fade-out');
-                setTimeout(() => {
-                    notification.remove();
-                }, 300);
-            });
-        });
-        
-        // Auto-close notifications after 5 seconds
-        setTimeout(() => {
-            const notifications = document.querySelectorAll('.notification');
-            notifications.forEach(notification => {
-                notification.classList.add('fade-out');
-                setTimeout(() => {
-                    notification.remove();
-                }, 300);
-            });
-        }, 5000);
-        
-        // ====== Show Notification Function ======
-        function showNotification(message, type = 'success') {
-            const notificationContainer = document.querySelector('.notification-container');
-            
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            
-            let icon = 'check-circle';
-            if (type === 'warning') icon = 'exclamation-triangle';
-            if (type === 'error') icon = 'exclamation-circle';
-            if (type === 'info') icon = 'info-circle';
-            
-            notification.innerHTML = `
-                <i class="fas fa-${icon}"></i>
-                <span>${message}</span>
-                <button class="notification-close"><i class="fas fa-times"></i></button>
-            `;
-            
-            notificationContainer.appendChild(notification);
-            
-            // Add close event listener
-            notification.querySelector('.notification-close').addEventListener('click', function() {
-                notification.classList.add('fade-out');
-                setTimeout(() => {
-                    notification.remove();
-                }, 300);
-            });
-            
-            // Auto-close after 5 seconds
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.classList.add('fade-out');
-                    setTimeout(() => {
-                        notification.remove();
-                    }, 300);
-                }
-            }, 5000);
-        }
-        
-        // ====== Modal System ======
-        const modalDialog = document.getElementById('delete-resume-modal');
-        const modalClose = modalDialog.querySelector('.btn-close');
-        const cancelButton = modalDialog.querySelector('.modal-footer .btn-cancel');
-        const deleteForm = document.getElementById('delete-resume-form');
-
-        // Function to attach delete button listeners (for dynamic content)
-        function attachDeleteListeners() {
-            const deleteButtons = document.querySelectorAll('.btn-outline-danger[data-resume-id]');
-            deleteButtons.forEach(button => {
-                // Remove existing listeners to prevent duplicates
-                button.removeEventListener('click', handleDeleteClick);
-                button.addEventListener('click', handleDeleteClick);
-            });
-        }
-
-        // Delete button click handler
-        function handleDeleteClick(e) {
-            e.preventDefault();
-            const resumeId = this.getAttribute('data-resume-id');
-            console.log('Delete button clicked for resume ID:', resumeId); // Debug log
-
-            if (!resumeId) {
-                console.error('No resume ID found on delete button');
-                return;
-            }
-
-            // Try to use modal first
-            if (modalDialog && deleteForm) {
-                deleteForm.action = `/resume_builder/delete/${resumeId}/`;
-                modalDialog.style.display = 'block';
-            } else {
-                // Fallback to confirm dialog if modal is not available
-                console.warn('Modal not available, using fallback delete method');
-                fallbackDelete(resumeId);
-            }
-        }
-
-        // Initialize delete button listeners
-        attachDeleteListeners();
-        
-        // Close modal when close button is clicked
-        if (modalClose) {
-            modalClose.addEventListener('click', function() {
-                modalDialog.style.display = 'none';
-            });
-        }
-        
-        // Close modal when cancel button is clicked
-        if (cancelButton) {
-            cancelButton.addEventListener('click', function() {
-                modalDialog.style.display = 'none';
-            });
-        }
-
-        // Close modal when clicking outside of it
-        if (modalDialog) {
-            modalDialog.addEventListener('click', function(e) {
-                if (e.target === modalDialog) {
-                    modalDialog.style.display = 'none';
-                }
-            });
-        }
-
-        // Close modal with Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && modalDialog && modalDialog.style.display === 'block') {
-                modalDialog.style.display = 'none';
-            }
-        });
-
-        // Fallback: If modal fails, use confirm dialog
-        function fallbackDelete(resumeId) {
-            if (confirm('Are you sure you want to delete this resume? This action cannot be undone.')) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = `/resume_builder/delete/${resumeId}/`;
-
-                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-                const csrfInput = document.createElement('input');
-                csrfInput.type = 'hidden';
-                csrfInput.name = 'csrfmiddlewaretoken';
-                csrfInput.value = csrfToken;
-                form.appendChild(csrfInput);
-
-                document.body.appendChild(form);
-                form.submit();
-            }
-        }
-        
-        // ====== Template Selection ======
-        const useTemplateButtons = document.querySelectorAll('.use-template-btn');
-        useTemplateButtons.forEach(button => {
-            button.addEventListener('click', function(e) {
-                // Allow the default navigation to the create_resume URL
-                const templateName = this.closest('.template-card').querySelector('h4').textContent;
-                showNotification(`Selected template: ${templateName}`, 'success');
-            });
-        });
-        
-        // Browse all templates button
-        const browseTemplatesBtn = document.getElementById('browse-templates-btn');
-        if (browseTemplatesBtn) {
-            browseTemplatesBtn.addEventListener('click', function() {
-                // Scroll to templates section
-                const templatesSection = document.querySelector('.template-grid');
-                templatesSection.scrollIntoView({ behavior: 'smooth' });
-                showNotification('Browse through our available templates', 'info');
-            });
-        }
-        
-        // Preview buttons
-        const previewButtons = document.querySelectorAll('.btn-light');
-        previewButtons.forEach(button => {
-            button.addEventListener('click', function(e) {
-                // Allow default navigation
-                showNotification('Opening resume preview...', 'info');
-            });
-        });
-        
-        // Download buttons
-        const downloadButtons = document.querySelectorAll('.btn-success');
-        downloadButtons.forEach(button => {
-            button.addEventListener('click', function(e) {
-                // Allow default navigation
-                showNotification('Preparing your resume for download...', 'info');
-            });
-        });
-    });
+function openDeleteModal(resumeId){
+    document.getElementById('rb-delete-form').action='/resume_builder/delete/'+resumeId+'/';
+    document.getElementById('rb-delete-overlay').style.display='flex';
+}
+function closeDeleteModal(){
+    document.getElementById('rb-delete-overlay').style.display='none';
+}
+document.addEventListener('keydown',function(e){
+    if(e.key==='Escape')closeDeleteModal();
+});
+document.getElementById('rb-delete-overlay').addEventListener('click',function(e){
+    if(e.target===this)closeDeleteModal();
+});
+// Auto-close notifications
+setTimeout(()=>{document.querySelectorAll('.notification').forEach(n=>{n.style.transition='opacity .5s';n.style.opacity='0';setTimeout(()=>n.remove(),500)})},5000);
 </script>
 {% endblock %}

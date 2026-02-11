@@ -49,6 +49,24 @@ class JobBookmark(models.Model):
 
 class UserJobPreference(models.Model):
     """Model to store user job preferences for better recommendations"""
+    
+    CURRENCY_CHOICES = [
+        ('INR', '₹ INR - Indian Rupee'),
+        ('USD', '$ USD - US Dollar'),
+        ('EUR', '€ EUR - Euro'),
+        ('GBP', '£ GBP - British Pound'),
+        ('AUD', 'A$ AUD - Australian Dollar'),
+        ('CAD', 'C$ CAD - Canadian Dollar'),
+        ('SGD', 'S$ SGD - Singapore Dollar'),
+        ('AED', 'د.إ AED - UAE Dirham'),
+        ('JPY', '¥ JPY - Japanese Yen'),
+    ]
+    
+    SALARY_PERIOD_CHOICES = [
+        ('yearly', 'Per Year'),
+        ('monthly', 'Per Month'),
+    ]
+    
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -57,13 +75,30 @@ class UserJobPreference(models.Model):
     preferred_job_types = models.JSONField(_('preferred job types'), default=list)
     preferred_locations = models.JSONField(_('preferred locations'), default=list)
     min_salary_expectation = models.IntegerField(_('minimum salary expectation'), blank=True, null=True)
+    max_salary_expectation = models.IntegerField(_('maximum salary expectation'), blank=True, null=True)
+    salary_currency = models.CharField(_('salary currency'), max_length=5, choices=CURRENCY_CHOICES, default='INR')
+    salary_period = models.CharField(_('salary period'), max_length=10, choices=SALARY_PERIOD_CHOICES, default='yearly')
     remote_preference = models.BooleanField(_('preference for remote work'), default=False)
     industry_preferences = models.JSONField(_('industry preferences'), default=list)
+    experience_level = models.CharField(_('experience level'), max_length=50, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
         return f"Job preferences for {self.user}"
+    
+    def get_currency_symbol(self):
+        symbols = {
+            'INR': '₹', 'USD': '$', 'EUR': '€', 'GBP': '£',
+            'AUD': 'A$', 'CAD': 'C$', 'SGD': 'S$', 'AED': 'د.إ', 'JPY': '¥'
+        }
+        return symbols.get(self.salary_currency, '₹')
+    
+    def get_primary_location(self):
+        """Return the first preferred location or empty string"""
+        if self.preferred_locations and len(self.preferred_locations) > 0:
+            return self.preferred_locations[0]
+        return ''
 
 class JobRecommendation(models.Model):
     """Model to store personalized job recommendations for users"""

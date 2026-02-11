@@ -1,1532 +1,610 @@
 """
 Template definitions for the resume builder app.
 This file contains predefined templates that can be loaded into the database.
+Each template uses Django template tags for dynamic rendering.
+CSS uses direct colour values via template tags - no CSS variables needed.
 """
 
 DEFAULT_TEMPLATES = [
+    # =========================================================================
+    # MODERN TEMPLATE - clean, minimal, with accent colour
+    # =========================================================================
     {
         "name": "Modern",
         "description": "Clean and minimal design with a touch of color, perfect for tech professionals.",
-        "html_structure": """
-<!DOCTYPE html>
+        "html_structure": """<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ user_profile.full_name }} - Resume</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ user_profile.full_name }} - Resume</title>
 </head>
 <body class="modern-resume">
-    <div class="resume-container">
-        <!-- Header Section -->
-        <header class="resume-header">
-            <div class="name-title">
-                <h1>{{ user_profile.full_name }}</h1>
-                <h2>{{ user_profile.job_title }}</h2>
-            </div>
-            
-            {% if resume.show_contact %}
-            <div class="contact-info">
-                {% if user_profile.email %}
-                <div class="contact-item">
-                    <i class="icon email-icon"></i>
-                    <span>{{ user_profile.email }}</span>
-                </div>
-                {% endif %}
-                
-                {% if user_profile.phone_number %}
-                <div class="contact-item">
-                    <i class="icon phone-icon"></i>
-                    <span>{{ user_profile.phone_number }}</span>
-                </div>
-                {% endif %}
-                
-                {% if user_profile.linkedin_profile and resume.show_links %}
-                <div class="contact-item">
-                    <i class="icon linkedin-icon"></i>
-                    <span>{{ user_profile.linkedin_profile|urlize }}</span>
-                </div>
-                {% endif %}
-                
-                {% if user_profile.github_profile and resume.show_links %}
-                <div class="contact-item">
-                    <i class="icon github-icon"></i>
-                    <span>{{ user_profile.github_profile|urlize }}</span>
-                </div>
-                {% endif %}
-                
-                {% if user_profile.portfolio_website and resume.show_links %}
-                <div class="contact-item">
-                    <i class="icon web-icon"></i>
-                    <span>{{ user_profile.portfolio_website|urlize }}</span>
-                </div>
-                {% endif %}
-            </div>
-            {% endif %}
-        </header>
-        
-        <!-- Main Content -->
-        <main class="resume-content">
-            <!-- Objective Section -->
-            {% if resume.show_objective and user_profile.objective %}
-            <section class="resume-section">
-                <h3 class="section-title">Professional Summary</h3>
-                <div class="section-content">
-                    <p>{{ user_profile.objective }}</p>
-                </div>
-            </section>
-            {% endif %}
-            
-            <!-- Education Section -->
-            {% if resume.show_education and user_profile.university %}
-            <section class="resume-section">
-                <h3 class="section-title">Education</h3>
-                <div class="section-content">
-                    <div class="education-item">
-                        <div class="edu-header">
-                            <h4>{{ user_profile.degree }}</h4>
-                            <span class="edu-date">{{ user_profile.graduation_year }}</span>
-                        </div>
-                        <div class="edu-details">
-                            <p class="edu-institution">{{ user_profile.university }}</p>
-                            {% if user_profile.cgpa %}
-                            <p class="edu-gpa">CGPA: {{ user_profile.cgpa }}</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </section>
-            {% endif %}
-            
-            <!-- Work Experience Section -->
-            {% if resume.show_experience and work_experience %}
-            <section class="resume-section">
-                <h3 class="section-title">Work Experience</h3>
-                <div class="section-content">
-                    {% for job in work_experience %}
-                    <div class="experience-item">
-                        <div class="exp-header">
-                            <h4>{{ job.title }}</h4>
-                            <span class="exp-date">{{ job.start_date }} - {{ job.end_date|default:"Present" }}</span>
-                        </div>
-                        <p class="exp-company">{{ job.company }}</p>
-                        <div class="exp-description">
-                            {{ job.description|linebreaks }}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </section>
-            {% endif %}
-            
-            <!-- Internships Section -->
-            {% if user_profile.user_type == 'student' and resume.show_experience and internships %}
-            <section class="resume-section">
-                <h3 class="section-title">Internships</h3>
-                <div class="section-content">
-                    {% for internship in internships %}
-                    <div class="experience-item">
-                        <div class="exp-header">
-                            <h4>{{ internship.title }}</h4>
-                            <span class="exp-date">{{ internship.start_date }} - {{ internship.end_date|default:"Present" }}</span>
-                        </div>
-                        <p class="exp-company">{{ internship.company }}</p>
-                        <div class="exp-description">
-                            {{ internship.description|linebreaks }}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </section>
-            {% endif %}
-            
-            <!-- Projects Section -->
-            {% if resume.show_projects and projects %}
-            <section class="resume-section">
-                <h3 class="section-title">Projects</h3>
-                <div class="section-content">
-                    {% for project in projects %}
-                    <div class="project-item">
-                        <div class="project-header">
-                            <h4>{{ project.title }}</h4>
-                            {% if project.url %}
-                            <a href="{{ project.url }}" class="project-link" target="_blank">View Project</a>
-                            {% endif %}
-                        </div>
-                        <div class="project-description">
-                            {{ project.description|linebreaks }}
-                        </div>
-                        {% if project.technologies %}
-                        <div class="project-tech">
-                            <strong>Technologies:</strong> {{ project.technologies }}
-                        </div>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
-                </div>
-            </section>
-            {% endif %}
-            
-            <!-- Skills Section -->
-            {% if resume.show_skills and technical_skills %}
-            <section class="resume-section">
-                <h3 class="section-title">Technical Skills</h3>
-                <div class="section-content skills-grid">
-                    {% for skill in technical_skills %}
-                    <div class="skill-item">{{ skill }}</div>
-                    {% endfor %}
-                </div>
-            </section>
-            {% endif %}
-            
-            {% if resume.show_certifications and certifications %}
-            <section class="resume-section">
-                <h3 class="section-title">Certifications</h3>
-                <div class="section-content">
-                    {% for cert in certifications %}
-                    <div class="cert-item">
-                        <h4>{{ cert.name }}</h4>
-                        {% if cert.issuing_organization %}
-                        <p class="cert-org">{{ cert.issuing_organization }}</p>
-                        {% endif %}
-                        {% if cert.date %}
-                        <p class="cert-date">{{ cert.date }}</p>
-                        {% endif %}
-                        {% if cert.description %}
-                        <p class="cert-description">{{ cert.description }}</p>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
-                </div>
-            </section>
-            {% endif %}
-            <!-- Achievements Section -->
-            {% if resume.show_achievements and achievements_list %}
-                <section class="resume-section">
-                    <h3 class="section-title">Achievements</h3>
-                    <div class="section-content">
-                        <ul class="achievements-list">
-                            {% for achievement in achievements_list %}
-                                <li>{{ achievement }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </section>
-                {% endif %}
-            <!-- Extracurricular Activities -->
-            {% if resume.show_extracurricular and user_profile.extracurricular_activities %}
-            <section class="resume-section">
-                <h3 class="section-title">Extracurricular Activities</h3>
-                <div class="section-content">
-                    <p>{{ user_profile.extracurricular_activities|linebreaks }}</p>
-                </div>
-            </section>
-            {% endif %}
-        </main>
-        
-        <!-- Footer with page number when printing -->
-        <footer class="resume-footer">
-            <div class="page-number">Page <span class="page"></span></div>
-            <div class="last-updated">Last updated: {{ resume.updated_at|date:"F d, Y" }}</div>
-        </footer>
+<div class="resume-container">
+
+  <header class="resume-header">
+    <h1 class="header-name">{{ user_profile.full_name }}</h1>
+    {% if user_profile.job_title %}<p class="header-title">{{ user_profile.job_title }}</p>{% endif %}
+    {% if resume.show_contact %}
+    <div class="contact-row">
+      {% if user_profile.email %}<span class="contact-item">{{ user_profile.email }}</span>{% endif %}
+      {% if user_profile.phone_number %}<span class="contact-item">{{ user_profile.phone_number }}</span>{% endif %}
+      {% if user_profile.linkedin_profile and resume.show_links %}<span class="contact-item">{{ user_profile.linkedin_profile }}</span>{% endif %}
+      {% if user_profile.github_profile and resume.show_links %}<span class="contact-item">{{ user_profile.github_profile }}</span>{% endif %}
+      {% if user_profile.portfolio_website and resume.show_links %}<span class="contact-item">{{ user_profile.portfolio_website }}</span>{% endif %}
     </div>
+    {% endif %}
+  </header>
+
+  <main class="resume-body">
+
+    {% if resume.show_objective and user_profile.objective %}
+    <section class="section">
+      <h2 class="section-heading">Professional Summary</h2>
+      <p class="summary-text">{{ user_profile.objective }}</p>
+    </section>
+    {% endif %}
+
+    {% if resume.show_education and user_profile.university %}
+    <section class="section">
+      <h2 class="section-heading">Education</h2>
+      <div class="entry">
+        <div class="entry-row">
+          <span class="entry-title">{{ user_profile.degree }}</span>
+          <span class="entry-date">{{ user_profile.graduation_year }}</span>
+        </div>
+        <p class="entry-subtitle">{{ user_profile.university }}</p>
+        {% if user_profile.cgpa %}<p class="entry-meta">CGPA: {{ user_profile.cgpa }}</p>{% endif %}
+      </div>
+    </section>
+    {% endif %}
+
+    {% if resume.show_skills and technical_skills %}
+    <section class="section">
+      <h2 class="section-heading">Technical Skills</h2>
+      <div class="skills-wrap">
+        {% for skill in technical_skills %}<span class="skill-tag">{{ skill }}</span>{% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    {% if resume.show_experience and work_experience %}
+    <section class="section">
+      <h2 class="section-heading">Work Experience</h2>
+      {% for job in work_experience %}
+      <div class="entry">
+        <div class="entry-row">
+          <span class="entry-title">{{ job.title }}</span>
+          <span class="entry-date">{{ job.start_date }} - {{ job.end_date|default:"Present" }}</span>
+        </div>
+        <p class="entry-subtitle">{{ job.company }}</p>
+        {% if job.description %}<div class="entry-body">{{ job.description|linebreaks }}</div>{% endif %}
+      </div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if resume.show_experience and internships %}
+    <section class="section">
+      <h2 class="section-heading">Internships</h2>
+      {% for internship in internships %}
+      <div class="entry">
+        <div class="entry-row">
+          <span class="entry-title">{{ internship.title }}</span>
+          <span class="entry-date">{{ internship.start_date }} - {{ internship.end_date|default:"Present" }}</span>
+        </div>
+        <p class="entry-subtitle">{{ internship.company }}</p>
+        {% if internship.description %}<div class="entry-body">{{ internship.description|linebreaks }}</div>{% endif %}
+      </div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if resume.show_projects and projects %}
+    <section class="section">
+      <h2 class="section-heading">Projects</h2>
+      {% for project in projects %}
+      <div class="entry">
+        <div class="entry-row">
+          <span class="entry-title">{{ project.title }}</span>
+          {% if project.technologies %}<span class="entry-date">{{ project.technologies }}</span>{% endif %}
+        </div>
+        {% if project.url %}<p class="entry-link">{{ project.url }}</p>{% endif %}
+        {% if project.description %}<div class="entry-body">{{ project.description|linebreaks }}</div>{% endif %}
+      </div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if resume.show_certifications and certifications %}
+    <section class="section">
+      <h2 class="section-heading">Certifications</h2>
+      {% for cert in certifications %}
+      <div class="cert-row">
+        <strong>{{ cert.name }}</strong>
+        {% if cert.issuing_organization %}<span class="cert-org"> - {{ cert.issuing_organization }}</span>{% endif %}
+        {% if cert.date %}<span class="cert-date">({{ cert.date }})</span>{% endif %}
+      </div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if resume.show_achievements and achievements_list %}
+    <section class="section">
+      <h2 class="section-heading">Achievements</h2>
+      <ul class="bullet-list">
+        {% for achievement in achievements_list %}<li>{{ achievement }}</li>{% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+
+    {% if resume.show_extracurricular and user_profile.extracurricular_activities %}
+    <section class="section">
+      <h2 class="section-heading">Extracurricular Activities</h2>
+      <div class="entry-body">{{ user_profile.extracurricular_activities|linebreaks }}</div>
+    </section>
+    {% endif %}
+
+  </main>
+</div>
 </body>
-</html>
-""",
-        "css_structure": """
-/* Modern Resume Template CSS */
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+</html>""",
 
-:root {
-    --primary-color: {{ resume.primary_color }};
-    --secondary-color: {{ resume.secondary_color }};
-    --text-color: #333;
-    --light-text: #666;
-    --border-color: #ddd;
-    --background-color: #fff;
-    --section-spacing: 1.5rem;
+        "css_structure": """/* Modern Resume Template */
+*{margin:0;padding:0;box-sizing:border-box}
+body.modern-resume{
+  font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size:13px; line-height:1.55; color:#333; background:#fff;
 }
+.resume-container{max-width:8.5in;margin:0 auto;padding:.65in .6in}
 
-/* Reset and base styles */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+.resume-header{text-align:center;padding-bottom:.7rem;margin-bottom:.5rem;
+  border-bottom:2.5px solid """ + "{{ resume.primary_color|default:'#4f46e5' }}" + """}
+.header-name{font-size:26px;font-weight:700;color:""" + "{{ resume.primary_color|default:'#4f46e5' }}" + """;letter-spacing:.5px;margin-bottom:2px}
+.header-title{font-size:14px;color:#666;margin-bottom:6px}
+.contact-row{display:flex;justify-content:center;flex-wrap:wrap;gap:.3rem .9rem;font-size:11.5px;color:#555}
+.contact-item{white-space:nowrap}
+.contact-item + .contact-item::before{content:'|';margin-right:.9rem;color:#ccc}
 
-body {
-    font-family: {{ resume.font_family|default:"'Roboto', sans-serif" }};
-    font-size: 14px;
-    line-height: 1.6;
-    color: var(--text-color);
-    background-color: var(--background-color);
-}
+.section{margin-bottom:.75rem}
+.section-heading{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;
+  color:""" + "{{ resume.primary_color|default:'#4f46e5' }}" + """;
+  border-bottom:1.5px solid """ + "{{ resume.primary_color|default:'#4f46e5' }}" + """;
+  padding-bottom:3px;margin-bottom:8px}
 
-/* Container */
-.resume-container {
-    max-width: 8.5in;
-    margin: 0 auto;
-    padding: 0.75in 0.5in;
-    background-color: var(--background-color);
-}
+.entry{margin-bottom:10px}
+.entry-row{display:flex;justify-content:space-between;align-items:baseline}
+.entry-title{font-weight:600;font-size:13px;color:#222}
+.entry-date{font-size:11.5px;color:#888;white-space:nowrap}
+.entry-subtitle{font-size:12px;color:#555;margin-bottom:2px}
+.entry-meta{font-size:11px;color:#888}
+.entry-link{font-size:11px;color:""" + "{{ resume.primary_color|default:'#4f46e5' }}" + """;margin-bottom:2px}
+.entry-body{font-size:12.5px;color:#444}
+.entry-body p{margin-bottom:3px}
 
-/* Header Section */
-.resume-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: var(--section-spacing);
-    border-bottom: 2px solid var(--primary-color);
-    padding-bottom: 1rem;
-}
+.summary-text{font-size:12.5px;color:#444;text-align:justify}
 
-.name-title h1 {
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--primary-color);
-    margin-bottom: 0.25rem;
-}
+.skills-wrap{display:flex;flex-wrap:wrap;gap:6px}
+.skill-tag{background:#f0f0ff;border:1px solid #e0e0ef;border-radius:3px;
+  padding:2px 10px;font-size:11.5px;color:#444}
 
-.name-title h2 {
-    font-size: 18px;
-    font-weight: 500;
-    color: var(--light-text);
-}
+.cert-row{margin-bottom:4px;font-size:12.5px}
+.cert-org{color:#555} .cert-date{color:#888;font-size:11px}
 
-.contact-info {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    font-size: 12px;
-}
+.bullet-list{padding-left:1.3rem;font-size:12.5px;color:#444}
+.bullet-list li{margin-bottom:3px}
 
-.contact-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+@media print{
+  body{background:#fff}
+  .resume-container{padding:0;max-width:100%}
+  .section{page-break-inside:avoid}
 }
-
-/* Main Content */
-.resume-content {
-    display: flex;
-    flex-direction: column;
-    gap: var(--section-spacing);
-}
-
-/* Sections */
-.resume-section {
-    margin-bottom: var(--section-spacing);
-}
-
-.section-title {
-    font-size: 18px;
-    font-weight: 500;
-    color: var(--primary-color);
-    margin-bottom: 0.75rem;
-    padding-bottom: 0.25rem;
-    border-bottom: 1px solid var(--border-color);
-}
-
-/* Education */
-.education-item {
-    margin-bottom: 1rem;
-}
-
-.edu-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.25rem;
-}
-
-.edu-header h4 {
-    font-weight: 500;
-}
-
-.edu-date {
-    color: var(--light-text);
-}
-
-.edu-institution {
-    font-weight: 500;
-}
-
-/* Experience */
-.experience-item {
-    margin-bottom: 1rem;
-}
-
-.exp-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.25rem;
-}
-
-.exp-header h4 {
-    font-weight: 500;
-}
-
-.exp-date {
-    color: var(--light-text);
-}
-
-.exp-company {
-    font-weight: 500;
-    margin-bottom: 0.25rem;
-}
-
-/* Projects */
-.project-item {
-    margin-bottom: 1rem;
-}
-
-.project-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.25rem;
-}
-
-.project-header h4 {
-    font-weight: 500;
-}
-
-.project-link {
-    color: var(--secondary-color);
-    text-decoration: none;
-}
-
-.project-tech {
-    margin-top: 0.5rem;
-    font-size: 12px;
-}
-
-/* Skills */
-.skills-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-}
-
-.skill-item {
-    background-color: #f5f5f5;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    padding: 0.25rem 0.5rem;
-    font-size: 12px;
-}
-
-/* Certifications */
-.cert-item {
-    margin-bottom: 0.75rem;
-}
-
-.cert-item h4 {
-    margin-bottom: 0.25rem;
-}
-
-.cert-org, .cert-date {
-    font-size: 12px;
-    color: var(--light-text);
-}
-
-/* Achievements */
-.achievements-list {
-    padding-left: 1.5rem;
-}
-
-.achievements-list li {
-    margin-bottom: 0.5rem;
-}
-
-/* Footer */
-.resume-footer {
-    margin-top: 1rem;
-    font-size: 10px;
-    color: var(--light-text);
-    display: flex;
-    justify-content: space-between;
-}
-
-/* Print styles */
-@media print {
-    body {
-        background-color: white;
-    }
-    
-    .resume-container {
-        padding: 0;
-        max-width: 100%;
-    }
-    
-    .page-number:after {
-        content: counter(page);
-    }
-    
-    .resume-container {
-        page-break-after: always;
-    }
-    
-    .resume-section {
-        page-break-inside: avoid;
-    }
-}
+@page{size:A4;margin:.6in}
 """
     },
+
+    # =========================================================================
+    # PROFESSIONAL TEMPLATE - traditional, serif-based, corporate
+    # =========================================================================
     {
         "name": "Professional",
         "description": "Traditional and elegant layout for corporate roles and experienced professionals.",
-        "html_structure": """
-<!DOCTYPE html>
+        "html_structure": """<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ user_profile.full_name }} - Professional Resume</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ user_profile.full_name }} - Professional Resume</title>
 </head>
 <body class="professional-resume">
-    <div class="resume-container">
-        <!-- Header Section -->
-        <header class="resume-header">
-            <h1 class="name">{{ user_profile.full_name }}</h1>
-            {% if user_profile.job_title %}
-            <h2 class="title">{{ user_profile.job_title }}</h2>
-            {% endif %}
-            
-            {% if resume.show_contact %}
-            <div class="contact-bar">
-                {% if user_profile.email %}
-                <div class="contact-item">
-                    <span class="contact-label">Email:</span>
-                    <span class="contact-value">{{ user_profile.email }}</span>
-                </div>
-                {% endif %}
-                
-                {% if user_profile.phone_number %}
-                <div class="contact-item">
-                    <span class="contact-label">Phone:</span>
-                    <span class="contact-value">{{ user_profile.phone_number }}</span>
-                </div>
-                {% endif %}
-                
-                {% if user_profile.linkedin_profile and resume.show_links %}
-                <div class="contact-item">
-                    <span class="contact-label">LinkedIn:</span>
-                    <span class="contact-value">{{ user_profile.linkedin_profile|urlize }}</span>
-                </div>
-                {% endif %}
-                
-                {% if user_profile.github_profile and resume.show_links %}
-                <div class="contact-item">
-                    <span class="contact-label">GitHub:</span>
-                    <span class="contact-value">{{ user_profile.github_profile|urlize }}</span>
-                </div>
-                {% endif %}
-                
-                {% if user_profile.portfolio_website and resume.show_links %}
-                <div class="contact-item">
-                    <span class="contact-label">Website:</span>
-                    <span class="contact-value">{{ user_profile.portfolio_website|urlize }}</span>
-                </div>
-                {% endif %}
-            </div>
-            {% endif %}
-        </header>
-        
-        <!-- Main Content -->
-        <main class="resume-content">
-            <!-- Objective Section -->
-            {% if resume.show_objective and user_profile.objective %}
-            <section class="resume-section">
-                <h3 class="section-title">Professional Summary</h3>
-                <div class="section-content">
-                    <p>{{ user_profile.objective }}</p>
-                </div>
-            </section>
-            {% endif %}
-            
-            <!-- Work Experience Section -->
-            {% if resume.show_experience and work_experience %}
-            <section class="resume-section">
-                <h3 class="section-title">Professional Experience</h3>
-                <div class="section-content">
-                    {% for job in work_experience %}
-                    <div class="experience-item">
-                        <div class="exp-header">
-                            <div class="exp-title-company">
-                                <h4>{{ job.title }}</h4>
-                                <p class="exp-company">{{ job.company }}</p>
-                            </div>
-                            <span class="exp-date">{{ job.start_date }} - {{ job.end_date|default:"Present" }}</span>
-                        </div>
-                        <div class="exp-description">
-                            {{ job.description|linebreaks }}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </section>
-            {% endif %}
-            
-            <!-- Internships Section -->
-            {% if user_profile.user_type == 'student' and resume.show_experience and internships %}
-            <section class="resume-section">
-                <h3 class="section-title">Internship Experience</h3>
-                <div class="section-content">
-                    {% for internship in internships %}
-                    <div class="experience-item">
-                        <div class="exp-header">
-                            <div class="exp-title-company">
-                                <h4>{{ internship.title }}</h4>
-                                <p class="exp-company">{{ internship.company }}</p>
-                            </div>
-                            <span class="exp-date">{{ internship.start_date }} - {{ internship.end_date|default:"Present" }}</span>
-                        </div>
-                        <div class="exp-description">
-                            {{ internship.description|linebreaks }}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </section>
-            {% endif %}
-            
-            <!-- Education Section -->
-            {% if resume.show_education and user_profile.university %}
-            <section class="resume-section">
-                <h3 class="section-title">Education</h3>
-                <div class="section-content">
-                    <div class="education-item">
-                        <div class="edu-header">
-                            <div class="edu-degree-institution">
-                                <h4>{{ user_profile.degree }}</h4>
-                                <p class="edu-institution">{{ user_profile.university }}</p>
-                            </div>
-                            <span class="edu-date">{{ user_profile.graduation_year }}</span>
-                        </div>
-                        {% if user_profile.cgpa %}
-                        <p class="edu-gpa">CGPA: {{ user_profile.cgpa }}</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </section>
-            {% endif %}
-            
-            <!-- Skills Section -->
-            {% if resume.show_skills and technical_skills %}
-            <section class="resume-section">
-                <h3 class="section-title">Technical Skills</h3>
-                <div class="section-content">
-                    <table class="skills-table">
-                        <tr>
-                            {% for skill in technical_skills %}
-                                {% if forloop.counter0|divisibleby:3 and not forloop.first %}
-                                    </tr><tr>
-                                {% endif %}
-                                <td class="skill-cell">{{ skill }}</td>
-                            {% endfor %}
-                        </tr>
-                    </table>
-                </div>
-            </section>
-            {% endif %}
-            
-            <!-- Projects Section -->
-            {% if resume.show_projects and projects %}
-            <section class="resume-section">
-                <h3 class="section-title">Projects</h3>
-                <div class="section-content">
-                    {% for project in projects %}
-                    <div class="project-item">
-                        <h4>{{ project.title }} {% if project.url %}<a href="{{ project.url }}" class="project-link">(View Project)</a>{% endif %}</h4>
-                        <div class="project-description">
-                            {{ project.description|linebreaks }}
-                        </div>
-                        {% if project.tech_list %}
-                        <div class="project-tech">
-                            <span class="tech-label">Technologies:</span>
-                            {% for tech in project.tech_list %}
-                                <span class="badge">{{ tech }}</span>{% if not forloop.last %}, {% endif %}
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
-                </div>
-            </section>
-            {% endif %}
-            
-            <!-- Certifications Section -->
-            {% if resume.show_certifications and certifications %}
-            <section class="resume-section">
-                <h3 class="section-title">Certifications</h3>
-                <div class="section-content">
-                    <ul class="cert-list">
-                        {% for cert in certifications %}
-                        <li class="cert-item">
-                            <strong>{{ cert.name }}</strong>
-                            {% if cert.issuing_organization %} - {{ cert.issuing_organization }}{% endif %}
-                            {% if cert.date %} ({{ cert.date }}){% endif %}
-                            {% if cert.description %}<br>{{ cert.description }}{% endif %}
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </section>
-            {% endif %}
-            
-            <!-- Achievements Section -->
-            {% if resume.show_achievements and user_profile.achievements %}
-            <section class="resume-section">
-                <h3 class="section-title">Achievements</h3>
-                <div class="section-content">
-                    <ul class="achievements-list">
-                        {% for achievement in user_profile.achievements.split('\n') %}
-                            {% if achievement.strip %}
-                            <li>{{ achievement }}</li>
-                            {% endif %}
-                        {% endfor %}
-                    </ul>
-                </div>
-            </section>
-            {% endif %}
-            
-            <!-- Extracurricular Activities -->
-            {% if resume.show_extracurricular and user_profile.extracurricular_activities %}
-            <section class="resume-section">
-                <h3 class="section-title">Extracurricular Activities</h3>
-                <div class="section-content">
-                    <p>{{ user_profile.extracurricular_activities|linebreaks }}</p>
-                </div>
-            </section>
-            {% endif %}
-        </main>
-        
-        <!-- Footer with page number when printing -->
-        <footer class="resume-footer">
-            <div class="footer-content">
-                {{ user_profile.full_name }} | Resume | Page <span class="page"></span>
-            </div>
-        </footer>
+<div class="resume-container">
+
+  <header class="resume-header">
+    <h1 class="name">{{ user_profile.full_name }}</h1>
+    {% if user_profile.job_title %}<p class="jobtitle">{{ user_profile.job_title }}</p>{% endif %}
+    <div class="header-rule"></div>
+    {% if resume.show_contact %}
+    <div class="contact-bar">
+      {% if user_profile.email %}<span>{{ user_profile.email }}</span>{% endif %}
+      {% if user_profile.phone_number %}<span>{{ user_profile.phone_number }}</span>{% endif %}
+      {% if user_profile.linkedin_profile and resume.show_links %}<span>{{ user_profile.linkedin_profile }}</span>{% endif %}
+      {% if user_profile.github_profile and resume.show_links %}<span>{{ user_profile.github_profile }}</span>{% endif %}
+      {% if user_profile.portfolio_website and resume.show_links %}<span>{{ user_profile.portfolio_website }}</span>{% endif %}
     </div>
+    {% endif %}
+  </header>
+
+  <main class="resume-body">
+
+    {% if resume.show_objective and user_profile.objective %}
+    <section class="section">
+      <h2 class="section-heading">Professional Summary</h2>
+      <p class="body-text">{{ user_profile.objective }}</p>
+    </section>
+    {% endif %}
+
+    {% if resume.show_experience and work_experience %}
+    <section class="section">
+      <h2 class="section-heading">Professional Experience</h2>
+      {% for job in work_experience %}
+      <div class="entry">
+        <div class="entry-top">
+          <div class="entry-left">
+            <span class="entry-title">{{ job.title }}</span>
+            <span class="entry-org">{{ job.company }}</span>
+          </div>
+          <span class="entry-date">{{ job.start_date }} - {{ job.end_date|default:"Present" }}</span>
+        </div>
+        {% if job.description %}<div class="entry-body">{{ job.description|linebreaks }}</div>{% endif %}
+      </div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if resume.show_experience and internships %}
+    <section class="section">
+      <h2 class="section-heading">Internship Experience</h2>
+      {% for internship in internships %}
+      <div class="entry">
+        <div class="entry-top">
+          <div class="entry-left">
+            <span class="entry-title">{{ internship.title }}</span>
+            <span class="entry-org">{{ internship.company }}</span>
+          </div>
+          <span class="entry-date">{{ internship.start_date }} - {{ internship.end_date|default:"Present" }}</span>
+        </div>
+        {% if internship.description %}<div class="entry-body">{{ internship.description|linebreaks }}</div>{% endif %}
+      </div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if resume.show_education and user_profile.university %}
+    <section class="section">
+      <h2 class="section-heading">Education</h2>
+      <div class="entry">
+        <div class="entry-top">
+          <div class="entry-left">
+            <span class="entry-title">{{ user_profile.degree }}</span>
+            <span class="entry-org">{{ user_profile.university }}</span>
+          </div>
+          <span class="entry-date">{{ user_profile.graduation_year }}</span>
+        </div>
+        {% if user_profile.cgpa %}<p class="entry-meta">CGPA: {{ user_profile.cgpa }}</p>{% endif %}
+      </div>
+    </section>
+    {% endif %}
+
+    {% if resume.show_skills and technical_skills %}
+    <section class="section">
+      <h2 class="section-heading">Technical Skills</h2>
+      <p class="body-text">{{ technical_skills|join:", " }}</p>
+    </section>
+    {% endif %}
+
+    {% if resume.show_projects and projects %}
+    <section class="section">
+      <h2 class="section-heading">Projects</h2>
+      {% for project in projects %}
+      <div class="entry">
+        <span class="entry-title">{{ project.title }}</span>
+        {% if project.technologies %}<span class="entry-tech">{{ project.technologies }}</span>{% endif %}
+        {% if project.description %}<div class="entry-body">{{ project.description|linebreaks }}</div>{% endif %}
+      </div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if resume.show_certifications and certifications %}
+    <section class="section">
+      <h2 class="section-heading">Certifications</h2>
+      <ul class="plain-list">
+        {% for cert in certifications %}
+        <li><strong>{{ cert.name }}</strong>{% if cert.issuing_organization %} - {{ cert.issuing_organization }}{% endif %}{% if cert.date %} ({{ cert.date }}){% endif %}</li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+
+    {% if resume.show_achievements and achievements_list %}
+    <section class="section">
+      <h2 class="section-heading">Achievements</h2>
+      <ul class="bullet-list">
+        {% for achievement in achievements_list %}<li>{{ achievement }}</li>{% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+
+    {% if resume.show_extracurricular and user_profile.extracurricular_activities %}
+    <section class="section">
+      <h2 class="section-heading">Extracurricular Activities</h2>
+      <div class="entry-body">{{ user_profile.extracurricular_activities|linebreaks }}</div>
+    </section>
+    {% endif %}
+
+  </main>
+</div>
 </body>
-</html>
-""",
-        "css_structure": """
-/* Professional Resume Template CSS */
-@import url('https://fonts.googleapis.com/css2?family=Times+New+Roman:wght@400;700&display=swap');
+</html>""",
 
-:root {
-    --primary-color: {{ resume.primary_color }};
-    --secondary-color: {{ resume.secondary_color }};
-    --text-color: #333;
-    --light-text: #666;
-    --border-color: #ddd;
-    --background-color: #fff;
-    --section-spacing: 1.5rem;
+        "css_structure": """/* Professional Resume Template */
+*{margin:0;padding:0;box-sizing:border-box}
+body.professional-resume{
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size:13px; line-height:1.5; color:#333; background:#fff;
 }
+.resume-container{max-width:8.5in;margin:0 auto;padding:.65in .6in}
 
-/* Reset and base styles */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+.resume-header{text-align:center;margin-bottom:.6rem}
+.name{font-size:28px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#222;margin-bottom:2px}
+.jobtitle{font-size:14px;color:""" + "{{ resume.primary_color|default:'#4f46e5' }}" + """;margin-bottom:6px}
+.header-rule{height:2px;background:""" + "{{ resume.primary_color|default:'#4f46e5' }}" + """;margin:6px auto 8px;width:100%}
+.contact-bar{display:flex;justify-content:center;flex-wrap:wrap;gap:.25rem .8rem;font-size:11.5px;color:#555}
+.contact-bar span + span::before{content:'\\2022';margin-right:.8rem;color:#bbb}
+
+.section{margin-bottom:.7rem}
+.section-heading{font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;
+  color:""" + "{{ resume.primary_color|default:'#4f46e5' }}" + """;
+  border-bottom:1px solid """ + "{{ resume.primary_color|default:'#4f46e5' }}" + """;
+  padding-bottom:3px;margin-bottom:8px}
+
+.entry{margin-bottom:10px}
+.entry-top{display:flex;justify-content:space-between;align-items:baseline}
+.entry-left{display:flex;flex-direction:column}
+.entry-title{font-weight:700;font-size:13px;color:#222}
+.entry-org{font-style:italic;font-size:12px;color:#555}
+.entry-date{font-size:11.5px;color:#888;white-space:nowrap;font-style:italic}
+.entry-meta{font-size:11px;color:#888;margin-top:1px}
+.entry-tech{font-size:11px;color:#888;margin-left:6px}
+.entry-body{font-size:12.5px;color:#444;margin-top:2px}
+.entry-body p{margin-bottom:3px}
+
+.body-text{font-size:12.5px;color:#444;text-align:justify}
+
+.bullet-list{padding-left:1.3rem;font-size:12.5px;color:#444}
+.bullet-list li{margin-bottom:3px}
+.plain-list{list-style:none;font-size:12.5px;color:#444}
+.plain-list li{margin-bottom:4px}
+
+@media print{
+  body{background:#fff}
+  .resume-container{padding:0;max-width:100%}
+  .section{page-break-inside:avoid}
 }
+@page{size:A4;margin:.6in}
+"""
+    },
 
-body {
-    font-family: {{ resume.font_family|default:"'Times New Roman', serif" }};
-    font-size: 12px;
-    line-height: 1.6;
-    color: var(--text-color);
-    background-color: var(--background-color);
+    # =========================================================================
+    # CREATIVE TEMPLATE - sidebar layout, colourful, modern
+    # =========================================================================
+    {
+        "name": "Creative",
+        "description": "Bold and distinctive two-column design to showcase your creativity and personality.",
+        "html_structure": """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ user_profile.full_name }} - Creative Resume</title>
+</head>
+<body class="creative-resume">
+<div class="resume-container">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="avatar">{{ user_profile.full_name|truncatechars:1 }}</div>
+      <h1 class="sidebar-name">{{ user_profile.full_name }}</h1>
+      {% if user_profile.job_title %}<p class="sidebar-title">{{ user_profile.job_title }}</p>{% endif %}
+    </div>
+
+    {% if resume.show_contact %}
+    <div class="sidebar-section">
+      <h3 class="sidebar-heading">Contact</h3>
+      <ul class="sidebar-list">
+        {% if user_profile.email %}<li>{{ user_profile.email }}</li>{% endif %}
+        {% if user_profile.phone_number %}<li>{{ user_profile.phone_number }}</li>{% endif %}
+        {% if user_profile.linkedin_profile and resume.show_links %}<li>{{ user_profile.linkedin_profile }}</li>{% endif %}
+        {% if user_profile.github_profile and resume.show_links %}<li>{{ user_profile.github_profile }}</li>{% endif %}
+        {% if user_profile.portfolio_website and resume.show_links %}<li>{{ user_profile.portfolio_website }}</li>{% endif %}
+      </ul>
+    </div>
+    {% endif %}
+
+    {% if resume.show_skills and technical_skills %}
+    <div class="sidebar-section">
+      <h3 class="sidebar-heading">Skills</h3>
+      <div class="sidebar-tags">
+        {% for skill in technical_skills %}<span class="sidebar-tag">{{ skill }}</span>{% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if resume.show_education and user_profile.university %}
+    <div class="sidebar-section">
+      <h3 class="sidebar-heading">Education</h3>
+      <p class="sb-bold">{{ user_profile.degree }}</p>
+      <p class="sb-text">{{ user_profile.university }}</p>
+      <p class="sb-light">{{ user_profile.graduation_year }}</p>
+      {% if user_profile.cgpa %}<p class="sb-light">CGPA: {{ user_profile.cgpa }}</p>{% endif %}
+    </div>
+    {% endif %}
+
+    {% if resume.show_certifications and certifications %}
+    <div class="sidebar-section">
+      <h3 class="sidebar-heading">Certifications</h3>
+      {% for cert in certifications %}
+      <div class="sb-cert">
+        <p class="sb-bold">{{ cert.name }}</p>
+        {% if cert.issuing_organization %}<p class="sb-light">{{ cert.issuing_organization }}</p>{% endif %}
+        {% if cert.date %}<p class="sb-light">{{ cert.date }}</p>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </aside>
+
+  <main class="main-col">
+
+    {% if resume.show_objective and user_profile.objective %}
+    <section class="main-section">
+      <h2 class="main-heading">About Me</h2>
+      <p class="main-text">{{ user_profile.objective }}</p>
+    </section>
+    {% endif %}
+
+    {% if resume.show_experience and work_experience %}
+    <section class="main-section">
+      <h2 class="main-heading">Experience</h2>
+      {% for job in work_experience %}
+      <div class="main-entry">
+        <div class="me-top">
+          <span class="me-title">{{ job.title }}</span>
+          <span class="me-date">{{ job.start_date }} - {{ job.end_date|default:"Present" }}</span>
+        </div>
+        <p class="me-org">{{ job.company }}</p>
+        {% if job.description %}<div class="me-body">{{ job.description|linebreaks }}</div>{% endif %}
+      </div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if resume.show_experience and internships %}
+    <section class="main-section">
+      <h2 class="main-heading">Internships</h2>
+      {% for internship in internships %}
+      <div class="main-entry">
+        <div class="me-top">
+          <span class="me-title">{{ internship.title }}</span>
+          <span class="me-date">{{ internship.start_date }} - {{ internship.end_date|default:"Present" }}</span>
+        </div>
+        <p class="me-org">{{ internship.company }}</p>
+        {% if internship.description %}<div class="me-body">{{ internship.description|linebreaks }}</div>{% endif %}
+      </div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if resume.show_projects and projects %}
+    <section class="main-section">
+      <h2 class="main-heading">Projects</h2>
+      {% for project in projects %}
+      <div class="main-entry">
+        <span class="me-title">{{ project.title }}</span>
+        {% if project.technologies %}<span class="me-tech">{{ project.technologies }}</span>{% endif %}
+        {% if project.description %}<div class="me-body">{{ project.description|linebreaks }}</div>{% endif %}
+      </div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if resume.show_achievements and achievements_list %}
+    <section class="main-section">
+      <h2 class="main-heading">Achievements</h2>
+      <ul class="main-bullets">
+        {% for achievement in achievements_list %}<li>{{ achievement }}</li>{% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+
+    {% if resume.show_extracurricular and user_profile.extracurricular_activities %}
+    <section class="main-section">
+      <h2 class="main-heading">Activities</h2>
+      <div class="me-body">{{ user_profile.extracurricular_activities|linebreaks }}</div>
+    </section>
+    {% endif %}
+
+  </main>
+</div>
+</body>
+</html>""",
+
+        "css_structure": """/* Creative Resume Template - two-column sidebar */
+*{margin:0;padding:0;box-sizing:border-box}
+body.creative-resume{
+  font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size:13px; line-height:1.5; color:#333; background:#f5f5f5;
 }
+.resume-container{max-width:8.5in;margin:0 auto;display:flex;background:#fff;
+  box-shadow:0 2px 20px rgba(0,0,0,.08);min-height:11in}
 
-/* Container */
-.resume-container {
-    max-width: 8.5in;
-    margin: 0 auto;
-    padding: 0.75in 0.5in;
-    background-color: var(--background-color);
+.sidebar{width:34%;background:""" + "{{ resume.primary_color|default:'#4f46e5' }}" + """;color:#fff;padding:1.4rem 1.1rem;
+  display:flex;flex-direction:column;gap:.1rem}
+.sidebar-header{text-align:center;margin-bottom:.8rem}
+.avatar{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.2);
+  margin:0 auto .6rem;display:flex;align-items:center;justify-content:center;
+  font-size:26px;font-weight:700;color:#fff}
+.sidebar-name{font-size:20px;font-weight:700;margin-bottom:2px}
+.sidebar-title{font-size:12px;opacity:.85}
+
+.sidebar-section{margin-bottom:.75rem}
+.sidebar-heading{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;opacity:.8;
+  margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,.25)}
+
+.sidebar-list{list-style:none;font-size:11.5px}
+.sidebar-list li{margin-bottom:5px;word-break:break-all;opacity:.92}
+
+.sidebar-tags{display:flex;flex-wrap:wrap;gap:5px}
+.sidebar-tag{background:rgba(255,255,255,.18);border-radius:3px;padding:2px 8px;font-size:11px}
+
+.sb-bold{font-weight:600;font-size:12px;margin-bottom:1px}
+.sb-text{font-size:11.5px;opacity:.9}
+.sb-light{font-size:11px;opacity:.75}
+.sb-cert{margin-bottom:8px}
+
+.main-col{flex:1;padding:1.4rem 1.3rem}
+
+.main-section{margin-bottom:.85rem}
+.main-heading{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1px;
+  color:""" + "{{ resume.primary_color|default:'#4f46e5' }}" + """;
+  border-bottom:2px solid """ + "{{ resume.primary_color|default:'#4f46e5' }}" + """;
+  padding-bottom:3px;margin-bottom:8px}
+.main-text{font-size:12.5px;color:#444;text-align:justify}
+
+.main-entry{margin-bottom:10px}
+.me-top{display:flex;justify-content:space-between;align-items:baseline}
+.me-title{font-weight:600;font-size:13px;color:#222}
+.me-date{font-size:11px;color:#888;white-space:nowrap}
+.me-org{font-size:12px;color:""" + "{{ resume.primary_color|default:'#4f46e5' }}" + """;margin-bottom:2px}
+.me-tech{font-size:11px;color:#888;margin-left:6px}
+.me-body{font-size:12.5px;color:#444}
+.me-body p{margin-bottom:3px}
+
+.main-bullets{padding-left:1.2rem;font-size:12.5px;color:#444}
+.main-bullets li{margin-bottom:3px}
+
+@media print{
+  body{background:#fff}
+  .resume-container{box-shadow:none;max-width:100%}
+  .sidebar{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  .main-section{page-break-inside:avoid}
 }
+@page{size:A4;margin:0}
 
-/* Header Section */
-.resume-header {
-    text-align: center;
-    margin-bottom: var(--section-spacing);
-}
-
-.name {
-    font-size: 24px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 0.25rem;
-}
-
-.title {
-    font-size: 16px;
-    font-weight: normal;
-    color: var(--primary-color);
-    margin-bottom: 0.75rem;
-}
-
-.contact-bar {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-    font-size: 11px;
-}
-
-.contact-item {
-    display: flex;
-    gap: 0.25rem;
-}
-
-.contact-label {
-    font-weight: bold;
-}
-
-/* Main Content */
-.resume-content {
-    display: flex;
-    flex-direction: column;
-    gap: var(--section-spacing);
-}
-
-/* Sections */
-.resume-section {
-    margin-bottom: var(--section-spacing);
-}
-
-.section-title {
-    font-size: 14px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--primary-color);
-    border-bottom: 1px solid var(--primary-color);
-    padding-bottom: 0.25rem;
-    margin-bottom: 0.75rem;
-}
-
-/* Experience */
-.experience-item {
-    margin-bottom: 1rem;
-}
-
-.exp-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-}
-
-.exp-title-company h4 {
-    font-weight: 700;
-    font-size: 13px;
-}
-
-.exp-company {
-    font-style: italic;
-}
-
-.exp-date {
-    font-weight: normal;
-    font-style: italic;
-}
-
-/* Education */
-.education-item {
-    margin-bottom: 1rem;
-}
-
-.edu-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.25rem;
-}
-
-.edu-degree-institution h4 {
-    font-weight: 700;
-    font-size: 13px;
-}
-
-.edu-institution {
-    font-style: italic;
-}
-
-.edu-date {
-    font-weight: normal;
-    font-style: italic;
-}
-
-.edu-gpa {
-    font-size: 11px;
-}
-
-/* Skills */
-.skills-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.skill-cell {
-    padding: 0.25rem 0.5rem;
-    border-bottom: 1px dotted var(--border-color);
-}
-
-/* Projects */
-.project-item {
-    margin-bottom: 1rem;
-}
-
-.project-item h4 {
-    font-weight: 700;
-    font-size: 13px;
-    margin-bottom: 0.25rem;
-}
-
-.project-link {
-    font-weight: normal;
-    font-size: 11px;
-    color: var(--primary-color);
-    text-decoration: none;
-}
-
-.project-tech {
-    font-size: 11px;
-    margin-top: 0.25rem;
-}
-
-.tech-label {
-    font-weight: bold;
-}
-
-/* Certifications */
-.cert-list {
-    list-style-type: none;
-}
-
-.cert-item {
-    margin-bottom: 0.5rem;
-}
-
-/* Achievements */
-.achievements-list {
-    padding-left: 1.25rem;
-}
-
-.achievements-list li {
-    margin-bottom: 0.5rem;
-}
-
-/* Footer */
-.resume-footer {
-    margin-top: var(--section-spacing);
-    text-align: center;
-    font-size: 9px;
-    color: var(--light-text);
-}
-
-/* Print styles */
-@media print {
-    body {
-        background-color: white;
-    }
-    
-    .resume-container {
-        padding: 0;
-        max-width: 100%;
-    }
-    
-    .page:after {
-        content: counter(page);
-    }
-    
-    .resume-container {
-        page-break-after: always;
-    }
-    
-    .resume-section {
-        page-break-inside: avoid;
-    }
+@media(max-width:600px){
+  .resume-container{flex-direction:column}
+  .sidebar{width:100%}
 }
 """
     },
-    {
-        "name": "Creative",
-        "description": "Bold and distinctive design to showcase your creativity and personality.",
-        "html_structure": """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ user_profile.full_name }} - Creative Resume</title>
-    <style>
-        /* Creative Resume Template CSS */
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-
-        :root {
-            --primary-color: {{ resume.primary_color }};
-            --secondary-color: {{ resume.secondary_color }};
-            --text-color: #333;
-            --light-text: #666;
-            --sidebar-bg: #f5f5f5;
-            --main-bg: #ffffff;
-            --accent-color: {{ resume.primary_color }};
-            --border-radius: 8px;
-        }
-
-        /* Reset and base styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: {{ resume.font_family|default:"'Poppins', sans-serif" }};
-            font-size: 14px;
-            line-height: 1.6;
-            color: var(--text-color);
-            background-color: #f9f9f9;
-        }
-
-        /* Container */
-        .resume-container {
-            max-width: 8.5in;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            background-color: var(--main-bg);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Sidebar */
-        .resume-sidebar {
-            background-color: var(--sidebar-bg);
-            padding: 2rem 1.5rem;
-            color: var(--text-color);
-        }
-
-        .profile-container {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .profile-image-placeholder {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background-color: var(--primary-color);
-            margin: 0 auto 1rem;
-        }
-
-        .name {
-            font-size: 22px;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .title {
-            font-size: 16px;
-            font-weight: 500;
-            color: var(--primary-color);
-            margin-bottom: 1rem;
-        }
-
-        .sidebar-section {
-            margin-bottom: 2rem;
-        }
-
-        .sidebar-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--primary-color);
-            margin-bottom: 1rem;
-            position: relative;
-            padding-bottom: 0.5rem;
-        }
-
-        .sidebar-title:after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 50px;
-            height: 3px;
-            background-color: var(--primary-color);
-        }
-
-        /* Contact styles */
-        .contact-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .contact-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .contact-icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 30px;
-            height: 30px;
-            background-color: var(--primary-color);
-            color: white;
-            border-radius: 50%;
-            font-size: 14px;
-        }
-
-        /* Skills styles */
-        .skills-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        .skill-badge {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-
-        /* Education styles */
-        .education-item {
-            margin-bottom: 1rem;
-        }
-
-        .degree {
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-        }
-
-        .university {
-            font-weight: 500;
-            margin-bottom: 0.25rem;
-        }
-
-        .graduation, .gpa {
-            font-size: 12px;
-            color: var(--light-text);
-        }
-
-        /* Certifications styles */
-        .cert-list {
-            list-style: none;
-        }
-
-        .cert-item {
-            margin-bottom: 1rem;
-        }
-
-        .cert-name {
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-        }
-
-        .cert-org, .cert-date {
-            font-size: 12px;
-            color: var(--light-text);
-        }
-
-        /* Main Content */
-        .resume-main {
-            padding: 2rem;
-            background-color: var(--main-bg);
-        }
-
-        .main-section {
-            margin-bottom: 2rem;
-        }
-
-        .main-title {
-            font-size: 20px;
-            font-weight: 600;
-            color: var(--primary-color);
-            margin-bottom: 1.5rem;
-            position: relative;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid var(--primary-color);
-        }
-
-        /* Timeline styles */
-        .timeline {
-            position: relative;
-        }
-
-        .timeline:before {
-            content: '';
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 16px;
-            width: 2px;
-            background-color: var(--primary-color);
-        }
-
-        .timeline-item {
-            display: flex;
-            margin-bottom: 1.5rem;
-            position: relative;
-        }
-
-        .timeline-marker {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background-color: var(--primary-color);
-            flex-shrink: 0;
-            margin-right: 1.5rem;
-            margin-top: 6px;
-            z-index: 1;
-        }
-
-        .timeline-content {
-            flex-grow: 1;
-        }
-
-        .job-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
-        }
-
-        .job-title {
-            font-weight: 600;
-            font-size: 16px;
-        }
-
-        .job-date {
-            font-size: 12px;
-            color: var(--light-text);
-        }
-
-        .job-company {
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-            color: var(--primary-color);
-        }
-
-        /* Projects styles */
-        .projects-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .project-card {
-            border-radius: var(--border-radius);
-            border: 1px solid #eee;
-            padding: 1rem;
-            background-color: white;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .project-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .project-title {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--primary-color);
-        }
-
-        .project-link {
-            display: inline-block;
-            color: var(--primary-color);
-            text-decoration: none;
-            font-size: 12px;
-            margin-bottom: 0.5rem;
-        }
-
-        .tech-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.25rem;
-            margin-top: 0.5rem;
-        }
-
-        .tech-chip {
-            font-size: 10px;
-            background-color: #f0f0f0;
-            padding: 0.1rem 0.5rem;
-            border-radius: 12px;
-        }
-
-        /* Achievements styles */
-        .achievements-list {
-            padding-left: 1.5rem;
-        }
-
-        .achievement-item {
-            margin-bottom: 0.75rem;
-        }
-
-        /* Print styles */
-        @media print {
-            body {
-                background-color: white;
-            }
-            
-            .resume-container {
-                max-width: 100%;
-                box-shadow: none;
-            }
-            
-            .resume-container {
-                page-break-after: always;
-            }
-            
-            .main-section, .sidebar-section {
-                page-break-inside: avoid;
-            }
-        }
-
-        /* Media queries for responsiveness */
-        @media (max-width: 768px) {
-            .resume-container {
-                grid-template-columns: 1fr;
-            }
-            
-            .timeline:before {
-                left: 12px;
-            }
-            
-            .timeline-marker {
-                width: 12px;
-                height: 12px;
-                margin-right: 1rem;
-            }
-            
-            .projects-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-</head>
-<body class="creative-resume">
-    <div class="resume-container">
-        <!-- Sidebar -->
-        <aside class="resume-sidebar">
-            <div class="profile-container">
-                <div class="profile-image-placeholder"></div>
-                <h1 class="name">{{ user_profile.full_name }}</h1>
-                <h2 class="title">{{ user_profile.job_title }}</h2>
-            </div>
-            
-            {% if resume.show_contact %}
-            <section class="sidebar-section contact-section">
-                <h3 class="sidebar-title">Contact</h3>
-                <div class="contact-list">
-                    {% if user_profile.email %}
-                    <div class="contact-item">
-                        <span class="contact-icon">✉</span>
-                        <span class="contact-text">{{ user_profile.email }}</span>
-                    </div>
-                    {% endif %}
-                    
-                    {% if user_profile.phone_number %}
-                    <div class="contact-item">
-                        <span class="contact-icon">☏</span>
-                        <span class="contact-text">{{ user_profile.phone_number }}</span>
-                    </div>
-                    {% endif %}
-                    
-                    {% if user_profile.linkedin_profile and resume.show_links %}
-                    <div class="contact-item">
-                        <span class="contact-icon">in</span>
-                        <span class="contact-text">{{ user_profile.linkedin_profile|urlize }}</span>
-                    </div>
-                    {% endif %}
-                    
-                    {% if user_profile.github_profile and resume.show_links %}
-                    <div class="contact-item">
-                        <span class="contact-icon">gh</span>
-                        <span class="contact-text">{{ user_profile.github_profile|urlize }}</span>
-                    </div>
-                    {% endif %}
-                    
-                    {% if user_profile.portfolio_website and resume.show_links %}
-                    <div class="contact-item">
-                        <span class="contact-icon">🌐</span>
-                        <span class="contact-text">{{ user_profile.portfolio_website|urlize }}</span>
-                    </div>
-                    {% endif %}
-                </div>
-            </section>
-            {% endif %}
-            
-            {% if resume.show_skills and technical_skills %}
-            <section class="sidebar-section skills-section">
-                <h3 class="sidebar-title">Skills</h3>
-                <div class="skills-container">
-                    {% for skill in technical_skills %}
-                    <div class="skill-badge">{{ skill }}</div>
-                    {% endfor %}
-                </div>
-            </section>
-            {% endif %}
-            
-            {% if resume.show_education and user_profile.university %}
-            <section class="sidebar-section education-section">
-                <h3 class="sidebar-title">Education</h3>
-                <div class="education-item">
-                    <h4 class="degree">{{ user_profile.degree }}</h4>
-                    <p class="university">{{ user_profile.university }}</p>
-                    <p class="graduation">Class of {{ user_profile.graduation_year }}</p>
-                    {% if user_profile.cgpa %}
-                    <p class="gpa">CGPA: {{ user_profile.cgpa }}</p>
-                    {% endif %}
-                </div>
-            </section>
-            {% endif %}
-            
-            {% if resume.show_certifications and certifications %}
-            <section class="sidebar-section certifications-section">
-                <h3 class="sidebar-title">Certifications</h3>
-                <ul class="cert-list">
-                    {% for cert in certifications %}
-                    <li class="cert-item">
-                        <div class="cert-name">{{ cert.name }}</div>
-                        {% if cert.issuing_organization %}
-                        <div class="cert-org">{{ cert.issuing_organization }}</div>
-                        {% endif %}
-                        {% if cert.date %}
-                        <div class="cert-date">{{ cert.date }}</div>
-                        {% endif %}
-                    </li>
-                    {% endfor %}
-                </ul>
-            </section>
-            {% endif %}
-        </aside>
-        
-        <!-- Main Content -->
-        <main class="resume-main">
-            <!-- Objective Section -->
-            {% if resume.show_objective and user_profile.objective %}
-            <section class="main-section intro-section">
-                <h3 class="main-title">About Me</h3>
-                <div class="intro-content">
-                    <p>{{ user_profile.objective }}</p>
-                </div>
-            </section>
-            {% endif %}
-            
-            <!-- Work Experience Section -->
-            {% if resume.show_experience and work_experience %}
-            <section class="main-section experience-section">
-                <h3 class="main-title">Professional Experience</h3>
-                <div class="timeline">
-                    {% for job in work_experience %}
-                    <div class="timeline-item">
-                        <div class="timeline-marker"></div>
-                        <div class="timeline-content">
-                            <div class="job-header">
-                                <h4 class="job-title">{{ job.title }}</h4>
-                                <span class="job-date">{{ job.start_date }} - {{ job.end_date|default:"Present" }}</span>
-                            </div>
-                            <p class="job-company">{{ job.company }}</p>
-                            <div class="job-description">
-                                {{ job.description|linebreaks }}
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </section>
-            {% endif %}
-            
-            <!-- Internships Section -->
-            {% if user_profile.user_type == 'student' and resume.show_experience and internships %}
-            <section class="main-section internship-section">
-                <h3 class="main-title">Internships</h3>
-                <div class="timeline">
-                    {% for internship in internships %}
-                    <div class="timeline-item">
-                        <div class="timeline-marker"></div>
-                        <div class="timeline-content">
-                            <div class="job-header">
-                                <h4 class="job-title">{{ internship.title }}</h4>
-                                <span class="job-date">{{ internship.start_date }} - {{ internship.end_date|default:"Present" }}</span>
-                            </div>
-                            <p class="job-company">{{ internship.company }}</p>
-                            <div class="job-description">
-                                {{ internship.description|linebreaks }}
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </section>
-            {% endif %}
-            
-            <!-- Projects Section -->
-            {% if resume.show_projects and projects %}
-            <section class="main-section projects-section">
-                <h3 class="main-title">Projects</h3>
-                <div class="projects-grid">
-                    {% for project in projects %}
-                    <div class="project-card">
-                        <h4 class="project-title">{{ project.title }}</h4>
-                        {% if project.url %}
-                        <a href="{{ project.url }}" class="project-link" target="_blank">View Project</a>
-                        {% endif %}
-                        <div class="project-description">
-                            {{ project.description|linebreaks }}
-                        </div>
-                        {% if project.technologies %}
-                        <div class="project-tech">
-                            <div class="tech-chips">
-                                {% for tech in project.technologies.split(',') %}
-                                <span class="tech-chip">{{ tech.strip() }}</span>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
-                </div>
-            </section>
-            {% endif %}
-            
-            <!-- Achievements Section -->
-            {% if resume.show_achievements and user_profile.achievements %}
-            <section class="main-section achievements-section">
-                <h3 class="main-title">Achievements</h3>
-                <ul class="achievements-list">
-                    {% for achievement in user_profile.achievements.split('\n') %}
-                        {% if achievement.strip %}
-                        <li class="achievement-item">{{ achievement }}</li>
-                        {% endif %}
-                    {% endfor %}
-                </ul>
-            </section>
-            {% endif %}
-            
-            <!-- Extracurricular Activities -->
-            {% if resume.show_extracurricular and user_profile.extracurricular_activities %}
-            <section class="main-section extracurricular-section">
-                <h3 class="main-title">Extracurricular Activities</h3>
-                <div class="extracurricular-content">
-                    {{ user_profile.extracurricular_activities|linebreaks }}
-                </div>
-            </section>
-            {% endif %}
-        </main>
-    </div>
-</body>
-</html>
-"""
-    }
 ]

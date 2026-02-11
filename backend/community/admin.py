@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.db.models import Count
-from .models import Post, Comment, Like, Follow, Tag, Notification, UserActivity
+from .models import Post, Comment, Like, Follow, Tag, Notification, UserActivity, Event, EventRegistration
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
@@ -214,3 +214,23 @@ class UserActivityAdmin(admin.ModelAdmin):
             return f"User: {obj.target_user.full_name or obj.target_user.username}"
         return "None"
     content_object.short_description = 'Related Content'
+
+
+@admin.register(Event)
+class EventAdmin(admin.ModelAdmin):
+    list_display = ['title', 'event_type', 'start_datetime', 'end_datetime',
+                    'is_free', 'price', 'max_attendees', 'registrations_count',
+                    'is_featured', 'is_active']
+    list_filter = ['event_type', 'is_free', 'is_featured', 'is_active']
+    search_fields = ['title', 'description', 'speaker_name']
+    prepopulated_fields = {'slug': ('title',)}
+    readonly_fields = ['registrations_count', 'created_at', 'updated_at']
+    date_hierarchy = 'start_datetime'
+
+
+@admin.register(EventRegistration)
+class EventRegistrationAdmin(admin.ModelAdmin):
+    list_display = ['event', 'user', 'registered_at', 'is_bookmarked', 'attended']
+    list_filter = ['is_bookmarked', 'attended', 'registered_at']
+    search_fields = ['event__title', 'user__username']
+    readonly_fields = ['registered_at']

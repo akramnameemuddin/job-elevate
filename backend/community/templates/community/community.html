@@ -41,6 +41,9 @@
                     <span class="notification-badge">{{ unread_notifications_count }}</span>
                 {% endif %}
             </button>
+            <a href="{% url 'community:events' %}" class="nav-pill" style="text-decoration:none;">
+                <i class='bx bx-calendar-event'></i> Events
+            </a>
         </div>
     </div>
 
@@ -165,10 +168,10 @@
                                         <div class="dropdown">
                                             <button class="dropdown-toggle">
                                                 <i class='bx bx-dots-horizontal-rounded'></i>
-                                            </button>
+                                            </button>'{{ post.id }}'
                                             <div class="dropdown-menu">
                                                 <a href="#" onclick="editPost('{{ post.slug }}')">Edit</a>
-                                                <a href="#" onclick="deletePost({{ post.id }})" class="danger">Delete</a>
+                                                <a href="#" onclick="deletePost('{{ post.id }}')" class="danger">Delete</a>
                                             </div>
                                         </div>
                                     </div>
@@ -192,10 +195,10 @@
                                     {% endif %}
                                 </div>
 
-                                <div class="post-footer">
+                                <div class="post-footer">'{{ post.id }}'
                                     <div class="post-stats">
                                         <button class="stat-btn like-btn {% if post.id in user_liked_posts %}active{% endif %}" 
-                                                onclick="toggleLike('post', {{ post.id }}, this)">
+                                                onclick="toggleLike('post', '{{ post.id }}', this)">
                                             <i class='bx bx-heart'></i>
                                             <span class="like-count">{{ post.likes_count }}</span>
                                         </button>
@@ -205,10 +208,10 @@
                                         </button>
                                         <button class="stat-btn view-btn">
                                             <i class='bx bx-show'></i>
-                                            <span>{{ post.views }}</span>
+                                            <span>{{ post.views }}</span>'{{ post.id }}'
                                         </button>
                                         <button class="stat-btn follow-btn {% if post.id in user_followed_posts %}active{% endif %}" 
-                                                onclick="toggleFollow('post', {{ post.id }}, this)">
+                                                onclick="toggleFollow('post', '{{ post.id }}', this)">
                                             <i class='bx bx-bookmark'></i>
                                             <span>{{ post.followers_count }}</span>
                                         </button>
@@ -1683,6 +1686,90 @@ function deletePost(postId) {
         console.error('Error deleting post:', error);
         alert('Failed to delete post. Please try again.');
     });
+}
+
+function deleteComment(commentId) {
+    if (!commentId) return;
+    if (!confirm('Delete this comment?')) return;
+
+    const formData = new FormData();
+    formData.append('comment_id', commentId);
+    formData.append('csrfmiddlewaretoken', getCSRFToken());
+
+    fetch('/community/delete-comment/', {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            const el = document.querySelector(`[data-comment-id="${commentId}"]`);
+            if (el) {
+                el.style.transition = 'opacity 0.3s';
+                el.style.opacity = '0';
+                setTimeout(() => el.remove(), 300);
+            }
+        } else {
+            alert(data.error || 'Could not delete comment');
+        }
+    })
+    .catch(() => alert('Failed to delete comment.'));
+}
+
+function showReplyForm(commentId) {
+    // Hide any other open reply forms first
+    document.querySelectorAll('.reply-form-container').forEach(f => {
+        if (f.dataset.parentId !== String(commentId)) f.remove();
+    });
+
+    const existing = document.querySelector(`.reply-form-container[data-parent-id="${commentId}"]`);
+    if (existing) { existing.remove(); return; }   // toggle off
+
+    const commentEl = document.querySelector(`[data-comment-id="${commentId}"]`);
+    if (!commentEl) return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const slug = urlParams.get('slug');
+
+    const html = `
+        <div class="reply-form-container" data-parent-id="${commentId}" style="margin-top:0.75rem;padding-left:1.5rem;">
+            <form onsubmit="submitReply(event, '${commentId}', '${slug}')">
+                <input type="hidden" name="csrfmiddlewaretoken" value="${getCSRFToken()}">
+                <input type="hidden" name="parent_id" value="${commentId}">
+                <textarea name="content" rows="2" placeholder="Write a reply..." required
+                    style="width:100%;padding:0.5rem;border:1px solid var(--border-color);border-radius:var(--radius-md);
+                    background:var(--card-bg);color:var(--text-color);resize:vertical;font-size:0.85rem;"></textarea>
+                <div style="display:flex;gap:0.5rem;margin-top:0.4rem;">
+                    <button type="submit" class="btn btn-primary btn-sm">Reply</button>
+                    <button type="button" class="btn btn-outline-primary btn-sm"
+                        onclick="this.closest('.reply-form-container').remove()">Cancel</button>
+                </div>
+            </form>
+        </div>`;
+    commentEl.insertAdjacentHTML('beforeend', html);
+}
+
+function submitReply(e, parentId, slug) {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+
+    fetch('/community/?section=add-comment&slug=' + slug, {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            // Reload the post detail to show the new reply
+            loadPostDetail(slug);
+        } else {
+            alert(data.error || 'Could not submit reply');
+        }
+    })
+    .catch(() => alert('Failed to submit reply.'));
 }
 
 function markAllAsRead() {

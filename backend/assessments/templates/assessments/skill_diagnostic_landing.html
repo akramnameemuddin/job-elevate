@@ -1,26 +1,21 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
 
-
 {% block title %}Skill Diagnostic | JobElevate{% endblock %}
 
 {% block content %}
-<!-- Breadcrumb Navigation -->
+<!-- Breadcrumb -->
 <div class="breadcrumb">
     <div class="breadcrumb-item">
         <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
         <i class='bx bx-chevron-right'></i>
     </div>
-    <div class="breadcrumb-item">
-        <span>Skill Diagnostic</span>
-    </div>
+    <div class="breadcrumb-item"><span>Skill Diagnostic</span></div>
 </div>
 
 <!-- Page Header -->
 <div class="page-content-header">
-    <h1 class="page-title">
-        <i class='bx bx-brain'></i> Skill Diagnostic Dashboard
-    </h1>
+    <h1 class="page-title"><i class='bx bx-brain'></i> Skill Diagnostic Dashboard</h1>
     <p class="page-subtitle">Assess your skills, discover gaps, and boost your job readiness</p>
 </div>
 
@@ -29,719 +24,330 @@
 <div class="notification-container">
     {% for message in messages %}
     <div class="notification {{ message.tags }}">
-        <i class='bx
-            {% if message.tags == "success" %}bx-check-circle
-            {% elif message.tags == "error" %}bx-error
-            {% elif message.tags == "warning" %}bx-error-circle
-            {% else %}bx-info-circle{% endif %}'>
-        </i>
+        <i class='bx {% if message.tags == "success" %}bx-check-circle{% elif message.tags == "error" %}bx-error{% elif message.tags == "warning" %}bx-error-circle{% else %}bx-info-circle{% endif %}'></i>
         <span>{{ message }}</span>
-        <button class="notification-close"><i class='bx bx-x'></i></button>
+        <button class="notification-close" onclick="this.parentElement.remove()"><i class='bx bx-x'></i></button>
     </div>
     {% endfor %}
 </div>
 {% endif %}
 
-<!-- Overall Statistics -->
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-icon blue">
-            <i class='bx bx-check-double'></i>
-        </div>
-        <div class="stat-content">
-            <h3>{{ verified_count }}</h3>
-            <p>Verified Skills</p>
-        </div>
+<!-- ═══ Stats Row ═══ -->
+<div class="sd-stats">
+    <div class="sd-stat">
+        <div class="sd-stat-icon blue"><i class='bx bx-check-double'></i></div>
+        <div class="sd-stat-body"><h3>{{ verified_count }}</h3><p>Verified Skills</p></div>
     </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon green">
-            <i class='bx bx-trending-up'></i>
-        </div>
-        <div class="stat-content">
-            <h3>{{ completion_percentage }}%</h3>
-            <p>Completion Rate</p>
-        </div>
+    <div class="sd-stat">
+        <div class="sd-stat-icon green"><i class='bx bx-trending-up'></i></div>
+        <div class="sd-stat-body"><h3>{{ completion_percentage }}%</h3><p>Completion Rate</p></div>
     </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon purple">
-            <i class='bx bx-star'></i>
-        </div>
-        <div class="stat-content">
-            <h3>{{ avg_proficiency }}/10</h3>
-            <p>Avg Proficiency</p>
-        </div>
+    <div class="sd-stat">
+        <div class="sd-stat-icon purple"><i class='bx bx-star'></i></div>
+        <div class="sd-stat-body"><h3>{{ avg_proficiency }}/10</h3><p>Avg Proficiency</p></div>
     </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon orange">
-            <i class='bx bx-briefcase'></i>
-        </div>
-        <div class="stat-content">
-            <h3>{{ total_skills_available }}</h3>
-            <p>Total Skills Available</p>
-        </div>
+    <div class="sd-stat">
+        <div class="sd-stat-icon orange"><i class='bx bx-briefcase'></i></div>
+        <div class="sd-stat-body"><h3>{{ total_skills_available }}</h3><p>Total Skills Available</p></div>
     </div>
 </div>
 
-<!-- Main Content Grid -->
-<div class="diagnostic-content-grid">
-    <!-- Left Column: Verified Skills & Progress -->
-    <div class="diagnostic-main-column">
-        <!-- Verified Skills Section -->
-        <div class="card">
-            <div class="card-header">
-                <h2><i class='bx bx-badge-check'></i> Your Verified Skills</h2>
-                <a href="{% url 'assessments:skill_intake_dashboard' %}" class="btn btn-primary btn-sm">
-                    <i class='bx bx-plus'></i> Add More Skills
+<!-- ═══ Main Two-Column Layout ═══ -->
+<div class="sd-two-col">
+
+    <!-- ── LEFT: Your Skills ────────────────────────── -->
+    <div class="sd-card">
+        <div class="sd-card-head">
+            <h2><i class='bx bx-badge-check'></i> Your Skills</h2>
+            <span class="sd-count-badge">{{ all_user_skills_count }}</span>
+        </div>
+        <div class="sd-card-body">
+            {% if all_user_skills %}
+            <div class="sd-skill-grid">
+                {% for s in all_user_skills %}
+                <div class="sd-skill-tile">
+                    <!-- Donut Chart -->
+                    <div class="sd-donut {% if s.is_verified %}verified{% else %}claimed{% endif %}">
+                        <svg viewBox="0 0 36 36">
+                            <circle class="sd-donut-bg" cx="18" cy="18" r="15.9"></circle>
+                            <circle class="sd-donut-ring" cx="18" cy="18" r="15.9"
+                                    stroke-dasharray="{% widthratio s.level 10 100 %}, 100"
+                                    stroke-dashoffset="25"></circle>
+                        </svg>
+                        <span class="sd-donut-val">{{ s.level|floatformat:1 }}</span>
+                    </div>
+                    <!-- Info -->
+                    <div class="sd-tile-info">
+                        <strong>{{ s.name }}</strong>
+                        <span class="sd-tile-meta {% if s.is_verified %}verified{% else %}claimed{% endif %}">
+                            <i class='bx {% if s.is_verified %}bx-check-circle{% else %}bx-time{% endif %}'></i>
+                            {% if s.is_verified %}Verified{% else %}Claimed{% endif %} · {{ s.level|floatformat:1 }}/10
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="sd-empty">
+                <i class='bx bx-ghost'></i>
+                <h3>No Skills Yet</h3>
+                <p>Browse available skills and take assessments to build your verified profile.</p>
+                <a href="{% url 'assessments:browse_skills' %}" class="btn btn-primary">Browse Skills</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ── RIGHT: Skill Gaps to Close ───────────────── -->
+    <div class="sd-card">
+        <div class="sd-card-head">
+            <h2><i class='bx bx-target-lock'></i> Skill Gaps to Close</h2>
+            <span class="sd-count-badge danger">{{ total_gaps_count }}</span>
+        </div>
+        <div class="sd-card-body">
+            {% if displayed_gaps %}
+            <div class="sd-gap-list">
+                {% for g in displayed_gaps %}
+                <div class="sd-gap-row">
+                    <span class="sd-gap-dot {{ g.severity }}"></span>
+                    <div class="sd-gap-info">
+                        <strong>{{ g.skill_name }}</strong>
+                        <span class="sd-gap-meta">
+                            {{ g.current_level }} &rarr; {{ g.avg_level_required }}
+                            &middot; Gap: {{ g.gap_value }}
+                            &middot; <em class="{{ g.severity }}">{{ g.severity|title }}</em>
+                        </span>
+                    </div>
+                    <div class="sd-gap-bar-wrap">
+                        <div class="sd-gap-bar">
+                            {% widthratio g.current_level g.avg_level_required 100 as fill_pct %}
+                            <div class="sd-gap-fill" style="width:{{ fill_pct }}%"></div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% if total_gaps_count > 6 %}
+            <div class="sd-gap-footer">
+                <a href="{% url 'assessments:browse_skills' %}" class="btn btn-primary btn-sm">
+                    View All {{ total_gaps_count }} Gaps &rarr;
                 </a>
             </div>
-            <div class="card-body">
-                {% if verified_skills %}
-                    <div class="skills-list">
-                        {% for profile in verified_skills %}
-                        <div class="skill-item verified">
-                            <div class="skill-info">
-                                <div class="skill-name">
-                                    <i class='bx bx-check-circle'></i>
-                                    <strong>{{ profile.skill.name }}</strong>
-                                    <span class="skill-category">{{ profile.skill.category.name }}</span>
-                                </div>
-                                <div class="skill-level">
-                                    <div class="proficiency-bar">
-                                        <div class="proficiency-fill" style="width: {% widthratio profile.verified_level 10 100 %}%"></div>
-                                    </div>
-                                    <span class="proficiency-value">{{ profile.verified_level }}/10</span>
-                                </div>
-                            </div>
-                            <div class="skill-actions">
-                                <span class="skill-badge {{ profile.get_proficiency_display|lower }}">
-                                    {{ profile.get_proficiency_display }}
-                                </span>
-                                <small class="text-muted">
-                                    {% if profile.last_assessed_date %}
-                                        Verified {{ profile.last_assessed_date|timesince }} ago
-                                    {% endif %}
-                                </small>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div class="empty-state">
-                        <i class='bx bx-ghost'></i>
-                        <h3>No Verified Skills Yet</h3>
-                        <p>Start by taking assessments to verify your skills!</p>
-                        <a href="{% url 'assessments:skill_intake_dashboard' %}" class="btn btn-primary">
-                            Browse Skills
-                        </a>
-                    </div>
-                {% endif %}
+            {% endif %}
+            {% else %}
+            <div class="sd-empty-sm">
+                <i class='bx bx-check-circle' style="color:var(--success-color)"></i>
+                <p>No skill gaps! You meet or exceed all job requirements.</p>
             </div>
+            {% endif %}
         </div>
+    </div>
+</div>
 
-        <!-- Skill Categories Progress -->
-        <div class="card">
-            <div class="card-header">
-                <h2><i class='bx bx-category'></i> Progress by Category</h2>
-            </div>
-            <div class="card-body">
-                <div class="categories-progress">
-                    {% for category in categories %}
-                    <div class="category-progress-item">
-                        <div class="category-header">
-                            <span class="category-name">{{ category.name }}</span>
-                            <span class="category-count">{{ category.user_verified }}/{{ category.total_skills }}</span>
-                        </div>
-                        <div class="progress-bar">
-                            {% if category.total_skills > 0 %}
-                                {% widthratio category.user_verified category.total_skills 100 as progress_pct %}
-                                <div class="progress-fill" style="width: {{ progress_pct }}%"></div>
-                            {% else %}
-                                <div class="progress-fill" style="width: 0%"></div>
-                            {% endif %}
-                        </div>
+<!-- ═══ Bottom Row: Progress + Recent + Actions ═══ -->
+<div class="sd-bottom-row">
+
+    <!-- Category Progress -->
+    <div class="sd-card">
+        <div class="sd-card-head">
+            <h2><i class='bx bx-category'></i> Progress by Category</h2>
+        </div>
+        <div class="sd-card-body">
+            {% if categories %}
+            <div class="sd-cat-list">
+                {% for cat in categories %}
+                <div class="sd-cat-item">
+                    <div class="sd-cat-head-row">
+                        <span class="sd-cat-name">{{ cat.name }}</span>
+                        <span class="sd-cat-count">{{ cat.user_verified }}/{{ cat.total_skills }}</span>
                     </div>
-                    {% endfor %}
+                    <div class="sd-cat-bar"><div class="sd-cat-fill" style="width:{{ cat.percentage }}%"></div></div>
                 </div>
+                {% endfor %}
             </div>
+            {% else %}
+            <div class="sd-empty-sm"><p>No categories yet</p></div>
+            {% endif %}
         </div>
     </div>
 
-    <!-- Right Column: Action Items -->
-    <div class="diagnostic-sidebar-column">
-        <!-- Skill Gaps (High Priority) -->
-        <div class="card highlight-card">
-            <div class="card-header">
-                <h2><i class='bx bx-error-circle'></i> Top Skill Gaps</h2>
-                <span class="badge badge-warning">High Demand</span>
-            </div>
-            <div class="card-body">
-                {% if skill_gaps %}
-                    <div class="skill-gaps-list">
-                        {% for gap in skill_gaps %}
-                        <div class="gap-item">
-                            <div class="gap-info">
-                                <strong>{{ gap.skill_name }}</strong>
-                                <small class="text-muted">{{ gap.category }}</small>
-                            </div>
-                            <div class="gap-demand">
-                                <span class="demand-badge">{{ gap.jobs_requiring }} jobs</span>
-                                <span class="level-required">Avg: {{ gap.avg_level_required }}/10</span>
-                            </div>
-                            <a href="{% url 'assessments:skill_intake_dashboard' %}" class="btn btn-sm btn-outline-primary">
-                                Learn & Assess
-                            </a>
-                        </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div class="empty-state-sm">
-                        <i class='bx bx-check-circle'></i>
-                        <p>Great! You're covering the top in-demand skills.</p>
-                    </div>
-                {% endif %}
-            </div>
+    <!-- Recent Activity -->
+    <div class="sd-card">
+        <div class="sd-card-head">
+            <h2><i class='bx bx-time'></i> Recent Activity</h2>
         </div>
-
-        <!-- Recent Assessment Activity -->
-        <div class="card">
-            <div class="card-header">
-                <h2><i class='bx bx-time'></i> Recent Activity</h2>
-            </div>
-            <div class="card-body">
-                {% if recent_attempts %}
-                    <div class="activity-list">
-                        {% for attempt in recent_attempts %}
-                        <div class="activity-item">
-                            <div class="activity-icon {% if attempt.passed %}success{% else %}warning{% endif %}">
-                                <i class='bx {% if attempt.passed %}bx-check{% else %}bx-x{% endif %}'></i>
-                            </div>
-                            <div class="activity-details">
-                                <strong>{{ attempt.assessment.skill.name }}</strong>
-                                <small>{{ attempt.completed_at|timesince }} ago</small>
-                            </div>
-                            <div class="activity-score">
-                                <span class="score-badge {% if attempt.passed %}success{% else %}warning{% endif %}">
-                                    {{ attempt.percentage|floatformat:0 }}%
-                                </span>
-                            </div>
-                        </div>
-                        {% endfor %}
+        <div class="sd-card-body">
+            {% if recent_attempts %}
+            <div class="sd-act-list">
+                {% for a in recent_attempts %}
+                <div class="sd-act-item">
+                    <div class="sd-act-icon {% if a.passed %}pass{% else %}fail{% endif %}">
+                        <i class='bx {% if a.passed %}bx-check{% else %}bx-x{% endif %}'></i>
                     </div>
-                {% else %}
-                    <div class="empty-state-sm">
-                        <i class='bx bx-history'></i>
-                        <p>No recent assessments</p>
+                    <div class="sd-act-info">
+                        <strong>{{ a.skill.name }}</strong>
+                        <small>{{ a.completed_at|timesince }} ago</small>
                     </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="card">
-            <div class="card-header">
-                <h2><i class='bx bx-bolt'></i> Quick Actions</h2>
-            </div>
-            <div class="card-body">
-                <div class="quick-actions">
-                    <a href="{% url 'assessments:skill_intake_dashboard' %}" class="action-btn">
-                        <i class='bx bx-search'></i>
-                        <span>Browse All Skills</span>
-                    </a>
-                    <a href="{% url 'assessments:skill_intake_dashboard' %}" class="action-btn">
-                        <i class='bx bx-list-ul'></i>
-                        <span>View All Assessments</span>
-                    </a>
-                    <a href="{% url 'jobs:job_listings' %}" class="action-btn">
-                        <i class='bx bx-briefcase'></i>
-                        <span>Find Jobs</span>
-                    </a>
+                    <span class="sd-act-pill {% if a.passed %}pass{% else %}fail{% endif %}">{{ a.percentage|floatformat:0 }}%</span>
                 </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="sd-empty-sm"><i class='bx bx-history'></i><p>No recent assessments</p></div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="sd-card">
+        <div class="sd-card-head">
+            <h2><i class='bx bx-bolt'></i> Quick Actions</h2>
+        </div>
+        <div class="sd-card-body">
+            <div class="sd-qa">
+                <a href="{% url 'assessments:browse_skills' %}" class="sd-qa-btn"><i class='bx bx-search'></i> Browse Skills</a>
+                <a href="{% url 'assessments:skill_profile' %}" class="sd-qa-btn"><i class='bx bx-user-check'></i> Skill Profile</a>
+                <a href="{% url 'jobs:job_listings' %}" class="sd-qa-btn"><i class='bx bx-briefcase'></i> Find Jobs</a>
+                <a href="{% url 'learning:learning_dashboard' %}" class="sd-qa-btn"><i class='bx bx-book-open'></i> Learning Hub</a>
             </div>
         </div>
     </div>
 </div>
 
+<!-- ═══════════════════════════════════════════════════════════ -->
 <style>
-/* Diagnostic Layout */
-.diagnostic-content-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 2rem;
-    margin-top: 2rem;
-}
-
-.diagnostic-main-column {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-.diagnostic-sidebar-column {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-/* Stats Grid */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-.stat-card {
-    background: #fff;
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.8rem;
-}
-
-.stat-icon.blue { background: #e3f2fd; color: #1976d2; }
-.stat-icon.green { background: #e8f5e9; color: #388e3c; }
-.stat-icon.purple { background: #f3e5f5; color: #7b1fa2; }
-.stat-icon.orange { background: #fff3e0; color: #f57c00; }
-
-.stat-content h3 {
-    font-size: 2rem;
-    font-weight: 700;
-    margin: 0;
-    color: #2c3e50;
-}
-
-.stat-content p {
-    margin: 0;
-    color: #7f8c8d;
-    font-size: 0.9rem;
-}
-
-/* Card Styles */
-.card {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-.card-header {
-    padding: 1.5rem;
-    border-bottom: 1px solid #ecf0f1;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.card-header h2 {
-    font-size: 1.3rem;
-    font-weight: 600;
-    color: #2c3e50;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin: 0;
-}
-
-.card-body {
-    padding: 1.5rem;
-}
-
-.highlight-card {
-    border: 2px solid #3498db;
-}
-
-/* Skills List */
-.skills-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.skill-item {
-    padding: 1rem;
-    background: #f8f9fa;
-    border-radius: 8px;
-    border-left: 4px solid #3498db;
-}
-
-.skill-item.verified {
-    border-left-color: #27ae60;
-}
-
-.skill-info {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-}
-
-.skill-name {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.skill-name i {
-    color: #27ae60;
-    font-size: 1.2rem;
-}
-
-.skill-name strong {
-    color: #2c3e50;
-}
-
-.skill-category {
-    background: #ecf0f1;
-    padding: 0.2rem 0.6rem;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    color: #7f8c8d;
-}
-
-.skill-level {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.proficiency-bar {
-    flex: 1;
-    height: 8px;
-    background: #ecf0f1;
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.proficiency-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #3498db, #27ae60);
-    border-radius: 4px;
-    transition: width 0.3s ease;
-}
-
-.proficiency-value {
-    font-weight: 600;
-    color: #2c3e50;
-    min-width: 45px;
-}
-
-.skill-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.skill-badge {
-    padding: 0.3rem 0.8rem;
-    border-radius: 16px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-}
-
-.skill-badge.expert {
-    background: #8e44ad;
-    color: #fff;
-}
-
-.skill-badge.advanced {
-    background: #27ae60;
-    color: #fff;
-}
-
-.skill-badge.intermediate {
-    background: #3498db;
-    color: #fff;
-}
-
-.skill-badge.basic {
-    background: #f39c12;
-    color: #fff;
-}
-
-.skill-badge.beginner {
-    background: #95a5a6;
-    color: #fff;
-}
-
-/* Category Progress */
-.categories-progress {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.category-progress-item {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.category-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.category-name {
-    font-weight: 600;
-    color: #2c3e50;
-}
-
-.category-count {
-    font-size: 0.9rem;
-    color: #7f8c8d;
-}
-
-.progress-bar {
-    height: 10px;
-    background: #ecf0f1;
-    border-radius: 5px;
-    overflow: hidden;
-}
-
-.progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #3498db, #9b59b6);
-    border-radius: 5px;
-    transition: width 0.3s ease;
-}
-
-/* Skill Gaps */
-.skill-gaps-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.gap-item {
-    padding: 1rem;
-    background: #fff9e6;
-    border-radius: 8px;
-    border-left: 4px solid #f39c12;
-}
-
-.gap-info strong {
-    color: #2c3e50;
-    display: block;
-}
-
-.gap-demand {
-    display: flex;
-    gap: 0.5rem;
-    margin: 0.5rem 0;
-}
-
-.demand-badge {
-    background: #3498db;
-    color: #fff;
-    padding: 0.2rem 0.6rem;
-    border-radius: 12px;
-    font-size: 0.75rem;
-}
-
-.level-required {
-    background: #e74c3c;
-    color: #fff;
-    padding: 0.2rem 0.6rem;
-    border-radius: 12px;
-    font-size: 0.75rem;
-}
-
-/* Activity List */
-.activity-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-}
-
-.activity-item {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-}
-
-.activity-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.activity-icon.success {
-    background: #e8f5e9;
-    color: #27ae60;
-}
-
-.activity-icon.warning {
-    background: #fff3e0;
-    color: #f39c12;
-}
-
-.activity-details {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.activity-details strong {
-    color: #2c3e50;
-    font-size: 0.9rem;
-}
-
-.activity-details small {
-    color: #7f8c8d;
-    font-size: 0.75rem;
-}
-
-.score-badge {
-    padding: 0.3rem 0.8rem;
-    border-radius: 16px;
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-.score-badge.success {
-    background: #e8f5e9;
-    color: #27ae60;
-}
-
-.score-badge.warning {
-    background: #fff3e0;
-    color: #f39c12;
-}
-
-/* Quick Actions */
-.quick-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-}
-
-.action-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    padding: 1rem;
-    background: #f8f9fa;
-    border-radius: 8px;
-    text-decoration: none;
-    color: #2c3e50;
-    transition: all 0.3s ease;
-}
-
-.action-btn:hover {
-    background: #3498db;
-    color: #fff;
-    transform: translateX(5px);
-}
-
-.action-btn i {
-    font-size: 1.5rem;
-}
-
-/* Empty States */
-.empty-state {
-    text-align: center;
-    padding: 3rem 1rem;
-}
-
-.empty-state i {
-    font-size: 4rem;
-    color: #bdc3c7;
-    margin-bottom: 1rem;
-}
-
-.empty-state h3 {
-    color: #7f8c8d;
-    margin-bottom: 0.5rem;
-}
-
-.empty-state p {
-    color: #95a5a6;
-    margin-bottom: 1.5rem;
-}
-
-.empty-state-sm {
-    text-align: center;
-    padding: 1.5rem;
-}
-
-.empty-state-sm i {
-    font-size: 2rem;
-    color: #bdc3c7;
-    margin-bottom: 0.5rem;
-}
-
-.empty-state-sm p {
-    color: #95a5a6;
-    margin: 0;
-}
-
-/* Badge */
-.badge {
-    padding: 0.3rem 0.8rem;
-    border-radius: 16px;
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
-.badge-warning {
-    background: #fff3e0;
-    color: #f57c00;
-}
-
-/* Responsive */
-@media (max-width: 1024px) {
-    .diagnostic-content-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 768px) {
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .skill-level {
-        flex-direction: column;
-        align-items: flex-start;
-    }
+/* ── Stats ──────────────────────────────── */
+.sd-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.25rem;margin-bottom:1.75rem}
+.sd-stat{display:flex;align-items:center;gap:1rem;padding:1.2rem;background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-lg);transition:var(--transition)}
+.sd-stat:hover{box-shadow:var(--shadow)}
+.sd-stat-icon{width:54px;height:54px;border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0}
+.sd-stat-icon.blue{background:var(--info-light);color:var(--info-color)}
+.sd-stat-icon.green{background:var(--success-light);color:var(--success-color)}
+.sd-stat-icon.purple{background:var(--secondary-light,rgba(139,92,246,.12));color:var(--secondary-color,#8b5cf6)}
+.sd-stat-icon.orange{background:var(--warning-light);color:var(--warning-color)}
+.sd-stat-body h3{font-size:1.6rem;font-weight:700;margin:0;color:var(--heading-color)}
+.sd-stat-body p{margin:0;color:var(--text-muted);font-size:.82rem}
+
+/* ── Two-column ─────────────────────────── */
+.sd-two-col{display:grid;grid-template-columns:1.6fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
+
+/* ── Card shell ─────────────────────────── */
+.sd-card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-lg);overflow:hidden}
+.sd-card-head{display:flex;justify-content:space-between;align-items:center;padding:1.15rem 1.4rem;border-bottom:1px solid var(--border-color)}
+.sd-card-head h2{font-size:1.1rem;font-weight:600;margin:0;display:flex;align-items:center;gap:.45rem;color:var(--heading-color)}
+.sd-card-body{padding:1.4rem}
+
+.sd-count-badge{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 .55rem;border-radius:var(--radius-full);font-size:.82rem;font-weight:700;background:var(--primary-color);color:var(--text-inverse)}
+.sd-count-badge.danger{background:var(--danger-color)}
+
+/* ── Skill Tile Grid (donut cards) ──────── */
+.sd-skill-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+
+.sd-skill-tile{display:flex;align-items:center;gap:.85rem;padding:.85rem 1rem;background:var(--hover-bg);border:1px solid var(--border-color);border-radius:var(--radius);transition:var(--transition)}
+.sd-skill-tile:hover{box-shadow:var(--shadow-sm);border-color:var(--primary-color)}
+
+/* Donut */
+.sd-donut{position:relative;width:52px;height:52px;flex-shrink:0}
+.sd-donut svg{width:100%;height:100%;transform:rotate(-90deg)}
+.sd-donut-bg{fill:none;stroke:var(--border-color);stroke-width:3}
+.sd-donut-ring{fill:none;stroke-width:3;stroke-linecap:round;transition:stroke-dasharray .6s ease}
+.sd-donut.verified .sd-donut-ring{stroke:var(--success-color)}
+.sd-donut.claimed  .sd-donut-ring{stroke:var(--warning-color)}
+.sd-donut-val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:var(--heading-color)}
+
+.sd-tile-info{display:flex;flex-direction:column;min-width:0}
+.sd-tile-info strong{font-size:.88rem;color:var(--heading-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sd-tile-meta{font-size:.72rem;display:flex;align-items:center;gap:.25rem}
+.sd-tile-meta.verified{color:var(--success-color)}
+.sd-tile-meta.claimed{color:var(--warning-color)}
+.sd-tile-meta i{font-size:.82rem}
+
+/* ── Gap List ───────────────────────────── */
+.sd-gap-list{display:flex;flex-direction:column;gap:.15rem}
+
+.sd-gap-row{display:flex;align-items:center;gap:.85rem;padding:.85rem 0;border-bottom:1px solid var(--border-light,var(--border-color))}
+.sd-gap-row:last-child{border-bottom:none}
+
+.sd-gap-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.sd-gap-dot.critical{background:var(--danger-color)}
+.sd-gap-dot.high{background:var(--warning-color)}
+.sd-gap-dot.moderate{background:var(--info-color)}
+
+.sd-gap-info{flex:1;min-width:0}
+.sd-gap-info strong{font-size:.9rem;color:var(--heading-color);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sd-gap-meta{font-size:.75rem;color:var(--text-muted)}
+.sd-gap-meta em{font-style:normal;font-weight:600}
+.sd-gap-meta em.critical{color:var(--danger-color)}
+.sd-gap-meta em.high{color:var(--warning-color)}
+.sd-gap-meta em.moderate{color:var(--info-color)}
+
+.sd-gap-bar-wrap{width:90px;flex-shrink:0}
+.sd-gap-bar{height:6px;background:var(--border-color);border-radius:3px;overflow:hidden}
+.sd-gap-fill{height:100%;background:var(--primary-color);border-radius:3px;transition:width .4s ease}
+
+.sd-gap-footer{text-align:center;padding-top:1.25rem}
+
+/* ── Bottom 3-col row ───────────────────── */
+.sd-bottom-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-bottom:1.5rem}
+
+/* Category progress bars */
+.sd-cat-list{display:flex;flex-direction:column;gap:.75rem}
+.sd-cat-item{display:flex;flex-direction:column;gap:.3rem}
+.sd-cat-head-row{display:flex;justify-content:space-between}
+.sd-cat-name{font-weight:600;font-size:.88rem;color:var(--heading-color)}
+.sd-cat-count{font-size:.82rem;color:var(--text-muted)}
+.sd-cat-bar{height:8px;background:var(--border-color);border-radius:4px;overflow:hidden}
+.sd-cat-fill{height:100%;background:linear-gradient(90deg,var(--primary-color),var(--secondary-color,#8b5cf6));border-radius:4px;transition:width .4s ease}
+
+/* Activity items */
+.sd-act-list{display:flex;flex-direction:column;gap:.5rem}
+.sd-act-item{display:flex;align-items:center;gap:.65rem}
+.sd-act-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1rem}
+.sd-act-icon.pass{background:var(--success-light);color:var(--success-color)}
+.sd-act-icon.fail{background:var(--danger-light);color:var(--danger-color)}
+.sd-act-info{flex:1;display:flex;flex-direction:column}
+.sd-act-info strong{font-size:.85rem;color:var(--heading-color)}
+.sd-act-info small{font-size:.72rem;color:var(--text-muted)}
+.sd-act-pill{padding:.15rem .55rem;border-radius:var(--radius-full);font-size:.75rem;font-weight:600}
+.sd-act-pill.pass{background:var(--success-light);color:var(--success-color)}
+.sd-act-pill.fail{background:var(--danger-light);color:var(--danger-color)}
+
+/* Quick actions */
+.sd-qa{display:flex;flex-direction:column;gap:.5rem}
+.sd-qa-btn{display:flex;align-items:center;gap:.65rem;padding:.75rem .95rem;background:var(--hover-bg);border-radius:var(--radius);text-decoration:none;color:var(--heading-color);font-size:.88rem;font-weight:500;transition:var(--transition)}
+.sd-qa-btn:hover{background:var(--primary-color);color:var(--text-inverse);transform:translateX(3px)}
+.sd-qa-btn i{font-size:1.2rem}
+
+/* Empty states */
+.sd-empty{text-align:center;padding:3rem 1rem}
+.sd-empty i{font-size:3.5rem;color:var(--text-muted);margin-bottom:.75rem}
+.sd-empty h3{color:var(--heading-color);margin-bottom:.4rem}
+.sd-empty p{color:var(--text-muted);margin-bottom:1.25rem}
+.sd-empty-sm{text-align:center;padding:2rem 1rem}
+.sd-empty-sm i{font-size:2rem;color:var(--text-muted);margin-bottom:.4rem}
+.sd-empty-sm p{color:var(--text-muted);margin:0}
+
+/* ── Responsive ─────────────────────────── */
+@media(max-width:1100px){
+    .sd-two-col{grid-template-columns:1fr}
+    .sd-bottom-row{grid-template-columns:1fr}
+}
+@media(max-width:700px){
+    .sd-stats{grid-template-columns:repeat(2,1fr)}
+    .sd-skill-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:480px){
+    .sd-skill-grid{grid-template-columns:1fr}
 }
 </style>
 
 <script>
-// Close notifications
-document.querySelectorAll('.notification-close').forEach(btn => {
-    btn.addEventListener('click', function() {
-        this.parentElement.remove();
+// Auto-close notifications after 5s
+setTimeout(()=>{
+    document.querySelectorAll('.notification').forEach(n=>{
+        n.style.transition='opacity .5s ease';n.style.opacity='0';
+        setTimeout(()=>n.remove(),500);
     });
-});
-
-// Auto-close notifications after 5 seconds
-setTimeout(() => {
-    document.querySelectorAll('.notification').forEach(notification => {
-        notification.style.transition = 'opacity 0.5s ease';
-        notification.style.opacity = '0';
-        setTimeout(() => notification.remove(), 500);
-    });
-}, 5000);
+},5000);
 </script>
-
 {% endblock %}

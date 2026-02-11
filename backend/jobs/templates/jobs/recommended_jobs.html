@@ -1,1691 +1,367 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
+
+{% block title %}Recommended Jobs{% endblock %}
+
 {% block content %}
-{% csrf_token %}
-<!-- Breadcrumb Navigation -->
-<div class="breadcrumb">
-  <div class="breadcrumb-item">
-    <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
-    <i class='bx bx-chevron-right'></i>
-  </div>
-  <div class="breadcrumb-item">
-    <a href="{% url 'jobs:job_listings' %}" class="breadcrumb-link">Job Matches</a>
-    <i class='bx bx-chevron-right'></i>
-  </div>
-  <div class="breadcrumb-item">
-    <span>Recommendations</span>
-  </div>
-</div>
-
-<!-- Page Title -->
-<div class="page-content-header">
-  <h1 class="page-title">Job Recommendations</h1>
-</div>
-
-<!-- Page Actions -->
-<div class="page-actions">
-  <a href="{% url 'jobs:update_job_preferences' %}" class="btn btn-outline-primary">
-    <i class='bx bx-cog'></i>
-    Update Preferences
-  </a>
-  <a href="{% url 'jobs:job_analytics' %}" class="btn btn-outline-primary">
-    <i class='bx bx-line-chart'></i>
-    Market Insights
-  </a>
-</div>
-
-<!-- Messages/Notifications -->
-{% if messages %}
-<div class="notifications">
-  {% for message in messages %}
-  <div class="notification {% if message.tags %}notification-{{ message.tags }}{% endif %}">
-    {% if message.tags == 'success' %}
-    <i class='bx bx-check-circle'></i>
-    {% elif message.tags == 'error' %}
-    <i class='bx bx-error'></i>
-    {% elif message.tags == 'warning' %}
-    <i class='bx bx-error-circle'></i>
-    {% else %}
-    <i class='bx bx-info-circle'></i>
-    {% endif %}
-    <p>{{ message }}</p>
-    <button class="notification-close"><i class='bx bx-x'></i></button>
-  </div>
-  {% endfor %}
-</div>
-{% endif %}
-
-<!-- Quick Stats -->
-<div class="stats-grid">
-  <div class="stat-card">
-    <div class="stat-icon blue">
-      <i class='bx bx-briefcase'></i>
-    </div>
-    <div class="stat-info">
-      <div class="stat-label">Total Recommendations</div>
-      <div class="stat-value">{{ recommended_jobs|length }}</div>
-      <div class="stat-change">
-        <i class='bx bx-up-arrow-alt'></i> Updated today
-      </div>
-    </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon purple">
-      <i class='bx bx-star'></i>
-    </div>
-    <div class="stat-info">
-      <div class="stat-label">Best Match</div>
-      <div class="stat-value">
-        {% if recommended_jobs|length > 0 %}
-          {{ recommended_jobs.0.score|floatformat:2 }}%
-        {% else %}
-          0%
-        {% endif %}
-      </div>
-      <div class="stat-change">
-        <i class='bx bx-target-lock'></i> Top recommendation
-      </div>
-    </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon green">
-      <i class='bx bx-bookmark'></i>
-    </div>
-    <div class="stat-info">
-      <div class="stat-label">Bookmarked</div>
-      <div class="stat-value">{{ bookmarked_job_ids|length }}</div>
-      <div class="stat-change">
-        <i class='bx bx-bookmark-heart'></i> Saved jobs
-      </div>
-    </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon amber">
-      <i class='bx bx-send'></i>
-    </div>
-    <div class="stat-info">
-      <div class="stat-label">Applied</div>
-      <div class="stat-value">{{ applied_job_ids|length }}</div>
-      <div class="stat-change">
-        <i class='bx bx-check-circle'></i> Applications sent
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Enhanced Filter and Sort Bar -->
-{% if recommended_jobs %}
-<div class="advanced-filter-bar">
-  <div class="filter-section">
-    <div class="filter-group">
-      <label for="recommendations-search" class="filter-label">
-        <i class='bx bx-search'></i>
-        Search Jobs
-      </label>
-      <div class="search-input-container">
-        <input type="text" id="recommendations-search" placeholder="Search by title, company, or skills..." autocomplete="off" class="search-input-field">
-        <button type="button" class="search-clear-btn" id="clear-search" style="display: none;">
-          <i class='bx bx-x'></i>
-        </button>
-      </div>
-    </div>
-    
-    <div class="filter-row">
-      <div class="filter-group">
-        <label for="match-score-filter" class="filter-label">
-          <i class='bx bx-target-lock'></i>
-          Match Score
-        </label>
-        <select id="match-score-filter" class="filter-select">
-          <option value="">All Match Scores</option>
-          <option value="high">High Match (80%+)</option>
-          <option value="medium">Medium Match (60-79%)</option>
-          <option value="low">Low Match (<60%)</option>
-        </select>
-      </div>
-      
-      <div class="filter-group">
-        <label for="job-type-filter" class="filter-label">
-          <i class='bx bx-briefcase'></i>
-          Job Type
-        </label>
-        <select id="job-type-filter" class="filter-select">
-          <option value="">All Job Types</option>
-          <option value="full-time">Full Time</option>
-          <option value="part-time">Part Time</option>
-          <option value="contract">Contract</option>
-          <option value="remote">Remote</option>
-          <option value="internship">Internship</option>
-        </select>
-      </div>
-      
-      <div class="filter-group">
-        <label for="sort-recommendations" class="filter-label">
-          <i class='bx bx-sort'></i>
-          Sort By
-        </label>
-        <select id="sort-recommendations" class="filter-select">
-          <option value="score">Match Score (High to Low)</option>
-          <option value="date">Date Posted (Newest First)</option>
-          <option value="company">Company (A-Z)</option>
-          <option value="title">Job Title (A-Z)</option>
-        </select>
-      </div>
-      
-      <div class="filter-actions">
-        <button type="button" id="clear-all-filters" class="btn-filter-clear">
-          <i class='bx bx-refresh'></i>
-          Clear All
-        </button>
-        <div class="view-toggle">
-          <button type="button" class="view-btn active" data-view="cards">
-            <i class='bx bx-grid-alt'></i>
-          </button>
-          <button type="button" class="view-btn" data-view="list">
-            <i class='bx bx-list-ul'></i>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-  
-  <div class="filter-summary" id="filter-summary" style="display: none;">
-    <span class="summary-text">Filters applied:</span>
-    <div class="active-filters" id="active-filters"></div>
-  </div>
-</div>
-{% endif %}
-
-<!-- Recommended Jobs Section - Card Layout -->
-<div class="content-section recommended-section">
-  <div class="section-header">
-    <div class="section-title-container">
-      <h2 class="section-title"><i class='bx bx-star'></i> Personalized Recommendations</h2>
-      <span class="section-subtitle">Jobs matching your profile and preferences</span>
-    </div>
-    <div class="results-info">
-      <span id="results-count">{{ recommended_jobs|length }} jobs found</span>
-    </div>
-  </div>
-  
-  {% if recommended_jobs %}
-  <!-- Card View -->
-  <div class="jobs-container cards-view active" id="recommendations-cards">
-    {% for rec in recommended_jobs %}
-    <div class="job-recommendation-card" 
-         data-job-id="{{ rec.job.id }}" 
-         data-score="{{ rec.score }}"
-         data-date="{{ rec.job.created_at|date:'Y-m-d' }}"
-         data-company="{{ rec.job.company|lower }}"
-         data-title="{{ rec.job.title|lower }}"
-         data-job-type="{{ rec.job.job_type|lower }}"
-         data-skills="{{ rec.job.skills|join:',' |lower }}">
-      
-      <!-- Card Header with Match Score -->
-      <div class="card-header">
-        <div class="match-score-indicator">
-          <div class="score-circle {% if rec.score > 80 %}high-match{% elif rec.score > 60 %}medium-match{% else %}low-match{% endif %}">
-            <span class="score-value">{{ rec.score|floatformat:2 }}%</span>
-            <span class="score-label">Match</span>
-          </div>
-        </div>
-        
-        <div class="job-badge-container">
-          {% if rec.job.id in applied_job_ids %}
-          <span class="status-badge applied">Applied</span>
-          {% endif %}
-          {% if rec.job.id in bookmarked_job_ids %}
-          <span class="status-badge bookmarked">Bookmarked</span>
-          {% endif %}
-        </div>
-      </div>
-      
-      <!-- Card Content -->
-      <div class="card-content">
-        <!-- Job Title and Company -->
-        <div class="job-main-info">
-          <h3 class="job-card-title">
-            <a href="{% url 'jobs:job_detail' job_id=rec.job.id %}" class="job-title-link">
-              {{ rec.job.title }}
-            </a>
-          </h3>
-          <p class="job-card-company">
-            <i class='bx bx-buildings'></i>
-            {{ rec.job.company }}
-          </p>
-        </div>
-        
-        <!-- Job Details Grid -->
-        <div class="job-details-grid">
-          <div class="detail-item">
-            <i class='bx bx-map'></i>
-            <span>{{ rec.job.location }}</span>
-          </div>
-          <div class="detail-item">
-            <i class='bx bx-time'></i>
-            <span>{{ rec.job.get_job_type_display }}</span>
-          </div>
-          {% if rec.job.salary %}
-          <div class="detail-item">
-            <i class='bx bx-dollar-circle'></i>
-            <span>{{ rec.job.salary }}</span>
-          </div>
-          {% endif %}
-          <div class="detail-item">
-            <i class='bx bx-calendar'></i>
-            <span>{{ rec.job.created_at|timesince }} ago</span>
-          </div>
-        </div>
-        
-        <!-- Skills Tags -->
-        {% if rec.job.skills %}
-        <div class="skills-tags">
-          {% for skill in rec.job.skills|slice:":5" %}
-          <span class="skill-tag">
-            {% if skill.name %}{{ skill.name }}{% else %}{{ skill }}{% endif %}
-          </span>
-          {% endfor %}
-          {% if rec.job.skills|length > 5 %}
-          <span class="skill-tag more-skills">+{{ rec.job.skills|length|add:"-5" }}</span>
-          {% endif %}
-        </div>
-        {% endif %}
-        
-        <!-- Recommendation Reason -->
-        <div class="recommendation-reason">
-          <div class="reason-icon">
-            <i class='bx bx-bulb'></i>
-          </div>
-          <p class="reason-text">{{ rec.reason }}</p>
-        </div>
-      </div>
-      
-      <!-- Card Actions -->
-      <div class="card-actions">
-        <div class="primary-actions">
-          {% if rec.job.id in applied_job_ids %}
-          <button class="btn btn-applied" disabled>
-            <i class='bx bx-check'></i>
-            Already Applied
-          </button>
-          {% else %}
-          <a href="{% url 'jobs:job_detail' job_id=rec.job.id %}#apply" class="btn btn-primary">
-            <i class='bx bx-send'></i>
-            Apply Now
-          </a>
-          {% endif %}
-          
-          <a href="{% url 'jobs:job_detail' job_id=rec.job.id %}" class="btn btn-outline">
-            <i class='bx bx-detail'></i>
-            View Details
-          </a>
-        </div>
-        
-        <div class="secondary-actions">
-          {% if rec.job.id in bookmarked_job_ids %}
-          <button class="btn-icon bookmark-btn active" data-job-id="{{ rec.job.id }}" title="Remove Bookmark">
-            <i class='bx bxs-bookmark'></i>
-          </button>
-          {% else %}
-          <button class="btn-icon bookmark-btn" data-job-id="{{ rec.job.id }}" title="Bookmark Job">
-            <i class='bx bx-bookmark'></i>
-          </button>
-          {% endif %}
-          
-          <button class="btn-icon share-btn" data-job-id="{{ rec.job.id }}" title="Share Job">
-            <i class='bx bx-share-alt'></i>
-          </button>
-        </div>
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-  
-  <!-- List View -->
-  <div class="jobs-container list-view" id="recommendations-list">
-    <div class="job-list-table-container">
-      <table class="job-list-table">
-        <thead>
-          <tr>
-            <th>Job Title</th>
-            <th>Company</th>
-            <th>Location</th>
-            <th>Type</th>
-            <th>Match</th>
-            <th>Posted</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for rec in recommended_jobs %}
-          <tr class="job-list-row" 
-              data-job-id="{{ rec.job.id }}" 
-              data-score="{{ rec.score }}"
-              data-date="{{ rec.job.created_at|date:'Y-m-d' }}"
-              data-company="{{ rec.job.company|lower }}"
-              data-title="{{ rec.job.title|lower }}"
-              data-job-type="{{ rec.job.job_type|lower }}"
-              data-skills="{{ rec.job.skills|join:',' |lower }}">
-            <td class="job-title-cell">
-              <div class="job-title-info">
-                <a href="{% url 'jobs:job_detail' job_id=rec.job.id %}" class="job-list-title">
-                  {{ rec.job.title }}
-                </a>
-                <div class="job-status-indicators">
-                  {% if rec.job.id in applied_job_ids %}
-                  <i class='bx bx-check-circle applied-indicator' title="Applied"></i>
-                  {% endif %}
-                  {% if rec.job.id in bookmarked_job_ids %}
-                  <i class='bx bxs-bookmark bookmark-indicator' title="Bookmarked"></i>
-                  {% endif %}
-                </div>
-              </div>
-            </td>
-            <td>{{ rec.job.company }}</td>
-            <td>{{ rec.job.location }}</td>
-            <td>
-              <span class="job-type-badge type-{{ rec.job.job_type|slugify }}">
-                {{ rec.job.get_job_type_display }}
-              </span>
-            </td>
-            <td>
-              <div class="match-score-mini {% if rec.score > 80 %}high{% elif rec.score > 60 %}medium{% else %}low{% endif %}">
-                {{ rec.score|floatformat:2 }}%
-              </div>
-            </td>
-            <td>{{ rec.job.created_at|timesince }} ago</td>
-            <td class="actions-cell">
-              <div class="table-actions">
-                <a href="{% url 'jobs:job_detail' job_id=rec.job.id %}" class="btn-icon" title="View Details">
-                  <i class='bx bx-detail'></i>
-                </a>
-                {% if rec.job.id in bookmarked_job_ids %}
-                <button class="btn-icon bookmark-btn active" data-job-id="{{ rec.job.id }}" title="Remove Bookmark">
-                  <i class='bx bxs-bookmark'></i>
-                </button>
-                {% else %}
-                <button class="btn-icon bookmark-btn" data-job-id="{{ rec.job.id }}" title="Bookmark Job">
-                  <i class='bx bx-bookmark'></i>
-                </button>
-                {% endif %}
-              </div>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-  {% else %}
-  <div class="empty-state">
-    <div class="empty-icon">
-      <i class='bx bx-search-alt'></i>
-    </div>
-    <h3>No Recommendations Yet</h3>
-    <p>We're working on finding the perfect jobs for you. Complete your profile and set your preferences to get personalized recommendations.</p>
-    <div class="empty-actions">
-      <a href="{% url 'dashboard:profile' %}" class="btn btn-primary">
-        <i class='bx bx-user'></i>
-        Complete Profile
-      </a>
-      <a href="{% url 'jobs:update_job_preferences' %}" class="btn btn-outline">
-        <i class='bx bx-cog'></i>
-        Set Preferences
-      </a>
-    </div>
-  </div>
-  {% endif %}
-</div>
-
-<!-- Enhanced CSS -->
 <style>
-/* ...existing code from job_listings.html CSS... */
-
-/* Enhanced Filter Bar */
-.advanced-filter-bar {
-  background: var(--card-bg);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow);
-  margin-bottom: 2rem;
-  overflow: hidden;
-}
-
-.filter-section {
-  padding: 1.5rem;
-}
-
-.filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.filter-label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-color);
-  margin: 0;
-}
-
-.search-input-container {
-  position: relative;
-  width: 100%;
-}
-
-.search-input-field {
-  width: 100%;
-  padding: 0.875rem 3rem 0.875rem 1rem;
-  border: 2px solid var(--border-color);
-  border-radius: var(--radius-md);
-  background: var(--card-bg);
-  color: var(--text-color);
-  font-size: 0.95rem;
-  transition: all 0.3s ease;
-}
-
-.search-input-field:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
-}
-
-.search-clear-btn {
-  position: absolute;
-  right: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  background: var(--hover-bg);
-  border: none;
-  border-radius: 50%;
-  width: 2rem;
-  height: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.search-clear-btn:hover {
-  background: var(--danger-color);
-  color: white;
-}
-
-.filter-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-top: 1.5rem;
-  align-items: end;
-}
-
-.filter-select {
-  padding: 0.875rem 1rem;
-  border: 2px solid var(--border-color);
-  border-radius: var(--radius-md);
-  background: var(--card-bg);
-  color: var(--text-color);
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
-  background-position: right 0.75rem center;
-  background-repeat: no-repeat;
-  background-size: 1rem;
-  padding-right: 3rem;
-}
-
-.filter-select:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
-}
-
-.filter-actions {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.btn-filter-clear {
-  padding: 0.875rem 1.25rem;
-  background: var(--hover-bg);
-  border: 2px solid var(--border-color);
-  border-radius: var(--radius-md);
-  color: var(--text-color);
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.btn-filter-clear:hover {
-  background: var(--primary-color);
-  border-color: var(--primary-color);
-  color: white;
-}
-
-.view-toggle {
-  display: flex;
-  background: var(--hover-bg);
-  border-radius: var(--radius-md);
-  padding: 0.25rem;
-  border: 2px solid var(--border-color);
-}
-
-.view-btn {
-  padding: 0.625rem;
-  background: transparent;
-  border: none;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-light);
-}
-
-.view-btn.active {
-  background: var(--primary-color);
-  color: white;
-}
-
-.view-btn:hover:not(.active) {
-  background: var(--card-bg);
-  color: var(--text-color);
-}
-
-.filter-summary {
-  background: var(--hover-bg);
-  padding: 1rem 1.5rem;
-  border-top: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.summary-text {
-  font-size: 0.875rem;
-  color: var(--text-light);
-  font-weight: 500;
-}
-
-.active-filters {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.filter-tag {
-  background: var(--primary-color);
-  color: white;
-  padding: 0.25rem 0.75rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.75rem;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.filter-tag-remove {
-  background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  width: 1rem;
-  height: 1rem;
-  font-size: 0.75rem;
-}
-
-.filter-tag-remove:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-/* Enhanced Job Cards */
-.jobs-container {
-  width: 100%;
-}
-
-.jobs-container.list-view {
-  display: none;
-}
-
-.jobs-container.cards-view.active {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-  gap: 2rem;
-}
-
-.jobs-container.list-view.active {
-  display: block;
-}
-
-.job-recommendation-card {
-  background: var(--card-bg);
-  border: 2px solid var(--border-color);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  transition: all 0.3s ease;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.job-recommendation-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--primary-color);
-}
-
-.card-header {
-  padding: 1.5rem 1.5rem 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
-
-.match-score-indicator {
-  position: relative;
-}
-
-.score-circle {
-  width: 4.5rem;
-  height: 4.5rem;
-  border-radius: 50%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: conic-gradient(var(--primary-color) calc(var(--score, 0) * 3.6deg), var(--border-color) 0deg);
-  position: relative;
-}
-
-.score-circle::before {
-  content: '';
-  position: absolute;
-  inset: 4px;
-  border-radius: 50%;
-  background: var(--card-bg);
-}
-
-.score-value {
-  position: relative;
-  z-index: 1;
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-color);
-  line-height: 1;
-}
-
-.score-label {
-  position: relative;
-  z-index: 1;
-  font-size: 0.625rem;
-  color: var(--text-light);
-  margin-top: -2px;
-}
-
-.score-circle.high-match {
-  background: conic-gradient(var(--success-color) calc(var(--score, 0) * 3.6deg), var(--border-color) 0deg);
-}
-
-.score-circle.medium-match {
-  background: conic-gradient(var(--warning-color) calc(var(--score, 0) * 3.6deg), var(--border-color) 0deg);
-}
-
-.score-circle.low-match {
-  background: conic-gradient(var(--info-color) calc(var(--score, 0) * 3.6deg), var(--border-color) 0deg);
-}
-
-.job-badge-container {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  align-items: flex-end;
-}
-
-.status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.status-badge.applied {
-  background: rgba(46, 204, 113, 0.1);
-  color: var(--success-color);
-  border: 1px solid rgba(46, 204, 113, 0.3);
-}
-
-.status-badge.bookmarked {
-  background: rgba(245, 158, 11, 0.1);
-  color: var(--warning-color);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-}
-
-.card-content {
-  padding: 1.5rem;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-.job-main-info {
-  margin-bottom: 0.5rem;
-}
-
-.job-card-title {
-  margin: 0 0 0.75rem 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  line-height: 1.3;
-}
-
-.job-title-link {
-  color: var(--text-color);
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.job-title-link:hover {
-  color: var(--primary-color);
-}
-
-.job-card-company {
-  margin: 0;
-  font-size: 1rem;
-  color: var(--text-light);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.job-details-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.75rem;
-}
-
-.detail-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: var(--text-light);
-}
-
-.detail-item i {
-  font-size: 1rem;
-  color: var(--text-light);
-  min-width: 1rem;
-}
-
-.skills-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.skill-tag {
-  background: var(--hover-bg);
-  color: var(--text-color);
-  padding: 0.375rem 0.75rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.75rem;
-  font-weight: 500;
-  border: 1px solid var(--border-color);
-  transition: all 0.2s ease;
-}
-
-.skill-tag:hover {
-  background: var(--primary-color);
-  color: white;
-  border-color: var(--primary-color);
-}
-
-.skill-tag.more-skills {
-  background: transparent;
-  border: 1px dashed var(--border-color);
-  color: var(--text-light);
-}
-
-.recommendation-reason {
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-  background-size: 200% 200%;
-  animation: gradientShift 6s ease-in-out infinite;
-  color: white;
-  padding: 1rem;
-  border-radius: var(--radius-md);
-  display: flex;
-  gap: 0.75rem;
-  align-items: flex-start;
-  margin-top: auto;
-}
-
-@keyframes gradientShift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-.reason-icon {
-  font-size: 1.25rem;
-  opacity: 0.9;
-  margin-top: 0.125rem;
-  flex-shrink: 0;
-}
-
-.reason-text {
-  margin: 0;
-  font-size: 0.875rem;
-  line-height: 1.5;
-  opacity: 0.95;
-}
-
-.card-actions {
-  padding: 1.5rem;
-  border-top: 1px solid var(--border-color);
-  background: var(--hover-bg);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-}
-
-.primary-actions {
-  display: flex;
-  gap: 0.75rem;
-  flex: 1;
-}
-
-.secondary-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.btn-applied {
-  background: var(--success-color);
-  color: white;
-  opacity: 0.8;
-  cursor: not-allowed;
-}
-
-/* Enhanced List View */
-.job-list-table-container {
-  overflow-x: auto;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-color);
-}
-
-.job-list-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--card-bg);
-}
-
-.job-list-table th {
-  background: var(--hover-bg);
-  color: var(--text-color);
-  font-weight: 600;
-  text-align: left;
-  padding: 1.25rem 1rem;
-  font-size: 0.875rem;
-  border-bottom: 2px solid var(--border-color);
-}
-
-.job-list-row {
-  transition: all 0.2s ease;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.job-list-row:hover {
-  background: var(--hover-bg);
-}
-
-.job-list-row td {
-  padding: 1.25rem 1rem;
-  font-size: 0.925rem;
-  color: var(--text-color);
-}
-
-.job-title-info {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.job-list-title {
-  color: var(--primary-color);
-  font-weight: 500;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.job-list-title:hover {
-  color: var(--primary-dark);
-  text-decoration: underline;
-}
-
-.job-status-indicators {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.applied-indicator {
-  color: var(--success-color);
-  font-size: 1rem;
-}
-
-.bookmark-indicator {
-  color: var(--warning-color);
-  font-size: 1rem;
-}
-
-.match-score-mini {
-  padding: 0.375rem 0.75rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.75rem;
-  font-weight: 600;
-  display: inline-block;
-}
-
-.match-score-mini.high {
-  background: rgba(46, 204, 113, 0.1);
-  color: var(--success-color);
-}
-
-.match-score-mini.medium {
-  background: rgba(245, 158, 11, 0.1);
-  color: var(--warning-color);
-}
-
-.match-score-mini.low {
-  background: rgba(52, 152, 219, 0.1);
-  color: var(--info-color);
-}
-
-.table-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-/* Enhanced Results Info */
-.results-info {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-#results-count {
-  font-size: 0.875rem;
-  color: var(--text-light);
-  font-weight: 500;
-}
-
-/* Enhanced Empty State */
-.empty-state {
-  text-align: center;
-  padding: 4rem 2rem;
-}
-
-.empty-icon {
-  width: 5rem;
-  height: 5rem;
-  margin: 0 auto 2rem;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 2.5rem;
-}
-
-.empty-state h3 {
-  font-size: 1.5rem;
-  color: var(--text-color);
-  margin-bottom: 1rem;
-}
-
-.empty-state p {
-  color: var(--text-light);
-  margin-bottom: 2rem;
-  max-width: 500px;
-  margin-left: auto;
-  margin-right: auto;
-  line-height: 1.6;
-}
-
-.empty-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-/* Button enhancements */
-.btn-icon {
-  width: 2.75rem;
-  height: 2.75rem;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--hover-bg);
-  border: 1px solid var(--border-color);
-  color: var(--text-light);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 1.1rem;
-}
-
-.btn-icon:hover {
-  background: var(--primary-color);
-  color: white;
-  border-color: var(--primary-color);
-  transform: translateY(-2px);
-}
-
-.btn-icon.bookmark-btn.active {
-  background: var(--warning-color);
-  color: white;
-  border-color: var(--warning-color);
-}
-
-.btn-icon.bookmark-btn.active:hover {
-  background: #d97706;
-}
-
-.share-btn:hover {
-  background: var(--info-color);
-  border-color: var(--info-color);
-}
-
-/* Responsive Design */
-@media (max-width: 1024px) {
-  .jobs-container.cards-view.active {
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 1.5rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .filter-row {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  
-  .filter-actions {
-    justify-content: space-between;
-    width: 100%;
-  }
-  
-  .jobs-container.cards-view.active {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-  
-  .job-details-grid {
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
-  }
-  
-  .card-actions {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1rem;
-  }
-  
-  .primary-actions {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  
-  .secondary-actions {
-    justify-content: center;
-  }
-  
-  .empty-actions {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .empty-actions .btn {
-    width: 100%;
-    max-width: 300px;
-  }
-}
-
-@media (max-width: 480px) {
-  .score-circle {
-    width: 3.5rem;
-    height: 3.5rem;
-  }
-  
-  .score-value {
-    font-size: 0.875rem;
-  }
-  
-  .score-label {
-    font-size: 0.5rem;
-  }
-  
-  .card-content {
-    padding: 1rem;
-  }
-  
-  .card-actions {
-    padding: 1rem;
-  }
-}
-
-/* Dark mode enhancements */
-[data-theme="dark"] .job-recommendation-card {
-  background: var(--card-bg);
-  border-color: var(--border-color);
-}
-
-[data-theme="dark"] .job-recommendation-card:hover {
-  border-color: var(--primary-color);
-}
-
-[data-theme="dark"] .recommendation-reason {
-  background: linear-gradient(135deg, #4338ca, #7c3aed);
-}
-
-[data-theme="dark"] .skill-tag:hover {
-  background: var(--primary-color);
-  color: white;
-}
-
-/* Animation for card appearance */
-.job-recommendation-card {
-  animation: fadeInUp 0.5s ease-out forwards;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Stagger animation for multiple cards */
-.job-recommendation-card:nth-child(1) { animation-delay: 0.1s; }
-.job-recommendation-card:nth-child(2) { animation-delay: 0.2s; }
-.job-recommendation-card:nth-child(3) { animation-delay: 0.3s; }
-.job-recommendation-card:nth-child(4) { animation-delay: 0.4s; }
-.job-recommendation-card:nth-child(5) { animation-delay: 0.5s; }
-.job-recommendation-card:nth-child(6) { animation-delay: 0.6s; }
+/* ══════════════════════════════════════════════
+   Recommended Jobs Page  (rj- namespace)
+   ══════════════════════════════════════════════ */
+.rj-stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 1rem; margin-bottom: 1.75rem;
+}
+.rj-stat {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 12px; padding: 1rem 1.25rem;
+    display: flex; align-items: center; gap: .85rem;
+    transition: transform .15s;
+}
+.rj-stat:hover { transform: translateY(-2px); }
+.rj-stat-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.35rem; flex-shrink: 0;
+}
+.rj-stat-icon.total { background: rgba(79,70,229,.12); color: var(--primary-color); }
+.rj-stat-icon.high  { background: rgba(34,197,94,.12); color: #22c55e; }
+.rj-stat-icon.med   { background: rgba(245,158,11,.12); color: #f59e0b; }
+.rj-stat-icon.low   { background: rgba(239,68,68,.12); color: #ef4444; }
+.rj-stat h4 { font-size: .75rem; color: var(--text-muted); margin: 0 0 .1rem; text-transform: uppercase; letter-spacing: .4px; }
+.rj-stat .val { font-size: 1.35rem; font-weight: 700; color: var(--heading-color); }
+
+/* ── Filter bar ── */
+.rj-filter-bar {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 12px; padding: .75rem 1.15rem;
+    display: flex; align-items: center; gap: .75rem; margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+}
+.rj-search-wrap { flex: 1; min-width: 200px; position: relative; }
+.rj-search-wrap i { position: absolute; left: .75rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 1.1rem; }
+.rj-search-wrap input {
+    width: 100%; border: 1px solid var(--border-color); border-radius: 8px;
+    padding: .5rem .75rem .5rem 2.2rem; font-size: .88rem;
+    background: var(--bg-color); color: var(--text-color); transition: border-color .15s;
+}
+.rj-search-wrap input:focus { border-color: var(--primary-color); outline: none; }
+.rj-filter-select {
+    border: 1px solid var(--border-color); border-radius: 8px;
+    padding: .5rem .75rem; font-size: .85rem;
+    background: var(--bg-color); color: var(--text-color); cursor: pointer;
+}
+
+/* ── Job Cards ── */
+.rj-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1rem; }
+@media(max-width: 720px) { .rj-grid { grid-template-columns: 1fr; } }
+
+.rj-card {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 14px; padding: 1.25rem 1.5rem;
+    transition: all .2s; position: relative;
+    display: flex; flex-direction: column; gap: .75rem;
+}
+.rj-card:hover { border-color: var(--primary-color); box-shadow: 0 4px 16px rgba(0,0,0,.06); transform: translateY(-2px); }
+
+.rj-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: .75rem; }
+.rj-card-info { flex: 1; min-width: 0; }
+.rj-card-info h3 {
+    font-size: 1.05rem; font-weight: 600; color: var(--heading-color);
+    margin: 0 0 .2rem;
+}
+.rj-card-info h3 a { color: inherit; text-decoration: none; }
+.rj-card-info h3 a:hover { color: var(--primary-color); }
+.rj-card-company {
+    font-size: .85rem; color: var(--text-muted);
+    display: flex; align-items: center; gap: .3rem;
+}
+
+/* Match score ring */
+.rj-score {
+    width: 56px; height: 56px; position: relative; flex-shrink: 0;
+}
+.rj-score svg { width: 56px; height: 56px; transform: rotate(-90deg); }
+.rj-score-track { fill: none; stroke: var(--border-color); stroke-width: 4; }
+.rj-score-fill  { fill: none; stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset .6s ease; }
+.rj-score-text {
+    position: absolute; inset: 0; display: flex; align-items: center;
+    justify-content: center; font-size: .78rem; font-weight: 700;
+    color: var(--heading-color);
+}
+
+/* Score color classes */
+.rj-score-high .rj-score-fill { stroke: #22c55e; }
+.rj-score-med .rj-score-fill  { stroke: #f59e0b; }
+.rj-score-low .rj-score-fill  { stroke: #ef4444; }
+
+/* Meta tags */
+.rj-meta {
+    display: flex; flex-wrap: wrap; gap: .3rem .6rem;
+    font-size: .8rem; color: var(--text-muted);
+}
+.rj-meta span { display: flex; align-items: center; gap: .2rem; }
+
+/* Skills */
+.rj-skills { display: flex; flex-wrap: wrap; gap: .3rem; }
+.rj-skill {
+    font-size: .72rem; padding: .18rem .5rem; border-radius: 6px;
+    background: rgba(79,70,229,.08); color: var(--primary-color);
+    font-weight: 500;
+}
+
+/* Reason */
+.rj-reason {
+    font-size: .8rem; color: var(--text-muted); font-style: italic;
+    display: flex; align-items: center; gap: .3rem;
+}
+.rj-reason i { font-size: .9rem; color: var(--primary-color); }
+
+/* Card footer */
+.rj-card-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-top: .65rem; border-top: 1px solid var(--border-color);
+    margin-top: auto;
+}
+.rj-card-actions { display: flex; gap: .35rem; }
+.rj-btn-icon {
+    width: 34px; height: 34px; border-radius: 8px;
+    border: 1px solid var(--border-color); background: var(--card-bg);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; color: var(--text-muted); transition: all .15s;
+}
+.rj-btn-icon:hover { border-color: var(--primary-color); color: var(--primary-color); }
+.rj-btn-icon.bookmarked { color: #f59e0b; border-color: #f59e0b; background: rgba(245,158,11,.08); }
+
+/* Applied badge */
+.rj-applied-badge {
+    font-size: .72rem; padding: .2rem .6rem; border-radius: 20px;
+    background: rgba(34,197,94,.1); color: #16a34a; font-weight: 600;
+}
+
+/* ── Empty state ── */
+.rj-empty {
+    text-align: center; padding: 4rem 2rem;
+    background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px;
+}
+.rj-empty i { font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem; display: block; }
+.rj-empty h3 { font-size: 1.15rem; color: var(--heading-color); margin-bottom: .4rem; }
+.rj-empty p { color: var(--text-muted); font-size: .9rem; margin-bottom: 1.25rem; }
 </style>
 
-<!-- Enhanced JavaScript -->
+<!-- Breadcrumb -->
+<div class="breadcrumb">
+    <div class="breadcrumb-item">
+        <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item">
+        <a href="{% url 'jobs:job_listings' %}" class="breadcrumb-link">Jobs</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item"><span>Recommended</span></div>
+</div>
+
+<!-- Page Header -->
+<div class="page-content-header">
+    <div>
+        <h1 class="page-title"><i class='bx bx-star' style="color:var(--primary-color)"></i> Recommended Jobs</h1>
+        <p class="page-subtitle">Personalized job recommendations based on your skills and preferences</p>
+    </div>
+    <div style="display:flex; gap:.5rem;">
+        <a href="{% url 'jobs:update_job_preferences' %}" class="btn btn-outline-secondary btn-sm">
+            <i class='bx bx-slider-alt'></i> Preferences
+        </a>
+        <a href="{% url 'jobs:job_listings' %}" class="btn btn-outline-secondary btn-sm">
+            <i class='bx bx-arrow-back'></i> All Jobs
+        </a>
+    </div>
+</div>
+
+{% if recommended_jobs %}
+<!-- Stats -->
+<div class="rj-stats">
+    <div class="rj-stat">
+        <div class="rj-stat-icon total"><i class='bx bx-star'></i></div>
+        <div><h4>Total Matches</h4><div class="val">{{ stats.total_recommendations }}</div></div>
+    </div>
+    <div class="rj-stat">
+        <div class="rj-stat-icon high"><i class='bx bx-trophy'></i></div>
+        <div><h4>High Match (80%+)</h4><div class="val">{{ stats.high_match_count }}</div></div>
+    </div>
+    <div class="rj-stat">
+        <div class="rj-stat-icon med"><i class='bx bx-target-lock'></i></div>
+        <div><h4>Medium (60-80%)</h4><div class="val">{{ stats.medium_match_count }}</div></div>
+    </div>
+    <div class="rj-stat">
+        <div class="rj-stat-icon low"><i class='bx bx-dots-horizontal-rounded'></i></div>
+        <div><h4>Exploring (&lt;60%)</h4><div class="val">{{ stats.low_match_count }}</div></div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="rj-filter-bar">
+    <div class="rj-search-wrap">
+        <i class='bx bx-search'></i>
+        <input type="text" id="rjSearch" placeholder="Search by title, company, or skills...">
+    </div>
+    <select class="rj-filter-select" id="rjScoreFilter">
+        <option value="">All Scores</option>
+        <option value="high">80%+ (High)</option>
+        <option value="med">60-79% (Medium)</option>
+        <option value="low">Below 60%</option>
+    </select>
+    <select class="rj-filter-select" id="rjSort">
+        <option value="score">Best Match</option>
+        <option value="newest">Newest</option>
+    </select>
+</div>
+
+<!-- Job Cards Grid -->
+<div class="rj-grid" id="rjGrid">
+    {% for rec in recommended_jobs %}
+    {% with job=rec.job score=rec.score %}
+    <div class="rj-card" data-score="{{ score }}" data-title="{{ job.title|lower }}" data-company="{{ job.company|lower }}" data-skills="{{ job.skills|join:',' }}" data-date="{{ job.created_at|date:'U' }}">
+        <div class="rj-card-top">
+            <div class="rj-card-info">
+                <h3><a href="{% url 'jobs:job_detail' job.id %}">{{ job.title }}</a></h3>
+                <div class="rj-card-company">
+                    <i class='bx bx-buildings'></i> {{ job.company }}
+                </div>
+            </div>
+            {% with score_class=score|floatformat:0 %}
+            <div class="rj-score {% if score >= 80 %}rj-score-high{% elif score >= 60 %}rj-score-med{% else %}rj-score-low{% endif %}">
+                <svg viewBox="0 0 36 36">
+                    <circle class="rj-score-track" cx="18" cy="18" r="15.9"/>
+                    <circle class="rj-score-fill" cx="18" cy="18" r="15.9"
+                        stroke-dasharray="{{ score }}, 100"/>
+                </svg>
+                <span class="rj-score-text">{{ score }}%</span>
+            </div>
+            {% endwith %}
+        </div>
+
+        <div class="rj-meta">
+            <span><i class='bx bx-map'></i> {{ job.location }}</span>
+            <span><i class='bx bx-briefcase-alt-2'></i> {{ job.job_type }}</span>
+            {% if job.salary %}<span><i class='bx bx-money'></i> {{ job.salary }}</span>{% endif %}
+            {% if job.experience %}<span><i class='bx bx-bar-chart'></i> {{ job.experience }}</span>{% endif %}
+        </div>
+
+        {% if job.skills %}
+        <div class="rj-skills">
+            {% for skill in job.skills|slice:":6" %}
+                {% if skill.name %}
+                    <span class="rj-skill">{{ skill.name }}</span>
+                {% elif skill %}
+                    <span class="rj-skill">{{ skill }}</span>
+                {% endif %}
+            {% endfor %}
+            {% if job.skills|length > 6 %}
+                <span class="rj-skill" style="background:var(--hover-bg); color:var(--text-muted);">+{{ job.skills|length|add:"-6" }}</span>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if rec.reason %}
+        <div class="rj-reason"><i class='bx bx-bulb'></i> {{ rec.reason }}</div>
+        {% endif %}
+
+        <div class="rj-card-footer">
+            {% if job.id in applied_job_ids %}
+            <span class="rj-applied-badge"><i class='bx bx-check'></i> Applied</span>
+            {% else %}
+            <a href="{% url 'jobs:job_detail' job.id %}" class="btn btn-primary btn-sm" style="font-size:.78rem; padding:.3rem .65rem;">
+                View &amp; Apply <i class='bx bx-right-arrow-alt'></i>
+            </a>
+            {% endif %}
+            <div class="rj-card-actions">
+                <button class="rj-btn-icon {% if job.id in bookmarked_job_ids %}bookmarked{% endif %}"
+                        title="Bookmark" onclick="toggleBookmark({{ job.id }}, this)">
+                    <i class='bx {% if job.id in bookmarked_job_ids %}bxs-bookmark{% else %}bx-bookmark{% endif %}'></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endwith %}
+    {% endfor %}
+</div>
+
+{% else %}
+<!-- Empty state -->
+<div class="rj-empty">
+    <i class='bx bx-star'></i>
+    <h3>No recommendations yet</h3>
+    <p>Update your skills and preferences to get personalized job matches</p>
+    <div style="display:flex; gap:.5rem; justify-content:center;">
+        <a href="{% url 'jobs:update_job_preferences' %}" class="btn btn-primary">
+            <i class='bx bx-slider-alt'></i> Set Preferences
+        </a>
+        <a href="{% url 'jobs:job_listings' %}" class="btn btn-outline-secondary">Browse Jobs</a>
+    </div>
+</div>
+{% endif %}
+
 <script>
-// ...existing code...
+const CSRF = '{{ csrf_token }}';
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize all existing functionality
-    initBookmarkButtons();
-    initNotificationClose();
-    initCSRFToken();
-    initRecommendationsSearch();
-    initRecommendationsSort();
-    initViewToggle();
-    initShareButtons();
-    
-    // Set CSS custom properties for match scores
-    setMatchScoreStyles();
-    
-    // Theme handling
-    const theme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', theme);
-});
-
-// Initialize view toggle functionality
-function initViewToggle() {
-    const viewButtons = document.querySelectorAll('.view-btn');
-    const cardsView = document.getElementById('recommendations-cards');
-    const listView = document.getElementById('recommendations-list');
-    
-    viewButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const view = this.dataset.view;
-            
-            // Update button states
-            viewButtons.forEach(btn => btn.classList.remove('active'));
-            this.classList.add('active');
-            
-            // Toggle views
-            if (view === 'cards') {
-                cardsView.classList.add('active');
-                listView.classList.remove('active');
+// Bookmark toggle
+async function toggleBookmark(jobId, btn) {
+    try {
+        const res = await fetch(`/jobs/bookmark/${jobId}/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        if (data.success) {
+            const icon = btn.querySelector('i');
+            if (data.bookmarked) {
+                btn.classList.add('bookmarked');
+                icon.className = 'bx bxs-bookmark';
             } else {
-                cardsView.classList.remove('active');
-                listView.classList.add('active');
-            }
-            
-            // Save preference
-            localStorage.setItem('recommendationsView', view);
-        });
-    });
-    
-    // Load saved view preference
-    const savedView = localStorage.getItem('recommendationsView') || 'cards';
-    document.querySelector(`[data-view="${savedView}"]`).click();
-}
-
-// Initialize share buttons
-function initShareButtons() {
-    document.querySelectorAll('.share-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const jobId = this.dataset.jobId;
-            const jobCard = this.closest('.job-recommendation-card');
-            const jobTitle = jobCard.querySelector('.job-card-title a').textContent;
-            const jobCompany = jobCard.querySelector('.job-card-company').textContent.trim();
-            
-            if (navigator.share) {
-                navigator.share({
-                    title: `${jobTitle} at ${jobCompany}`,
-                    text: `Check out this job opportunity: ${jobTitle} at ${jobCompany}`,
-                    url: window.location.origin + `/jobs/${jobId}/`
-                });
-            } else {
-                // Fallback: copy to clipboard
-                const url = window.location.origin + `/jobs/${jobId}/`;
-                navigator.clipboard.writeText(url).then(() => {
-                    showNotification('Job link copied to clipboard!', 'success');
-                });
-            }
-        });
-    });
-}
-
-// Enhanced search with better filtering
-function initRecommendationsSearch() {
-    const searchInput = document.getElementById('recommendations-search');
-    const clearSearchBtn = document.getElementById('clear-search');
-    const matchScoreFilter = document.getElementById('match-score-filter');
-    const jobTypeFilter = document.getElementById('job-type-filter');
-    const clearAllBtn = document.getElementById('clear-all-filters');
-    
-    if (!searchInput) return;
-    
-    // Show/hide clear button
-    searchInput.addEventListener('input', function() {
-        if (this.value.trim()) {
-            clearSearchBtn.style.display = 'block';
-        } else {
-            clearSearchBtn.style.display = 'none';
-        }
-    });
-    
-    // Clear search
-    clearSearchBtn.addEventListener('click', function() {
-        searchInput.value = '';
-        this.style.display = 'none';
-        filterRecommendations();
-    });
-    
-    // Clear all filters
-    clearAllBtn.addEventListener('click', function() {
-        searchInput.value = '';
-        matchScoreFilter.value = '';
-        jobTypeFilter.value = '';
-        clearSearchBtn.style.display = 'none';
-        filterRecommendations();
-    });
-    
-    function filterRecommendations() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const scoreFilter = matchScoreFilter ? matchScoreFilter.value : '';
-        const typeFilter = jobTypeFilter ? jobTypeFilter.value : '';
-        
-        // Filter both card and list views
-        const cardItems = document.querySelectorAll('.job-recommendation-card');
-        const listItems = document.querySelectorAll('.job-list-row');
-        let visibleCount = 0;
-        
-        // Update active filters display
-        updateActiveFilters();
-        
-        [...cardItems, ...listItems].forEach(item => {
-            const title = item.dataset.title || '';
-            const company = item.dataset.company || '';
-            const skills = item.dataset.skills || '';
-            const score = parseFloat(item.dataset.score) || 0;
-            const jobType = item.dataset.jobType || '';
-            
-            const matchesSearch = searchTerm === '' || 
-                title.includes(searchTerm) || 
-                company.includes(searchTerm) ||
-                skills.includes(searchTerm);
-            
-            let matchesScore = true;
-            if (scoreFilter === 'high') {
-                matchesScore = score >= 80;
-            } else if (scoreFilter === 'medium') {
-                matchesScore = score >= 60 && score < 80;
-            } else if (scoreFilter === 'low') {
-                matchesScore = score < 60;
-            }
-            
-            const matchesType = typeFilter === '' || jobType.includes(typeFilter);
-            
-            if (matchesSearch && matchesScore && matchesType) {
-                item.style.display = '';
-                if (item.classList.contains('job-recommendation-card')) {
-                    visibleCount++;
-                }
-            } else {
-                item.style.display = 'none';
-            }
-        });
-        
-        // Update results count
-        document.getElementById('results-count').textContent = `${visibleCount} jobs found`;
-        
-        handleRecommendationsEmptyState(visibleCount);
-    }
-    
-    function updateActiveFilters() {
-        const activeFilters = [];
-        const filterSummary = document.getElementById('filter-summary');
-        const activeFiltersContainer = document.getElementById('active-filters');
-        
-        if (searchInput.value.trim()) {
-            activeFilters.push({ type: 'search', value: searchInput.value });
-        }
-        if (matchScoreFilter && matchScoreFilter.value) {
-            activeFilters.push({ type: 'score', value: matchScoreFilter.options[matchScoreFilter.selectedIndex].text });
-        }
-        if (jobTypeFilter && jobTypeFilter.value) {
-            activeFilters.push({ type: 'type', value: jobTypeFilter.options[jobTypeFilter.selectedIndex].text });
-        }
-        
-        if (activeFilters.length > 0) {
-            filterSummary.style.display = 'flex';
-            activeFiltersContainer.innerHTML = activeFilters.map(filter => `
-                <span class="filter-tag">
-                    ${filter.value}
-                    <button class="filter-tag-remove" onclick="removeFilter('${filter.type}')">
-                        <i class='bx bx-x'></i>
-                    </button>
-                </span>
-            `).join('');
-        } else {
-            filterSummary.style.display = 'none';
-        }
-    }
-    
-    // Debounced search
-    const debouncedFilter = debounce(filterRecommendations, 300);
-    searchInput.addEventListener('input', debouncedFilter);
-    
-    if (matchScoreFilter) {
-        matchScoreFilter.addEventListener('change', filterRecommendations);
-    }
-    if (jobTypeFilter) {
-        jobTypeFilter.addEventListener('change', filterRecommendations);
-    }
-}
-
-// Remove specific filter
-function removeFilter(type) {
-    const searchInput = document.getElementById('recommendations-search');
-    const matchScoreFilter = document.getElementById('match-score-filter');
-    const jobTypeFilter = document.getElementById('job-type-filter');
-    
-    if (type === 'search') {
-        searchInput.value = '';
-        document.getElementById('clear-search').style.display = 'none';
-    } else if (type === 'score') {
-        matchScoreFilter.value = '';
-    } else if (type === 'type') {
-        jobTypeFilter.value = '';
-    }
-    
-    // Trigger filter update
-    const event = new Event('input');
-    searchInput.dispatchEvent(event);
-}
-
-// Set CSS custom properties for match scores
-function setMatchScoreStyles() {
-    const scoreCircles = document.querySelectorAll('.score-circle');
-    scoreCircles.forEach(circle => {
-        const card = circle.closest('.job-recommendation-card');
-        if (card && card.dataset.score) {
-            circle.style.setProperty('--score', card.dataset.score);
-        }
-    });
-}
-
-// Enhanced sorting with animation
-function initRecommendationsSort() {
-    const sortSelect = document.getElementById('sort-recommendations');
-    if (!sortSelect) return;
-    
-    sortSelect.addEventListener('change', function() {
-        const sortBy = this.value;
-        const cardsContainer = document.getElementById('recommendations-cards');
-        const listContainer = document.querySelector('.job-list-table tbody');
-        
-        if (cardsContainer) {
-            const cards = Array.from(cardsContainer.querySelectorAll('.job-recommendation-card'));
-            sortItems(cards, sortBy);
-            
-            // Add stagger animation
-            cards.forEach((card, index) => {
-                card.style.animationDelay = `${index * 0.1}s`;
-                cardsContainer.appendChild(card);
-            });
-        }
-        
-        if (listContainer) {
-            const rows = Array.from(listContainer.querySelectorAll('.job-list-row'));
-            sortItems(rows, sortBy);
-            rows.forEach(row => listContainer.appendChild(row));
-        }
-        
-        // Refresh match score styles
-        setTimeout(setMatchScoreStyles, 100);
-    });
-}
-
-function sortItems(items, sortBy) {
-    items.sort((a, b) => {
-        if (sortBy === 'score') {
-            return parseFloat(b.dataset.score) - parseFloat(a.dataset.score);
-        } else if (sortBy === 'date') {
-            return new Date(b.dataset.date) - new Date(a.dataset.date);
-        } else if (sortBy === 'company') {
-            return a.dataset.company.localeCompare(b.dataset.company);
-        } else if (sortBy === 'title') {
-            return a.dataset.title.localeCompare(b.dataset.title);
-        }
-        return 0;
-    });
-}
-
-function initCSRFToken() {
-    window.csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
-    if (!window.csrfToken) window.csrfToken = getCookie('csrftoken');
-}
-
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
+                btn.classList.remove('bookmarked');
+                icon.className = 'bx bx-bookmark';
             }
         }
-    }
-    return cookieValue;
+    } catch(e) { console.error(e); }
 }
 
-function initBookmarkButtons() {
-    const bookmarkButtons = document.querySelectorAll('.bookmark-btn');
-    bookmarkButtons.forEach(button => {
-        button.replaceWith(button.cloneNode(true));
-    });
-    
-    document.querySelectorAll('.bookmark-btn').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const jobId = this.getAttribute('data-job-id');
-            this.disabled = true;
-            
-            fetch(`/jobs/toggle-bookmark/${jobId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': window.csrfToken,
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'same-origin'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    updateAllBookmarkButtons(jobId, data.bookmarked);
-                    showNotification(data.message, data.bookmarked ? 'success' : 'info');
-                } else {
-                    showNotification(data.message || 'Error updating bookmark', 'error');
-                }
-            })
-            .catch(error => {
-                showNotification('Error updating bookmark status', 'error');
-            })
-            .finally(() => {
-                this.disabled = false;
-            });
+// Filter & search
+(function() {
+    const el = id => document.getElementById(id);
+
+    function applyFilters() {
+        const query = (el('rjSearch')?.value || '').toLowerCase();
+        const scoreFilter = el('rjScoreFilter')?.value || '';
+        const sort = el('rjSort')?.value || 'score';
+        const grid = el('rjGrid');
+        const cards = Array.from(grid.children);
+
+        cards.forEach(card => {
+            const score = parseInt(card.dataset.score);
+            const matchText = !query ||
+                card.dataset.title.includes(query) ||
+                card.dataset.company.includes(query) ||
+                (card.dataset.skills || '').toLowerCase().includes(query);
+            let matchScore = true;
+            if (scoreFilter === 'high') matchScore = score >= 80;
+            else if (scoreFilter === 'med') matchScore = score >= 60 && score < 80;
+            else if (scoreFilter === 'low') matchScore = score < 60;
+            card.style.display = (matchText && matchScore) ? '' : 'none';
         });
-    });
-}
 
-function updateAllBookmarkButtons(jobId, isBookmarked) {
-    const buttons = document.querySelectorAll(`.bookmark-btn[data-job-id="${jobId}"]`);
-    buttons.forEach(button => {
-        if (isBookmarked) {
-            button.classList.add('active');
-            button.querySelector('i').className = 'bx bxs-bookmark';
-            button.setAttribute('title', 'Remove Bookmark');
-        } else {
-            button.classList.remove('active');
-            button.querySelector('i').className = 'bx bx-bookmark';
-            button.setAttribute('title', 'Bookmark Job');
-        }
-    });
-}
-
-function showNotification(message, type = 'info') {
-    let notificationsContainer = document.querySelector('.notifications');
-    if (!notificationsContainer) {
-        const container = document.createElement('div');
-        container.className = 'notifications';
-        const pageHeader = document.querySelector('.page-header');
-        if (pageHeader) {
-            pageHeader.parentNode.insertBefore(container, pageHeader.nextSibling);
-            notificationsContainer = container;
-        } else {
-            document.body.insertBefore(container, document.body.firstChild);
-            notificationsContainer = container;
-        }
-    }
-    
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    let icon = 'bx-info-circle';
-    if (type === 'success') icon = 'bx-check-circle';
-    if (type === 'error') icon = 'bx-error';
-    if (type === 'warning') icon = 'bx-error-circle';
-    
-    notification.innerHTML = `
-        <i class='bx ${icon}'></i>
-        <p>${message}</p>
-        <button class="notification-close"><i class='bx bx-x'></i></button>
-    `;
-    
-    notificationsContainer.appendChild(notification);
-    setTimeout(() => { hideNotification(notification); }, 5000);
-    
-    notification.querySelector('.notification-close').addEventListener('click', function() {
-        hideNotification(notification);
-    });
-}
-
-function hideNotification(notification) {
-    notification.style.opacity = '0';
-    notification.style.transform = 'translateY(-20px)';
-    setTimeout(() => {
-        if (notification.parentNode) notification.remove();
-    }, 300);
-}
-
-function initNotificationClose() {
-    document.querySelectorAll('.notification-close').forEach(button => {
-        button.addEventListener('click', function() {
-            const notification = this.closest('.notification');
-            hideNotification(notification);
+        // Sort
+        const visible = cards.filter(c => c.style.display !== 'none');
+        visible.sort((a, b) => {
+            if (sort === 'score') return parseInt(b.dataset.score) - parseInt(a.dataset.score);
+            return parseInt(b.dataset.date || 0) - parseInt(a.dataset.date || 0);
         });
-    });
-}
+        visible.forEach(c => grid.appendChild(c));
+    }
 
-// Initialize placeholder functions for features
-function initRecommendationsSearch() {
-    // Placeholder for search functionality
-}
-
-function initRecommendationsSort() {
-    // Placeholder for sort functionality
-}
-
-function initViewToggle() {
-    // Placeholder for view toggle functionality
-}
-
-function initShareButtons() {
-    // Placeholder for share functionality
-}
-
-function setMatchScoreStyles() {
-    // Placeholder for match score styling
-}
-
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
+    el('rjSearch')?.addEventListener('input', applyFilters);
+    el('rjScoreFilter')?.addEventListener('change', applyFilters);
+    el('rjSort')?.addEventListener('change', applyFilters);
+})();
 </script>
 {% endblock %}

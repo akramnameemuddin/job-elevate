@@ -1,1493 +1,346 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
 
-{% block title %}Application Details | JobPortal{% endblock %}
+{% block title %}Application – {{ application.job.title }}{% endblock %}
 
 {% block content %}
-<!-- Breadcrumb Navigation -->
+<style>
+/* ══════════════════════════════════════════════
+   Application Detail Page  (ad- namespace)
+   ══════════════════════════════════════════════ */
+.ad-grid { display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem; }
+@media(max-width:900px) { .ad-grid { grid-template-columns: 1fr; } }
+
+/* ── Status banner ── */
+.ad-status-bar {
+    border-radius: 14px; padding: 1.25rem 1.5rem;
+    display: flex; align-items: center; gap: 1.15rem; margin-bottom: 1.5rem;
+    border: 1px solid; flex-wrap: wrap;
+}
+.ad-status-bar.applied    { background: rgba(79,70,229,.06); border-color: rgba(79,70,229,.25); }
+.ad-status-bar.shortlisted { background: rgba(59,130,246,.06); border-color: rgba(59,130,246,.25); }
+.ad-status-bar.interview   { background: rgba(245,158,11,.06); border-color: rgba(245,158,11,.25); }
+.ad-status-bar.offered     { background: rgba(34,197,94,.06); border-color: rgba(34,197,94,.25); }
+.ad-status-bar.hired       { background: rgba(34,197,94,.08); border-color: rgba(34,197,94,.35); }
+.ad-status-bar.rejected    { background: rgba(239,68,68,.06); border-color: rgba(239,68,68,.25); }
+.ad-status-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; flex-shrink: 0;
+}
+.ad-status-bar.applied .ad-status-icon    { background: rgba(79,70,229,.15); color: var(--primary-color); }
+.ad-status-bar.shortlisted .ad-status-icon { background: rgba(59,130,246,.15); color: #3b82f6; }
+.ad-status-bar.interview .ad-status-icon   { background: rgba(245,158,11,.15); color: #d97706; }
+.ad-status-bar.offered .ad-status-icon     { background: rgba(34,197,94,.15); color: #16a34a; }
+.ad-status-bar.hired .ad-status-icon       { background: rgba(34,197,94,.2); color: #15803d; }
+.ad-status-bar.rejected .ad-status-icon    { background: rgba(239,68,68,.15); color: #ef4444; }
+.ad-status-text h3 { font-size: 1.1rem; font-weight: 600; margin: 0 0 .15rem; color: var(--heading-color); }
+.ad-status-text p  { font-size: .85rem; color: var(--text-muted); margin: 0; }
+
+/* ── Cards ── */
+.ad-card {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 14px; padding: 1.25rem 1.5rem; margin-bottom: 1.25rem;
+}
+.ad-card-title {
+    font-size: .95rem; font-weight: 600; color: var(--heading-color);
+    margin: 0 0 1rem; display: flex; align-items: center; gap: .45rem;
+}
+.ad-card-title i { font-size: 1.15rem; color: var(--primary-color); }
+
+/* ── Job info header ── */
+.ad-job-header { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1rem; }
+.ad-job-avatar {
+    width: 56px; height: 56px; border-radius: 14px;
+    background: linear-gradient(135deg, var(--primary-color), #6f42c1);
+    color: #fff; font-weight: 700; font-size: 1.2rem;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; text-transform: uppercase;
+}
+.ad-job-info h2 { font-size: 1.2rem; font-weight: 700; color: var(--heading-color); margin: 0 0 .25rem; }
+.ad-job-meta {
+    display: flex; flex-wrap: wrap; gap: .25rem .75rem;
+    font-size: .82rem; color: var(--text-muted);
+}
+.ad-job-meta span { display: flex; align-items: center; gap: .25rem; }
+
+/* ── Detail rows ── */
+.ad-detail-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: .65rem 0; border-bottom: 1px solid var(--border-color);
+}
+.ad-detail-row:last-child { border-bottom: none; }
+.ad-detail-row .label { font-size: .82rem; color: var(--text-muted); }
+.ad-detail-row .value { font-size: .88rem; font-weight: 500; color: var(--heading-color); }
+
+/* ── Timeline ── */
+.ad-timeline { padding: 0; margin: 0; list-style: none; }
+.ad-tl-item {
+    display: flex; gap: .85rem; padding-bottom: 1.25rem;
+    position: relative;
+}
+.ad-tl-item:last-child { padding-bottom: 0; }
+.ad-tl-item::before {
+    content: ''; position: absolute; left: 14px; top: 28px;
+    width: 2px; height: calc(100% - 28px);
+    background: var(--border-color);
+}
+.ad-tl-item:last-child::before { display: none; }
+.ad-tl-dot {
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .85rem; flex-shrink: 0; z-index: 1;
+}
+.ad-tl-dot.done { background: rgba(34,197,94,.12); color: #22c55e; }
+.ad-tl-dot.current { background: rgba(79,70,229,.12); color: var(--primary-color); }
+.ad-tl-dot.pending { background: var(--hover-bg); color: var(--text-muted); }
+.ad-tl-dot.rejected { background: rgba(239,68,68,.12); color: #ef4444; }
+.ad-tl-content h4 { font-size: .88rem; font-weight: 600; color: var(--heading-color); margin: 0 0 .15rem; }
+.ad-tl-content p  { font-size: .78rem; color: var(--text-muted); margin: 0; }
+
+/* ── Cover letter ── */
+.ad-cover-letter {
+    background: var(--hover-bg); border-radius: 10px; padding: 1rem 1.25rem;
+    font-size: .88rem; color: var(--text-color); line-height: 1.6;
+    white-space: pre-wrap; max-height: 200px; overflow-y: auto;
+}
+
+/* ── Messages thread ── */
+.ad-msg-list { display: flex; flex-direction: column; gap: .75rem; max-height: 350px; overflow-y: auto; padding-right: .5rem; }
+.ad-msg {
+    display: flex; gap: .65rem; align-items: flex-start;
+}
+.ad-msg.self { flex-direction: row-reverse; }
+.ad-msg-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--hover-bg); color: var(--text-muted);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .75rem; font-weight: 600; flex-shrink: 0;
+}
+.ad-msg.self .ad-msg-avatar { background: rgba(79,70,229,.12); color: var(--primary-color); }
+.ad-msg-bubble {
+    background: var(--hover-bg); border-radius: 12px; padding: .65rem 1rem;
+    max-width: 75%; font-size: .85rem; color: var(--text-color); line-height: 1.5;
+}
+.ad-msg.self .ad-msg-bubble { background: rgba(79,70,229,.08); }
+.ad-msg-time { font-size: .7rem; color: var(--text-muted); margin-top: .2rem; }
+
+/* ── Message form ── */
+.ad-msg-form {
+    display: flex; gap: .5rem; margin-top: .75rem; padding-top: .75rem;
+    border-top: 1px solid var(--border-color);
+}
+.ad-msg-form textarea {
+    flex: 1; border: 1px solid var(--border-color); border-radius: 10px;
+    padding: .6rem .85rem; font-size: .85rem; resize: none; min-height: 42px;
+    background: var(--bg-color); color: var(--text-color);
+    font-family: inherit;
+}
+.ad-msg-form textarea:focus { border-color: var(--primary-color); outline: none; }
+.ad-msg-form button {
+    width: 42px; height: 42px; border-radius: 10px;
+    background: var(--primary-color); color: #fff; border: none;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0; transition: opacity .15s;
+}
+.ad-msg-form button:hover { opacity: .9; }
+</style>
+
+<!-- Breadcrumb -->
 <div class="breadcrumb">
     <div class="breadcrumb-item">
         <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
         <i class='bx bx-chevron-right'></i>
     </div>
     <div class="breadcrumb-item">
-        <a href="{% url 'jobs:job_listings' %}" class="breadcrumb-link">Job Matches</a>
+        <a href="{% url 'jobs:my_applications' %}" class="breadcrumb-link">Applications</a>
         <i class='bx bx-chevron-right'></i>
     </div>
-    <div class="breadcrumb-item">
-        <a href="{% url 'jobs:my_applications' %}" class="breadcrumb-link">My Applications</a>
-        <i class='bx bx-chevron-right'></i>
-    </div>
-    <div class="breadcrumb-item">
-        <span>Application Details</span>
-    </div>
+    <div class="breadcrumb-item"><span>{{ application.job.title|truncatechars:30 }}</span></div>
 </div>
 
-<!-- Page Title and Actions -->
+<!-- Page Header -->
 <div class="page-content-header">
-    <h1 class="page-title">Application Details</h1>
-    <div class="page-actions">
-        <a href="{% url 'jobs:job_detail' application.job.id %}" class="btn btn-outline-primary">
-            <i class='bx bx-link-external'></i>
-            View Job
+    <div>
+        <h1 class="page-title"><i class='bx bx-detail' style="color:var(--primary-color)"></i> Application Details</h1>
+        <p class="page-subtitle">{{ application.job.title }} at {{ application.job.company }}</p>
+    </div>
+    <div style="display:flex; gap:.5rem;">
+        <a href="{% url 'jobs:job_detail' application.job.id %}" class="btn btn-outline-secondary btn-sm">
+            <i class='bx bx-link-external'></i> View Job
         </a>
-        <button id="copy-application-url" class="btn btn-outline-primary" title="Copy Application URL">
-            <i class='bx bx-copy'></i>
-            Copy Link
-        </button>
+        <a href="{% url 'jobs:my_applications' %}" class="btn btn-outline-secondary btn-sm">
+            <i class='bx bx-arrow-back'></i> Back
+        </a>
     </div>
 </div>
 
-<!-- Messages/Notifications -->
-{% if messages %}
-<div class="notifications">
-    {% for message in messages %}
-    <div class="notification {% if message.tags %}notification-{{ message.tags }}{% endif %}">
-        {% if message.tags == 'success' %}
-        <i class='bx bx-check-circle'></i>
-        {% elif message.tags == 'error' %}
-        <i class='bx bx-error'></i>
-        {% elif message.tags == 'warning' %}
-        <i class='bx bx-error-circle'></i>
-        {% else %}
-        <i class='bx bx-info-circle'></i>
+<!-- Status Banner -->
+<div class="ad-status-bar {{ application.status|lower }}">
+    <div class="ad-status-icon">
+        {% if application.status == 'Applied' %}<i class='bx bx-send'></i>
+        {% elif application.status == 'Shortlisted' %}<i class='bx bx-list-check'></i>
+        {% elif application.status == 'Interview' %}<i class='bx bx-video'></i>
+        {% elif application.status == 'Offered' %}<i class='bx bx-gift'></i>
+        {% elif application.status == 'Hired' %}<i class='bx bx-check-shield'></i>
+        {% elif application.status == 'Rejected' %}<i class='bx bx-x-circle'></i>
         {% endif %}
-        <p>{{ message }}</p>
-        <button class="notification-close"><i class='bx bx-x'></i></button>
     </div>
-    {% endfor %}
-</div>
-{% endif %}
-
-<!-- Application Status Overview -->
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-icon {% if application.status == 'Applied' %}blue{% elif application.status == 'Reviewed' %}purple{% elif application.status == 'Interview' %}amber{% elif application.status == 'Accepted' %}green{% else %}red{% endif %}">
-            <i class='bx {% if application.status == "Applied" %}bx-send{% elif application.status == "Reviewed" %}bx-check-circle{% elif application.status == "Interview" %}bx-user-voice{% elif application.status == "Accepted" %}bx-trophy{% else %}bx-x-circle{% endif %}'></i>
-        </div>
-        <div class="stat-info">
-            <div class="stat-label">Application Status</div>
-            <div class="stat-value">{{ application.status }}</div>
-            <div class="stat-change">
-                <i class='bx bx-time'></i> Updated {{ application.updated_at|timesince }} ago
-            </div>
-        </div>
-    </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon green">
-            <i class='bx bx-calendar'></i>
-        </div>
-        <div class="stat-info">
-            <div class="stat-label">Applied Date</div>
-            <div class="stat-value">{{ application.applied_at|date:"M d" }}</div>
-            <div class="stat-change">
-                <i class='bx bx-history'></i> {{ application.applied_at|timesince }} ago
-            </div>
-        </div>
-    </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon purple">
-            <i class='bx bx-message-square-dots'></i>
-        </div>
-        <div class="stat-info">
-            <div class="stat-label">Messages</div>
-            <div class="stat-value">{{ messages|length|default:0 }}</div>
-            <div class="stat-change">
-                <i class='bx bx-chat'></i> Communication thread
-            </div>
-        </div>
-    </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon amber">
-            <i class='bx bx-briefcase'></i>
-        </div>
-        <div class="stat-info">
-            <div class="stat-label">Job Type</div>
-            <div class="stat-value">{{ application.job.get_job_type_display }}</div>
-            <div class="stat-change">
-                <i class='bx bx-buildings'></i> {{ application.job.company }}
-            </div>
-        </div>
+    <div class="ad-status-text">
+        <h3>Status: {{ application.status }}</h3>
+        <p>
+            {% if application.status == 'Applied' %}Your application has been submitted and is under review.
+            {% elif application.status == 'Shortlisted' %}Great news! You've been shortlisted for this position.
+            {% elif application.status == 'Interview' %}You've been selected for an interview. Check messages for details.
+            {% elif application.status == 'Offered' %}Congratulations! You've received a job offer.
+            {% elif application.status == 'Hired' %}Welcome aboard! You've been hired for this position.
+            {% elif application.status == 'Rejected' %}Unfortunately, your application was not selected this time.
+            {% endif %}
+        </p>
     </div>
 </div>
 
-<!-- Main Content Container -->
-<div class="application-detail-container">
-    <!-- Application Summary Card -->
-    <div class="content-section application-summary-section">
-        <div class="section-header">
-            <div class="section-title-container">
-                <h2 class="section-title">
-                    <i class='bx bx-briefcase'></i> Application Summary
-                </h2>
-                <span class="section-subtitle">Overview of your job application</span>
-            </div>
-            <div class="application-status-badge status-{{ application.status|lower }}">
-                <i class='bx {% if application.status == "Applied" %}bx-send{% elif application.status == "Reviewed" %}bx-check-circle{% elif application.status == "Interview" %}bx-user-voice{% elif application.status == "Accepted" %}bx-trophy{% else %}bx-x-circle{% endif %}'></i>
-                {{ application.status }}
-            </div>
-        </div>
-        
-        <div class="application-summary-card">
-            <div class="job-info-header">
-                <div class="job-main-details">
-                    <h3 class="job-title">{{ application.job.title }}</h3>
-                    <div class="job-meta-grid">
-                        <div class="job-detail-item">
-                            <i class='bx bx-buildings'></i>
-                            <span>{{ application.job.company }}</span>
-                        </div>
-                        <div class="job-detail-item">
-                            <i class='bx bx-map'></i>
-                            <span>{{ application.job.location }}</span>
-                        </div>
-                        <div class="job-detail-item">
-                            <i class='bx bx-briefcase'></i>
-                            <span>{{ application.job.job_type }}</span>
-                        </div>
+<div class="ad-grid">
+    <!-- Left column -->
+    <div>
+        <!-- Job Info -->
+        <div class="ad-card">
+            <div class="ad-job-header">
+                <div class="ad-job-avatar">{{ application.job.company|truncatechars:2 }}</div>
+                <div class="ad-job-info">
+                    <h2>{{ application.job.title }}</h2>
+                    <div class="ad-job-meta">
+                        <span><i class='bx bx-buildings'></i> {{ application.job.company }}</span>
+                        <span><i class='bx bx-map'></i> {{ application.job.location }}</span>
+                        <span><i class='bx bx-briefcase-alt-2'></i> {{ application.job.job_type }}</span>
                         {% if application.job.salary %}
-                        <div class="job-detail-item">
-                            <i class='bx bx-dollar-circle'></i>
-                            <span>{{ application.job.salary }}</span>
-                        </div>
+                        <span><i class='bx bx-money'></i> {{ application.job.salary }}</span>
                         {% endif %}
                     </div>
                 </div>
-                
-                <div class="application-timeline-mini">
-                    <div class="timeline-item-mini">
-                        <div class="timeline-dot active"></div>
-                        <span class="timeline-label">Applied</span>
-                        <span class="timeline-date">{{ application.applied_at|date:"M d" }}</span>
-                    </div>
-                    {% if application.status != 'Applied' %}
-                    <div class="timeline-item-mini">
-                        <div class="timeline-dot active"></div>
-                        <span class="timeline-label">{{ application.status }}</span>
-                        <span class="timeline-date">{{ application.updated_at|date:"M d" }}</span>
-                    </div>
-                    {% endif %}
-                </div>
             </div>
-            
-            <!-- Skills Match Section -->
-            {% if application.job.skills %}
-            <div class="skills-match-section">
-                <h4 class="skills-title">
-                    <i class='bx bx-target-lock'></i> Required Skills
-                </h4>
-                <div class="skills-tags">
-                    {% for skill in application.job.skills %}
-                    <span class="skill-tag">
-                        {% if skill.name %}{{ skill.name }}{% else %}{{ skill }}{% endif %}
-                    </span>
-                    {% endfor %}
-                </div>
+
+            <div class="ad-detail-row">
+                <span class="label">Applied On</span>
+                <span class="value">{{ application.applied_at|date:"F d, Y \a\t g:i A" }}</span>
+            </div>
+            <div class="ad-detail-row">
+                <span class="label">Last Updated</span>
+                <span class="value">{{ application.updated_at|date:"F d, Y \a\t g:i A" }}</span>
+            </div>
+            {% if application.resume %}
+            <div class="ad-detail-row">
+                <span class="label">Resume</span>
+                <span class="value">
+                    <a href="{{ application.resume.url }}" target="_blank" style="color:var(--primary-color); text-decoration:none; display:flex; align-items:center; gap:.3rem;">
+                        <i class='bx bx-download'></i> Download Resume
+                    </a>
+                </span>
             </div>
             {% endif %}
         </div>
-    </div>
-    
-    <!-- Application Documents Section -->
-    <div class="content-section documents-section">
-        <div class="section-header">
-            <div class="section-title-container">
-                <h2 class="section-title">
-                    <i class='bx bx-folder'></i> Application Documents
-                </h2>
-                <span class="section-subtitle">Documents submitted with your application</span>
-            </div>
+
+        <!-- Cover Letter -->
+        {% if application.cover_letter %}
+        <div class="ad-card">
+            <h3 class="ad-card-title"><i class='bx bx-envelope'></i> Cover Letter</h3>
+            <div class="ad-cover-letter">{{ application.cover_letter }}</div>
         </div>
-        
-        <div class="documents-grid">
-            <!-- Cover Letter -->
-            <div class="document-card">
-                <div class="document-header">
-                    <div class="document-icon">
-                        <i class='bx bx-envelope'></i>
-                    </div>
-                    <div class="document-info">
-                        <h4 class="document-title">Cover Letter</h4>
-                        <span class="document-meta">Personal introduction</span>
-                    </div>
-                </div>
-                
-                <div class="document-content">
-                    {% if application.cover_letter %}
-                        <div class="cover-letter-preview">
-                            <div class="cover-letter-text">
-                                {{ application.cover_letter|truncatewords:50|linebreaks }}
-                            </div>
-                            {% if application.cover_letter|wordcount > 50 %}
-                            <button class="btn-expand" onclick="toggleCoverLetter()">
-                                <i class='bx bx-chevron-down'></i>
-                                <span>Show More</span>
-                            </button>
-                            {% endif %}
-                        </div>
-                        <div class="cover-letter-full" style="display: none;">
-                            {{ application.cover_letter|linebreaks }}
-                            <button class="btn-expand" onclick="toggleCoverLetter()">
-                                <i class='bx bx-chevron-up'></i>
-                                <span>Show Less</span>
-                            </button>
-                        </div>
-                    {% else %}
-                        <div class="empty-state-mini">
-                            <i class='bx bx-envelope-open'></i>
-                            <p>No cover letter was included with this application.</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <!-- Resume -->
-            <div class="document-card">
-                <div class="document-header">
-                    <div class="document-icon">
-                        <i class='bx bx-file'></i>
-                    </div>
-                    <div class="document-info">
-                        <h4 class="document-title">Resume</h4>
-                        <span class="document-meta">Professional background</span>
-                    </div>
-                </div>
-                
-                <div class="document-content">
-                    {% if application.resume %}
-                        <div class="resume-preview">
-                            <div class="file-preview-container">
-                                <div class="file-icon-large">
-                                    <i class='bx bxs-file-pdf'></i>
-                                </div>
-                                <div class="file-details">
-                                    <span class="file-name">{{ application.resume.name }}</span>
-                                    <span class="file-type">PDF Document</span>
-                                </div>
-                            </div>
-                            <div class="file-actions">
-                                <a href="{{ application.resume.url }}" class="btn btn-primary" target="_blank">
-                                    <i class='bx bx-download'></i> Download
-                                </a>
-                                <button class="btn btn-outline-primary" onclick="previewResume('{{ application.resume.url }}')">
-                                    <i class='bx bx-show'></i> Preview
-                                </button>
-                            </div>
-                        </div>
-                    {% else %}
-                        <div class="empty-state-mini">
-                            <i class='bx bx-file-blank'></i>
-                            <p>No resume was uploaded with this application.</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Messages Thread Section -->
-    <div class="content-section messages-section">
-        <div class="section-header">
-            <div class="section-title-container">
-                <h2 class="section-title">
-                    <i class='bx bx-message-square-dots'></i> Communication Thread
-                </h2>
-                <span class="section-subtitle">Messages between you and the employer</span>
-            </div>
-            <div class="message-actions">
-                <button class="btn btn-outline-primary" onclick="scrollToMessageForm()">
-                    <i class='bx bx-send'></i>
-                    <span>Send Message</span>
-                </button>
-            </div>
-        </div>
-        
-        <div class="messages-container">
+        {% endif %}
+
+        <!-- Messages -->
+        <div class="ad-card">
+            <h3 class="ad-card-title"><i class='bx bx-chat'></i> Messages</h3>
             {% if messages %}
-                <div class="messages-thread">
-                    {% for message in messages %}
-                    <div class="message-bubble {% if message.sender == request.user %}message-sent{% else %}message-received{% endif %}">
-                        <div class="message-avatar">
-                            {% if message.sender.profile_image %}
-                                <img src="{{ message.sender.profile_image.url }}" alt="{{ message.sender.get_full_name }}">
-                            {% else %}
-                                <div class="avatar-placeholder">{{ message.sender.get_initials|default:message.sender.first_name|first|upper }}{{ message.sender.last_name|first|upper }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="message-content">
-                            <div class="message-header">
-                                <span class="message-sender">{{ message.sender.get_full_name }}</span>
-                                <span class="message-time" data-timestamp="{{ message.sent_at|date:'c' }}">
-                                    {{ message.sent_at|date:"M d, Y" }} at {{ message.sent_at|time:"H:i" }}
-                                </span>
-                            </div>
-                            <div class="message-body">
-                                {{ message.content|linebreaks }}
-                            </div>
-                        </div>
+            <div class="ad-msg-list">
+                {% for msg in messages %}
+                <div class="ad-msg {% if msg.sender == request.user %}self{% endif %}">
+                    <div class="ad-msg-avatar">
+                        {% if msg.sender == request.user %}ME{% else %}HR{% endif %}
                     </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="empty-state">
-                    <div class="empty-icon">
-                        <i class='bx bx-message-square-x'></i>
+                    <div>
+                        <div class="ad-msg-bubble">{{ msg.content }}</div>
+                        <div class="ad-msg-time">{{ msg.sent_at|date:"M d, g:i A" }}</div>
                     </div>
-                    <h3>No Messages Yet</h3>
-                    <p>Start the conversation with the employer! Send a message to ask questions or provide additional information.</p>
-                    <button class="btn btn-primary" onclick="scrollToMessageForm()">
-                        <i class='bx bx-send'></i>
-                        Send First Message
-                    </button>
                 </div>
-            {% endif %}
-        </div>
-        
-        <!-- Message Form -->
-        <div class="message-form-container" id="message-form">
-            <div class="form-header">
-                <h4 class="form-title">
-                    <i class='bx bx-edit'></i> Send a Message
-                </h4>
+                {% endfor %}
             </div>
-            
-            <form method="post" action="{% url 'jobs:send_application_message' application.id %}" class="message-form">
+            {% else %}
+            <p style="font-size:.85rem; color:var(--text-muted); text-align:center; padding:1rem 0;">
+                No messages yet. Send a message to the recruiter below.
+            </p>
+            {% endif %}
+
+            <form class="ad-msg-form" method="post" action="{% url 'jobs:send_application_message' application.id %}">
                 {% csrf_token %}
-                <div class="form-group">
-                    <label for="message_content" class="form-label">Your Message</label>
-                    <textarea name="message_content" id="message_content" rows="4" class="form-control" 
-                      placeholder="Type your message here..." required></textarea>
-                    <div class="form-help">
-                        <span class="char-counter" id="char-counter">0/1000 characters</span>
-                        <span class="form-tips">
-                            <i class='bx bx-info-circle'></i>
-                            Be professional and clear in your communication
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="form-actions">
-                    <button type="button" class="btn btn-light" onclick="clearMessageForm()">
-                        <i class='bx bx-x'></i>
-                        Clear
-                    </button>
-                    <button type="submit" class="btn btn-primary" id="send-message-btn">
-                        <i class='bx bx-send'></i>
-                        Send Message
-                    </button>
-                </div>
+                <textarea name="message" placeholder="Type your message..." rows="1" required></textarea>
+                <button type="submit"><i class='bx bx-send'></i></button>
             </form>
         </div>
     </div>
-    
-    <!-- Application Timeline -->
-    <div class="content-section timeline-section">
-        <div class="section-header">
-            <div class="section-title-container">
-                <h2 class="section-title">
-                    <i class='bx bx-history'></i> Application Timeline
-                </h2>
-                <span class="section-subtitle">Track your application progress and communication history</span>
-            </div>
+
+    <!-- Right sidebar -->
+    <div>
+        <!-- Application Timeline -->
+        <div class="ad-card">
+            <h3 class="ad-card-title"><i class='bx bx-git-branch'></i> Application Timeline</h3>
+            <ul class="ad-timeline">
+                {% with s=application.status %}
+                <li class="ad-tl-item">
+                    <div class="ad-tl-dot done"><i class='bx bx-check'></i></div>
+                    <div class="ad-tl-content">
+                        <h4>Applied</h4>
+                        <p>{{ application.applied_at|date:"M d, Y" }}</p>
+                    </div>
+                </li>
+                <li class="ad-tl-item">
+                    <div class="ad-tl-dot {% if s == 'Shortlisted' or s == 'Interview' or s == 'Offered' or s == 'Hired' %}done{% elif s == 'Applied' %}current{% elif s == 'Rejected' %}rejected{% else %}pending{% endif %}">
+                        {% if s == 'Shortlisted' or s == 'Interview' or s == 'Offered' or s == 'Hired' %}<i class='bx bx-check'></i>{% elif s == 'Rejected' %}<i class='bx bx-x'></i>{% else %}<i class='bx bx-loader-alt'></i>{% endif %}
+                    </div>
+                    <div class="ad-tl-content">
+                        <h4>Under Review</h4>
+                        <p>{% if s == 'Applied' %}In progress{% elif s == 'Rejected' %}Application reviewed{% else %}Completed{% endif %}</p>
+                    </div>
+                </li>
+                <li class="ad-tl-item">
+                    <div class="ad-tl-dot {% if s == 'Interview' or s == 'Offered' or s == 'Hired' %}done{% elif s == 'Shortlisted' %}current{% else %}pending{% endif %}">
+                        {% if s == 'Interview' or s == 'Offered' or s == 'Hired' %}<i class='bx bx-check'></i>{% elif s == 'Shortlisted' %}<i class='bx bx-loader-alt'></i>{% else %}<i class='bx bx-minus'></i>{% endif %}
+                    </div>
+                    <div class="ad-tl-content">
+                        <h4>Interview</h4>
+                        <p>{% if s == 'Interview' %}Scheduled{% elif s == 'Offered' or s == 'Hired' %}Completed{% else %}Pending{% endif %}</p>
+                    </div>
+                </li>
+                <li class="ad-tl-item">
+                    <div class="ad-tl-dot {% if s == 'Offered' or s == 'Hired' %}done{% elif s == 'Interview' %}current{% else %}pending{% endif %}">
+                        {% if s == 'Offered' or s == 'Hired' %}<i class='bx bx-check'></i>{% else %}<i class='bx bx-minus'></i>{% endif %}
+                    </div>
+                    <div class="ad-tl-content">
+                        <h4>Decision</h4>
+                        <p>{% if s == 'Offered' %}Offer received{% elif s == 'Hired' %}Hired!{% elif s == 'Rejected' %}Not selected{% else %}Awaiting{% endif %}</p>
+                    </div>
+                </li>
+                {% endwith %}
+            </ul>
         </div>
-        
-        <div class="timeline-container">
-            <div class="timeline">
-                <!-- Application Submitted -->
-                <div class="timeline-item">
-                    <div class="timeline-marker timeline-marker-primary">
-                        <i class='bx bx-send'></i>
-                    </div>
-                    <div class="timeline-content">
-                        <div class="timeline-header">
-                            <h4 class="timeline-title">Application Submitted</h4>
-                            <span class="timeline-date">{{ application.applied_at|date:"F d, Y" }} at {{ application.applied_at|time:"H:i" }}</span>
-                        </div>
-                        <p class="timeline-description">Your application was successfully submitted to {{ application.job.company }}</p>
-                        <div class="timeline-meta">
-                            <span class="timeline-badge">Initial Submission</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Status Changes -->
-                {% if application.status != 'Applied' %}
-                <div class="timeline-item">
-                    <div class="timeline-marker timeline-marker-success">
-                        <i class='bx {% if application.status == "Reviewed" %}bx-check-circle{% elif application.status == "Interview" %}bx-user-voice{% elif application.status == "Accepted" %}bx-trophy{% else %}bx-x-circle{% endif %}'></i>
-                    </div>
-                    <div class="timeline-content">
-                        <div class="timeline-header">
-                            <h4 class="timeline-title">Status Updated: {{ application.status }}</h4>
-                            <span class="timeline-date">{{ application.updated_at|date:"F d, Y" }} at {{ application.updated_at|time:"H:i" }}</span>
-                        </div>
-                        <p class="timeline-description">Application status was updated by the employer</p>
-                        <div class="timeline-meta">
-                            <span class="timeline-badge status-{{ application.status|lower }}">{{ application.status }}</span>
-                        </div>
-                    </div>
-                </div>
+
+        <!-- Quick Actions -->
+        <div class="ad-card">
+            <h3 class="ad-card-title"><i class='bx bx-zap'></i> Quick Actions</h3>
+            <div style="display:flex; flex-direction:column; gap:.5rem;">
+                <a href="{% url 'jobs:job_detail' application.job.id %}" class="btn btn-outline-primary btn-sm" style="justify-content:flex-start;">
+                    <i class='bx bx-link-external'></i> View Full Job Details
+                </a>
+                {% if application.resume %}
+                <a href="{{ application.resume.url }}" target="_blank" class="btn btn-outline-secondary btn-sm" style="justify-content:flex-start;">
+                    <i class='bx bx-download'></i> Download Submitted Resume
+                </a>
                 {% endif %}
-                
-                <!-- Message History -->
-                {% if messages %}
-                    {% for message in messages %}
-                    <div class="timeline-item">
-                        <div class="timeline-marker timeline-marker-info">
-                            <i class='bx bx-message'></i>
-                        </div>
-                        <div class="timeline-content">
-                            <div class="timeline-header">
-                                <h4 class="timeline-title">Message from {{ message.sender.get_full_name }}</h4>
-                                <span class="timeline-date">{{ message.sent_at|date:"F d, Y" }} at {{ message.sent_at|time:"H:i" }}</span>
-                            </div>
-                            <p class="timeline-description">{{ message.content|truncatewords:20 }}</p>
-                            <div class="timeline-meta">
-                                <span class="timeline-badge">
-                                    {% if message.sender == request.user %}You{% else %}Employer{% endif %}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                {% endif %}
+                <a href="{% url 'jobs:my_applications' %}" class="btn btn-outline-secondary btn-sm" style="justify-content:flex-start;">
+                    <i class='bx bx-list-ul'></i> All Applications
+                </a>
             </div>
         </div>
     </div>
 </div>
-
-<!-- Application Detail Specific Styles -->
-<style>
-/* Application Detail Page Styles - Using base.html theme variables */
-
-/* Application Detail Stats - Using base theme */
-.application-detail-container .stats-grid {
-  margin-bottom: var(--spacing-xl);
-}
-
-.application-detail-container .stat-card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.application-detail-container .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-}
-
-.application-detail-container .stat-icon.blue {
-  background: linear-gradient(135deg, var(--primary-color), var(--info-color));
-}
-.application-detail-container .stat-icon.purple {
-  background: linear-gradient(135deg, var(--secondary-color), var(--secondary-hover));
-}
-.application-detail-container .stat-icon.green {
-  background: linear-gradient(135deg, var(--success-color), var(--success-hover));
-}
-.application-detail-container .stat-icon.amber {
-  background: linear-gradient(135deg, var(--warning-color), var(--warning-hover));
-}
-.application-detail-container .stat-icon.red {
-  background: linear-gradient(135deg, var(--danger-color), var(--danger-hover));
-}
-
-/* Main Container - Using base theme */
-.application-detail-container {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xl);
-}
-
-/* Content Sections - Using base card system */
-.application-detail-container .content-section {
-  /* Inherits from base .card styles */
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.application-detail-container .content-section:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-lg);
-}
-
-.application-detail-container .section-header {
-  background: var(--hover-bg);
-  padding: var(--spacing-lg) var(--spacing-xl);
-  border-bottom: 1px solid var(--border-color);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.application-detail-container .section-title-container {
-  flex: 1;
-}
-
-.application-detail-container .section-title {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  font-size: var(--font-size-xl);
-  font-weight: 600;
-  color: var(--heading-color);
-  margin: 0 0 var(--spacing-xs) 0;
-}
-
-.application-detail-container .section-subtitle {
-  font-size: var(--font-size-sm);
-  color: var(--text-light);
-}
-
-/* Application Status Badge - Using base badge system */
-.application-status-badge {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing);
-  border-radius: var(--radius-lg);
-  font-weight: 600;
-  font-size: var(--font-size-sm);
-  border: 1px solid;
-}
-
-.status-applied {
-  background: var(--info-light);
-  color: var(--info-color);
-  border-color: var(--info-color);
-}
-.status-reviewed {
-  background: var(--warning-light);
-  color: var(--warning-color);
-  border-color: var(--warning-color);
-}
-.status-interview {
-  background: var(--warning-light);
-  color: var(--warning-color);
-  border-color: var(--warning-color);
-}
-.status-accepted {
-  background: var(--success-light);
-  color: var(--success-color);
-  border-color: var(--success-color);
-}
-.status-rejected {
-  background: var(--danger-light);
-  color: var(--danger-color);
-  border-color: var(--danger-color);
-}
-
-/* Application Summary Card - Using base spacing */
-.application-summary-card {
-  padding: var(--spacing-xl);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xl);
-}
-
-.job-info-header {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: var(--spacing-xl);
-  align-items: start;
-}
-
-.job-title {
-  font-size: var(--font-size-3xl);
-  font-weight: 700;
-  color: var(--heading-color);
-  margin: 0 0 var(--spacing) 0;
-  line-height: var(--line-height-tight);
-}
-
-.job-meta-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--spacing);
-}
-
-.job-detail-item {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  color: var(--text-light);
-  font-size: var(--font-size-sm);
-}
-
-.job-detail-item i {
-  font-size: var(--font-size-lg);
-  color: var(--primary-color);
-  min-width: var(--font-size-lg);
-}
-
-/* Mini Timeline */
-.application-timeline-mini {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 1.5rem;
-  background: var(--bg-secondary);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-color);
-}
-
-.timeline-item-mini {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.timeline-dot {
-  width: 0.75rem;
-  height: 0.75rem;
-  border-radius: 50%;
-  background: var(--border-color);
-  flex-shrink: 0;
-}
-
-.timeline-dot.active {
-  background: var(--primary-color);
-}
-
-.timeline-label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-color);
-  min-width: 4rem;
-}
-
-.timeline-date {
-  font-size: 0.75rem;
-  color: var(--text-light);
-}
-
-/* Skills Section */
-.skills-match-section {
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--border-color);
-}
-
-.skills-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-color);
-  margin: 0 0 1rem 0;
-}
-
-.skills-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-
-.skill-tag {
-  background: var(--primary-light);
-  color: var(--primary-color);
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-md);
-  font-size: 0.875rem;
-  font-weight: 500;
-  border: 1px solid rgba(67, 97, 238, 0.2);
-  transition: all 0.2s ease;
-}
-
-.skill-tag:hover {
-  background: var(--primary-color);
-  color: white;
-  border-color: var(--primary-color);
-  transform: translateY(-1px);
-}
-
-/* Documents Grid */
-.documents-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 2rem;
-  padding: 2rem;
-}
-
-.document-card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.document-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-}
-
-.document-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.document-icon {
-  width: 3rem;
-  height: 3rem;
-  border-radius: var(--radius-md);
-  background: var(--primary-light);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  color: var(--primary-color);
-  flex-shrink: 0;
-}
-
-.document-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--text-color);
-  margin: 0 0 0.25rem 0;
-}
-
-.document-meta {
-  font-size: 0.875rem;
-  color: var(--text-light);
-}
-
-.document-content {
-  padding: 1.5rem;
-}
-
-/* Cover Letter Styles */
-.cover-letter-preview, .cover-letter-full {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  padding: 1.5rem;
-  line-height: 1.6;
-  color: var(--text-color);
-}
-
-.btn-expand {
-  background: none;
-  border: none;
-  color: var(--primary-color);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: color 0.2s ease;
-}
-
-.btn-expand:hover {
-  color: var(--primary-dark);
-}
-
-/* Resume Preview */
-.resume-preview {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.file-preview-container {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.5rem;
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-}
-
-.file-icon-large {
-  width: 4rem;
-  height: 4rem;
-  background: rgba(220, 38, 38, 0.1);
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  color: #dc2626;
-  flex-shrink: 0;
-}
-
-.file-details {
-  flex: 1;
-}
-
-.file-name {
-  display: block;
-  font-weight: 600;
-  color: var(--text-color);
-  margin-bottom: 0.25rem;
-  word-break: break-word;
-}
-
-.file-type {
-  font-size: 0.875rem;
-  color: var(--text-light);
-}
-
-.file-actions {
-  display: flex;
-  gap: 1rem;
-}
-
-/* Empty State Mini */
-.empty-state-mini {
-  text-align: center;
-  padding: 2rem;
-  color: var(--text-light);
-}
-
-.empty-state-mini i {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-  opacity: 0.5;
-}
-
-/* Messages Section */
-.messages-container {
-  max-height: 600px;
-  overflow-y: auto;
-}
-
-.messages-thread {
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.message-bubble {
-  display: flex;
-  gap: 1rem;
-  max-width: 80%;
-}
-
-.message-bubble.message-sent {
-  margin-left: auto;
-  flex-direction: row-reverse;
-}
-
-.message-avatar {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 50%;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.message-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.avatar-placeholder {
-  width: 100%;
-  height: 100%;
-  background: var(--primary-color);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.message-content {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  padding: 1rem 1.5rem;
-  flex: 1;
-}
-
-.message-sent .message-content {
-  background: var(--primary-light);
-  border-color: var(--primary-color);
-}
-
-.message-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-}
-
-.message-sender {
-  font-weight: 600;
-  color: var(--text-color);
-  font-size: 0.875rem;
-}
-
-.message-time {
-  font-size: 0.75rem;
-  color: var(--text-light);
-}
-
-.message-body {
-  color: var(--text-color);
-  line-height: 1.5;
-}
-
-/* Message Form */
-.message-form-container {
-  border-top: 1px solid var(--border-color);
-  background: var(--bg-secondary);
-}
-
-.form-header {
-  padding: 1.5rem 2rem 0;
-}
-
-.form-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--text-color);
-  margin: 0;
-}
-
-.message-form {
-  padding: 1.5rem 2rem 2rem;
-}
-
-/* Form customizations for application detail page */
-.application-detail-container .form-control {
-  /* Inherits from base form styles */
-  min-height: 120px;
-}
-
-.form-help {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 0.5rem;
-  font-size: 0.75rem;
-}
-
-.char-counter {
-  color: var(--text-light);
-}
-
-.form-tips {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  color: var(--text-light);
-}
-
-.form-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-}
-
-/* Timeline Styles */
-.timeline-container {
-  padding: 2rem;
-}
-
-.timeline {
-  position: relative;
-  padding-left: 2rem;
-}
-
-.timeline::before {
-  content: '';
-  position: absolute;
-  left: 1rem;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--border-color);
-}
-
-.timeline-item {
-  position: relative;
-  margin-bottom: 2rem;
-  padding-left: 2rem;
-}
-
-.timeline-marker {
-  position: absolute;
-  left: -2rem;
-  top: 0;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1rem;
-  color: white;
-  border: 3px solid var(--card-bg);
-}
-
-.timeline-marker-primary { background: var(--primary-color); }
-.timeline-marker-success { background: var(--success-color); }
-.timeline-marker-info { background: var(--info-color); }
-
-.timeline-content {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
-}
-
-.timeline-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-}
-
-.timeline-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--text-color);
-  margin: 0;
-}
-
-.timeline-date {
-  font-size: 0.875rem;
-  color: var(--text-light);
-}
-
-.timeline-description {
-  color: var(--text-color);
-  line-height: 1.5;
-  margin: 0 0 1rem 0;
-}
-
-.timeline-meta {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.timeline-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.75rem;
-  font-weight: 500;
-  background: var(--primary-light);
-  color: var(--primary-color);
-}
-
-/* Button customizations for application detail page */
-.application-detail-container .btn {
-  /* Inherits from base button styles */
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.application-detail-container .btn:hover {
-  transform: translateY(-1px);
-}
-
-/* Message Actions */
-.message-actions {
-  display: flex;
-  gap: 1rem;
-}
-
-/* Application Detail Responsive Adjustments */
-@media (max-width: 992px) {
-  .job-info-header {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-lg);
-  }
-
-  .documents-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .application-detail-container .section-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--spacing);
-  }
-
-  .message-bubble {
-    max-width: 90%;
-  }
-
-  .timeline {
-    padding-left: var(--spacing-lg);
-  }
-
-  .timeline-item {
-    padding-left: var(--spacing-lg);
-  }
-
-  .timeline-marker {
-    left: calc(-1 * var(--spacing-lg));
-    width: var(--spacing-lg);
-    height: var(--spacing-lg);
-  }
-}
-
-@media (max-width: 576px) {
-  .application-summary-card,
-  .timeline-container,
-  .messages-thread {
-    padding: var(--spacing);
-  }
-
-  .documents-grid {
-    padding: var(--spacing);
-  }
-
-  .job-meta-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .message-bubble {
-    max-width: 95%;
-  }
-}
-
-/* Animation Classes */
-.fade-in {
-  animation: fadeIn 0.5s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.timeline-item {
-  animation: slideInLeft 0.6s ease-out;
-}
-
-@keyframes slideInLeft {
-  from { opacity: 0; transform: translateX(-20px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-/* Application detail styles complete - using base theme system */
-</style>
-
-<!-- Enhanced JavaScript -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize all functionality
-    initNotificationClose();
-    initMessageForm();
-    initCopyApplicationUrl();
-    initScrollToMessageForm();
-    initResumePreview();
-    initThemeHandling();
-    initCharacterCounter();
-    initTimestampUpdates();
-    
-    // Add fade-in animation to sections
-    document.querySelectorAll('.content-section').forEach((section, index) => {
-        section.style.animationDelay = `${index * 0.1}s`;
-        section.classList.add('fade-in');
-    });
-});
-
-// Initialize notification close functionality
-function initNotificationClose() {
-    document.querySelectorAll('.notification-close').forEach(button => {
-        button.addEventListener('click', function() {
-            const notification = this.closest('.notification');
-            hideNotification(notification);
-        });
-    });
-    
-    // Auto-hide notifications after 5 seconds
-    document.querySelectorAll('.notification').forEach(notification => {
-        setTimeout(() => {
-            hideNotification(notification);
-        }, 5000);
-    });
-}
-
-// Hide notification with animation
-function hideNotification(notification) {
-    notification.style.opacity = '0';
-    notification.style.transform = 'translateY(-20px)';
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.remove();
-        }
-    }, 300);
-}
-
-// Initialize message form functionality
-function initMessageForm() {
-    const messageForm = document.querySelector('.message-form');
-    const textarea = document.getElementById('message_content');
-    const sendBtn = document.getElementById('send-message-btn');
-    
-    if (messageForm && textarea) {
-        // Auto-resize textarea
-        textarea.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = Math.min(this.scrollHeight, 200) + 'px';
-        });
-        
-        // Form validation
-        messageForm.addEventListener('submit', function(e) {
-            if (!textarea.value.trim()) {
-                e.preventDefault();
-                showValidationError(textarea, 'Please enter a message');
-                return;
-            }
-            
-            // Show loading state
-            if (sendBtn) {
-                sendBtn.disabled = true;
-                sendBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Sending...';
-            }
-        });
-    }
-}
-
-// Initialize copy application URL functionality
-function initCopyApplicationUrl() {
-    const copyBtn = document.getElementById('copy-application-url');
-    if (copyBtn) {
-        copyBtn.addEventListener('click', function() {
-            const url = window.location.href;
-            navigator.clipboard.writeText(url).then(() => {
-                showNotification('Application URL copied to clipboard!', 'success');
-            }).catch(() => {
-                showNotification('Failed to copy URL', 'error');
-            });
-        });
-    }
-}
-
-// Scroll to message form
-function scrollToMessageForm() {
-    const messageForm = document.getElementById('message-form');
-    if (messageForm) {
-        messageForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        setTimeout(() => {
-            document.getElementById('message_content').focus();
-        }, 500);
-    }
-}
-
-// Clear message form
-function clearMessageForm() {
-    const textarea = document.getElementById('message_content');
-    if (textarea) {
-        textarea.value = '';
-        textarea.style.height = 'auto';
-        updateCharacterCounter();
-    }
-}
-
-// Toggle cover letter display
-function toggleCoverLetter() {
-    const preview = document.querySelector('.cover-letter-preview');
-    const full = document.querySelector('.cover-letter-full');
-    
-    if (preview && full) {
-        if (preview.style.display === 'none') {
-            preview.style.display = 'block';
-            full.style.display = 'none';
-        } else {
-            preview.style.display = 'none';
-            full.style.display = 'block';
-        }
-    }
-}
-
-// Initialize resume preview
-function initResumePreview() {
-    // Placeholder for resume preview functionality
-}
-
-// Preview resume
-function previewResume(url) {
-    window.open(url, '_blank');
-}
-
-// Initialize theme handling
-function initThemeHandling() {
-    const getPreferredTheme = () => {
-        const storedTheme = localStorage.getItem('theme');
-        if (storedTheme) {
-            return storedTheme;
-        }
-        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    };
-
-    const setTheme = (theme) => {
-        document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('theme', theme);
-    };
-
-    setTheme(getPreferredTheme());
-
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-        if (!localStorage.getItem('theme')) {
-            setTheme(e.matches ? 'dark' : 'light');
-        }
-    });
-}
-
-// Initialize character counter
-function initCharacterCounter() {
-    const textarea = document.getElementById('message_content');
-    const counter = document.getElementById('char-counter');
-    
-    if (textarea && counter) {
-        const maxLength = 1000;
-        
-        const updateCounter = () => {
-            const length = textarea.value.length;
-            counter.textContent = `${length}/${maxLength} characters`;
-            
-            if (length > maxLength * 0.9) {
-                counter.style.color = 'var(--warning-color)';
-            } else if (length > maxLength) {
-                counter.style.color = 'var(--danger-color)';
-            } else {
-                counter.style.color = 'var(--text-light)';
-            }
-        };
-        
-        textarea.addEventListener('input', updateCounter);
-        updateCounter();
-    }
-}
-
-// Update character counter (public function)
-function updateCharacterCounter() {
-    const textarea = document.getElementById('message_content');
-    const counter = document.getElementById('char-counter');
-    
-    if (textarea && counter) {
-        const maxLength = 1000;
-        const length = textarea.value.length;
-        counter.textContent = `${length}/${maxLength} characters`;
-    }
-}
-
-// Initialize timestamp updates
-function initTimestampUpdates() {
-    updateRelativeTimestamps();
-    setInterval(updateRelativeTimestamps, 60000); // Update every minute
-}
-
-// Update relative timestamps
-function updateRelativeTimestamps() {
-    document.querySelectorAll('[data-timestamp]').forEach(element => {
-        const timestamp = element.getAttribute('data-timestamp');
-        if (timestamp) {
-            element.textContent = formatRelativeTime(new Date(timestamp));
-        }
-    });
-}
-
-// Format relative time
-function formatRelativeTime(date) {
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffMinutes = Math.ceil(diffTime / (1000 * 60));
-    const diffHours = Math.ceil(diffTime / (1000 * 60 * 60));
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffMinutes < 60) return `${diffMinutes} minutes ago`;
-    if (diffHours < 24) return `${diffHours} hours ago`;
-    if (diffDays === 1) return '1 day ago';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
-    return `${Math.ceil(diffDays / 30)} months ago`;
-}
-
-// Show validation error
-function showValidationError(element, message) {
-    const existingError = element.parentNode.querySelector('.validation-error');
-    if (existingError) {
-        existingError.remove();
-    }
-    
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'validation-error';
-    errorDiv.style.cssText = `
-        color: var(--danger-color);
-        font-size: 0.875rem;
-        margin-top: 0.5rem;
-        animation: shake 0.5s ease-in-out;
-    `;
-    errorDiv.textContent = message;
-    
-    element.parentNode.appendChild(errorDiv);
-    element.style.borderColor = 'var(--danger-color)';
-    element.focus();
-    
-    element.addEventListener('input', function() {
-        if (this.value.trim()) {
-            this.style.borderColor = '';
-            if (errorDiv.parentNode) {
-                errorDiv.remove();
-            }
-        }
-    });
-}
-
-// Show notification
-function showNotification(message, type = 'info') {
-    let notificationsContainer = document.querySelector('.notifications');
-    if (!notificationsContainer) {
-        notificationsContainer = document.createElement('div');
-        notificationsContainer.className = 'notifications';
-        const pageHeader = document.querySelector('.page-header');
-        pageHeader.parentNode.insertBefore(notificationsContainer, pageHeader.nextSibling);
-    }
-    
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    let icon = 'bx-info-circle';
-    if (type === 'success') icon = 'bx-check-circle';
-    if (type === 'error') icon = 'bx-error';
-    if (type === 'warning') icon = 'bx-error-circle';
-    
-    notification.innerHTML = `
-        <i class='bx ${icon}'></i>
-        <p>${message}</p>
-        <button class="notification-close"><i class='bx bx-x'></i></button>
-    `;
-    
-    notificationsContainer.appendChild(notification);
-    
-    notification.querySelector('.notification-close').addEventListener('click', function() {
-        hideNotification(notification);
-    });
-    
-    setTimeout(() => { hideNotification(notification); }, 5000);
-}
-
-// Add shake animation
-const shakeStyle = document.createElement('style');
-shakeStyle.textContent = `
-    @keyframes shake {
-        0% { transform: translateX(0); }
-        25% { transform: translateX(-5px); }
-        50% { transform: translateX(5px); }
-        75% { transform: translateX(-5px); }
-        100% { transform: translateX(0); }
-    }
-`;
-document.head.appendChild(shakeStyle);
-</script>
 {% endblock %}

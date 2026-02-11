@@ -1,0 +1,146 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Tailor Resume for {{ job.title }}{% endblock %}
+
+{% block content %}
+<style>
+/* ── Select Resume Page ── */
+.sr-page { max-width: 960px; margin: 0 auto; }
+.sr-header { margin-bottom: 2rem; }
+.sr-header h1 { font-size: 1.6rem; font-weight: 700; color: var(--heading-color); margin-bottom: .25rem; }
+.sr-header p  { color: var(--text-muted); font-size: .95rem; }
+
+.sr-job-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.sr-job-icon {
+    width: 48px; height: 48px;
+    background: linear-gradient(135deg, var(--primary-color), #6f42c1);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 1.4rem; flex-shrink: 0;
+}
+.sr-job-info h3 { font-size: 1.1rem; font-weight: 600; color: var(--heading-color); margin: 0; }
+.sr-job-info span { color: var(--text-muted); font-size: .85rem; }
+
+/* Resume cards */
+.sr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+.sr-card {
+    background: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: all .2s;
+    position: relative;
+}
+.sr-card:hover { border-color: var(--primary-color); transform: translateY(-2px); }
+.sr-card.selected { border-color: var(--primary-color); background: rgba(79,70,229,.06); }
+.sr-card .check-badge {
+    position: absolute; top: 10px; right: 10px;
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--primary-color); color: #fff;
+    display: none; align-items: center; justify-content: center;
+    font-size: .8rem;
+}
+.sr-card.selected .check-badge { display: flex; }
+.sr-card h4 { font-size: 1rem; font-weight: 600; color: var(--heading-color); margin-bottom: .35rem; }
+.sr-card .meta { font-size: .8rem; color: var(--text-muted); }
+
+.sr-skip {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: var(--text-muted);
+    font-size: .88rem;
+}
+.sr-skip a { color: var(--primary-color); text-decoration: underline; cursor: pointer; }
+
+.sr-actions { display: flex; justify-content: flex-end; gap: .75rem; }
+</style>
+
+<div class="sr-page">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb" style="margin-bottom:1rem;">
+        <div class="breadcrumb-item">
+            <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
+            <i class='bx bx-chevron-right'></i>
+        </div>
+        <div class="breadcrumb-item">
+            <a href="{% url 'jobs:job_detail' job.id %}" class="breadcrumb-link">{{ job.title }}</a>
+            <i class='bx bx-chevron-right'></i>
+        </div>
+        <div class="breadcrumb-item"><span>AI Tailor</span></div>
+    </div>
+
+    <div class="sr-header">
+        <h1><i class='bx bx-bot' style="color:var(--primary-color)"></i> AI Resume Tailor</h1>
+        <p>Our AI agent will analyse your resume against this job and suggest what to change for the best fit.</p>
+    </div>
+
+    <!-- Target job card -->
+    <div class="sr-job-card">
+        <div class="sr-job-icon"><i class='bx bx-briefcase'></i></div>
+        <div class="sr-job-info">
+            <h3>{{ job.title }}</h3>
+            <span>{{ job.company }} &middot; {{ job.location }} &middot; {{ job.job_type }}</span>
+        </div>
+    </div>
+
+    <form method="post" id="tailorForm">
+        {% csrf_token %}
+        <input type="hidden" name="resume_id" id="selectedResumeId" value="">
+
+        {% if user_resumes %}
+        <h2 style="font-size:1.1rem; font-weight:600; color:var(--heading-color); margin-bottom:.75rem;">
+            Select a base resume <span style="font-weight:400; color:var(--text-muted); font-size:.85rem;">(optional)</span>
+        </h2>
+        <div class="sr-grid">
+            {% for r in user_resumes %}
+            <div class="sr-card" data-id="{{ r.id }}" onclick="selectResume(this, {{ r.id }})">
+                <div class="check-badge"><i class='bx bx-check'></i></div>
+                <h4>{{ r.title }}</h4>
+                <div class="meta">
+                    Template: {{ r.template.name }}<br>
+                    Updated: {{ r.updated_at|date:"M d, Y" }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="sr-skip">
+            Or <a onclick="document.getElementById('selectedResumeId').value=''; document.getElementById('tailorForm').submit();">
+                skip &amp; use your profile data directly
+            </a>
+        </div>
+        {% else %}
+        <div style="background:var(--card-bg); border:1px solid var(--border-color); border-radius:12px; padding:1.5rem; text-align:center; margin-bottom:1.5rem;">
+            <i class='bx bx-file' style="font-size:2rem; color:var(--text-muted);"></i>
+            <p style="color:var(--text-muted); margin:.5rem 0;">You don't have any resumes yet. No worries — the AI will use your profile data.</p>
+        </div>
+        {% endif %}
+
+        <div class="sr-actions">
+            <a href="{% url 'jobs:job_detail' job.id %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+                <i class='bx bx-analyse' style="margin-right:.3rem;"></i> Start AI Analysis
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+function selectResume(el, id) {
+    document.querySelectorAll('.sr-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    document.getElementById('selectedResumeId').value = id;
+}
+</script>
+{% endblock %}

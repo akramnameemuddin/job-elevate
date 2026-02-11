@@ -83,18 +83,45 @@ class UserJobPreferenceForm(forms.ModelForm):
             'preferred_job_types',
             'preferred_locations',
             'min_salary_expectation',
+            'max_salary_expectation',
+            'salary_currency',
+            'salary_period',
             'remote_preference',
-            'industry_preferences'
+            'industry_preferences',
+            'experience_level',
         ]
         widgets = {
             'min_salary_expectation': forms.NumberInput(attrs={
                 'class': 'form-control',
-                'min': '25000',
-                'max': '200000',
-                'step': '5000',
-                'placeholder': 'Minimum expected salary'
+                'min': '0',
+                'step': '1000',
+                'placeholder': 'e.g. 500000'
+            }),
+            'max_salary_expectation': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+                'step': '1000',
+                'placeholder': 'e.g. 1200000'
+            }),
+            'salary_currency': forms.Select(attrs={
+                'class': 'form-select',
+            }),
+            'salary_period': forms.Select(attrs={
+                'class': 'form-select',
             }),
             'remote_preference': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'experience_level': forms.Select(
+                choices=[
+                    ('', 'Select experience level'),
+                    ('fresher', 'Fresher (0-1 years)'),
+                    ('junior', 'Junior (1-3 years)'),
+                    ('mid', 'Mid Level (3-5 years)'),
+                    ('senior', 'Senior (5-8 years)'),
+                    ('lead', 'Lead (8-12 years)'),
+                    ('principal', 'Principal (12+ years)'),
+                ],
+                attrs={'class': 'form-select'}
+            ),
         }
 
     def __init__(self, *args, **kwargs):
@@ -131,3 +158,11 @@ class UserJobPreferenceForm(forms.ModelForm):
         """Ensure job types is a list"""
         job_types = self.cleaned_data.get('preferred_job_types', [])
         return list(job_types) if job_types else []
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        min_sal = cleaned_data.get('min_salary_expectation')
+        max_sal = cleaned_data.get('max_salary_expectation')
+        if min_sal and max_sal and min_sal > max_sal:
+            raise forms.ValidationError("Minimum salary cannot be greater than maximum salary.")
+        return cleaned_data

@@ -18,6 +18,20 @@ from dashboard.notifications import notify_job_application, notify_application_s
 logger = logging.getLogger(__name__)
 recommender = HybridRecommender()
 
+
+def _get_match_reason(score_data):
+    """Generate a short reason string from score data."""
+    pct = score_data.get('skill_match', 0)
+    if pct >= 80:
+        return 'Excellent skill match'
+    elif pct >= 60:
+        return 'Strong skill match'
+    elif pct >= 40:
+        return 'Good skill match'
+    elif pct >= 20:
+        return 'Partial skill match'
+    return 'Potential opportunity'
+
 @login_required
 def job_listings(request):
     """Display job listings with filtering, recommendations, bookmarks, and applications"""
@@ -31,6 +45,7 @@ def job_listings(request):
     search_query = request.GET.get('search', '').strip()
     location_filter = request.GET.get('location', '').strip()
     job_type_filter = request.GET.get('job_type', '').strip()
+    sort_by = request.GET.get('sort', 'match')  # Default sort by match
     
     # Apply filters if provided
     if search_query:
@@ -47,11 +62,95 @@ def job_listings(request):
     if job_type_filter:
         jobs = jobs.filter(job_type=job_type_filter)
     
-    # Get personalized recommendations (limit to top recommendations)
+    # Compute match scores for ALL jobs using the content-based recommender
+    job_match_scores = {}
+    try:
+        content_rec = recommender.content_recommender
+        user_skills = request.user.get_all_skills_list()
+        user_experience = request.user.experience
+        
+        # Load user preferences
+        try:
+            job_prefs = request.user.job_preferences
+            pref_locations = job_prefs.preferred_locations or []
+            pref_job_types = job_prefs.preferred_job_types or []
+            pref_industries = job_prefs.industry_preferences or []
+            pref_min_salary = job_prefs.min_salary_expectation
+            pref_remote = job_prefs.remote_preference
+        except UserJobPreference.DoesNotExist:
+            pref_locations = []
+            pref_job_types = []
+            pref_industries = []
+            pref_min_salary = None
+            pref_remote = False
+        
+        # Compute TF-IDF text similarity for all jobs at once
+        text_scores = content_rec.calculate_text_similarity(request.user, jobs)
+        
+        for job in jobs:
+            skill_match = content_rec.calculate_skill_match(user_skills, job.skills)
+            text_sim = text_scores.get(job.id, 0.0)
+            exp_match = content_rec.calculate_experience_match(user_experience, job.experience)
+            loc_match = content_rec.calculate_location_match(pref_locations, job.location)
+            jt_match = content_rec.calculate_job_type_match(pref_job_types, job.job_type)
+            ind_match = content_rec.calculate_industry_match(
+                pref_industries, job.description, job.title, job.company
+            )
+            sal_match = content_rec.calculate_salary_match(pref_min_salary, job.salary)
+            
+            pref_score = (
+                0.30 * exp_match +
+                0.25 * loc_match +
+                0.20 * jt_match +
+                0.15 * ind_match +
+                0.10 * sal_match
+            )
+            
+            score = (
+                content_rec.SKILL_WEIGHT * skill_match +
+                content_rec.TEXT_WEIGHT * text_sim +
+                content_rec.PREF_WEIGHT * pref_score
+            )
+            
+            if pref_remote and (job.job_type == 'Remote' or 'remote' in job.location.lower()):
+                score += 0.05
+            
+            score = min(score, 1.0)
+            job_match_scores[job.id] = {
+                'score': score,
+                'percentage': int(score * 100),
+                'skill_match': int(skill_match * 100),
+            }
+    except Exception as e:
+        logger.error(f"Error computing match scores for user {request.user.id}: {str(e)}")
+    
+    # Sort jobs by match score if requested (default), else by date
+    jobs_list = list(jobs)
+    if sort_by == 'match' and job_match_scores:
+        jobs_list.sort(key=lambda j: job_match_scores.get(j.id, {}).get('score', 0), reverse=True)
+    elif sort_by == 'date':
+        jobs_list.sort(key=lambda j: j.created_at, reverse=True)
+    elif sort_by == 'salary':
+        # Simple salary sort - jobs with salary first
+        jobs_list.sort(key=lambda j: j.salary or '', reverse=True)
+    
+    # Get personalized recommendations — use the SAME content-based scores
+    # as the main table so percentages are consistent across the page.
     recommended_jobs = []
     try:
-        all_recommendations = recommender.recommend_jobs(request.user)
-        recommended_jobs = [rec for rec in all_recommendations if rec.get('score', 0) > 0.3][:6]
+        if job_match_scores:
+            # Build recommended list from the content-based scores (already computed)
+            for job in jobs_list:
+                score_data = job_match_scores.get(job.id, {})
+                raw_score = score_data.get('score', 0)
+                if raw_score > 0.3:
+                    recommended_jobs.append({
+                        'job': job,
+                        'score': raw_score,
+                        'reason': _get_match_reason(score_data),
+                    })
+            recommended_jobs.sort(key=lambda r: r['score'], reverse=True)
+            recommended_jobs = recommended_jobs[:6]
     except Exception as e:
         logger.error(f"Error getting recommendations for user {request.user.id}: {str(e)}")
         recommended_jobs = []
@@ -70,7 +169,7 @@ def job_listings(request):
     ).select_related('job').order_by('-applied_at')
     
     # Pagination for main job listings
-    paginator = Paginator(jobs, 20)  # Show 20 jobs per page
+    paginator = Paginator(jobs_list, 20)  # Show 20 jobs per page
     page_number = request.GET.get('page')
     try:
         jobs_page = paginator.page(page_number)
@@ -87,6 +186,7 @@ def job_listings(request):
     # Context for the template
     context = {
         'jobs': jobs_page,
+        'job_match_scores': job_match_scores,
         'recommended_jobs': recommended_jobs,
         'bookmarked_jobs': bookmarked_jobs,
         'applied_jobs': applied_jobs,
@@ -95,7 +195,8 @@ def job_listings(request):
         'search_query': search_query,
         'location_filter': location_filter,
         'job_type_filter': job_type_filter,
-        'total_jobs': jobs.count(),
+        'sort_by': sort_by,
+        'total_jobs': len(jobs_list),
         'has_filters': bool(search_query or location_filter or job_type_filter),
     }
     
@@ -222,6 +323,9 @@ def job_detail(request, job_id):
     skills_qualified = 0
     overall_match_score = 0
     
+    # Also get user's profile skills (from technical_skills CSV field) for broader matching
+    user_profile_skills_lower = [s.lower() for s in request.user.get_all_skills_list()]
+    
     # If no detailed skill requirements, fall back to basic job.skills
     if total_skills_required == 0 and job.skills:
         from assessments.models import Skill
@@ -238,11 +342,11 @@ def job_detail(request, job_id):
                 
                 # If skill doesn't exist in database, create placeholder
                 if not skill:
-                    # Check if user has this skill by name (case-insensitive)
+                    # Check if user has this skill by name (case-insensitive) via verified profiles OR profile skills
                     user_has_skill = any(
                         profile.skill.name.lower() == skill_name.lower() 
                         for profile in user_skill_profiles.values()
-                    )
+                    ) or skill_name.lower() in user_profile_skills_lower
                     
                     # Create a pseudo-skill object for display
                     class SkillPlaceholder:
@@ -254,8 +358,8 @@ def job_detail(request, job_id):
                         'skill': SkillPlaceholder(skill_name),
                         'skill_id': None,
                         'name': skill_name,
-                        'required_proficiency': 0,
-                        'user_proficiency': 5.0 if user_has_skill else 0,
+                        'is_qualified': user_has_skill,
+                        'has_profile': user_has_skill,
                         'not_in_db': True
                     }
                     
@@ -281,13 +385,18 @@ def job_detail(request, job_id):
                 
                 user_level = user_profile.verified_level if user_profile else 0
                 
+                # If no verified level, check if user has the skill in their profile
+                has_profile_skill = skill.name.lower() in user_profile_skills_lower
+                if user_level == 0 and has_profile_skill:
+                    user_level = 3.0  # Profile-claimed skill gets a baseline level
+                
                 # Create basic skill analysis (no detailed requirements)
                 skill_analysis = {
                     'skill': skill,
                     'skill_id': skill.id,
                     'name': skill.name,
-                    'required_proficiency': 0,
-                    'user_proficiency': user_level,
+                    'is_qualified': user_level > 0,
+                    'has_profile': user_level > 0,
                     'not_in_db': False
                 }
                 
@@ -304,59 +413,59 @@ def job_detail(request, job_id):
                 continue
     
     # If we have JobSkillRequirement records, do detailed analysis
+    # Qualification threshold: user is "qualified" if they have >= 70% of required proficiency
+    QUALIFICATION_THRESHOLD = 0.70
+    
     for req in skill_requirements:
         user_profile = user_skill_profiles.get(req.skill_id)
         user_level = user_profile.verified_level if user_profile else 0
         is_claimed = req.skill_id in user_claimed_skills
         
+        # Also check profile skills for broader matching
+        has_profile_skill = req.skill.name.lower() in user_profile_skills_lower
+        if user_level == 0 and has_profile_skill:
+            user_level = 3.0
+        
+        # Determine qualification status using 70% threshold
+        threshold_level = req.required_proficiency * QUALIFICATION_THRESHOLD
+        is_qualified = user_level >= threshold_level and user_level > 0
+        
         skill_analysis = {
             'skill': req.skill,
             'skill_id': req.skill_id,
-            'required_proficiency': req.required_proficiency,
-            'user_proficiency': user_level,
-            'gap': max(0, req.required_proficiency - user_level),
+            'name': req.skill.name,
             'is_mandatory': req.is_mandatory,
-            'criticality': req.get_criticality_display_text(),
+            'skill_type': req.skill_type,
             'weight': req.weight,
-            'has_profile': user_profile is not None,
+            'is_qualified': is_qualified,
+            'has_profile': user_profile is not None or has_profile_skill,
             'is_claimed': is_claimed,
-            'proficiency_percentage': (user_level / req.required_proficiency * 100) if req.required_proficiency > 0 else 0
+            'not_in_db': False,
         }
         
         # Categorize skills
-        if user_level >= req.required_proficiency:
+        if is_qualified:
             verified_skills.append(skill_analysis)
             skills_qualified += 1
             overall_match_score += req.weight
         elif user_level > 0:
             partial_skills.append(skill_analysis)
-            overall_match_score += (user_level / req.required_proficiency) * req.weight
+            overall_match_score += (user_level / req.required_proficiency) * req.weight if req.required_proficiency > 0 else 0
         else:
             missing_skills.append(skill_analysis)
     
     # Calculate overall match percentage
     total_weight = sum(req.weight for req in skill_requirements)
     if total_weight > 0:
-        # Detailed skill requirements with weights
         match_percentage = int((overall_match_score / total_weight * 100))
     elif total_skills_required > 0:
-        # Basic skill matching (from job.skills)
         match_percentage = int((overall_match_score / total_skills_required * 100))
     else:
         match_percentage = 0
     
-    # Check eligibility
+    # Check eligibility - allow apply for all users (no mandatory lock)
     can_apply = True
     mandatory_skills_met = True
-    
-    for req in skill_requirements:
-        if req.is_mandatory:
-            user_profile = user_skill_profiles.get(req.skill_id)
-            user_level = user_profile.verified_level if user_profile else 0
-            if user_level < req.required_proficiency:
-                can_apply = False
-                mandatory_skills_met = False
-                break
     
     # Recommend assessment if skills are missing
     recommended_assessments = []
@@ -368,8 +477,17 @@ def job_detail(request, job_id):
             is_active=True
         ).select_related('skill')[:5]
     
+    # Get user's site-built resumes for the apply modal
+    from resume_builder.models import Resume, TailoredResume
+    user_resumes = Resume.objects.filter(user=request.user).order_by('-updated_at')
+    
+    # Get AI-tailored resumes (applied/reviewed status) for this job or others
+    tailored_resumes = TailoredResume.objects.filter(
+        user=request.user,
+        status__in=['applied', 'reviewed']
+    ).select_related('job').order_by('-updated_at')
+    
     # Create simple skill name lists for sidebar display
-    # Include both fully verified and partial skills in matching
     matching_skills_simple = [s['skill'].name for s in verified_skills]
     
     # Combine missing and partial skills for "Skills to Develop"
@@ -377,9 +495,7 @@ def job_detail(request, job_id):
     for s in partial_skills:
         skills_to_develop.append({
             'name': s['skill'].name,
-            'status': 'partial',
-            'user_level': s.get('user_proficiency', 0),
-            'required_level': s.get('required_proficiency', 0),
+            'status': 'needs_improvement',
             'skill_id': s.get('skill_id'),
             'not_in_db': s.get('not_in_db', False)
         })
@@ -387,8 +503,6 @@ def job_detail(request, job_id):
         skills_to_develop.append({
             'name': s.get('name', s['skill'].name),
             'status': 'missing',
-            'user_level': 0,
-            'required_level': s.get('required_proficiency', 0),
             'skill_id': s.get('skill_id'),
             'not_in_db': s.get('not_in_db', False)
         })
@@ -417,6 +531,8 @@ def job_detail(request, job_id):
         'can_apply': can_apply,
         'mandatory_skills_met': mandatory_skills_met,
         'recommended_assessments': recommended_assessments,
+        'user_resumes': user_resumes,
+        'tailored_resumes': tailored_resumes,
     }
     
     return render(request, 'jobs/job_detail.html', context)
@@ -462,14 +578,61 @@ def apply_for_job(request, job_id):
     try:
         # Get application data
         cover_letter = request.POST.get('cover_letter', '')
-        resume = request.FILES.get('resume')
+        resume_id = request.POST.get('resume_id')
+        tailored_resume_id = request.POST.get('tailored_resume_id')
+        
+        # Get the selected resume's PDF file
+        resume_file = None
+        selected_resume_title = None
+        
+        if tailored_resume_id:
+            # User selected an AI-tailored resume
+            from resume_builder.models import TailoredResume
+            try:
+                tailored = TailoredResume.objects.get(id=tailored_resume_id, user=request.user)
+                selected_resume_title = f"AI Tailored for {tailored.job.title}"
+                # Generate tailored PDF using the ReportLab engine
+                try:
+                    from resume_builder.views import _build_tailored_context, _get_resume_template
+                    from resume_builder.pdf_generator import generate_resume_pdf
+                    from django.core.files.base import ContentFile
+
+                    ctx = _build_tailored_context(tailored, request.user)
+                    user_profile = ctx.get('user_profile', request.user)
+
+                    # Get the resume object for colour/toggle info
+                    resume_obj = tailored.base_resume if tailored.base_resume else None
+
+                    pdf_bytes = generate_resume_pdf(user_profile, resume=resume_obj, context=ctx)
+                    if pdf_bytes:
+                        filename = f"{request.user.full_name.replace(' ', '_')}_Tailored.pdf"
+                        resume_file = ContentFile(pdf_bytes, name=filename)
+                except Exception as pdf_err:
+                    logger.warning(f"Failed to generate tailored PDF: {pdf_err}")
+                    # Fall back to base resume PDF if available
+                    if tailored.base_resume and tailored.base_resume.pdf_file:
+                        resume_file = tailored.base_resume.pdf_file
+
+                tailored.status = 'submitted'
+                tailored.save()
+            except TailoredResume.DoesNotExist:
+                pass
+        elif resume_id:
+            from resume_builder.models import Resume
+            try:
+                site_resume = Resume.objects.get(id=resume_id, user=request.user)
+                selected_resume_title = site_resume.title
+                if site_resume.pdf_file:
+                    resume_file = site_resume.pdf_file
+            except Resume.DoesNotExist:
+                pass
         
         # Create the application
         application = Application.objects.create(
             job=job,
             applicant=request.user,
             cover_letter=cover_letter,
-            resume=resume,
+            resume=resume_file,
             status='Applied'
         )
 
@@ -571,12 +734,20 @@ def bookmarked_jobs(request):
 
 @login_required
 def recommended_jobs(request):
-    """Display personalized job recommendations"""
+    """Display personalized job recommendations using content-based scoring."""
     try:
-        recommended_jobs = recommender.recommend_jobs(request.user, limit=50)
+        # Use the SAME content-based recommender as the main listings page
+        content_rec = recommender.content_recommender
+        raw_recommendations = content_rec.recommend_jobs(request.user, limit=50)
     except Exception as e:
         logger.error(f"Error getting recommendations for user {request.user.id}: {str(e)}")
-        recommended_jobs = []
+        raw_recommendations = []
+    
+    # Convert decimal scores (0-1) to percentage values for display
+    recommended_jobs = []
+    for rec in raw_recommendations:
+        rec['score'] = int(rec.get('score', 0) * 100)
+        recommended_jobs.append(rec)
     
     # Get user's applied job IDs for checking
     applied_job_ids = Application.objects.filter(applicant=request.user).values_list('job_id', flat=True)
@@ -584,10 +755,10 @@ def recommended_jobs(request):
     # Get user's bookmarked job IDs for checking
     bookmarked_job_ids = JobBookmark.objects.filter(user=request.user).values_list('job_id', flat=True)
     
-    # Calculate statistics (convert decimal scores to percentages)
-    high_match_count = sum(1 for rec in recommended_jobs if rec.get('score', 0) * 100 > 80)
-    medium_match_count = sum(1 for rec in recommended_jobs if 60 <= rec.get('score', 0) * 100 <= 80)
-    low_match_count = sum(1 for rec in recommended_jobs if rec.get('score', 0) * 100 < 60)
+    # Calculate statistics (scores are now in percentage form)
+    high_match_count = sum(1 for rec in recommended_jobs if rec.get('score', 0) > 80)
+    medium_match_count = sum(1 for rec in recommended_jobs if 60 <= rec.get('score', 0) <= 80)
+    low_match_count = sum(1 for rec in recommended_jobs if rec.get('score', 0) < 60)
     
     context = {
         'recommended_jobs': recommended_jobs,
@@ -621,6 +792,13 @@ def update_job_preferences(request):
                 preferences = form.save(commit=False)
                 preferences.user = request.user
                 preferences.save()
+                
+                # Sync preferred location to User model for recruiter visibility
+                if preferences.preferred_locations:
+                    request.user.preferred_location = preferences.preferred_locations[0]
+                else:
+                    request.user.preferred_location = ''
+                request.user.save(update_fields=['preferred_location'])
 
                 messages.success(request, "Your job preferences have been updated successfully!")
                 return redirect('jobs:recommended_jobs')
@@ -653,6 +831,23 @@ def update_job_preferences(request):
         ('Construction', 'Construction'),
         ('Transportation', 'Transportation'),
         ('Food Service', 'Food Service'),
+        ('Consulting', 'Consulting'),
+        ('Government', 'Government'),
+        ('E-commerce', 'E-commerce'),
+        ('Telecommunications', 'Telecommunications'),
+        ('Energy', 'Energy'),
+    ]
+    
+    currency_choices = UserJobPreference.CURRENCY_CHOICES
+    salary_period_choices = UserJobPreference.SALARY_PERIOD_CHOICES
+    
+    experience_level_choices = [
+        ('fresher', 'Fresher (0-1 years)'),
+        ('junior', 'Junior (1-3 years)'),
+        ('mid', 'Mid Level (3-5 years)'),
+        ('senior', 'Senior (5-8 years)'),
+        ('lead', 'Lead (8-12 years)'),
+        ('principal', 'Principal (12+ years)'),
     ]
 
     context = {
@@ -660,6 +855,9 @@ def update_job_preferences(request):
         'preferences': preferences,
         'job_types': job_types,
         'industry_choices': industry_choices,
+        'currency_choices': currency_choices,
+        'salary_period_choices': salary_period_choices,
+        'experience_level_choices': experience_level_choices,
     }
 
     return render(request, 'jobs/job_preferences.html', context)
@@ -753,66 +951,75 @@ def send_application_message(request, application_id):
 @login_required
 def job_analytics(request):
     """Job market analytics and trends"""
-    # Only show this to paid members or premium users
-    # if not request.user.is_premium:
-    #     messages.warning(request, "This feature is available only for premium members.")
-    #     return redirect('jobs:job_listings')
-    
-    # Get top skills in demand
-    top_skills = []
+    open_jobs = Job.objects.filter(status='Open')
+
+    # ── Top skills in demand ──
     skill_counts = {}
-    
-    for job in Job.objects.filter(status='Open'):
+    for job in open_jobs:
         for skill in job.skills:
-            skill = skill.lower().strip()
-            if skill in skill_counts:
-                skill_counts[skill] += 1
-            else:
-                skill_counts[skill] = 1
-    
-    # Sort skills by count and get top 10
+            s = skill.lower().strip()
+            skill_counts[s] = skill_counts.get(s, 0) + 1
     top_skills = sorted(skill_counts.items(), key=lambda x: x[1], reverse=True)[:10]
-    
-    # Get job type distribution
-    job_type_counts = Job.objects.filter(status='Open').values('job_type').annotate(
+
+    # ── Job type distribution ──
+    job_type_counts = open_jobs.values('job_type').annotate(
         count=Count('job_type')
     ).order_by('-count')
-    
-    # Get location distribution
+
+    # ── Location distribution ──
     location_counts = {}
-    for job in Job.objects.filter(status='Open'):
-        # Simplify location to just city or state
-        location_parts = job.location.split(',')
-        simple_location = location_parts[0].strip()
-        
-        if simple_location in location_counts:
-            location_counts[simple_location] += 1
-        else:
-            location_counts[simple_location] = 1
-    
-    # Sort locations by count and get top 10
+    for job in open_jobs:
+        loc = job.location.split(',')[0].strip()
+        location_counts[loc] = location_counts.get(loc, 0) + 1
     top_locations = sorted(location_counts.items(), key=lambda x: x[1], reverse=True)[:10]
-    
-    # Get user's skill gaps compared to market demand
-    user_skills = set([skill.lower().strip() for skill in request.user.get_skills_list()])
-    
-    # Identify skills in high demand that user doesn't have
+
+    # ── Experience level distribution ──
+    exp_buckets = {'Entry (0-1y)': 0, 'Junior (1-3y)': 0, 'Mid (3-5y)': 0, 'Senior (5+y)': 0}
+    for job in open_jobs:
+        exp = job.experience or 0
+        if exp <= 1:
+            exp_buckets['Entry (0-1y)'] += 1
+        elif exp <= 3:
+            exp_buckets['Junior (1-3y)'] += 1
+        elif exp <= 5:
+            exp_buckets['Mid (3-5y)'] += 1
+        else:
+            exp_buckets['Senior (5+y)'] += 1
+    experience_distribution = [{'level': k, 'count': v} for k, v in exp_buckets.items() if v > 0]
+
+    # ── Salary insights ──
+    salary_jobs = open_jobs.exclude(salary__isnull=True).exclude(salary='')
+    salary_data = []
+    for job in salary_jobs[:20]:
+        salary_data.append({'title': job.title, 'salary': job.salary, 'company': job.company})
+
+    # ── Skills the user should learn ──
+    user_skills = set(s.lower().strip() for s in request.user.get_skills_list())
     recommended_skills = []
     for skill, count in top_skills:
         if skill not in user_skills and count > 1:
-            recommended_skills.append({
-                'skill': skill,
-                'demand_count': count
-            })
-    
+            recommended_skills.append({'skill': skill, 'demand_count': count})
+
+    # ── Skill overlap score ──
+    if top_skills:
+        market_skills = set(s for s, _ in top_skills)
+        overlap = len(user_skills & market_skills)
+        skill_overlap_pct = round(overlap / len(market_skills) * 100)
+    else:
+        skill_overlap_pct = 0
+
     context = {
-        'total_jobs': Job.objects.filter(status='Open').count(),
+        'total_jobs': open_jobs.count(),
         'top_skills': top_skills,
         'job_type_distribution': job_type_counts,
         'top_locations': top_locations,
-        'recommended_skills': recommended_skills[:5]
+        'recommended_skills': recommended_skills[:5],
+        'experience_distribution': experience_distribution,
+        'salary_data': salary_data,
+        'skill_overlap_pct': skill_overlap_pct,
+        'user_skill_count': len(user_skills),
     }
-    
+
     return render(request, 'jobs/job_analytics.html', context)
 
 @login_required

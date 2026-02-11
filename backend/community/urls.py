@@ -7,6 +7,11 @@ urlpatterns = [
     # Main community view
     path('', views.community_view, name='community'),
     
+    # Events
+    path('events/', views.events_view, name='events'),
+    path('toggle-event-registration/', views.toggle_event_registration, name='toggle_event_registration'),
+    path('toggle-event-bookmark/', views.toggle_event_bookmark, name='toggle_event_bookmark'),
+    
     # AJAX endpoints for interactions - fix URLs to match JavaScript calls
     path('toggle-like/', views.toggle_like, name='toggle_like'),
     path('toggle-follow/', views.toggle_follow, name='toggle_follow'),

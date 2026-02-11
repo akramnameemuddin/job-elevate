@@ -3,7 +3,8 @@ import os
 import environ  # Make sure this is installed
 
 env = environ.Env()
-environ.Env.read_env()  # Reads .env if local, or Render env vars
+# Explicitly point to the .env file next to settings.py
+environ.Env.read_env(os.path.join(os.path.dirname(__file__), '.env'))
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -53,6 +54,7 @@ INSTALLED_APPS = [
     'dashboard',
     'recruiter',
     'resume_builder',
+    'agents',
 ]
 
 MIDDLEWARE = [
