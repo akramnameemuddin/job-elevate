@@ -1,0 +1,134 @@
+{
+  "model_name": "Random Forest Classifier",
+  "n_estimators": 200,
+  "training_time_seconds": 1.87,
+  "dataset": {
+    "n_real_samples": 21,
+    "n_synthetic_samples": 2000,
+    "n_total_samples": 2021,
+    "positive_ratio": 0.3542800593765463,
+    "feature_names": [
+      "skill_match_ratio",
+      "total_matched_skills",
+      "total_required_skills",
+      "missing_mandatory_count",
+      "avg_matched_proficiency",
+      "min_matched_proficiency",
+      "avg_proficiency_gap",
+      "max_proficiency_gap",
+      "overconfidence_avg",
+      "experience_delta",
+      "experience_ratio",
+      "meets_experience_req",
+      "education_level",
+      "cgpa_normalized",
+      "num_projects",
+      "num_certifications",
+      "num_internships",
+      "has_work_experience",
+      "profile_completeness",
+      "assessment_pass_rate",
+      "avg_assessment_score",
+      "num_verified_skills",
+      "text_similarity"
+    ]
+  },
+  "metrics": {
+    "accuracy": 0.7284,
+    "precision": 0.6813,
+    "recall": 0.4336,
+    "f1_score": 0.5299,
+    "roc_auc": 0.7643,
+    "cv_f1_mean": 0.4219,
+    "cv_f1_std": 0.0656
+  },
+  "confusion_matrix": [
+    [
+      233,
+      29
+    ],
+    [
+      81,
+      62
+    ]
+  ],
+  "classification_report": {
+    "Not Fit": {
+      "precision": 0.7420382165605095,
+      "recall": 0.8893129770992366,
+      "f1-score": 0.8090277777777778,
+      "support": 262.0
+    },
+    "Good Fit": {
+      "precision": 0.6813186813186813,
+      "recall": 0.43356643356643354,
+      "f1-score": 0.5299145299145299,
+      "support": 143.0
+    },
+    "accuracy": 0.7283950617283951,
+    "macro avg": {
+      "precision": 0.7116784489395954,
+      "recall": 0.6614397053328351,
+      "f1-score": 0.6694711538461539,
+      "support": 405.0
+    },
+    "weighted avg": {
+      "precision": 0.7205989732529011,
+      "recall": 0.7283950617283951,
+      "f1-score": 0.7104766803840877,
+      "support": 405.0
+    }
+  },
+  "feature_importance": {
+    "skill_match_ratio": 0.1175,
+    "experience_delta": 0.0703,
+    "avg_matched_proficiency": 0.067,
+    "profile_completeness": 0.0564,
+    "text_similarity": 0.0556,
+    "min_matched_proficiency": 0.0555,
+    "cgpa_normalized": 0.0539,
+    "overconfidence_avg": 0.0528,
+    "avg_proficiency_gap": 0.0526,
+    "max_proficiency_gap": 0.0519,
+    "experience_ratio": 0.0502,
+    "assessment_pass_rate": 0.0492,
+    "missing_mandatory_count": 0.048,
+    "avg_assessment_score": 0.0475,
+    "total_required_skills": 0.0284,
+    "num_projects": 0.0252,
+    "num_verified_skills": 0.0229,
+    "total_matched_skills": 0.0215,
+    "meets_experience_req": 0.0177,
+    "num_certifications": 0.0177,
+    "num_internships": 0.0163,
+    "education_level": 0.0141,
+    "has_work_experience": 0.008
+  },
+  "feature_names": [
+    "skill_match_ratio",
+    "total_matched_skills",
+    "total_required_skills",
+    "missing_mandatory_count",
+    "avg_matched_proficiency",
+    "min_matched_proficiency",
+    "avg_proficiency_gap",
+    "max_proficiency_gap",
+    "overconfidence_avg",
+    "experience_delta",
+    "experience_ratio",
+    "meets_experience_req",
+    "education_level",
+    "cgpa_normalized",
+    "num_projects",
+    "num_certifications",
+    "num_internships",
+    "has_work_experience",
+    "profile_completeness",
+    "assessment_pass_rate",
+    "avg_assessment_score",
+    "num_verified_skills",
+    "text_similarity"
+  ],
+  "model_path": "C:\\job-elevate\\backend\\ml\\saved_models\\job_fit_model.joblib",
+  "scaler_path": "C:\\job-elevate\\backend\\ml\\saved_models\\feature_scaler.joblib"
+}

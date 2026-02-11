@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'recruiter',
     'resume_builder',
     'agents',
+    'ml',
 ]
 
 MIDDLEWARE = [

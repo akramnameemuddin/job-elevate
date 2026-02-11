@@ -1,0 +1,86 @@
+
+================================================================
+  JOB-CANDIDATE FIT PREDICTION — MODEL EVALUATION REPORT
+================================================================
+  Date           : 2026-02-11 20:20
+  Algorithm      : Random Forest Classifier
+  Training Time  : 1.87s
+
+----------------------------------------------------------------
+  DATASET SUMMARY
+----------------------------------------------------------------
+  Real samples       : 21
+  Synthetic samples  : 2000
+  Total samples      : 2021
+  Class balance      : 35.4% positive / 64.6% negative
+  Train/Test split   : 80% / 20%
+  Feature count      : 23
+
+----------------------------------------------------------------
+  MODEL PERFORMANCE METRICS
+----------------------------------------------------------------
+  Metric                        Score
+  ────────────────────────────────────
+  Accuracy                     0.7284
+  Precision                    0.6813
+  Recall                       0.4336
+  F1-Score                     0.5299
+  AUC-ROC                      0.7643
+  Cross-Val F1 (5-fold)    0.4219 +/- 0.0656
+
+----------------------------------------------------------------
+  CONFUSION MATRIX
+----------------------------------------------------------------
+                          Predicted
+                     Not Fit    Good Fit
+  Actual Not Fit        233          29    (TN / FP)
+  Actual Good Fit        81          62    (FN / TP)
+
+  True Negatives  (TN) :  233  — Correctly identified as NOT a good fit
+  True Positives  (TP) :   62  — Correctly identified as a GOOD fit
+  False Positives (FP) :   29  — Incorrectly predicted as good fit
+  False Negatives (FN) :   81  — Missed good candidates
+
+----------------------------------------------------------------
+  FEATURE IMPORTANCE (Top 15)
+----------------------------------------------------------------
+  Rank   Feature                         Score  Visual
+  ────────────────────────────────────────────────────────
+  1      skill_match_ratio              0.1175  ███████████
+  2      experience_delta               0.0703  ███████
+  3      avg_matched_proficiency        0.0670  ██████
+  4      profile_completeness           0.0564  █████
+  5      text_similarity                0.0556  █████
+  6      min_matched_proficiency        0.0555  █████
+  7      cgpa_normalized                0.0539  █████
+  8      overconfidence_avg             0.0528  █████
+  9      avg_proficiency_gap            0.0526  █████
+  10     max_proficiency_gap            0.0519  █████
+  11     experience_ratio               0.0502  █████
+  12     assessment_pass_rate           0.0492  ████
+  13     missing_mandatory_count        0.0480  ████
+  14     avg_assessment_score           0.0475  ████
+  15     total_required_skills          0.0284  ██
+
+----------------------------------------------------------------
+  INTERPRETATION
+----------------------------------------------------------------
+  The model relies most heavily on:
+    1. skill_match_ratio
+    2. experience_delta
+    3. avg_matched_proficiency
+
+  Overall: The model shows GOOD predictive ability.
+
+----------------------------------------------------------------
+  WHAT THIS MODEL DOES
+----------------------------------------------------------------
+  Input  : A (Job Seeker, Job Posting) pair
+  Output : Probability (0.0 – 1.0) that the candidate is a good fit
+  Method : 200 Decision Trees vote independently; majority wins
+  Uses   : 23 features covering skills, experience, education,
+           profile richness, assessment scores, and text similarity
+
+================================================================
+  END OF EVALUATION REPORT
+================================================================
