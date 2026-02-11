@@ -9,6 +9,40 @@
    AI Resume Review Page  (ar- namespace)
    ══════════════════════════════════════════════ */
 
+/* ── Breadcrumb ── */
+.ar-breadcrumb{display:flex;align-items:center;gap:.25rem;font-size:.85rem;color:var(--text-light);margin-bottom:.75rem}
+.ar-breadcrumb a{color:var(--primary-color);text-decoration:none}
+.ar-breadcrumb a:hover{text-decoration:underline}
+
+/* ── Header ── */
+.ar-header{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;margin-bottom:1.25rem}
+.ar-header h1{font-size:1.4rem;font-weight:700;color:var(--heading-color);margin:0 0 .2rem;display:flex;align-items:center;gap:.5rem}
+.ar-header h1 i{color:var(--primary-color);font-size:1.5rem}
+.ar-header-sub{color:var(--text-light);font-size:.9rem;margin:0}
+.ar-header-actions{display:flex;gap:.5rem;flex-shrink:0}
+
+/* ── Steps indicator ── */
+.ar-steps{
+    display:flex;align-items:center;gap:0;margin-bottom:1.5rem;
+    background:var(--card-bg);border:1px solid var(--border-color);
+    border-radius:14px;padding:.75rem 1.25rem;overflow:hidden;
+}
+.ar-step{display:flex;align-items:center;gap:.6rem;flex:1;position:relative;padding-right:1.5rem}
+.ar-step:not(:last-child)::after{
+    content:'';position:absolute;right:0;top:50%;
+    width:24px;height:24px;border-right:2px solid var(--border-color);
+    border-top:2px solid var(--border-color);transform:translateY(-50%) rotate(45deg) scale(.5);opacity:.4;
+}
+.ar-step-num{
+    width:30px;height:30px;border-radius:50%;display:flex;align-items:center;
+    justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;
+}
+.ar-step.completed .ar-step-num{background:rgba(34,197,94,.12);color:#22c55e}
+.ar-step.active .ar-step-num{background:linear-gradient(135deg,var(--primary-color),#6366f1);color:#fff;box-shadow:0 3px 10px rgba(99,102,241,.25)}
+.ar-step.upcoming .ar-step-num{background:var(--hover-bg);color:var(--text-light)}
+.ar-step-text{font-size:.8rem;color:var(--text-light);font-weight:500}
+.ar-step.active .ar-step-text{color:var(--heading-color);font-weight:600}
+
 /* ── Stats row ── */
 .ar-stats {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
@@ -143,30 +177,31 @@
 .ar-applied-banner i { font-size: 1.8rem; color: #22c55e; }
 .ar-applied-banner .text h3 { font-size: 1.05rem; color: #16a34a; margin: 0 0 .15rem; font-weight: 600; }
 .ar-applied-banner .text p  { color: var(--text-muted); font-size: .85rem; margin: 0; }
+
+/* ── Responsive ── */
+@media(max-width:900px){
+    .ar-steps{flex-direction:column;gap:.4rem;padding:.65rem}
+    .ar-step::after{display:none}
+    .ar-header{flex-direction:column}
+}
 </style>
 
 <!-- Breadcrumb -->
-<div class="breadcrumb">
-    <div class="breadcrumb-item">
-        <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
-        <i class='bx bx-chevron-right'></i>
-    </div>
-    <div class="breadcrumb-item">
-        <a href="{% url 'resume_builder:resume_builder' %}" class="breadcrumb-link">Resume Builder</a>
-        <i class='bx bx-chevron-right'></i>
-    </div>
-    <div class="breadcrumb-item">
-        <span>AI Review</span>
-    </div>
+<div class="ar-breadcrumb">
+    <a href="{% url 'dashboard:home' %}">Home</a>
+    <i class='bx bx-chevron-right'></i>
+    <a href="{% url 'jobs:job_detail' job.id %}">{{ job.title }}</a>
+    <i class='bx bx-chevron-right'></i>
+    <span>AI Review</span>
 </div>
 
-<!-- Page Header -->
-<div class="page-content-header">
+<!-- Header -->
+<div class="ar-header">
     <div>
-        <h1 class="page-title"><i class='bx bx-bot' style="color:var(--primary-color)"></i> AI Resume Agent</h1>
-        <p class="page-subtitle">Tailoring your resume for <strong>{{ job.title }}</strong> at <strong>{{ job.company }}</strong></p>
+        <h1><i class='bx bx-bot'></i> AI Resume Agent</h1>
+        <p class="ar-header-sub">Tailoring your resume for <strong>{{ job.title }}</strong> at <strong>{{ job.company }}</strong></p>
     </div>
-    <div style="display:flex; gap:.5rem; flex-shrink:0;">
+    <div class="ar-header-actions">
         <a href="{% url 'resume_builder:regenerate' tailored_id=tailored.id %}" class="btn btn-outline-secondary btn-sm"
            onclick="return confirm('Re-run AI analysis? Current selections will be lost.')">
             <i class='bx bx-refresh'></i> Re-analyse
@@ -174,6 +209,22 @@
         <a href="{% url 'jobs:job_detail' job.id %}" class="btn btn-outline-secondary btn-sm">
             <i class='bx bx-arrow-back'></i> Back to Job
         </a>
+    </div>
+</div>
+
+<!-- Steps Indicator -->
+<div class="ar-steps">
+    <div class="ar-step completed">
+        <div class="ar-step-num"><i class='bx bx-check' style="font-size:.95rem"></i></div>
+        <div class="ar-step-text">Select Resume</div>
+    </div>
+    <div class="ar-step {% if tailored.status == 'applied' %}completed{% else %}active{% endif %}">
+        <div class="ar-step-num">{% if tailored.status == 'applied' %}<i class='bx bx-check' style="font-size:.95rem"></i>{% else %}2{% endif %}</div>
+        <div class="ar-step-text">Review Suggestions</div>
+    </div>
+    <div class="ar-step {% if tailored.status == 'applied' %}active{% else %}upcoming{% endif %}">
+        <div class="ar-step-num">3</div>
+        <div class="ar-step-text">{% if tailored.status == 'applied' %}Done!{% else %}Apply &amp; Finalize{% endif %}</div>
     </div>
 </div>
 

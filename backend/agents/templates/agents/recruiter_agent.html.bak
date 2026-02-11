@@ -1,11 +1,10 @@
-{% extends 'recruiter_base.html' %}
+{% extends 'dashboard/base.html' %}
 {% load static %}
 
 {% block title %}AI Recruiter Agent – JobElevate{% endblock %}
-{% block nav_ai_recruiter %}active{% endblock %}
-{% block user_initials %}{{ user_initials }}{% endblock %}
 
-{% block extra_css %}
+{% block content %}
+<style>
 /* ══════════════════════════════════════════════════
    AI Recruiter Agent  (ra- namespace)
    ══════════════════════════════════════════════════ */
@@ -86,7 +85,9 @@
 .ra-cand-explain{font-size:.85rem;color:var(--text-light);margin-top:.35rem;line-height:1.5}
 
 .ra-comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.55rem;margin-top:.75rem}
-.ra-comp-chip{padding:.5rem .65rem;border-radius:10px;background:var(--hover-bg);text-align:center}
+.ra-comp-chip{
+    padding:.5rem .65rem;border-radius:10px;background:var(--hover-bg);text-align:center;
+}
 .ra-comp-val{font-size:1rem;font-weight:700;color:var(--primary-color)}
 .ra-comp-lbl{font-size:.68rem;color:var(--text-light);text-transform:capitalize}
 
@@ -162,12 +163,11 @@
     .ra-cand{flex-direction:column;align-items:center;text-align:center}
     .ra-comp-grid{grid-template-columns:repeat(2,1fr)}
 }
-{% endblock %}
+</style>
 
-{% block content %}
 <!-- Breadcrumb -->
 <div class="ra-breadcrumb">
-    <a href="/recruiter/">Dashboard</a>
+    <a href="{% url 'dashboard:home' %}">Home</a>
     <i class='bx bx-chevron-right'></i>
     <span>AI Recruiter Agent</span>
 </div>
@@ -215,14 +215,19 @@
 
 <!-- Results Area -->
 <div id="ra-results">
+    <!-- Candidates -->
     <div class="ra-card ra-fade">
         <h3><i class='bx bx-trophy'></i> Candidate Rankings</h3>
         <div id="ra-candidates"></div>
     </div>
+
+    <!-- Skill Importance -->
     <div class="ra-card ra-fade">
         <h3><i class='bx bx-bar-chart-alt-2'></i> Skill Importance</h3>
         <div id="ra-skills"></div>
     </div>
+
+    <!-- Feedback -->
     <div class="ra-card ra-fade">
         <h3><i class='bx bx-message-rounded-detail'></i> Agent Feedback</h3>
         <div id="ra-feedback"></div>
@@ -252,9 +257,7 @@
     </table>
 </div>
 {% endif %}
-{% endblock %}
 
-{% block extra_js %}
 <script>
 function scoreColor(s){return s>=.7?'#22c55e':s>=.4?'#f59e0b':'#ef4444'}
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
@@ -299,6 +302,7 @@ function renderResults(data){
     area.style.display='block';
     area.querySelectorAll('.ra-fade').forEach(el=>{el.style.animation='none';el.offsetHeight;el.style.animation='';});
 
+    // Candidates
     const cands=data.ranked_candidates||[];
     if(!cands.length){
         document.getElementById('ra-candidates').innerHTML=`<div class="ra-empty"><i class='bx bx-user-x'></i><p>No applicants for this job yet.</p></div>`;
@@ -325,6 +329,7 @@ function renderResults(data){
         }).join('');
     }
 
+    // Skill importance
     const si=data.skill_importance||[];
     if(!si.length){
         document.getElementById('ra-skills').innerHTML='<p style="color:var(--text-light);">No skill data.</p>';
@@ -343,6 +348,7 @@ function renderResults(data){
         }).join('');
     }
 
+    // Feedback
     const fb=data.feedback||{};
     let fbHtml='';
     if(fb.summary) fbHtml+=`<div class="ra-feedback-summary">${fb.summary}</div>`;

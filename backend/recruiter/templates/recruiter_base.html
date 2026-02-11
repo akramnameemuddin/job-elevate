@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}JobElevate – Recruiter{% endblock %}</title>
+
+    <!-- Immediate Theme Loading -->
+    <script>
+        (function() {
+            const storedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', storedTheme);
+        })();
+    </script>
+
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    {% block head_extras %}{% endblock %}
+    <style>
+        /* ==== CSS Variables ==== */
+        :root {
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --secondary-color: #8b5cf6;
+            --background-color: #f9fafb;
+            --card-bg: #ffffff;
+            --text-color: #1f2937;
+            --text-light: #6b7280;
+            --heading-color: #1f2937;
+            --sidebar-bg: #ffffff;
+            --sidebar-active: #eff6ff;
+            --border-color: #e5e7eb;
+            --hover-bg: #f3f4f6;
+            --shadow-sm: 0 1px 2px 0 rgba(0,0,0,.05);
+            --shadow: 0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -2px rgba(0,0,0,.05);
+            --transition: all .3s cubic-bezier(.4,0,.2,1);
+            --danger: #ef4444; --danger-hover: #dc2626;
+            --success: #10b981; --warning: #f59e0b;
+            --radius: 8px; --radius-lg: 12px; --radius-xl: 16px;
+            --primary-light: rgba(59,130,246,.1);
+            --text-muted: #9ca3af;
+        }
+        [data-theme="dark"] {
+            --primary-color: #58a6ff; --primary-hover: #79c0ff;
+            --secondary-color: #a5a5ff;
+            --background-color: #0d1117; --card-bg: #161b22;
+            --text-color: #f0f6fc; --text-light: #8b949e;
+            --heading-color: #f0f6fc;
+            --sidebar-bg: #161b22; --sidebar-active: rgba(88,166,255,.12);
+            --border-color: #30363d; --hover-bg: #21262d;
+            --danger: #f85149; --danger-hover: #ff6b6b;
+            --success: #3fb950; --warning: #d29922;
+            --primary-light: rgba(88,166,255,.12);
+            --text-muted: #8b949e;
+        }
+
+        *{margin:0;padding:0;box-sizing:border-box;
+          font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,'Open Sans','Helvetica Neue',sans-serif}
+        body{background-color:var(--background-color);color:var(--text-color);transition:var(--transition);line-height:1.5}
+
+        /* ─── Sidebar ─── */
+        .rb-sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;opacity:0;visibility:hidden;transition:var(--transition)}
+        .rb-sidebar-overlay.active{opacity:1;visibility:visible}
+
+        .rb-sidebar{
+            width:260px;height:100vh;background:var(--sidebar-bg);
+            border-right:1px solid var(--border-color);padding:1.5rem 0;
+            position:fixed;left:0;top:0;z-index:1000;display:flex;flex-direction:column;
+            overflow-y:auto;transition:var(--transition);
+        }
+        .rb-sidebar-header{padding:0 1.5rem;margin-bottom:2rem}
+        .rb-logo{display:flex;align-items:center;gap:.75rem;text-decoration:none}
+        .rb-logo-icon{
+            width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+            background:linear-gradient(135deg,var(--primary-color),var(--secondary-color));color:#fff;font-size:1.3rem;
+        }
+        .rb-logo-text{font-weight:700;font-size:1.2rem;color:var(--text-color);letter-spacing:-.5px}
+
+        .rb-nav{list-style:none;padding:0 .75rem;flex:1;display:flex;flex-direction:column;gap:.2rem}
+        .rb-nav-section{font-size:.72rem;font-weight:600;text-transform:uppercase;color:var(--text-light);padding:0 .75rem;margin:1.25rem 0 .6rem;letter-spacing:.04em}
+        .rb-nav-item a{
+            display:flex;align-items:center;gap:.75rem;padding:.7rem 1rem;border-radius:.5rem;
+            color:var(--text-color);text-decoration:none;font-weight:500;font-size:.88rem;transition:var(--transition);
+        }
+        .rb-nav-item a:hover{background:var(--hover-bg)}
+        .rb-nav-item a.active{background:var(--sidebar-active);color:var(--primary-color);font-weight:600}
+        .rb-nav-item a i{font-size:1.2rem;min-width:22px;display:flex;justify-content:center}
+
+        /* ─── Navbar ─── */
+        .rb-navbar{
+            position:fixed;top:0;left:0;right:0;height:60px;background:var(--card-bg);
+            border-bottom:1px solid var(--border-color);display:flex;align-items:center;
+            justify-content:flex-end;padding:0 1.5rem 0 280px;z-index:990;box-shadow:var(--shadow-sm);
+        }
+        .rb-navbar-left{display:flex;align-items:center;gap:1rem}
+        .rb-mobile-toggle{background:none;border:none;color:var(--text-color);font-size:1.5rem;cursor:pointer;display:none}
+        .rb-navbar-right{display:flex;align-items:center;gap:.75rem}
+        .rb-action-btn{
+            background:none;border:none;width:38px;height:38px;border-radius:50%;display:flex;
+            align-items:center;justify-content:center;color:var(--text-color);font-size:1.2rem;
+            cursor:pointer;transition:var(--transition);
+        }
+        .rb-action-btn:hover{background:var(--hover-bg)}
+        .rb-user-btn{background:none;border:none;padding:0;cursor:pointer;display:flex;align-items:center;gap:.5rem}
+        .rb-avatar{
+            width:38px;height:38px;border-radius:50%;background:var(--primary-color);color:#fff;
+            display:flex;align-items:center;justify-content:center;font-weight:600;font-size:.9rem;
+        }
+        .rb-dropdown{
+            position:absolute;top:calc(100% + .5rem);right:0;width:190px;background:var(--card-bg);
+            border-radius:.5rem;box-shadow:var(--shadow-lg);border:1px solid var(--border-color);
+            z-index:100;overflow:hidden;opacity:0;visibility:hidden;transform:translateY(8px);transition:var(--transition);
+        }
+        .rb-dropdown.show{opacity:1;visibility:visible;transform:translateY(0)}
+        .rb-dropdown a{display:flex;align-items:center;gap:.6rem;padding:.65rem 1rem;color:var(--text-color);text-decoration:none;font-size:.88rem;transition:var(--transition)}
+        .rb-dropdown a:hover{background:var(--hover-bg)}
+        .rb-dropdown .divider{height:1px;background:var(--border-color);margin:.3rem 0}
+        .rb-dropdown .danger{color:var(--danger)}
+        .rb-dropdown .danger:hover{background:rgba(239,68,68,.08)}
+
+        /* ─── Main Content ─── */
+        .rb-main{margin-left:260px;padding:5rem 1.5rem 2rem;min-height:100vh}
+
+        /* ─── Responsive ─── */
+        @media(max-width:900px){
+            .rb-sidebar{transform:translateX(-100%)}
+            .rb-sidebar.open{transform:translateX(0)}
+            .rb-navbar{padding-left:1.5rem}
+            .rb-mobile-toggle{display:block}
+            .rb-main{margin-left:0}
+        }
+
+        /* ─── Utility ─── */
+        .btn{
+            padding:.55rem 1.15rem;border-radius:.5rem;font-weight:500;font-size:.88rem;
+            text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:.4rem;
+            cursor:pointer;border:none;transition:var(--transition);
+        }
+        .btn-primary{background:var(--primary-color);color:#fff}
+        .btn-primary:hover{background:var(--primary-hover)}
+        .btn-outline-primary{border:1px solid var(--primary-color);color:var(--primary-color);background:transparent}
+        .btn-outline-primary:hover{background:var(--primary-color);color:#fff}
+        .btn-outline-secondary{border:1px solid var(--border-color);color:var(--text-color);background:transparent}
+        .btn-outline-secondary:hover{background:var(--hover-bg)}
+        .btn-sm{padding:.4rem .85rem;font-size:.82rem}
+
+        {% block extra_css %}{% endblock %}
+    </style>
+</head>
+<body>
+    <!-- Sidebar Overlay (mobile) -->
+    <div class="rb-sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="rb-sidebar" id="rbSidebar">
+        <div class="rb-sidebar-header">
+            <a href="/recruiter/" class="rb-logo">
+                <div class="rb-logo-icon"><i class='bx bxs-briefcase-alt'></i></div>
+                <span class="rb-logo-text">JobElevate</span>
+            </a>
+        </div>
+        <ul class="rb-nav">
+            <div class="rb-nav-section">Main</div>
+            <li class="rb-nav-item">
+                <a href="/recruiter/" class="{% block nav_dashboard %}{% endblock %}">
+                    <i class='bx bxs-dashboard'></i> Dashboard
+                </a>
+            </li>
+            <li class="rb-nav-item">
+                <a href="/recruiter/#manage-jobs" class="{% block nav_jobs %}{% endblock %}">
+                    <i class='bx bxs-briefcase'></i> Manage Jobs
+                </a>
+            </li>
+            <li class="rb-nav-item">
+                <a href="/recruiter/#candidates" class="{% block nav_candidates %}{% endblock %}">
+                    <i class='bx bxs-user-detail'></i> Candidates
+                </a>
+            </li>
+            <div class="rb-nav-section">AI Tools</div>
+            <li class="rb-nav-item">
+                <a href="{% url 'agents:recruiter_agent' %}" class="{% block nav_ai_recruiter %}{% endblock %}">
+                    <i class='bx bx-target-lock'></i> AI Recruiter Agent
+                </a>
+            </li>
+            <div class="rb-nav-section">Account</div>
+            <li class="rb-nav-item">
+                <a href="/recruiter/#profile" class="{% block nav_profile %}{% endblock %}">
+                    <i class='bx bxs-user-circle'></i> Profile
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Navbar -->
+    <nav class="rb-navbar">
+        <div class="rb-navbar-left">
+            <button class="rb-mobile-toggle" id="mobileToggle"><i class='bx bx-menu'></i></button>
+        </div>
+        <div class="rb-navbar-right">
+            <button class="rb-action-btn"><i class='bx bx-bell'></i></button>
+            <button class="rb-action-btn" id="themeToggle"><i class='bx bx-moon'></i></button>
+            <div style="position:relative;">
+                <button class="rb-user-btn" id="userMenuBtn">
+                    <div class="rb-avatar">{% block user_initials %}{% endblock %}</div>
+                </button>
+                <div class="rb-dropdown" id="userDropdown">
+                    <a href="/recruiter/#profile"><i class='bx bx-user'></i> Profile</a>
+                    <div class="divider"></div>
+                    <a href="{% url 'accounts:logout' %}" class="danger"><i class='bx bx-log-out'></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main -->
+    <main class="rb-main">
+        {% block content %}{% endblock %}
+    </main>
+
+    <script>
+    // Mobile sidebar toggle
+    const sidebar = document.getElementById('rbSidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const mobileBtn = document.getElementById('mobileToggle');
+    if(mobileBtn){
+        mobileBtn.addEventListener('click',()=>{sidebar.classList.toggle('open');overlay.classList.toggle('active');});
+    }
+    if(overlay){
+        overlay.addEventListener('click',()=>{sidebar.classList.remove('open');overlay.classList.remove('active');});
+    }
+
+    // Theme toggle
+    const themeBtn = document.getElementById('themeToggle');
+    if(themeBtn){
+        function updateIcon(){
+            const icon = themeBtn.querySelector('i');
+            icon.className = document.documentElement.getAttribute('data-theme')==='dark' ? 'bx bx-sun' : 'bx bx-moon';
+        }
+        updateIcon();
+        themeBtn.addEventListener('click',()=>{
+            const cur = document.documentElement.getAttribute('data-theme');
+            const next = cur==='dark'?'light':'dark';
+            document.documentElement.setAttribute('data-theme',next);
+            localStorage.setItem('theme',next);
+            updateIcon();
+        });
+    }
+
+    // User dropdown
+    const userBtn = document.getElementById('userMenuBtn');
+    const userDrop = document.getElementById('userDropdown');
+    if(userBtn && userDrop){
+        userBtn.addEventListener('click',()=>userDrop.classList.toggle('show'));
+        document.addEventListener('click',(e)=>{
+            if(!userBtn.contains(e.target)&&!userDrop.contains(e.target)) userDrop.classList.remove('show');
+        });
+    }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

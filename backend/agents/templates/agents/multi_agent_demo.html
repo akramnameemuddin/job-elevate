@@ -1,232 +1,301 @@
 {% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Multi-Agent Demo – JobElevate{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h1 class="page-title"><i class='bx bx-network-chart'></i> Multi-Agent Demo</h1>
-    <div class="breadcrumb">
-        <div class="breadcrumb-item">
-            <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
-            <i class='bx bx-chevron-right'></i>
-        </div>
-        <div class="breadcrumb-item"><span>Agents Demo</span></div>
-    </div>
-</div>
-
 <style>
-    /* ── Cards ────────────────────────────────────── */
-    .agent-card {
-        background: var(--card-bg); border-radius: 16px; padding: 1.75rem;
-        margin-bottom: 1.5rem; border: 1px solid var(--border-color);
-        box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-        transition: box-shadow .25s ease;
-    }
-    .agent-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.08); }
-    .agent-card h3 {
-        margin-bottom: 1rem; color: var(--text-primary); font-size: 1.1rem;
-        display: flex; align-items: center; gap: .5rem;
-    }
-    .agent-card h3 i { font-size: 1.3rem; color: var(--primary-color); }
+/* ══════════════════════════════════════════════════
+   Multi-Agent Demo  (ma- namespace)
+   ══════════════════════════════════════════════════ */
 
-    /* ── Trigger card ─────────────────────────────── */
-    .trigger-card { background: linear-gradient(135deg, #6366f1 0%, var(--primary-color) 100%); color: #fff; border: none; }
-    .trigger-card h3, .trigger-card h3 i { color: #fff; }
-    .trigger-card p { opacity: .9; margin-bottom: 1.25rem; line-height: 1.6; }
-    .trigger-card label { color: rgba(255,255,255,.85); }
-    .trigger-card .form-control {
-        background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
-        color: #fff; backdrop-filter: blur(4px); padding: .65rem .85rem; border-radius: 10px; font-size: .9rem;
-    }
-    .trigger-card .form-control option { color: var(--text-color); background: var(--card-bg); }
-    .btn-launch {
-        padding: .65rem 1.5rem; background: #fff; color: #6366f1; border: none;
-        border-radius: 10px; cursor: pointer; font-weight: 700; font-size: .95rem;
-        display: inline-flex; align-items: center; gap: .5rem; transition: transform .15s, box-shadow .15s;
-    }
-    .btn-launch:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,.2); }
+/* ── Breadcrumb ── */
+.ma-breadcrumb{display:flex;align-items:center;gap:.25rem;font-size:.85rem;color:var(--text-light);margin-bottom:.5rem}
+.ma-breadcrumb a{color:var(--primary-color);text-decoration:none}
+.ma-breadcrumb a:hover{text-decoration:underline}
 
-    /* ── Timeline ─────────────────────────────────── */
-    .timeline { position: relative; padding-left: 2.5rem; }
-    .timeline::before { content: ''; position: absolute; left: 1rem; top: 0; bottom: 0; width: 3px;
-                        background: linear-gradient(to bottom, var(--primary-color), #6366f1); border-radius: 2px; }
-    .tl-item { position: relative; padding-bottom: 1.25rem; animation: fadeSlideUp .4s ease both; }
-    .tl-item:nth-child(2) { animation-delay: .08s; }
-    .tl-item:nth-child(3) { animation-delay: .16s; }
-    .tl-item:nth-child(4) { animation-delay: .24s; }
-    .tl-dot { position: absolute; left: -2rem; top: .2rem; width: 14px; height: 14px; border-radius: 50%;
-              border: 3px solid var(--primary-color); background: var(--card-bg); transition: background .2s; }
-    .tl-item:hover .tl-dot { background: var(--primary-color); }
-    .tl-sender { font-weight: 700; margin-right: .35rem; }
-    .tl-intent { font-family: 'Fira Code', monospace, monospace; font-size: .82rem; background: var(--hover-bg);
-                 padding: .15rem .55rem; border-radius: 6px; display: inline-block; margin-left: .35rem; }
-    .tl-time { font-size: .75rem; opacity: .5; margin-top: .15rem; }
-    .tl-arrow { opacity: .5; margin: 0 .25rem; }
+/* ── Header ── */
+.ma-header{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;margin-bottom:1.25rem}
+.ma-header h1{font-size:1.4rem;font-weight:700;color:var(--heading-color);margin:0;display:flex;align-items:center;gap:.5rem}
+.ma-header h1 i{color:var(--primary-color)}
+.ma-subtitle{font-size:.88rem;color:var(--text-light);margin-top:.2rem}
 
-    /* ── Tabs ──────────────────────────────────────── */
-    .tab-group { display: flex; gap: 0; margin-bottom: 1.5rem; }
-    .tab-btn { padding: .75rem 1.75rem; border: 1px solid var(--border-color); background: var(--card-bg);
-               cursor: pointer; font-weight: 600; font-size: .9rem; transition: all .2s; color: var(--text-color); }
-    .tab-btn:first-child { border-radius: 10px 0 0 10px; }
-    .tab-btn:last-child { border-radius: 0 10px 10px 0; }
-    .tab-btn.active { background: linear-gradient(135deg, var(--primary-color), #6366f1); color: #fff; border-color: var(--primary-color); }
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; animation: fadeSlideUp .35s ease both; }
+/* ── Trigger Card ── */
+.ma-trigger{
+    background:linear-gradient(135deg,#6366f1 0%,var(--primary-color) 100%);
+    color:#fff;border:none;border-radius:14px;padding:1.5rem 1.75rem;margin-bottom:1.5rem;
+}
+.ma-trigger h3{color:#fff;font-size:1.1rem;font-weight:600;margin:0 0 .65rem;display:flex;align-items:center;gap:.5rem}
+.ma-trigger h3 i{font-size:1.3rem}
+.ma-trigger p{opacity:.9;line-height:1.6;margin:0 0 1.15rem;font-size:.92rem}
+.ma-trigger-form{display:flex;gap:1rem;align-items:end;flex-wrap:wrap}
+.ma-trigger label{display:block;margin-bottom:.35rem;font-weight:600;color:rgba(255,255,255,.85);font-size:.88rem}
+.ma-select{
+    min-width:300px;padding:.6rem .85rem;border-radius:10px;font-size:.88rem;
+    background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+    color:#fff;backdrop-filter:blur(4px);
+}
+.ma-select option{color:var(--text-color);background:var(--card-bg)}
+.ma-launch{
+    padding:.6rem 1.35rem;background:#fff;color:#6366f1;border:none;
+    border-radius:10px;cursor:pointer;font-weight:700;font-size:.92rem;
+    display:inline-flex;align-items:center;gap:.5rem;transition:transform .15s,box-shadow .15s;
+}
+.ma-launch:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.2)}
 
-    /* ── Badges ────────────────────────────────────── */
-    .gap-badge {
-        display: inline-flex; align-items: center; gap: .3rem; padding: .3rem .8rem;
-        border-radius: 20px; font-size: .82rem; font-weight: 600; margin: .2rem; transition: transform .15s;
-    }
-    .gap-badge:hover { transform: scale(1.05); }
-    .gap-critical { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
-    .gap-develop  { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
-    .gap-strength { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+/* ── Card ── */
+.ma-card{
+    background:var(--card-bg);border:1px solid var(--border-color);border-radius:14px;
+    padding:1.5rem;margin-bottom:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,.03);
+    transition:box-shadow .2s;
+}
+.ma-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.06)}
+.ma-card h3{
+    font-size:1.05rem;font-weight:600;color:var(--heading-color);margin:0 0 1rem;
+    display:flex;align-items:center;gap:.5rem;
+}
+.ma-card h3 i{font-size:1.25rem;color:var(--primary-color)}
 
-    /* ── Job mini-card ────────────────────────────── */
-    .job-mini { display: flex; justify-content: space-between; align-items: center; padding: .75rem 1rem;
-                border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: .55rem; transition: all .2s; }
-    .job-mini:hover { border-color: var(--primary-color); transform: translateX(3px); }
-    .job-score { font-size: 1.2rem; font-weight: 800; }
+/* ── Timeline ── */
+.ma-timeline{position:relative;padding-left:2.5rem}
+.ma-timeline::before{
+    content:'';position:absolute;left:1rem;top:0;bottom:0;width:3px;
+    background:linear-gradient(to bottom,var(--primary-color),#6366f1);border-radius:2px;
+}
+.ma-tl-item{position:relative;padding-bottom:1.15rem}
+.ma-tl-dot{
+    position:absolute;left:-2rem;top:.2rem;width:14px;height:14px;border-radius:50%;
+    border:3px solid var(--primary-color);background:var(--card-bg);transition:background .2s;
+}
+.ma-tl-item:hover .ma-tl-dot{background:var(--primary-color)}
+.ma-tl-sender{font-weight:700;margin-right:.3rem;font-size:.88rem}
+.ma-tl-arrow{opacity:.5;margin:0 .2rem}
+.ma-tl-intent{
+    font-family:'Fira Code',monospace;font-size:.78rem;background:var(--hover-bg);
+    padding:.12rem .5rem;border-radius:6px;display:inline-block;margin-left:.3rem;
+}
+.ma-tl-time{font-size:.72rem;opacity:.5;margin-top:.1rem}
 
-    /* ── Candidate mini-row ───────────────────────── */
-    .cand-mini { display: flex; justify-content: space-between; align-items: center;
-                 padding: .75rem 1rem; border-bottom: 1px solid var(--border-color); }
-    .cand-mini:last-child { border-bottom: none; }
-    .cand-rank { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center;
-                 justify-content: center; font-size: .8rem; font-weight: 700; color: #fff; margin-right: .75rem; flex-shrink: 0; }
-    .cand-rank-1 { background: #f59e0b; } .cand-rank-2 { background: #9ca3af; }
-    .cand-rank-3 { background: #b45309; } .cand-rank-d { background: var(--primary-color); }
+/* ── Tabs ── */
+.ma-tabs{display:flex;gap:0;margin-bottom:1.5rem}
+.ma-tab{
+    padding:.7rem 1.5rem;border:1px solid var(--border-color);background:var(--card-bg);
+    cursor:pointer;font-weight:600;font-size:.88rem;transition:all .2s;color:var(--text-color);
+    display:inline-flex;align-items:center;gap:.35rem;
+}
+.ma-tab:first-child{border-radius:10px 0 0 10px}
+.ma-tab:last-child{border-radius:0 10px 10px 0}
+.ma-tab.active{background:linear-gradient(135deg,var(--primary-color),#6366f1);color:#fff;border-color:var(--primary-color)}
+.ma-panel{display:none}
+.ma-panel.active{display:block;animation:maFadeUp .35s ease both}
 
-    /* ── Section label ────────────────────────────── */
-    .section-label { font-size: .9rem; font-weight: 700; margin-bottom: .65rem; display: flex; align-items: center; gap: .4rem; color: var(--text-primary); }
-    .section-label i { font-size: 1.1rem; color: var(--primary-color); }
+/* ── Badges ── */
+.ma-badge{
+    display:inline-flex;align-items:center;gap:.3rem;padding:.28rem .7rem;
+    border-radius:20px;font-size:.78rem;font-weight:600;margin:.15rem;transition:transform .15s;
+}
+.ma-badge:hover{transform:scale(1.04)}
+.ma-badge-critical{background:rgba(239,68,68,.1);color:#dc2626;border:1px solid rgba(239,68,68,.2)}
+.ma-badge-develop{background:rgba(245,158,11,.1);color:#d97706;border:1px solid rgba(245,158,11,.2)}
+.ma-badge-strength{background:rgba(34,197,94,.1);color:#059669;border:1px solid rgba(34,197,94,.2)}
 
-    /* ── Insight card ─────────────────────────────── */
-    .insight-highlight { padding: 1.1rem 1.25rem; border-radius: 12px; background: var(--hover-bg);
-                         line-height: 1.7; font-size: .93rem; }
-    .insight-highlight strong { color: var(--primary-color); }
+/* ── Job Mini ── */
+.ma-job-mini{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:.75rem 1rem;border:1px solid var(--border-color);border-radius:12px;
+    margin-bottom:.55rem;transition:all .2s;
+}
+.ma-job-mini:hover{border-color:var(--primary-color);transform:translateX(3px)}
+.ma-job-score{font-size:1.15rem;font-weight:800}
 
-    /* ── Roadmap pill ─────────────────────────────── */
-    .roadmap-pill { padding: .55rem 1rem; border-left: 4px solid var(--primary-color); border-radius: 0 10px 10px 0;
-                    background: var(--hover-bg); margin-bottom: .5rem; font-size: .9rem; }
+/* ── Candidate Mini ── */
+.ma-cand-mini{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:.75rem 1rem;border-bottom:1px solid var(--border-color);
+}
+.ma-cand-mini:last-child{border-bottom:none}
+.ma-cand-rank{
+    width:28px;height:28px;border-radius:50%;display:flex;align-items:center;
+    justify-content:center;font-size:.78rem;font-weight:700;color:#fff;margin-right:.7rem;flex-shrink:0;
+}
+.ma-rank-1{background:#f59e0b}.ma-rank-2{background:#9ca3af}
+.ma-rank-3{background:#b45309}.ma-rank-d{background:var(--primary-color)}
 
-    /* ── Step list ─────────────────────────────────── */
-    .step-list { list-style: none; padding: 0; counter-reset: steps; }
-    .step-list li { counter-increment: steps; padding: .75rem 0 .75rem 3rem; position: relative;
-                    border-bottom: 1px solid var(--border-color); font-size: .9rem; line-height: 1.5; }
-    .step-list li:last-child { border-bottom: none; }
-    .step-list li::before { content: counter(steps); position: absolute; left: .35rem; top: .65rem;
-                            width: 1.8rem; height: 1.8rem; border-radius: 50%;
-                            background: linear-gradient(135deg, var(--primary-color), #6366f1); color: #fff;
-                            display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .8rem; }
+/* ── Section Label ── */
+.ma-sec-label{font-size:.88rem;font-weight:700;margin-bottom:.55rem;display:flex;align-items:center;gap:.35rem;color:var(--heading-color)}
+.ma-sec-label i{font-size:1.05rem;color:var(--primary-color)}
 
-    /* ── Feedback pill ────────────────────────────── */
-    .fb-pills { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .5rem; }
-    .fb-pill { display: inline-flex; align-items: center; gap: .3rem; padding: .3rem .8rem; border-radius: 20px;
-               font-size: .82rem; font-weight: 600; background: rgba(99,102,241,.1); color: #6366f1; border: 1px solid rgba(99,102,241,.2); }
+/* ── Insight Highlight ── */
+.ma-insight{
+    padding:1rem 1.15rem;border-radius:12px;background:var(--hover-bg);
+    line-height:1.7;font-size:.9rem;
+}
+.ma-insight strong{color:var(--primary-color)}
 
-    /* ── Loading ───────────────────────────────────── */
-    .loading-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 9999; align-items: center; justify-content: center; }
-    .loading-overlay.active { display: flex; }
-    .loading-box { background: var(--card-bg); padding: 2.5rem 3.5rem; border-radius: 20px;
-                   text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,.15); }
-    .loading-box .spinner { width: 48px; height: 48px; border: 4px solid var(--border-color);
-                            border-top-color: var(--primary-color); border-radius: 50%;
-                            animation: spin .7s linear infinite; margin: 0 auto 1.25rem; }
-    .loading-box p { font-weight: 600; font-size: 1rem; }
-    .loading-box small { display: block; margin-top: .35rem; opacity: .6; font-size: .85rem; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .fade-in { animation: fadeSlideUp .45s ease both; }
+/* ── Roadmap Pill ── */
+.ma-roadmap-pill{
+    padding:.5rem 1rem;border-left:4px solid var(--primary-color);border-radius:0 10px 10px 0;
+    background:var(--hover-bg);margin-bottom:.45rem;font-size:.88rem;
+}
 
-    #results-area { display: none; }
+/* ── Step List ── */
+.ma-steps{list-style:none;padding:0;counter-reset:masteps}
+.ma-steps li{
+    counter-increment:masteps;padding:.7rem 0 .7rem 3rem;position:relative;
+    border-bottom:1px solid var(--border-color);font-size:.88rem;line-height:1.5;
+}
+.ma-steps li:last-child{border-bottom:none}
+.ma-steps li::before{
+    content:counter(masteps);position:absolute;left:.3rem;top:.55rem;
+    width:1.8rem;height:1.8rem;border-radius:50%;
+    background:linear-gradient(135deg,var(--primary-color),#6366f1);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;
+}
+
+/* ── Feedback Pills ── */
+.ma-pills{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.45rem}
+.ma-pill{
+    display:inline-flex;align-items:center;gap:.25rem;padding:.25rem .7rem;
+    border-radius:20px;font-size:.78rem;font-weight:600;
+    background:rgba(99,102,241,.1);color:#6366f1;border:1px solid rgba(99,102,241,.2);
+}
+
+/* ── Loading ── */
+.ma-loading{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center}
+.ma-loading.active{display:flex}
+.ma-loading-box{
+    background:var(--card-bg);padding:2.5rem 3.5rem;border-radius:20px;
+    text-align:center;box-shadow:0 25px 50px rgba(0,0,0,.15);
+}
+.ma-spinner{
+    width:48px;height:48px;border:4px solid var(--border-color);
+    border-top-color:var(--primary-color);border-radius:50%;
+    animation:maSpin .7s linear infinite;margin:0 auto 1.25rem;
+}
+@keyframes maSpin{to{transform:rotate(360deg)}}
+.ma-loading-box p{font-weight:600;font-size:1rem;color:var(--heading-color)}
+.ma-loading-box small{display:block;margin-top:.35rem;opacity:.6;font-size:.85rem;color:var(--text-light)}
+
+/* ── Fade ── */
+.ma-fade{animation:maFadeUp .45s ease both}
+@keyframes maFadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.ma-fade:nth-child(2){animation-delay:.08s}
+.ma-fade:nth-child(3){animation-delay:.16s}
+
+#ma-results{display:none}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+    .ma-trigger-form{flex-direction:column}
+    .ma-select{min-width:100%;width:100%}
+    .ma-tabs{flex-direction:column}
+    .ma-tab:first-child{border-radius:10px 10px 0 0}
+    .ma-tab:last-child{border-radius:0 0 10px 10px}
+}
 </style>
 
-<div class="loading-overlay" id="loading">
-    <div class="loading-box">
-        <div class="spinner"></div>
-        <p>Running full multi-agent pipeline…</p>
-        <small>CareerGuidanceAgent ↔ RecruiterMatchingAgent</small>
+<!-- Breadcrumb -->
+<div class="ma-breadcrumb">
+    <a href="{% url 'dashboard:home' %}">Home</a>
+    <i class='bx bx-chevron-right'></i>
+    <span>Multi-Agent Demo</span>
+</div>
+
+<!-- Header -->
+<div class="ma-header">
+    <div>
+        <h1><i class='bx bx-network-chart'></i> Multi-Agent Demo</h1>
+        <p class="ma-subtitle">End-to-end pipeline showing both Career Coach and Recruiter agents working together</p>
     </div>
 </div>
 
-<!-- Trigger -->
-<div class="agent-card trigger-card">
+<!-- Loading -->
+<div class="ma-loading" id="ma-loading">
+    <div class="ma-loading-box">
+        <div class="ma-spinner"></div>
+        <p>Running full multi-agent pipeline…</p>
+        <small>CareerGuidanceAgent &harr; RecruiterMatchingAgent</small>
+    </div>
+</div>
+
+<!-- Trigger Card -->
+<div class="ma-trigger">
     <h3><i class='bx bx-play-circle'></i> Run Full Multi-Agent Flow</h3>
-    <p>This triggers both the <strong>CareerGuidanceAgent</strong> and the <strong>RecruiterMatchingAgent</strong>,
-       passing messages between them, and returns a combined result showing both perspectives.</p>
-    <form id="demo-form" method="post" style="display:flex;gap:1rem;align-items:end;flex-wrap:wrap;">
+    <p>This triggers both the <strong>CareerGuidanceAgent</strong> and the <strong>RecruiterMatchingAgent</strong>, passing messages between them, and returns a combined result showing both perspectives.</p>
+    <form id="demo-form" method="post" class="ma-trigger-form">
         {% csrf_token %}
         <div>
-            <label for="job_id" style="display:block;margin-bottom:.35rem;font-weight:600;">Target Job</label>
-            <select name="job_id" id="job_id" class="form-control" style="min-width:300px;" required>
+            <label for="job_id">Target Job</label>
+            <select name="job_id" id="job_id" class="ma-select" required>
                 <option value="">— choose a job —</option>
                 {% for j in jobs %}
-                    <option value="{{ j.id }}">{{ j.title }} @ {{ j.company }}</option>
+                <option value="{{ j.id }}">{{ j.title }} @ {{ j.company }}</option>
                 {% endfor %}
             </select>
         </div>
-        <button type="submit" class="btn-launch"><i class='bx bx-network-chart'></i> Run Demo</button>
+        <button type="submit" class="ma-launch"><i class='bx bx-network-chart'></i> Run Demo</button>
     </form>
 </div>
 
-<div id="results-area">
-    <!-- Agent Communication Timeline -->
-    <div class="agent-card fade-in">
+<!-- Results -->
+<div id="ma-results">
+    <!-- Timeline -->
+    <div class="ma-card ma-fade">
         <h3><i class='bx bx-conversation'></i> Agent Communication Log</h3>
-        <div class="timeline" id="timeline"></div>
+        <div class="ma-timeline" id="ma-timeline"></div>
     </div>
 
-    <!-- Tabs: Student View / Recruiter View -->
-    <div class="tab-group">
-        <button class="tab-btn active" data-tab="student"><i class='bx bx-user' style="margin-right:.35rem;"></i> Student View</button>
-        <button class="tab-btn" data-tab="recruiter"><i class='bx bx-briefcase' style="margin-right:.35rem;"></i> Recruiter View</button>
+    <!-- Tabs -->
+    <div class="ma-tabs">
+        <button class="ma-tab active" data-tab="student"><i class='bx bx-user'></i> Student View</button>
+        <button class="ma-tab" data-tab="recruiter"><i class='bx bx-briefcase'></i> Recruiter View</button>
     </div>
 
-    <!-- Student View -->
-    <div class="tab-panel active" id="tab-student">
-        <div class="agent-card fade-in">
+    <!-- Student Panel -->
+    <div class="ma-panel active" id="ma-tab-student">
+        <div class="ma-card ma-fade">
             <h3><i class='bx bx-user'></i> Your Career Analysis</h3>
-            <div class="section-label"><i class='bx bx-briefcase'></i> Recommended Jobs</div>
-            <div id="sv-jobs" style="margin-bottom:1.25rem;"></div>
-            <div class="section-label"><i class='bx bx-bar-chart-alt-2'></i> Skill Analysis</div>
-            <div id="sv-gaps" style="margin-bottom:1.25rem;"></div>
-            <div class="section-label"><i class='bx bx-book-open'></i> Learning Roadmap</div>
-            <div id="sv-roadmap" style="margin-bottom:1.25rem;"></div>
-            <div class="section-label"><i class='bx bx-list-check'></i> Next Steps</div>
-            <ol class="step-list" id="sv-steps"></ol>
+            <div class="ma-sec-label"><i class='bx bx-briefcase'></i> Recommended Jobs</div>
+            <div id="ma-sv-jobs" style="margin-bottom:1.15rem;"></div>
+            <div class="ma-sec-label"><i class='bx bx-bar-chart-alt-2'></i> Skill Analysis</div>
+            <div id="ma-sv-gaps" style="margin-bottom:1.15rem;"></div>
+            <div class="ma-sec-label"><i class='bx bx-book-open'></i> Learning Roadmap</div>
+            <div id="ma-sv-roadmap" style="margin-bottom:1.15rem;"></div>
+            <div class="ma-sec-label"><i class='bx bx-list-check'></i> Next Steps</div>
+            <ol class="ma-steps" id="ma-sv-steps"></ol>
         </div>
-        <div class="agent-card fade-in">
+        <div class="ma-card ma-fade">
             <h3><i class='bx bx-info-circle'></i> Recruiter Insights (for you)</h3>
-            <div id="sv-insights"></div>
+            <div id="ma-sv-insights"></div>
         </div>
     </div>
 
-    <!-- Recruiter View -->
-    <div class="tab-panel" id="tab-recruiter">
-        <div class="agent-card fade-in">
+    <!-- Recruiter Panel -->
+    <div class="ma-panel" id="ma-tab-recruiter">
+        <div class="ma-card ma-fade">
             <h3><i class='bx bx-trophy'></i> Candidate Rankings</h3>
-            <div id="rv-candidates"></div>
+            <div id="ma-rv-candidates"></div>
         </div>
-        <div class="agent-card fade-in">
+        <div class="ma-card ma-fade">
             <h3><i class='bx bx-message-rounded-detail'></i> Feedback</h3>
-            <div id="rv-feedback"></div>
+            <div id="ma-rv-feedback"></div>
         </div>
     </div>
 </div>
 
-<!-- Past timeline -->
+<!-- Past Timeline -->
 {% if messages %}
-<div class="agent-card">
+<div class="ma-card">
     <h3><i class='bx bx-history'></i> Last Run Timeline (Run #{{ latest_run.id }})</h3>
-    <div class="timeline">
+    <div class="ma-timeline">
         {% for m in messages %}
-        <div class="tl-item">
-            <div class="tl-dot"></div>
-            <span class="tl-sender">{{ m.sender_agent }}</span>
-            <span class="tl-arrow">→</span>
-            <span class="tl-sender">{{ m.receiver_agent }}</span>
-            <span class="tl-intent">{{ m.intent }}</span>
-            <div class="tl-time">{{ m.created_at|date:"H:i:s" }}</div>
+        <div class="ma-tl-item">
+            <div class="ma-tl-dot"></div>
+            <span class="ma-tl-sender">{{ m.sender_agent }}</span>
+            <span class="ma-tl-arrow">&rarr;</span>
+            <span class="ma-tl-sender">{{ m.receiver_agent }}</span>
+            <span class="ma-tl-intent">{{ m.intent }}</span>
+            <div class="ma-tl-time">{{ m.created_at|date:"H:i:s" }}</div>
         </div>
         {% endfor %}
     </div>
@@ -235,135 +304,132 @@
 
 <script>
 // Tabs
-document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+document.querySelectorAll('.ma-tab').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+        document.querySelectorAll('.ma-tab').forEach(b=>b.classList.remove('active'));
+        document.querySelectorAll('.ma-panel').forEach(p=>p.classList.remove('active'));
         btn.classList.add('active');
-        const panel = document.getElementById('tab-' + btn.dataset.tab);
-        panel.classList.add('active');
+        document.getElementById('ma-tab-'+btn.dataset.tab).classList.add('active');
     });
 });
 
-function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-function scoreColor(s) { return s >= .7 ? '#22c55e' : s >= .4 ? '#f59e0b' : '#ef4444'; }
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function scoreColor(s){return s>=.7?'#22c55e':s>=.4?'#f59e0b':'#ef4444'}
 
-// Form submit
-document.getElementById('demo-form').addEventListener('submit', async function(e) {
+document.getElementById('demo-form').addEventListener('submit',async function(e){
     e.preventDefault();
-    document.getElementById('loading').classList.add('active');
-    const data = new FormData(e.target);
-    try {
-        const resp = await fetch(window.location.href, { method: 'POST', body: data });
-        if (!resp.ok) throw new Error('Server error (' + resp.status + ')');
-        const json = await resp.json();
-        if (json.error) { alert('Error: ' + json.error); return; }
+    document.getElementById('ma-loading').classList.add('active');
+    const data=new FormData(e.target);
+    try{
+        const resp=await fetch(window.location.href,{method:'POST',body:data});
+        if(!resp.ok) throw new Error('Server error ('+resp.status+')');
+        const json=await resp.json();
+        if(json.error){alert('Error: '+json.error);return;}
         renderDemo(json);
-    } catch (err) {
-        alert('Error: ' + err.message);
-    } finally {
-        document.getElementById('loading').classList.remove('active');
+    }catch(err){
+        alert('Error: '+err.message);
+    }finally{
+        document.getElementById('ma-loading').classList.remove('active');
     }
 });
 
-function renderDemo(data) {
-    const area = document.getElementById('results-area');
-    area.style.display = 'block';
-    area.querySelectorAll('.fade-in').forEach(el => { el.style.animation = 'none'; el.offsetHeight; el.style.animation = ''; });
+function renderDemo(data){
+    const area=document.getElementById('ma-results');
+    area.style.display='block';
+    area.querySelectorAll('.ma-fade').forEach(el=>{el.style.animation='none';el.offsetHeight;el.style.animation='';});
 
     // Timeline
-    if (data.run_id) {
-        fetch(`{% url 'agents:agent_run_detail' 0 %}`.replace('0', data.run_id))
-            .then(r => { if (!r.ok) throw new Error('Failed to load timeline'); return r.json(); })
-            .then(rd => {
-                const msgs = rd.messages || [];
-                document.getElementById('timeline').innerHTML = msgs.map(m => `
-                    <div class="tl-item">
-                        <div class="tl-dot"></div>
-                        <span class="tl-sender">${m.sender_agent}</span>
-                        <span class="tl-arrow">→</span>
-                        <span class="tl-sender">${m.receiver_agent}</span>
-                        <span class="tl-intent">${m.intent}</span>
-                        <div class="tl-time">${m.created_at ? new Date(m.created_at).toLocaleTimeString() : ''}</div>
-                    </div>
-                `).join('') || '<p style="opacity:.5;">No messages recorded.</p>';
-            });
+    if(data.run_id){
+        fetch(`{% url 'agents:agent_run_detail' 0 %}`.replace('0',data.run_id))
+        .then(r=>{if(!r.ok) throw new Error('Failed');return r.json();})
+        .then(rd=>{
+            document.getElementById('ma-timeline').innerHTML=(rd.messages||[]).map(m=>`
+                <div class="ma-tl-item">
+                    <div class="ma-tl-dot"></div>
+                    <span class="ma-tl-sender">${m.sender_agent}</span>
+                    <span class="ma-tl-arrow">&rarr;</span>
+                    <span class="ma-tl-sender">${m.receiver_agent}</span>
+                    <span class="ma-tl-intent">${m.intent}</span>
+                    <div class="ma-tl-time">${m.created_at?new Date(m.created_at).toLocaleTimeString():''}</div>
+                </div>
+            `).join('')||'<p style="color:var(--text-light);">No messages recorded.</p>';
+        });
     }
 
     // Student view
-    const sv = data.student_view || {};
-    const sa = sv.skill_analysis || {};
+    const sv=data.student_view||{};
+    const sa=sv.skill_analysis||{};
 
     // Jobs
-    document.getElementById('sv-jobs').innerHTML = (sv.recommended_jobs || []).slice(0, 3).map(j => {
-        const pct = (j.ml_score * 100).toFixed(0);
+    document.getElementById('ma-sv-jobs').innerHTML=(sv.recommended_jobs||[]).slice(0,3).map(j=>{
+        const pct=(j.ml_score*100).toFixed(0);
         return `
-        <div class="job-mini">
+        <div class="ma-job-mini">
             <div><strong>${esc(j.title)}</strong> <span style="opacity:.6;">@ ${esc(j.company)}</span></div>
-            <div class="job-score" style="color:${scoreColor(j.ml_score)}">${pct}%</div>
+            <div class="ma-job-score" style="color:${scoreColor(j.ml_score)}">${pct}%</div>
         </div>`;
-    }).join('') || '<p style="opacity:.5;">No jobs found.</p>';
+    }).join('')||'<p style="color:var(--text-light);">No jobs found.</p>';
 
     // Gaps
-    const mPct = sa.match_percentage || 0;
-    let gapHtml = `<div style="margin-bottom:.75rem;font-weight:700;font-size:.95rem;">Overall Match: <span style="color:var(--primary-color);">${mPct}%</span></div>`;
-    gapHtml += `<div style="display:flex;gap:.5rem;flex-wrap:wrap;">`;
-    gapHtml += (sa.critical_gaps || []).map(g => `<span class="gap-badge gap-critical"><i class='bx bx-x-circle'></i> ${g.skill} (gap ${g.gap})</span>`).join('');
-    gapHtml += (sa.development_areas || []).map(g => `<span class="gap-badge gap-develop"><i class='bx bx-up-arrow-alt'></i> ${g.skill} (gap ${g.gap})</span>`).join('');
-    gapHtml += (sa.strengths || []).map(g => `<span class="gap-badge gap-strength"><i class='bx bx-check'></i> ${g.skill}</span>`).join('');
-    gapHtml += `</div>`;
-    document.getElementById('sv-gaps').innerHTML = gapHtml;
+    const mPct=sa.match_percentage||0;
+    let gapHtml=`<div style="margin-bottom:.65rem;font-weight:700;font-size:.92rem;">Overall Match: <span style="color:var(--primary-color);">${mPct}%</span></div>`;
+    gapHtml+=`<div style="display:flex;gap:.35rem;flex-wrap:wrap;">`;
+    gapHtml+=(sa.critical_gaps||[]).map(g=>`<span class="ma-badge ma-badge-critical"><i class='bx bx-x-circle'></i> ${g.skill} (gap ${g.gap})</span>`).join('');
+    gapHtml+=(sa.development_areas||[]).map(g=>`<span class="ma-badge ma-badge-develop"><i class='bx bx-up-arrow-alt'></i> ${g.skill} (gap ${g.gap})</span>`).join('');
+    gapHtml+=(sa.strengths||[]).map(g=>`<span class="ma-badge ma-badge-strength"><i class='bx bx-check'></i> ${g.skill}</span>`).join('');
+    gapHtml+=`</div>`;
+    document.getElementById('ma-sv-gaps').innerHTML=gapHtml;
 
     // Roadmap
-    document.getElementById('sv-roadmap').innerHTML = (sv.learning_roadmap || []).map(r =>
-        `<div class="roadmap-pill"><strong>${r.skill}</strong> — est. ${r.estimated_weeks || '?'} weeks</div>`
-    ).join('') || '<p style="opacity:.5;">No roadmap generated.</p>';
+    document.getElementById('ma-sv-roadmap').innerHTML=(sv.learning_roadmap||[]).map(r=>
+        `<div class="ma-roadmap-pill"><strong>${r.skill}</strong> — est. ${r.estimated_weeks||'?'} weeks</div>`
+    ).join('')||'<p style="color:var(--text-light);">No roadmap generated.</p>';
 
     // Steps
-    document.getElementById('sv-steps').innerHTML = (sv.next_steps || []).map(s => `<li>${s}</li>`).join('');
+    document.getElementById('ma-sv-steps').innerHTML=(sv.next_steps||[]).map(s=>`<li>${s}</li>`).join('');
 
     // Recruiter insights for student
-    const ins = sv.recruiter_insights || {};
-    let insHtml = `<div class="insight-highlight">`;
-    insHtml += `Your rank among <strong>${ins.total_applicants || '?'}</strong> applicants: <strong>#${ins.your_rank || '?'}</strong>`;
-    insHtml += ` (fit score: <strong>${ins.your_fit_score ? (ins.your_fit_score * 100).toFixed(0) + '%' : 'N/A'}</strong>)`;
-    insHtml += `</div>`;
-    if (ins.key_differentiators && ins.key_differentiators.length) {
-        insHtml += `<p style="font-weight:600;margin-top:.85rem;margin-bottom:.4rem;"><i class='bx bx-star' style="color:#f59e0b;"></i> Key Skills That Matter</p>`;
-        insHtml += `<div class="fb-pills">${ins.key_differentiators.map(d => `<span class="fb-pill"><i class='bx bx-check-circle'></i> ${d}</span>`).join('')}</div>`;
+    const ins=sv.recruiter_insights||{};
+    let insHtml=`<div class="ma-insight">`;
+    insHtml+=`Your rank among <strong>${ins.total_applicants||'?'}</strong> applicants: <strong>#${ins.your_rank||'?'}</strong>`;
+    insHtml+=` (fit score: <strong>${ins.your_fit_score?(ins.your_fit_score*100).toFixed(0)+'%':'N/A'}</strong>)`;
+    insHtml+=`</div>`;
+    if(ins.key_differentiators&&ins.key_differentiators.length){
+        insHtml+=`<p style="font-weight:600;margin-top:.75rem;margin-bottom:.35rem;"><i class='bx bx-star' style="color:#f59e0b;"></i> Key Skills That Matter</p>`;
+        insHtml+=`<div class="ma-pills">${ins.key_differentiators.map(d=>`<span class="ma-pill"><i class='bx bx-check-circle'></i> ${d}</span>`).join('')}</div>`;
     }
-    document.getElementById('sv-insights').innerHTML = insHtml;
+    document.getElementById('ma-sv-insights').innerHTML=insHtml;
 
     // Recruiter view
-    const rv = data.recruiter_view || {};
-    const cands = rv.ranked_candidates || [];
-    document.getElementById('rv-candidates').innerHTML = cands.map((c, i) => {
-        const rank = i + 1;
-        const cls = rank === 1 ? 'cand-rank-1' : rank === 2 ? 'cand-rank-2' : rank === 3 ? 'cand-rank-3' : 'cand-rank-d';
-        const pct = (c.fit_score * 100).toFixed(0);
+    const rv=data.recruiter_view||{};
+    const cands=rv.ranked_candidates||[];
+    document.getElementById('ma-rv-candidates').innerHTML=cands.map((c,i)=>{
+        const rank=i+1;
+        const cls=rank===1?'ma-rank-1':rank===2?'ma-rank-2':rank===3?'ma-rank-3':'ma-rank-d';
+        const pct=(c.fit_score*100).toFixed(0);
         return `
-        <div class="cand-mini">
+        <div class="ma-cand-mini">
             <div style="display:flex;align-items:center;">
-                <div class="cand-rank ${cls}">${rank}</div>
+                <div class="ma-cand-rank ${cls}">${rank}</div>
                 <div>
                     <strong>${esc(c.full_name)}</strong>
-                    ${c.explanation ? `<div style="font-size:.82rem;color:var(--text-light);margin-top:.15rem;">${esc(c.explanation)}</div>` : ''}
+                    ${c.explanation?`<div style="font-size:.82rem;color:var(--text-light);margin-top:.1rem;">${esc(c.explanation)}</div>`:''}
                 </div>
             </div>
-            <div style="font-weight:800;font-size:1.15rem;color:${scoreColor(c.fit_score)};">${pct}%</div>
+            <div style="font-weight:800;font-size:1.1rem;color:${scoreColor(c.fit_score)};">${pct}%</div>
         </div>`;
-    }).join('') || '<p style="opacity:.5;">No applicants.</p>';
+    }).join('')||'<p style="color:var(--text-light);">No applicants.</p>';
 
-    const fb = rv.feedback || {};
-    let fbHtml = '';
-    if (fb.summary) fbHtml += `<div class="insight-highlight">${fb.summary}</div>`;
-    if (fb.key_differentiators && fb.key_differentiators.length) {
-        fbHtml += `<p style="font-weight:600;margin-top:.85rem;margin-bottom:.4rem;">Key Differentiators</p>`;
-        fbHtml += `<div class="fb-pills">${fb.key_differentiators.map(d => `<span class="fb-pill">${d}</span>`).join('')}</div>`;
+    const fb=rv.feedback||{};
+    let fbHtml='';
+    if(fb.summary) fbHtml+=`<div class="ma-insight">${fb.summary}</div>`;
+    if(fb.key_differentiators&&fb.key_differentiators.length){
+        fbHtml+=`<p style="font-weight:600;margin-top:.75rem;margin-bottom:.35rem;">Key Differentiators</p>`;
+        fbHtml+=`<div class="ma-pills">${fb.key_differentiators.map(d=>`<span class="ma-pill">${d}</span>`).join('')}</div>`;
     }
-    document.getElementById('rv-feedback').innerHTML = fbHtml || '<p style="opacity:.5;">No feedback.</p>';
+    document.getElementById('ma-rv-feedback').innerHTML=fbHtml||'<p style="color:var(--text-light);">No feedback.</p>';
 
-    area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    area.scrollIntoView({behavior:'smooth',block:'start'});
 }
 </script>
 {% endblock %}

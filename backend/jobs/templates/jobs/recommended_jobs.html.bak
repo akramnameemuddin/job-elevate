@@ -1,0 +1,367 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Recommended Jobs{% endblock %}
+
+{% block content %}
+<style>
+/* ══════════════════════════════════════════════
+   Recommended Jobs Page  (rj- namespace)
+   ══════════════════════════════════════════════ */
+.rj-stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 1rem; margin-bottom: 1.75rem;
+}
+.rj-stat {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 12px; padding: 1rem 1.25rem;
+    display: flex; align-items: center; gap: .85rem;
+    transition: transform .15s;
+}
+.rj-stat:hover { transform: translateY(-2px); }
+.rj-stat-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.35rem; flex-shrink: 0;
+}
+.rj-stat-icon.total { background: rgba(79,70,229,.12); color: var(--primary-color); }
+.rj-stat-icon.high  { background: rgba(34,197,94,.12); color: #22c55e; }
+.rj-stat-icon.med   { background: rgba(245,158,11,.12); color: #f59e0b; }
+.rj-stat-icon.low   { background: rgba(239,68,68,.12); color: #ef4444; }
+.rj-stat h4 { font-size: .75rem; color: var(--text-muted); margin: 0 0 .1rem; text-transform: uppercase; letter-spacing: .4px; }
+.rj-stat .val { font-size: 1.35rem; font-weight: 700; color: var(--heading-color); }
+
+/* ── Filter bar ── */
+.rj-filter-bar {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 12px; padding: .75rem 1.15rem;
+    display: flex; align-items: center; gap: .75rem; margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+}
+.rj-search-wrap { flex: 1; min-width: 200px; position: relative; }
+.rj-search-wrap i { position: absolute; left: .75rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 1.1rem; }
+.rj-search-wrap input {
+    width: 100%; border: 1px solid var(--border-color); border-radius: 8px;
+    padding: .5rem .75rem .5rem 2.2rem; font-size: .88rem;
+    background: var(--bg-color); color: var(--text-color); transition: border-color .15s;
+}
+.rj-search-wrap input:focus { border-color: var(--primary-color); outline: none; }
+.rj-filter-select {
+    border: 1px solid var(--border-color); border-radius: 8px;
+    padding: .5rem .75rem; font-size: .85rem;
+    background: var(--bg-color); color: var(--text-color); cursor: pointer;
+}
+
+/* ── Job Cards ── */
+.rj-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1rem; }
+@media(max-width: 720px) { .rj-grid { grid-template-columns: 1fr; } }
+
+.rj-card {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 14px; padding: 1.25rem 1.5rem;
+    transition: all .2s; position: relative;
+    display: flex; flex-direction: column; gap: .75rem;
+}
+.rj-card:hover { border-color: var(--primary-color); box-shadow: 0 4px 16px rgba(0,0,0,.06); transform: translateY(-2px); }
+
+.rj-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: .75rem; }
+.rj-card-info { flex: 1; min-width: 0; }
+.rj-card-info h3 {
+    font-size: 1.05rem; font-weight: 600; color: var(--heading-color);
+    margin: 0 0 .2rem;
+}
+.rj-card-info h3 a { color: inherit; text-decoration: none; }
+.rj-card-info h3 a:hover { color: var(--primary-color); }
+.rj-card-company {
+    font-size: .85rem; color: var(--text-muted);
+    display: flex; align-items: center; gap: .3rem;
+}
+
+/* Match score ring */
+.rj-score {
+    width: 56px; height: 56px; position: relative; flex-shrink: 0;
+}
+.rj-score svg { width: 56px; height: 56px; transform: rotate(-90deg); }
+.rj-score-track { fill: none; stroke: var(--border-color); stroke-width: 4; }
+.rj-score-fill  { fill: none; stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset .6s ease; }
+.rj-score-text {
+    position: absolute; inset: 0; display: flex; align-items: center;
+    justify-content: center; font-size: .78rem; font-weight: 700;
+    color: var(--heading-color);
+}
+
+/* Score color classes */
+.rj-score-high .rj-score-fill { stroke: #22c55e; }
+.rj-score-med .rj-score-fill  { stroke: #f59e0b; }
+.rj-score-low .rj-score-fill  { stroke: #ef4444; }
+
+/* Meta tags */
+.rj-meta {
+    display: flex; flex-wrap: wrap; gap: .3rem .6rem;
+    font-size: .8rem; color: var(--text-muted);
+}
+.rj-meta span { display: flex; align-items: center; gap: .2rem; }
+
+/* Skills */
+.rj-skills { display: flex; flex-wrap: wrap; gap: .3rem; }
+.rj-skill {
+    font-size: .72rem; padding: .18rem .5rem; border-radius: 6px;
+    background: rgba(79,70,229,.08); color: var(--primary-color);
+    font-weight: 500;
+}
+
+/* Reason */
+.rj-reason {
+    font-size: .8rem; color: var(--text-muted); font-style: italic;
+    display: flex; align-items: center; gap: .3rem;
+}
+.rj-reason i { font-size: .9rem; color: var(--primary-color); }
+
+/* Card footer */
+.rj-card-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-top: .65rem; border-top: 1px solid var(--border-color);
+    margin-top: auto;
+}
+.rj-card-actions { display: flex; gap: .35rem; }
+.rj-btn-icon {
+    width: 34px; height: 34px; border-radius: 8px;
+    border: 1px solid var(--border-color); background: var(--card-bg);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; color: var(--text-muted); transition: all .15s;
+}
+.rj-btn-icon:hover { border-color: var(--primary-color); color: var(--primary-color); }
+.rj-btn-icon.bookmarked { color: #f59e0b; border-color: #f59e0b; background: rgba(245,158,11,.08); }
+
+/* Applied badge */
+.rj-applied-badge {
+    font-size: .72rem; padding: .2rem .6rem; border-radius: 20px;
+    background: rgba(34,197,94,.1); color: #16a34a; font-weight: 600;
+}
+
+/* ── Empty state ── */
+.rj-empty {
+    text-align: center; padding: 4rem 2rem;
+    background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px;
+}
+.rj-empty i { font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem; display: block; }
+.rj-empty h3 { font-size: 1.15rem; color: var(--heading-color); margin-bottom: .4rem; }
+.rj-empty p { color: var(--text-muted); font-size: .9rem; margin-bottom: 1.25rem; }
+</style>
+
+<!-- Breadcrumb -->
+<div class="breadcrumb">
+    <div class="breadcrumb-item">
+        <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item">
+        <a href="{% url 'jobs:job_listings' %}" class="breadcrumb-link">Jobs</a>
+        <i class='bx bx-chevron-right'></i>
+    </div>
+    <div class="breadcrumb-item"><span>Recommended</span></div>
+</div>
+
+<!-- Page Header -->
+<div class="page-content-header">
+    <div>
+        <h1 class="page-title"><i class='bx bx-star' style="color:var(--primary-color)"></i> Recommended Jobs</h1>
+        <p class="page-subtitle">Personalized job recommendations based on your skills and preferences</p>
+    </div>
+    <div style="display:flex; gap:.5rem;">
+        <a href="{% url 'jobs:update_job_preferences' %}" class="btn btn-outline-secondary btn-sm">
+            <i class='bx bx-slider-alt'></i> Preferences
+        </a>
+        <a href="{% url 'jobs:job_listings' %}" class="btn btn-outline-secondary btn-sm">
+            <i class='bx bx-arrow-back'></i> All Jobs
+        </a>
+    </div>
+</div>
+
+{% if recommended_jobs %}
+<!-- Stats -->
+<div class="rj-stats">
+    <div class="rj-stat">
+        <div class="rj-stat-icon total"><i class='bx bx-star'></i></div>
+        <div><h4>Total Matches</h4><div class="val">{{ stats.total_recommendations }}</div></div>
+    </div>
+    <div class="rj-stat">
+        <div class="rj-stat-icon high"><i class='bx bx-trophy'></i></div>
+        <div><h4>High Match (80%+)</h4><div class="val">{{ stats.high_match_count }}</div></div>
+    </div>
+    <div class="rj-stat">
+        <div class="rj-stat-icon med"><i class='bx bx-target-lock'></i></div>
+        <div><h4>Medium (60-80%)</h4><div class="val">{{ stats.medium_match_count }}</div></div>
+    </div>
+    <div class="rj-stat">
+        <div class="rj-stat-icon low"><i class='bx bx-dots-horizontal-rounded'></i></div>
+        <div><h4>Exploring (&lt;60%)</h4><div class="val">{{ stats.low_match_count }}</div></div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="rj-filter-bar">
+    <div class="rj-search-wrap">
+        <i class='bx bx-search'></i>
+        <input type="text" id="rjSearch" placeholder="Search by title, company, or skills...">
+    </div>
+    <select class="rj-filter-select" id="rjScoreFilter">
+        <option value="">All Scores</option>
+        <option value="high">80%+ (High)</option>
+        <option value="med">60-79% (Medium)</option>
+        <option value="low">Below 60%</option>
+    </select>
+    <select class="rj-filter-select" id="rjSort">
+        <option value="score">Best Match</option>
+        <option value="newest">Newest</option>
+    </select>
+</div>
+
+<!-- Job Cards Grid -->
+<div class="rj-grid" id="rjGrid">
+    {% for rec in recommended_jobs %}
+    {% with job=rec.job score=rec.score %}
+    <div class="rj-card" data-score="{{ score }}" data-title="{{ job.title|lower }}" data-company="{{ job.company|lower }}" data-skills="{{ job.skills|join:',' }}" data-date="{{ job.created_at|date:'U' }}">
+        <div class="rj-card-top">
+            <div class="rj-card-info">
+                <h3><a href="{% url 'jobs:job_detail' job.id %}">{{ job.title }}</a></h3>
+                <div class="rj-card-company">
+                    <i class='bx bx-buildings'></i> {{ job.company }}
+                </div>
+            </div>
+            {% with score_class=score|floatformat:0 %}
+            <div class="rj-score {% if score >= 80 %}rj-score-high{% elif score >= 60 %}rj-score-med{% else %}rj-score-low{% endif %}">
+                <svg viewBox="0 0 36 36">
+                    <circle class="rj-score-track" cx="18" cy="18" r="15.9"/>
+                    <circle class="rj-score-fill" cx="18" cy="18" r="15.9"
+                        stroke-dasharray="{{ score }}, 100"/>
+                </svg>
+                <span class="rj-score-text">{{ score }}%</span>
+            </div>
+            {% endwith %}
+        </div>
+
+        <div class="rj-meta">
+            <span><i class='bx bx-map'></i> {{ job.location }}</span>
+            <span><i class='bx bx-briefcase-alt-2'></i> {{ job.job_type }}</span>
+            {% if job.salary %}<span><i class='bx bx-money'></i> {{ job.salary }}</span>{% endif %}
+            {% if job.experience %}<span><i class='bx bx-bar-chart'></i> {{ job.experience }}</span>{% endif %}
+        </div>
+
+        {% if job.skills %}
+        <div class="rj-skills">
+            {% for skill in job.skills|slice:":6" %}
+                {% if skill.name %}
+                    <span class="rj-skill">{{ skill.name }}</span>
+                {% elif skill %}
+                    <span class="rj-skill">{{ skill }}</span>
+                {% endif %}
+            {% endfor %}
+            {% if job.skills|length > 6 %}
+                <span class="rj-skill" style="background:var(--hover-bg); color:var(--text-muted);">+{{ job.skills|length|add:"-6" }}</span>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if rec.reason %}
+        <div class="rj-reason"><i class='bx bx-bulb'></i> {{ rec.reason }}</div>
+        {% endif %}
+
+        <div class="rj-card-footer">
+            {% if job.id in applied_job_ids %}
+            <span class="rj-applied-badge"><i class='bx bx-check'></i> Applied</span>
+            {% else %}
+            <a href="{% url 'jobs:job_detail' job.id %}" class="btn btn-primary btn-sm" style="font-size:.78rem; padding:.3rem .65rem;">
+                View &amp; Apply <i class='bx bx-right-arrow-alt'></i>
+            </a>
+            {% endif %}
+            <div class="rj-card-actions">
+                <button class="rj-btn-icon {% if job.id in bookmarked_job_ids %}bookmarked{% endif %}"
+                        title="Bookmark" onclick="toggleBookmark({{ job.id }}, this)">
+                    <i class='bx {% if job.id in bookmarked_job_ids %}bxs-bookmark{% else %}bx-bookmark{% endif %}'></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endwith %}
+    {% endfor %}
+</div>
+
+{% else %}
+<!-- Empty state -->
+<div class="rj-empty">
+    <i class='bx bx-star'></i>
+    <h3>No recommendations yet</h3>
+    <p>Update your skills and preferences to get personalized job matches</p>
+    <div style="display:flex; gap:.5rem; justify-content:center;">
+        <a href="{% url 'jobs:update_job_preferences' %}" class="btn btn-primary">
+            <i class='bx bx-slider-alt'></i> Set Preferences
+        </a>
+        <a href="{% url 'jobs:job_listings' %}" class="btn btn-outline-secondary">Browse Jobs</a>
+    </div>
+</div>
+{% endif %}
+
+<script>
+const CSRF = '{{ csrf_token }}';
+
+// Bookmark toggle
+async function toggleBookmark(jobId, btn) {
+    try {
+        const res = await fetch(`/jobs/bookmark/${jobId}/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        if (data.success) {
+            const icon = btn.querySelector('i');
+            if (data.bookmarked) {
+                btn.classList.add('bookmarked');
+                icon.className = 'bx bxs-bookmark';
+            } else {
+                btn.classList.remove('bookmarked');
+                icon.className = 'bx bx-bookmark';
+            }
+        }
+    } catch(e) { console.error(e); }
+}
+
+// Filter & search
+(function() {
+    const el = id => document.getElementById(id);
+
+    function applyFilters() {
+        const query = (el('rjSearch')?.value || '').toLowerCase();
+        const scoreFilter = el('rjScoreFilter')?.value || '';
+        const sort = el('rjSort')?.value || 'score';
+        const grid = el('rjGrid');
+        const cards = Array.from(grid.children);
+
+        cards.forEach(card => {
+            const score = parseInt(card.dataset.score);
+            const matchText = !query ||
+                card.dataset.title.includes(query) ||
+                card.dataset.company.includes(query) ||
+                (card.dataset.skills || '').toLowerCase().includes(query);
+            let matchScore = true;
+            if (scoreFilter === 'high') matchScore = score >= 80;
+            else if (scoreFilter === 'med') matchScore = score >= 60 && score < 80;
+            else if (scoreFilter === 'low') matchScore = score < 60;
+            card.style.display = (matchText && matchScore) ? '' : 'none';
+        });
+
+        // Sort
+        const visible = cards.filter(c => c.style.display !== 'none');
+        visible.sort((a, b) => {
+            if (sort === 'score') return parseInt(b.dataset.score) - parseInt(a.dataset.score);
+            return parseInt(b.dataset.date || 0) - parseInt(a.dataset.date || 0);
+        });
+        visible.forEach(c => grid.appendChild(c));
+    }
+
+    el('rjSearch')?.addEventListener('input', applyFilters);
+    el('rjScoreFilter')?.addEventListener('change', applyFilters);
+    el('rjSort')?.addEventListener('change', applyFilters);
+})();
+</script>
+{% endblock %}
