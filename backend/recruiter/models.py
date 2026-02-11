@@ -98,7 +98,12 @@ class Application(models.Model):
         return f"{self.applicant} - {self.job}"
     
     def calculate_match_score(self):
-        """Calculate match score based on applicant skills (technical + soft) and job requirements"""
+        """Calculate match score based on applicant skills (technical + soft)
+        vs job requirements.
+        
+        Score = (number of job skills the applicant has / total job skills) * 100
+        Uses set-based matching for correctness and performance.
+        """
         job_skills = self.job.skills
         # Combine technical and soft skills
         all_applicant_skills = self.applicant.get_all_skills_list()
@@ -106,26 +111,31 @@ class Application(models.Model):
         if not job_skills or not all_applicant_skills:
             return 0
         
-        # Convert to lowercase for case-insensitive matching
-        # Handle both dict format {'name': 'Python'} and string format 'Python'
-        job_skills_lower = []
+        # Build set of job skills (lowercase, handles both dict and string)
+        job_skills_set = set()
         for skill in job_skills:
             if isinstance(skill, dict):
-                skill_name = skill.get('name', '')
-                if skill_name:
-                    job_skills_lower.append(skill_name.lower().strip())
+                name = skill.get('name', '').lower().strip()
             elif isinstance(skill, str):
-                job_skills_lower.append(skill.lower().strip())
+                name = skill.lower().strip()
+            else:
+                name = ''
+            if name:
+                job_skills_set.add(name)
         
-        applicant_skills_lower = [skill.lower().strip() for skill in all_applicant_skills]
+        if not job_skills_set:
+            return 0
         
-        # Count matching skills
-        matching_skills = sum(1 for skill in applicant_skills_lower if skill in job_skills_lower)
+        # Build set of applicant skills (lowercase)
+        applicant_skills_set = {s.lower().strip() for s in all_applicant_skills if s.strip()}
         
-        # Calculate score (percentage of job skills matched)
+        # Count how many of the job's required skills the applicant has
+        matching_count = len(job_skills_set.intersection(applicant_skills_set))
+        
+        # Score = coverage of job requirements
         try:
-            score = int((matching_skills / len(job_skills_lower)) * 100)
-            return min(score, 100)  # Cap at 100%
+            score = int((matching_count / len(job_skills_set)) * 100)
+            return min(score, 100)
         except (ZeroDivisionError, TypeError):
             return 0
     

@@ -15,6 +15,7 @@
     </script>
 
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
     <style>
         /* ==== CSS Variables ==== */
         :root {
@@ -1475,6 +1476,11 @@
         input:checked + .theme-slider:before {
             transform: translateX(24px);
         }
+
+        /* Chart responsive */
+        @media (max-width: 900px) {
+            .charts-row { grid-template-columns: 1fr !important; }
+        }
     </style>
 </head>
 <body>
@@ -1630,6 +1636,44 @@
                     <div class="stat-info">
                         <div class="stat-label">Hired</div>
                         <div class="stat-value" id="stat-hired">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="charts-row" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1.5rem;">
+                <div class="chart-card" style="background:var(--card-bg);border-radius:var(--radius-lg);padding:1.5rem;box-shadow:var(--shadow-sm);border:1px solid var(--border-color);">
+                    <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;">
+                        <i class='bx bx-pie-chart-alt-2' style="color:var(--primary-color);font-size:1.2rem;"></i> Application Status
+                    </h3>
+                    <div style="position:relative;height:260px;">
+                        <canvas id="chart-app-status"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card" style="background:var(--card-bg);border-radius:var(--radius-lg);padding:1.5rem;box-shadow:var(--shadow-sm);border:1px solid var(--border-color);">
+                    <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;">
+                        <i class='bx bx-bar-chart' style="color:var(--secondary-color);font-size:1.2rem;"></i> Jobs by Type
+                    </h3>
+                    <div style="position:relative;height:260px;">
+                        <canvas id="chart-jobs-type"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="charts-row" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1.5rem;">
+                <div class="chart-card" style="background:var(--card-bg);border-radius:var(--radius-lg);padding:1.5rem;box-shadow:var(--shadow-sm);border:1px solid var(--border-color);">
+                    <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;">
+                        <i class='bx bx-line-chart' style="color:var(--success);font-size:1.2rem;"></i> Applications (Last 30 Days)
+                    </h3>
+                    <div style="position:relative;height:260px;">
+                        <canvas id="chart-daily-apps"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card" style="background:var(--card-bg);border-radius:var(--radius-lg);padding:1.5rem;box-shadow:var(--shadow-sm);border:1px solid var(--border-color);">
+                    <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;">
+                        <i class='bx bx-filter-alt' style="color:var(--warning);font-size:1.2rem;"></i> Hiring Pipeline
+                    </h3>
+                    <div style="position:relative;height:260px;">
+                        <canvas id="chart-pipeline"></canvas>
                     </div>
                 </div>
             </div>
@@ -2666,6 +2710,8 @@ document.addEventListener('DOMContentLoaded', function() {
             htmlElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
             updateThemeIcon(newTheme);
+            // Re-render charts with updated theme colors
+            loadDashboardCharts();
         });
     }
     
@@ -2850,7 +2896,161 @@ document.addEventListener('DOMContentLoaded', function() {
     fetchAndRenderCandidates();
     renderJobSkills();
     renderCandidateSkillsFilter();
+    loadDashboardCharts();
 });
+
+// ── Dashboard Charts ────────────────────────────────────────────────
+const chartInstances = {};
+const CHART_COLORS = {
+    blue:   '#3b82f6', purple: '#8b5cf6', green:  '#10b981',
+    amber:  '#f59e0b', red:    '#ef4444', cyan:   '#06b6d4',
+    pink:   '#ec4899', indigo: '#6366f1', slate:  '#64748b',
+    lime:   '#84cc16'
+};
+const PALETTE = Object.values(CHART_COLORS);
+
+function chartDefaults() {
+    // adapt to dark/light
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    return {
+        color:      isDark ? '#8b949e' : '#6b7280',
+        gridColor:  isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)',
+        bgColor:    isDark ? '#161b22' : '#ffffff',
+    };
+}
+
+function destroyChart(key) {
+    if (chartInstances[key]) { chartInstances[key].destroy(); delete chartInstances[key]; }
+}
+
+function loadDashboardCharts() {
+    fetch('/recruiter/api/chart-data/')
+        .then(r => { if (!r.ok) throw new Error('chart-data ' + r.status); return r.json(); })
+        .then(data => {
+            renderAppStatusChart(data.application_status);
+            renderJobsTypeChart(data.jobs_by_type);
+            renderDailyAppsChart(data.daily_applications);
+            renderPipelineChart(data.hiring_pipeline);
+        })
+        .catch(err => console.warn('Charts:', err));
+}
+
+function renderAppStatusChart(d) {
+    destroyChart('appStatus');
+    const ctx = document.getElementById('chart-app-status');
+    if (!ctx || !d.labels.length) return;
+    const cd = chartDefaults();
+    chartInstances.appStatus = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: d.labels,
+            datasets: [{
+                data: d.data,
+                backgroundColor: PALETTE.slice(0, d.labels.length),
+                borderWidth: 2,
+                borderColor: cd.bgColor,
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'right', labels: { color: cd.color, padding: 14, usePointStyle: true, pointStyle: 'circle', font: { size: 12 } } }
+            },
+            cutout: '62%'
+        }
+    });
+}
+
+function renderJobsTypeChart(d) {
+    destroyChart('jobsType');
+    const ctx = document.getElementById('chart-jobs-type');
+    if (!ctx || !d.labels.length) return;
+    const cd = chartDefaults();
+    chartInstances.jobsType = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: d.labels,
+            datasets: [{
+                label: 'Jobs',
+                data: d.data,
+                backgroundColor: PALETTE.slice(0, d.labels.length),
+                borderRadius: 6,
+                maxBarThickness: 48
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: cd.color }, grid: { display: false } },
+                y: { beginAtZero: true, ticks: { color: cd.color, stepSize: 1 }, grid: { color: cd.gridColor } }
+            }
+        }
+    });
+}
+
+function renderDailyAppsChart(d) {
+    destroyChart('dailyApps');
+    const ctx = document.getElementById('chart-daily-apps');
+    if (!ctx) return;
+    const cd = chartDefaults();
+    const hasData = d.labels.length > 0;
+    chartInstances.dailyApps = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: hasData ? d.labels : ['No data yet'],
+            datasets: [{
+                label: 'Applications',
+                data: hasData ? d.data : [0],
+                borderColor: CHART_COLORS.green,
+                backgroundColor: 'rgba(16,185,129,.12)',
+                fill: true,
+                tension: .35,
+                pointRadius: hasData ? 4 : 0,
+                pointBackgroundColor: CHART_COLORS.green
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: cd.color, maxRotation: 45 }, grid: { display: false } },
+                y: { beginAtZero: true, ticks: { color: cd.color, stepSize: 1 }, grid: { color: cd.gridColor } }
+            }
+        }
+    });
+}
+
+function renderPipelineChart(d) {
+    destroyChart('pipeline');
+    const ctx = document.getElementById('chart-pipeline');
+    if (!ctx) return;
+    const cd = chartDefaults();
+    const colors = [CHART_COLORS.blue, CHART_COLORS.cyan, CHART_COLORS.amber, CHART_COLORS.purple, CHART_COLORS.green];
+    chartInstances.pipeline = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: d.labels,
+            datasets: [{
+                label: 'Candidates',
+                data: d.data,
+                backgroundColor: colors,
+                borderRadius: 6,
+                maxBarThickness: 52
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { beginAtZero: true, ticks: { color: cd.color, stepSize: 1 }, grid: { color: cd.gridColor } },
+                y: { ticks: { color: cd.color, font: { weight: '600' } }, grid: { display: false } }
+            }
+        }
+    });
+}
 </script>
 </body>
 </html>

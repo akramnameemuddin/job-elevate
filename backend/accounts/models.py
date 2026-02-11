@@ -184,10 +184,12 @@ class User(AbstractUser):
 
     def get_job_matches_count(self, match_threshold=0.3):
         """
-        Calculate the number of jobs that match user's skills
+        Calculate the number of jobs that match user's skills.
+        Uses ALL skills (technical + soft) for a fair comparison.
         
         Args:
-            match_threshold (float): Minimum percentage of skill overlap required (default: 30%)
+            match_threshold (float): Minimum fraction of job skills the user
+                                     must have (default: 30%)
         
         Returns:
             int: Number of matching jobs
@@ -198,11 +200,12 @@ class User(AbstractUser):
         try:
             from recruiter.models import Job
             
-            user_skills = self.get_skills_list()
+            # Use ALL skills (technical + soft) for matching
+            user_skills = self.get_all_skills_list()
             if not user_skills:
                 return 0
                 
-            user_skills_set = set([skill.lower().strip() for skill in user_skills])
+            user_skills_set = {skill.lower().strip() for skill in user_skills}
             match_count = 0
             
             open_jobs = Job.objects.filter(status='Open')
@@ -210,14 +213,14 @@ class User(AbstractUser):
             for job in open_jobs:
                 if job.skills:
                     # Handle both old format (strings) and new format (dicts)
-                    job_skills_list = []
+                    job_skills_set = set()
                     for skill in job.skills:
                         if isinstance(skill, dict):
-                            job_skills_list.append(skill.get('name', '').lower().strip())
+                            name = skill.get('name', '').lower().strip()
                         else:
-                            job_skills_list.append(skill.lower().strip())
-                    
-                    job_skills_set = set(job_skills_list)
+                            name = skill.lower().strip()
+                        if name:
+                            job_skills_set.add(name)
                     
                     if job_skills_set:
                         matching_skills = user_skills_set.intersection(job_skills_set)

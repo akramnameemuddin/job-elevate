@@ -35,10 +35,17 @@ class ContentBasedRecommender:
     where SKILL_WEIGHT + TEXT_WEIGHT + PREF_WEIGHT = 1.0
     """
 
-    # Configurable weights (must sum to 1.0)
-    SKILL_WEIGHT = 0.40   # Skill-based (Jaccard + coverage)
-    TEXT_WEIGHT  = 0.30   # TF-IDF text similarity
-    PREF_WEIGHT  = 0.30   # Other preference signals (experience, location, etc.)
+    # ── Main component weights (must sum to 1.0) ──
+    SKILL_WEIGHT = 0.55   # Skill-based (coverage-first matching)
+    TEXT_WEIGHT  = 0.10   # TF-IDF text similarity (supplementary)
+    PREF_WEIGHT  = 0.35   # Preference signals (experience, location, etc.)
+
+    # ── Preference sub-weights (must sum to 1.0) ──
+    PREF_EXP_W  = 0.30    # Experience match
+    PREF_LOC_W  = 0.25    # Location match
+    PREF_JT_W   = 0.20    # Job-type match
+    PREF_IND_W  = 0.15    # Industry match
+    PREF_SAL_W  = 0.10    # Salary match
 
     def __init__(self):
         self._tfidf = TfidfVectorizer(
@@ -62,7 +69,15 @@ class ContentBasedRecommender:
         return result
     
     def calculate_skill_match(self, user_skills, job_skills):
-        """Calculate the skill match score between user skills and job skills"""
+        """Calculate the skill match score between user skills and job skills.
+        
+        Uses a coverage-first formula: what percentage of the JOB's required
+        skills does the user have?  Having extra skills beyond what the job
+        asks for should NEVER penalise the candidate.
+        
+        Returns 1.0 when the user covers all required skills, regardless of
+        how many additional skills they possess.
+        """
         if not user_skills or not job_skills:
             return 0.0
         
@@ -73,36 +88,39 @@ class ContentBasedRecommender:
         if not user_skills_set or not job_skills_set:
             return 0.0
         
-        # Calculate Jaccard similarity: intersection / union
         intersection = len(user_skills_set.intersection(job_skills_set))
-        union = len(user_skills_set.union(job_skills_set))
         
-        # Calculate match percentage
-        jaccard_similarity = intersection / union if union > 0 else 0.0
+        # Coverage: what fraction of required skills does the user have?
+        coverage = intersection / len(job_skills_set)
         
-        # Calculate coverage percentage (how many required job skills the user has)
-        coverage = intersection / len(job_skills_set) if job_skills_set else 0.0
-        
-        # Final score is weighted combination of both metrics
-        # Give more weight to coverage of job skills
-        score = (0.4 * jaccard_similarity) + (0.6 * coverage)
-        
-        return score
+        # 100% coverage = 1.0.  No Jaccard penalty for extra skills.
+        return min(coverage, 1.0)
     
     def calculate_experience_match(self, user_experience, job_experience):
-        """Calculate the experience match score between user and job requirements"""
+        """Calculate the experience match score between user and job requirements.
+        
+        Rules:
+        - Job requires 0 (entry-level) → everyone qualifies → 1.0
+        - User has ≥ required → 1.0
+        - User experience unknown but job requires 0 → 1.0
+        - User experience unknown and job requires > 0 → 0.5 (neutral)
+        """
+        # Job requires 0 experience: entry level, everyone qualifies
+        if job_experience is not None and job_experience == 0:
+            return 1.0
+        
+        # Data missing for either side → neutral
         if user_experience is None or job_experience is None:
-            return 0.5  # Neutral score if data is missing
+            return 0.5
         
         # If user has more experience than required, that's perfect
         if user_experience >= job_experience:
             return 1.0
         
-        # If user has less experience, score based on how close they are to the requirement
+        # If user has less experience, score based on how close they are
         if job_experience > 0:
             return user_experience / job_experience
         
-        # If job requires no experience, everyone gets a perfect score
         return 1.0
     
     def calculate_location_match(self, preferred_locations, job_location):
@@ -162,7 +180,7 @@ class ContentBasedRecommender:
 
         # Industry keywords mapping
         industry_keywords = {
-            'technology': ['tech', 'software', 'developer', 'programming', 'coding', 'it', 'computer', 'digital', 'app', 'web', 'mobile', 'ai', 'machine learning', 'data science'],
+            'technology': ['tech', 'software', 'developer', 'programming', 'coding', 'it', 'computer', 'digital', 'app', 'web', 'mobile', 'ai', 'machine learning', 'data science', 'data analyst', 'data analytics', 'data modelling', 'python', 'sql', 'cloud', 'devops', 'backend', 'frontend', 'full stack', 'api', 'database', 'analytics'],
             'healthcare': ['health', 'medical', 'hospital', 'clinic', 'nurse', 'doctor', 'patient', 'pharmaceutical', 'biotech', 'medicine'],
             'finance': ['finance', 'bank', 'investment', 'accounting', 'financial', 'money', 'credit', 'loan', 'insurance', 'trading'],
             'education': ['education', 'school', 'university', 'teacher', 'professor', 'student', 'learning', 'academic', 'curriculum'],
@@ -172,7 +190,8 @@ class ContentBasedRecommender:
             'media': ['media', 'journalism', 'news', 'broadcasting', 'entertainment', 'film', 'television', 'radio'],
             'construction': ['construction', 'building', 'contractor', 'architecture', 'real estate'],
             'transportation': ['transportation', 'logistics', 'shipping', 'delivery', 'trucking', 'airline'],
-            'food service': ['restaurant', 'food', 'culinary', 'chef', 'catering', 'hospitality', 'dining']
+            'food service': ['restaurant', 'food', 'culinary', 'chef', 'catering', 'hospitality', 'dining'],
+            'data analytics': ['data', 'analyst', 'analytics', 'data science', 'data modelling', 'dashboard', 'visualization', 'bi', 'business intelligence', 'sql', 'python', 'statistics'],
         }
 
         best_match = 0.0
@@ -193,10 +212,9 @@ class ContentBasedRecommender:
                 matches = sum(1 for keyword in keywords if keyword in job_text)
                 if matches > 0:
                     found_any_match = True
-                    # Score based on number of keyword matches
-                    keyword_score = min(matches / len(keywords) * 2.5, 1.0)
-                    # Give at least 0.6 for any keyword match
-                    keyword_score = max(keyword_score, 0.6)
+                    # Score based on number of keyword matches:
+                    # 1 match = 0.70, 2 = 0.80, 3 = 0.90, 4+ = 1.0
+                    keyword_score = min(0.60 + matches * 0.10, 1.0)
                     best_match = max(best_match, keyword_score)
 
         # If no matches found at all, return low score
@@ -403,19 +421,27 @@ class ContentBasedRecommender:
             return {j.id: 0.0 for j in job_list}
 
     
+    def calculate_preference_score(self, exp_match, loc_match, jt_match, ind_match, sal_match):
+        """Compute the normalised preference sub-score (0.0 – 1.0)."""
+        return (
+            self.PREF_EXP_W * exp_match +
+            self.PREF_LOC_W * loc_match +
+            self.PREF_JT_W  * jt_match +
+            self.PREF_IND_W * ind_match +
+            self.PREF_SAL_W * sal_match
+        )
+
     def recommend_jobs(self, user, limit=20):
         """
-        Recommend jobs using an enhanced three-component scoring model:
+        Recommend jobs using a three-component scoring model:
 
-        1. **Skill score**  – Jaccard similarity + skill coverage (existing).
-        2. **Text similarity** – TF-IDF cosine distance (user profile vs job text).
-        3. **Preference score** – experience, location, job-type, industry, salary.
+        1. **Skill score (55%)**  – coverage-first matching.
+        2. **Text similarity (10%)** – TF-IDF cosine (supplementary).
+        3. **Preference score (35%)** – experience, location, job-type, industry, salary.
 
-        Final formula::
-
-            final = SKILL_WEIGHT * skill_score
-                  + TEXT_WEIGHT  * text_similarity
-                  + PREF_WEIGHT  * preference_score  (+ optional remote boost)
+        final = SKILL_WEIGHT * skill_score
+              + TEXT_WEIGHT  * text_similarity
+              + PREF_WEIGHT  * preference_score  (+ optional remote boost)
         """
         try:
             # Get user's skills (combine technical + soft skills)
@@ -467,12 +493,9 @@ class ContentBasedRecommender:
                 )
                 salary_match = self.calculate_salary_match(min_salary, job.salary)
 
-                preference_score = (
-                    0.30 * exp_match +
-                    0.25 * location_match +
-                    0.20 * job_type_match +
-                    0.15 * industry_match +
-                    0.10 * salary_match
+                preference_score = self.calculate_preference_score(
+                    exp_match, location_match, job_type_match,
+                    industry_match, salary_match
                 )
 
                 # --- Final weighted combination ---
@@ -485,6 +508,8 @@ class ContentBasedRecommender:
                 # Add remote preference boost
                 if remote_preference and (job.job_type == 'Remote' or 'remote' in job.location.lower()):
                     score += 0.05
+
+                score = min(score, 1.0)
 
                 # Store the score and enhanced reason
                 reason = self._get_enhanced_recommendation_reason(
@@ -785,7 +810,13 @@ class HybridRecommender:
         self.collaborative_recommender = CollaborativeRecommender()
     
     def recommend_jobs(self, user, limit=20):
-        """Generate job recommendations using hybrid approach"""
+        """Generate job recommendations using hybrid approach.
+        
+        When collaborative data is available, blends 70% content + 30%
+        collaborative.  When collaborative data is absent (typical for new
+        platforms), uses 100% content-based scores so that perfect profile
+        matches are not artificially capped at 70%.
+        """
         try:
             # Get recommendations from both systems
             content_recommendations = self.content_recommender.recommend_jobs(user, limit=limit)
@@ -793,6 +824,12 @@ class HybridRecommender:
             
             # Get applied job IDs to exclude them (safety check)
             applied_job_ids = Application.objects.filter(applicant=user).values_list('job_id', flat=True)
+            
+            has_collaborative = len(collaborative_recommendations) > 0
+            # When collaborative data exists, blend 70/30.
+            # When it doesn't, pass content scores through at 100%.
+            content_weight = 0.70 if has_collaborative else 1.0
+            collab_weight  = 0.30 if has_collaborative else 0.0
             
             # Combine and deduplicate recommendations
             job_scores = {}
@@ -807,8 +844,9 @@ class HybridRecommender:
                 
                 job_scores[job.id] = {
                     'job': job,
-                    'score': rec['score'] * 0.7,  # Weight for content-based (70%)
-                    'reason': rec['reason']
+                    'score': rec['score'] * content_weight,
+                    'reason': rec.get('reason', 'Potential opportunity'),
+                    'match_details': rec.get('match_details', {}),
                 }
             
             # Add collaborative recommendations
@@ -821,17 +859,17 @@ class HybridRecommender:
                 
                 if job.id in job_scores:
                     # If job already exists from content-based, add collaborative score
-                    job_scores[job.id]['score'] += rec['score'] * 0.3  # Weight for collaborative (30%)
+                    job_scores[job.id]['score'] += rec['score'] * collab_weight
                     
                     # If collaborative has higher score, use its reason
-                    if rec['score'] > (job_scores[job.id]['score'] / 0.7):
+                    if rec['score'] > (job_scores[job.id]['score'] / max(content_weight, 0.01)):
                         job_scores[job.id]['reason'] = rec['reason']
                 else:
                     # Otherwise add new job with collaborative score
                     job_scores[job.id] = {
                         'job': job,
-                        'score': rec['score'] * 0.3,  # Weight for collaborative (30%)
-                        'reason': rec['reason']
+                        'score': rec['score'] * collab_weight,
+                        'reason': rec['reason'],
                     }
             
             # Add popularity boost for jobs with many applicants
