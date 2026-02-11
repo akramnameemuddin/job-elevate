@@ -1192,6 +1192,36 @@
             color: var(--text-light);
         }
 
+        .ml-score {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .ml-score-value {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(99,102,241,.12), rgba(139,92,246,.12));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.82rem;
+        }
+        .ml-score-label {
+            font-size: 0.68rem;
+            color: #6366f1;
+            font-weight: 600;
+            letter-spacing: .02em;
+        }
+
+        .scores-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
         .candidate-actions {
             display: flex;
             gap: 0.5rem;
@@ -2294,10 +2324,19 @@ function renderCandidates(candidates, jobId = null) {
                     </p>
                 </div>
             </div>
-            <div class="match-score">
-                <div class="score-value" style="color: ${matchColor}; border-color: ${matchColor};">${Math.round(matchPercentage)}%</div>
-                <div class="score-text">Match Score</div>
-                ${eligibilityBadge}
+            <div class="scores-wrapper">
+                <div class="match-score">
+                    <div class="score-value" style="color: ${matchColor}; border-color: ${matchColor};">${Math.round(matchPercentage)}%</div>
+                    <div class="score-text">Match Score</div>
+                    ${eligibilityBadge}
+                </div>
+                ${candidate.ml_fit_score >= 0 ? `
+                <div class="ml-score">
+                    <div class="ml-score-value" style="color: ${candidate.ml_fit_score >= 0.7 ? '#22c55e' : candidate.ml_fit_score >= 0.4 ? '#f59e0b' : '#ef4444'};">
+                        ${Math.round(candidate.ml_fit_score * 100)}%
+                    </div>
+                    <div class="ml-score-label">AI Fit</div>
+                </div>` : ''}
             </div>
             <div class="candidate-actions">
                 ${candidate.resume_url ? 

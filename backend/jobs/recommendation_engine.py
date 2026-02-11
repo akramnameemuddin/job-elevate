@@ -885,6 +885,21 @@ class HybridRecommender:
                     # If this job is very popular, change the reason
                     if job.applicant_count > 10 and job_scores[job.id]['reason'] != "Your skills match well with this job":
                         job_scores[job.id]['reason'] = "Popular job with many applicants"
+
+            # ── ML fit prediction boost ───────────────────────────
+            # When the trained model is available, blend its signal
+            # into the recommendation score (15% weight).
+            try:
+                from ml.predictor import JobFitPredictor
+                predictor = JobFitPredictor.get_instance()
+                if predictor.is_ready or predictor.load():
+                    for jid, entry in job_scores.items():
+                        ml_prob = predictor.predict(user, entry['job'])
+                        if ml_prob >= 0:
+                            entry['score'] = 0.85 * entry['score'] + 0.15 * ml_prob
+                            entry['match_details']['ml_fit'] = round(ml_prob, 4)
+            except Exception as ml_err:
+                logger.debug("ML fit predictor unavailable: %s", ml_err)
             
             # Convert to list and sort by score
             scored_jobs = list(job_scores.values())

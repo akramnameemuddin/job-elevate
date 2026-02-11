@@ -454,7 +454,16 @@ def get_candidates(request, job_id=None):
     
     # Prepare response data with enhanced match scores
     from jobs.skill_based_matching_engine import SkillBasedJobMatcher
-    
+
+    # ML fit predictor (gracefully degrades if model is not trained)
+    ml_fit_score_available = False
+    try:
+        from ml.predictor import JobFitPredictor
+        predictor = JobFitPredictor.get_instance()
+        ml_fit_score_available = predictor.is_ready or predictor.load()
+    except Exception:
+        pass
+
     candidates = []
     for app in applications:
         # Calculate detailed match analysis
@@ -463,7 +472,15 @@ def get_candidates(request, job_id=None):
         
         # Determine location: prefer preferred_location, fall back to organization
         candidate_location = app.applicant.preferred_location or app.applicant.organization or 'Not specified'
-        
+
+        # ML-predicted fit probability (0-1) or -1 when model unavailable
+        ml_score = -1.0
+        if ml_fit_score_available:
+            try:
+                ml_score = predictor.predict(app.applicant, app.job)
+            except Exception:
+                pass
+
         candidates.append({
             'id': app.id,
             'applicant_id': app.applicant.id,
@@ -481,7 +498,8 @@ def get_candidates(request, job_id=None):
             'gap_count': match_analysis.get('gap_count', 0),
             'status': app.status,
             'applied_at': app.applied_at.strftime('%Y-%m-%d'),
-            'resume_url': app.resume.url if app.resume else None
+            'resume_url': app.resume.url if app.resume else None,
+            'ml_fit_score': round(ml_score, 4),
         })
     
     # Sort by match percentage (highest first)
