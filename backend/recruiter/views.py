@@ -466,7 +466,9 @@ def get_candidates(request, job_id=None):
         
         candidates.append({
             'id': app.id,
+            'applicant_id': app.applicant.id,
             'name': app.applicant.full_name,
+            'email': app.applicant.email,
             'job_title': app.job.title if job_id is None else None,
             'skills': app.applicant.get_skills_list(),
             'experience': app.applicant.experience or 0,

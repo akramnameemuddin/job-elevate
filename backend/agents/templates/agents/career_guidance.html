@@ -1,255 +1,285 @@
 {% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}AI Career Coach – JobElevate{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h1 class="page-title"><i class='bx bx-bot'></i> AI Career Coach</h1>
-    <div class="breadcrumb">
-        <div class="breadcrumb-item">
-            <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
-            <i class='bx bx-chevron-right'></i>
-        </div>
-        <div class="breadcrumb-item"><span>AI Career Coach</span></div>
+<style>
+/* ══════════════════════════════════════════════════
+   AI Career Coach  (cc- namespace)
+   ══════════════════════════════════════════════════ */
+
+/* ── Breadcrumb ── */
+.cc-breadcrumb{display:flex;align-items:center;gap:.25rem;font-size:.85rem;color:var(--text-light);margin-bottom:.5rem}
+.cc-breadcrumb a{color:var(--primary-color);text-decoration:none}
+.cc-breadcrumb a:hover{text-decoration:underline}
+
+/* ── Header ── */
+.cc-header{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;margin-bottom:1.25rem}
+.cc-header h1{font-size:1.4rem;font-weight:700;color:var(--heading-color);margin:0;display:flex;align-items:center;gap:.5rem}
+.cc-header h1 i{color:var(--primary-color)}
+.cc-subtitle{font-size:.88rem;color:var(--text-light);margin-top:.2rem}
+
+/* ── Trigger Card ── */
+.cc-trigger{
+    background:linear-gradient(135deg,var(--primary-color) 0%,#6366f1 100%);
+    color:#fff;border:none;border-radius:14px;padding:1.5rem 1.75rem;margin-bottom:1.5rem;
+}
+.cc-trigger h3{color:#fff;font-size:1.1rem;font-weight:600;margin:0 0 .65rem;display:flex;align-items:center;gap:.5rem}
+.cc-trigger h3 i{font-size:1.3rem}
+.cc-trigger p{opacity:.9;line-height:1.6;margin:0 0 1.15rem;font-size:.92rem}
+.cc-trigger-form{display:flex;gap:1rem;align-items:end;flex-wrap:wrap}
+.cc-trigger label{display:block;margin-bottom:.35rem;font-weight:600;color:rgba(255,255,255,.85);font-size:.88rem}
+.cc-select{
+    min-width:280px;padding:.6rem .85rem;border-radius:10px;font-size:.88rem;
+    background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+    color:#fff;backdrop-filter:blur(4px);
+}
+.cc-select option{color:var(--text-color);background:var(--card-bg)}
+.cc-launch{
+    padding:.6rem 1.35rem;background:#fff;color:var(--primary-color);border:none;
+    border-radius:10px;cursor:pointer;font-weight:700;font-size:.92rem;
+    display:inline-flex;align-items:center;gap:.5rem;transition:transform .15s,box-shadow .15s;
+}
+.cc-launch:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.2)}
+
+/* ── Card ── */
+.cc-card{
+    background:var(--card-bg);border:1px solid var(--border-color);border-radius:14px;
+    padding:1.5rem;margin-bottom:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,.03);
+    transition:box-shadow .2s;
+}
+.cc-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.06)}
+.cc-card h3{
+    font-size:1.05rem;font-weight:600;color:var(--heading-color);margin:0 0 1rem;
+    display:flex;align-items:center;gap:.5rem;
+}
+.cc-card h3 i{font-size:1.25rem;color:var(--primary-color)}
+
+/* ── Badge ── */
+.cc-badge{
+    display:inline-flex;align-items:center;gap:.3rem;padding:.28rem .75rem;
+    border-radius:20px;font-size:.78rem;font-weight:600;margin:.15rem;transition:transform .15s;
+}
+.cc-badge:hover{transform:scale(1.04)}
+.cc-badge-critical{background:rgba(239,68,68,.1);color:#dc2626;border:1px solid rgba(239,68,68,.2)}
+.cc-badge-develop{background:rgba(245,158,11,.1);color:#d97706;border:1px solid rgba(245,158,11,.2)}
+.cc-badge-strength{background:rgba(34,197,94,.1);color:#059669;border:1px solid rgba(34,197,94,.2)}
+
+/* ── Match Bar ── */
+.cc-match-wrap{margin-top:.75rem}
+.cc-match-label{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.35rem;font-size:.95rem}
+.cc-match-pct{font-size:1.4rem;font-weight:800;color:var(--primary-color)}
+.cc-match-bar{height:10px;border-radius:5px;background:var(--border-color);overflow:hidden}
+.cc-match-fill{height:100%;border-radius:5px;transition:width .8s cubic-bezier(.4,0,.2,1);
+    background:linear-gradient(90deg,#ef4444 0%,#f59e0b 40%,#22c55e 100%)}
+
+/* ── Job Card ── */
+.cc-job{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:1rem 1.15rem;border:1px solid var(--border-color);border-radius:12px;
+    margin-bottom:.55rem;transition:all .2s;
+}
+.cc-job:hover{border-color:var(--primary-color);background:var(--hover-bg);transform:translateX(3px)}
+.cc-job-meta{font-size:.82rem;color:var(--text-light);margin-top:.2rem}
+.cc-job-score{text-align:right}
+.cc-job-score .pct{font-size:1.3rem;font-weight:800}
+.cc-job-score small{display:block;font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;opacity:.6}
+
+/* ── Roadmap Card ── */
+.cc-roadmap{
+    padding:1rem 1.15rem;border-left:4px solid var(--primary-color);border-radius:0 12px 12px 0;
+    background:var(--hover-bg);margin-bottom:.55rem;transition:all .2s;
+}
+.cc-roadmap:hover{transform:translateX(3px);border-left-color:#6366f1}
+.cc-roadmap strong{font-size:.92rem}
+.cc-roadmap small{display:block;margin-top:.2rem;color:var(--text-light)}
+
+/* ── Step List ── */
+.cc-steps{list-style:none;padding:0;counter-reset:ccsteps}
+.cc-steps li{
+    counter-increment:ccsteps;padding:.8rem 0 .8rem 3.25rem;position:relative;
+    border-bottom:1px solid var(--border-color);line-height:1.55;font-size:.9rem;transition:background .15s;
+}
+.cc-steps li:hover{background:var(--hover-bg)}
+.cc-steps li:last-child{border-bottom:none}
+.cc-steps li::before{
+    content:counter(ccsteps);position:absolute;left:.4rem;top:.65rem;
+    width:2rem;height:2rem;border-radius:50%;
+    background:linear-gradient(135deg,var(--primary-color),#6366f1);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.82rem;
+}
+
+/* ── Skill Columns ── */
+.cc-skill-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.25rem}
+.cc-skill-cols h4{margin-bottom:.65rem;font-size:.92rem;display:flex;align-items:center;gap:.35rem}
+
+/* ── Cluster Pill ── */
+.cc-cluster{
+    display:inline-flex;align-items:center;gap:.5rem;padding:.65rem 1.15rem;border-radius:12px;
+    background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(59,130,246,.08));
+    border:1px solid rgba(99,102,241,.2);font-weight:600;
+}
+
+/* ── History Table ── */
+.cc-table{width:100%;border-collapse:collapse}
+.cc-table th{
+    padding:.65rem;text-align:left;font-size:.78rem;text-transform:uppercase;
+    letter-spacing:.04em;color:var(--text-light);border-bottom:2px solid var(--border-color);
+}
+.cc-table td{padding:.65rem;border-bottom:1px solid var(--border-color)}
+.cc-status{
+    display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .6rem;
+    border-radius:20px;font-size:.78rem;font-weight:600;
+}
+.cc-status-completed{background:rgba(34,197,94,.1);color:#16a34a}
+.cc-status-failed{background:rgba(239,68,68,.1);color:#ef4444}
+.cc-status-pending{background:rgba(59,130,246,.1);color:#2563eb}
+
+/* ── Loading ── */
+.cc-loading{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center}
+.cc-loading.active{display:flex}
+.cc-loading-box{
+    background:var(--card-bg);padding:2.5rem 3.5rem;border-radius:20px;
+    text-align:center;box-shadow:0 25px 50px rgba(0,0,0,.15);
+}
+.cc-spinner{
+    width:48px;height:48px;border:4px solid var(--border-color);
+    border-top-color:var(--primary-color);border-radius:50%;
+    animation:ccSpin .7s linear infinite;margin:0 auto 1.25rem;
+}
+@keyframes ccSpin{to{transform:rotate(360deg)}}
+.cc-loading-box p{font-weight:600;font-size:1rem;color:var(--heading-color)}
+.cc-loading-box small{display:block;margin-top:.35rem;opacity:.6;font-size:.85rem;color:var(--text-light)}
+
+/* ── Fade-in ── */
+.cc-fade{animation:ccFadeUp .5s ease both}
+@keyframes ccFadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.cc-fade:nth-child(2){animation-delay:.1s}
+.cc-fade:nth-child(3){animation-delay:.2s}
+.cc-fade:nth-child(4){animation-delay:.3s}
+.cc-fade:nth-child(5){animation-delay:.4s}
+
+#cc-results{display:none}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+    .cc-trigger-form{flex-direction:column}
+    .cc-select{min-width:100%;width:100%}
+    .cc-skill-cols{grid-template-columns:1fr}
+}
+</style>
+
+<!-- Breadcrumb -->
+<div class="cc-breadcrumb">
+    <a href="{% url 'dashboard:home' %}">Home</a>
+    <i class='bx bx-chevron-right'></i>
+    <span>AI Career Coach</span>
+</div>
+
+<!-- Header -->
+<div class="cc-header">
+    <div>
+        <h1><i class='bx bx-bot'></i> AI Career Coach</h1>
+        <p class="cc-subtitle">AI-powered profile analysis, job matching, gap detection, and learning roadmaps</p>
     </div>
 </div>
 
-<style>
-    /* ── Agent cards ─────────────────────────────── */
-    .agent-card {
-        background: var(--card-bg); border-radius: 16px; padding: 1.75rem;
-        margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-        border: 1px solid var(--border-color); transition: box-shadow .25s ease;
-    }
-    .agent-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.08); }
-    .agent-card h3 {
-        margin-bottom: 1rem; color: var(--text-primary); font-size: 1.1rem;
-        display: flex; align-items: center; gap: .5rem;
-    }
-    .agent-card h3 i { font-size: 1.3rem; color: var(--primary-color); }
-    .agent-section { margin-bottom: 0; }
-
-    /* ── Trigger card ────────────────────────────── */
-    .trigger-card { background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%); color: #fff; border: none; }
-    .trigger-card h3, .trigger-card h3 i { color: #fff; }
-    .trigger-card p { opacity: .9; margin-bottom: 1.25rem; line-height: 1.6; }
-    .trigger-card label { color: rgba(255,255,255,.85); }
-    .trigger-card .form-control {
-        background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
-        color: #fff; backdrop-filter: blur(4px);
-    }
-    .trigger-card .form-control option { color: var(--text-color); background: var(--card-bg); }
-    .trigger-card .btn-launch {
-        padding: .65rem 1.5rem; background: #fff; color: var(--primary-color); border: none;
-        border-radius: 10px; cursor: pointer; font-weight: 700; font-size: .95rem;
-        display: inline-flex; align-items: center; gap: .5rem; transition: transform .15s, box-shadow .15s;
-    }
-    .trigger-card .btn-launch:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,.2); }
-
-    /* ── Badges ───────────────────────────────────── */
-    .gap-badge {
-        display: inline-flex; align-items: center; gap: .35rem;
-        padding: .3rem .85rem; border-radius: 20px; font-size: .82rem; font-weight: 600; margin: .2rem;
-        transition: transform .15s;
-    }
-    .gap-badge:hover { transform: scale(1.05); }
-    .gap-critical { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
-    .gap-develop  { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
-    .gap-strength { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
-
-    /* ── Progress bar ─────────────────────────────── */
-    .match-bar-wrap { margin-top: .75rem; }
-    .match-bar { height: 10px; border-radius: 5px; background: var(--border-color); overflow: hidden; }
-    .match-fill {
-        height: 100%; border-radius: 5px; transition: width .8s cubic-bezier(.4,0,.2,1);
-        background: linear-gradient(90deg, #ef4444 0%, #f59e0b 40%, #22c55e 100%);
-    }
-    .match-label {
-        display: flex; justify-content: space-between; align-items: baseline;
-        margin-bottom: .35rem; font-size: 1rem;
-    }
-    .match-pct { font-size: 1.5rem; font-weight: 800; color: var(--primary-color); }
-
-    /* ── Job recommendation cards ─────────────────── */
-    .job-card {
-        display: flex; justify-content: space-between; align-items: center;
-        padding: 1rem 1.25rem; border: 1px solid var(--border-color); border-radius: 12px;
-        margin-bottom: .65rem; transition: all .2s ease; cursor: default;
-    }
-    .job-card:hover { border-color: var(--primary-color); background: var(--hover-bg); transform: translateX(4px); }
-    .job-meta { font-size: .82rem; color: var(--text-light); margin-top: .25rem; }
-    .ml-score { text-align: right; }
-    .ml-score .pct { font-size: 1.4rem; font-weight: 800; }
-    .ml-score small { display: block; font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; opacity: .6; }
-
-    /* ── Roadmap cards ────────────────────────────── */
-    .roadmap-card {
-        padding: 1rem 1.25rem; border-left: 4px solid var(--primary-color); border-radius: 0 12px 12px 0;
-        background: var(--hover-bg); margin-bottom: .65rem; transition: all .2s;
-    }
-    .roadmap-card:hover { transform: translateX(4px); border-left-color: #6366f1; }
-    .roadmap-card strong { font-size: .95rem; }
-    .roadmap-card small { display: block; margin-top: .25rem; color: var(--text-light); }
-
-    /* ── Step list ─────────────────────────────────── */
-    .step-list { list-style: none; padding: 0; counter-reset: steps; }
-    .step-list li {
-        counter-increment: steps; padding: .85rem 0 .85rem 3.5rem; position: relative;
-        border-bottom: 1px solid var(--border-color); line-height: 1.55; font-size: .92rem;
-        transition: background .15s;
-    }
-    .step-list li:hover { background: var(--hover-bg); }
-    .step-list li:last-child { border-bottom: none; }
-    .step-list li::before {
-        content: counter(steps); position: absolute; left: .5rem; top: .75rem;
-        width: 2rem; height: 2rem; border-radius: 50%;
-        background: linear-gradient(135deg, var(--primary-color), #6366f1); color: #fff;
-        display: flex; align-items: center; justify-content: center;
-        font-weight: 700; font-size: .85rem;
-    }
-
-    /* ── Cluster pill ─────────────────────────────── */
-    .cluster-pill {
-        display: inline-flex; align-items: center; gap: .5rem;
-        padding: .65rem 1.25rem; border-radius: 12px;
-        background: linear-gradient(135deg, rgba(99,102,241,.1), rgba(59,130,246,.1));
-        border: 1px solid rgba(99,102,241,.2); font-weight: 600;
-    }
-
-    /* ── Skill columns ────────────────────────────── */
-    .skill-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; }
-    .skill-col h4 { margin-bottom: .75rem; font-size: .95rem; display: flex; align-items: center; gap: .4rem; }
-
-    /* ── Loading ───────────────────────────────────── */
-    .loading-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:9999; align-items:center; justify-content:center; }
-    .loading-overlay.active { display:flex; }
-    .loading-box {
-        background: var(--card-bg); padding: 2.5rem 3.5rem; border-radius: 20px;
-        text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,.15);
-    }
-    .loading-box .spinner {
-        width: 48px; height: 48px; border: 4px solid var(--border-color);
-        border-top-color: var(--primary-color); border-radius: 50%;
-        animation: spin .7s linear infinite; margin: 0 auto 1.25rem;
-    }
-    .loading-box p { font-weight: 600; font-size: 1rem; }
-    .loading-box small { display: block; margin-top: .35rem; opacity: .6; font-size: .85rem; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ── Fade-in ───────────────────────────────────── */
-    .fade-in { animation: fadeSlideUp .5s ease both; }
-    @keyframes fadeSlideUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
-    .fade-in:nth-child(2) { animation-delay: .1s; }
-    .fade-in:nth-child(3) { animation-delay: .2s; }
-    .fade-in:nth-child(4) { animation-delay: .3s; }
-    .fade-in:nth-child(5) { animation-delay: .4s; }
-
-    #results-area { display: none; }
-
-    /* ── Status badges ───────────────────────────── */
-    .status-badge { display:inline-flex; align-items:center; gap:.3rem; padding:.2rem .65rem; border-radius:20px; font-size:.8rem; font-weight:600; }
-    .status-completed { background:#ecfdf5; color:#059669; }
-    .status-failed { background:#fef2f2; color:#dc2626; }
-    .status-pending { background:#eff6ff; color:#2563eb; }
-</style>
-
-<!-- Loading overlay -->
-<div class="loading-overlay" id="loading">
-    <div class="loading-box">
-        <div class="spinner"></div>
+<!-- Loading Overlay -->
+<div class="cc-loading" id="cc-loading">
+    <div class="cc-loading-box">
+        <div class="cc-spinner"></div>
         <p>AI agents are analysing your profile…</p>
         <small>Matching skills, computing gaps, building roadmap</small>
     </div>
 </div>
 
-<!-- Trigger section -->
-<div class="agent-card trigger-card">
+<!-- Trigger Card -->
+<div class="cc-trigger">
     <h3><i class='bx bx-bot'></i> Run Career Analysis</h3>
     <p>The AI Career Coach agent will analyse your profile, recommend matching jobs, identify skill gaps, and build a personalised learning roadmap.</p>
-    <form id="career-form" method="post" style="display:flex;gap:1rem;align-items:end;flex-wrap:wrap;">
+    <form id="career-form" method="post" class="cc-trigger-form">
         {% csrf_token %}
         <div>
-            <label for="job_id" style="display:block;margin-bottom:.35rem;font-weight:600;">Target Job (optional)</label>
-            <select name="job_id" id="job_id" class="form-control" style="min-width:260px;">
+            <label for="job_id">Target Job (optional)</label>
+            <select name="job_id" id="job_id" class="cc-select">
                 <option value="">— auto-select best match —</option>
                 {% for j in available_jobs %}
-                    <option value="{{ j.id }}" {% if target_job and target_job.id == j.id %}selected{% endif %}>
-                        {{ j.title }} @ {{ j.company }}
-                    </option>
+                <option value="{{ j.id }}" {% if target_job and target_job.id == j.id %}selected{% endif %}>
+                    {{ j.title }} @ {{ j.company }}
+                </option>
                 {% endfor %}
             </select>
         </div>
-        <button type="submit" class="btn-launch"><i class='bx bx-rocket'></i> Analyse My Career</button>
+        <button type="submit" class="cc-launch"><i class='bx bx-rocket'></i> Analyse My Career</button>
     </form>
 </div>
 
-<!-- Results area (populated by JS) -->
-<div id="results-area">
-    <!-- Recommended jobs -->
-    <div class="agent-card agent-section fade-in">
+<!-- Results Area -->
+<div id="cc-results">
+    <!-- Recommended Jobs -->
+    <div class="cc-card cc-fade">
         <h3><i class='bx bx-briefcase'></i> Recommended Jobs</h3>
-        <div id="jobs-list"></div>
+        <div id="cc-jobs"></div>
     </div>
 
     <!-- Skill Analysis -->
-    <div class="agent-card agent-section fade-in">
+    <div class="cc-card cc-fade">
         <h3><i class='bx bx-bar-chart-alt-2'></i> Skill Gap Analysis</h3>
-        <div id="match-pct"></div>
-        <div class="skill-columns" id="skill-columns">
-            <div class="skill-col">
+        <div id="cc-match"></div>
+        <div class="cc-skill-cols" id="cc-skill-cols">
+            <div>
                 <h4><i class='bx bx-error-circle' style="color:#dc2626;"></i> Critical Gaps</h4>
-                <div id="critical-gaps"></div>
+                <div id="cc-critical"></div>
             </div>
-            <div class="skill-col">
+            <div>
                 <h4><i class='bx bx-trending-up' style="color:#d97706;"></i> Development Areas</h4>
-                <div id="dev-areas"></div>
+                <div id="cc-develop"></div>
             </div>
-            <div class="skill-col">
+            <div>
                 <h4><i class='bx bx-check-shield' style="color:#059669;"></i> Strengths</h4>
-                <div id="strengths"></div>
+                <div id="cc-strengths"></div>
             </div>
         </div>
     </div>
 
     <!-- Learning Roadmap -->
-    <div class="agent-card agent-section fade-in">
+    <div class="cc-card cc-fade">
         <h3><i class='bx bx-book-open'></i> Learning Roadmap</h3>
-        <div id="roadmap"></div>
+        <div id="cc-roadmap"></div>
     </div>
 
     <!-- Next Steps -->
-    <div class="agent-card agent-section fade-in">
+    <div class="cc-card cc-fade">
         <h3><i class='bx bx-list-check'></i> Recommended Next Steps</h3>
-        <ol class="step-list" id="next-steps"></ol>
+        <ol class="cc-steps" id="cc-steps"></ol>
     </div>
 
-    <!-- Cluster Info -->
-    <div class="agent-card agent-section fade-in" id="cluster-section" style="display:none;">
+    <!-- Cluster -->
+    <div class="cc-card cc-fade" id="cc-cluster-section" style="display:none;">
         <h3><i class='bx bx-group'></i> Your Career Cluster</h3>
-        <div id="cluster-info"></div>
+        <div id="cc-cluster"></div>
     </div>
 </div>
 
-<!-- Recent runs -->
+<!-- Recent Analyses -->
 {% if recent_runs %}
-<div class="agent-card">
+<div class="cc-card">
     <h3><i class='bx bx-history'></i> Recent Analyses</h3>
-    <table style="width:100%;border-collapse:collapse;">
-        <thead><tr style="border-bottom:2px solid var(--border-color);">
-            <th style="padding:.65rem;text-align:left;font-size:.85rem;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Run</th>
-            <th style="padding:.65rem;text-align:left;font-size:.85rem;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Status</th>
-            <th style="padding:.65rem;text-align:left;font-size:.85rem;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Date</th>
-        </tr></thead>
+    <table class="cc-table">
+        <thead><tr><th>Run</th><th>Status</th><th>Date</th></tr></thead>
         <tbody>
         {% for run in recent_runs %}
-            <tr style="border-bottom:1px solid var(--border-color);">
-                <td style="padding:.65rem;font-weight:600;">#{{ run.id }}</td>
-                <td style="padding:.65rem;">
-                    <span class="status-badge {% if run.status == 'completed' %}status-completed{% elif run.status == 'failed' %}status-failed{% else %}status-pending{% endif %}">
-                        <i class='bx {% if run.status == "completed" %}bx-check{% elif run.status == "failed" %}bx-x{% else %}bx-loader-alt{% endif %}'></i>
-                        {{ run.status }}
-                    </span>
-                </td>
-                <td style="padding:.65rem;color:var(--text-light);font-size:.9rem;">{{ run.started_at|date:"M d, Y H:i" }}</td>
-            </tr>
+        <tr>
+            <td style="font-weight:600;">#{{ run.id }}</td>
+            <td>
+                <span class="cc-status {% if run.status == 'completed' %}cc-status-completed{% elif run.status == 'failed' %}cc-status-failed{% else %}cc-status-pending{% endif %}">
+                    <i class='bx {% if run.status == "completed" %}bx-check{% elif run.status == "failed" %}bx-x{% else %}bx-loader-alt{% endif %}'></i>
+                    {{ run.status }}
+                </span>
+            </td>
+            <td style="color:var(--text-light);font-size:.88rem;">{{ run.started_at|date:"M d, Y H:i" }}</td>
+        </tr>
         {% endfor %}
         </tbody>
     </table>
@@ -257,107 +287,91 @@
 {% endif %}
 
 <script>
-document.getElementById('career-form').addEventListener('submit', async function(e) {
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function scoreColor(s){return s>=.7?'#22c55e':s>=.4?'#f59e0b':'#ef4444'}
+
+document.getElementById('career-form').addEventListener('submit',async function(e){
     e.preventDefault();
-    const loading = document.getElementById('loading');
-    loading.classList.add('active');
-
-    const form = e.target;
-    const data = new FormData(form);
-
-    try {
-        const resp = await fetch(form.action || window.location.href, { method: 'POST', body: data });
-        if (!resp.ok) throw new Error('Server error (' + resp.status + ')');
-        const json = await resp.json();
-        if (json.error) { alert('Error: ' + json.error); return; }
+    document.getElementById('cc-loading').classList.add('active');
+    const data=new FormData(e.target);
+    try{
+        const resp=await fetch(e.target.action||window.location.href,{method:'POST',body:data});
+        if(!resp.ok) throw new Error('Server error ('+resp.status+')');
+        const json=await resp.json();
+        if(json.error){alert('Error: '+json.error);return;}
         renderResults(json);
-    } catch (err) {
-        alert('Error: ' + err.message);
-    } finally {
-        loading.classList.remove('active');
+    }catch(err){
+        alert('Error: '+err.message);
+    }finally{
+        document.getElementById('cc-loading').classList.remove('active');
     }
 });
 
-function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-
-function scoreColor(score) {
-    if (score >= 0.7) return '#22c55e';
-    if (score >= 0.4) return '#f59e0b';
-    return '#ef4444';
-}
-
-function renderResults(data) {
-    const area = document.getElementById('results-area');
-    area.style.display = 'block';
-    // Re-trigger fade-in
-    area.querySelectorAll('.fade-in').forEach(el => { el.style.animation = 'none'; el.offsetHeight; el.style.animation = ''; });
+function renderResults(data){
+    const area=document.getElementById('cc-results');
+    area.style.display='block';
+    area.querySelectorAll('.cc-fade').forEach(el=>{el.style.animation='none';el.offsetHeight;el.style.animation='';});
 
     // Jobs
-    const jobsHtml = (data.recommended_jobs || []).slice(0, 5).map(j => {
-        const pct = (j.ml_score * 100).toFixed(0);
+    document.getElementById('cc-jobs').innerHTML=(data.recommended_jobs||[]).slice(0,5).map(j=>{
+        const pct=(j.ml_score*100).toFixed(0);
         return `
-        <div class="job-card">
+        <div class="cc-job">
             <div>
                 <strong>${esc(j.title)}</strong> <span style="opacity:.6;">@ ${esc(j.company)}</span>
-                <div class="job-meta">${esc(j.location || '')} · ${esc(j.job_type || 'Full-time')} · ${j.experience_required || 0}+ yrs</div>
+                <div class="cc-job-meta">${esc(j.location||'')} · ${esc(j.job_type||'Full-time')} · ${j.experience_required||0}+ yrs</div>
             </div>
-            <div class="ml-score">
+            <div class="cc-job-score">
                 <div class="pct" style="color:${scoreColor(j.ml_score)}">${pct}%</div>
                 <small>ML match</small>
             </div>
         </div>`;
-    }).join('');
-    document.getElementById('jobs-list').innerHTML = jobsHtml || '<p style="opacity:.6;">No job recommendations available.</p>';
+    }).join('')||'<p style="color:var(--text-light);">No job recommendations available.</p>';
 
     // Skill analysis
-    const sa = data.skill_analysis || {};
-    const mPct = sa.match_percentage || 0;
-    document.getElementById('match-pct').innerHTML = `
-        <div class="match-bar-wrap">
-            <div class="match-label">
-                <span>Overall Match</span>
-                <span class="match-pct">${mPct}%</span>
-            </div>
-            <div class="match-bar"><div class="match-fill" style="width:${mPct}%;"></div></div>
-        </div>
-    `;
-    document.getElementById('critical-gaps').innerHTML = (sa.critical_gaps || []).map(g =>
-        `<span class="gap-badge gap-critical"><i class='bx bx-x-circle'></i> ${g.skill} <small>(gap: ${g.gap})</small></span>`
-    ).join('') || '<p style="opacity:.5;font-size:.9rem;">None — great job!</p>';
-    document.getElementById('dev-areas').innerHTML = (sa.development_areas || []).map(g =>
-        `<span class="gap-badge gap-develop"><i class='bx bx-up-arrow-alt'></i> ${g.skill} <small>(gap: ${g.gap})</small></span>`
-    ).join('') || '<p style="opacity:.5;font-size:.9rem;">None</p>';
-    document.getElementById('strengths').innerHTML = (sa.strengths || []).map(g =>
-        `<span class="gap-badge gap-strength"><i class='bx bx-check'></i> ${g.skill}</span>`
-    ).join('') || '<p style="opacity:.5;font-size:.9rem;">—</p>';
+    const sa=data.skill_analysis||{};
+    const mPct=sa.match_percentage||0;
+    document.getElementById('cc-match').innerHTML=`
+        <div class="cc-match-wrap">
+            <div class="cc-match-label"><span>Overall Match</span><span class="cc-match-pct">${mPct}%</span></div>
+            <div class="cc-match-bar"><div class="cc-match-fill" style="width:${mPct}%;"></div></div>
+        </div>`;
+
+    document.getElementById('cc-critical').innerHTML=(sa.critical_gaps||[]).map(g=>
+        `<span class="cc-badge cc-badge-critical"><i class='bx bx-x-circle'></i> ${g.skill} <small>(gap: ${g.gap})</small></span>`
+    ).join('')||'<p style="color:var(--text-light);font-size:.88rem;">None — great job!</p>';
+
+    document.getElementById('cc-develop').innerHTML=(sa.development_areas||[]).map(g=>
+        `<span class="cc-badge cc-badge-develop"><i class='bx bx-up-arrow-alt'></i> ${g.skill} <small>(gap: ${g.gap})</small></span>`
+    ).join('')||'<p style="color:var(--text-light);font-size:.88rem;">None</p>';
+
+    document.getElementById('cc-strengths').innerHTML=(sa.strengths||[]).map(g=>
+        `<span class="cc-badge cc-badge-strength"><i class='bx bx-check'></i> ${g.skill}</span>`
+    ).join('')||'<p style="color:var(--text-light);font-size:.88rem;">—</p>';
 
     // Roadmap
-    const rm = (data.learning_roadmap || []).map(r => `
-        <div class="roadmap-card">
-            <strong>${r.skill}</strong>${r.title ? ` — <span style="opacity:.7">${r.title}</span>` : ''}
-            <small><i class='bx bx-time-five'></i> Est. ${r.estimated_weeks || '?'} weeks ${r.message ? ' · ' + r.message : ''}</small>
+    document.getElementById('cc-roadmap').innerHTML=(data.learning_roadmap||[]).map(r=>`
+        <div class="cc-roadmap">
+            <strong>${r.skill}</strong>${r.title?` — <span style="opacity:.7">${r.title}</span>`:''}
+            <small><i class='bx bx-time-five'></i> Est. ${r.estimated_weeks||'?'} weeks${r.message?' · '+r.message:''}</small>
         </div>
-    `).join('');
-    document.getElementById('roadmap').innerHTML = rm || '<p style="opacity:.6;">No learning paths generated.</p>';
+    `).join('')||'<p style="color:var(--text-light);">No learning paths generated.</p>';
 
-    // Next steps
-    document.getElementById('next-steps').innerHTML = (data.next_steps || []).map(s =>
-        `<li>${s}</li>`
-    ).join('');
+    // Steps
+    document.getElementById('cc-steps').innerHTML=(data.next_steps||[]).map(s=>`<li>${s}</li>`).join('');
 
     // Cluster
-    const ci = data.cluster_info || {};
-    if (ci.label && ci.label !== 'Not yet classified') {
-        document.getElementById('cluster-section').style.display = 'block';
-        document.getElementById('cluster-info').innerHTML = `
-            <div class="cluster-pill">
+    const ci=data.cluster_info||{};
+    if(ci.label&&ci.label!=='Not yet classified'){
+        document.getElementById('cc-cluster-section').style.display='block';
+        document.getElementById('cc-cluster').innerHTML=`
+            <div class="cc-cluster">
                 <i class='bx bx-scatter-chart' style="font-size:1.2rem;color:var(--primary-color);"></i>
                 You belong to the <strong>"${ci.label}"</strong> cluster (cluster #${ci.cluster})
             </div>`;
     }
 
-    // Smooth scroll to results
-    area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    area.scrollIntoView({behavior:'smooth',block:'start'});
 }
 </script>
 {% endblock %}

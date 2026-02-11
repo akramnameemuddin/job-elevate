@@ -714,5 +714,10 @@ document.addEventListener('DOMContentLoaded', function() {
         return null;
     }
 });
+
+/* Reload page when user navigates back (bfcache) so dynamic state is fresh */
+window.addEventListener('pageshow', function(e) {
+    if (e.persisted) window.location.reload();
+});
 </script>
 {% endblock %}

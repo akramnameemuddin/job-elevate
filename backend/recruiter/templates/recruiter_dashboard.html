@@ -237,37 +237,7 @@
             display: none;
         }
 
-        .navbar-search {
-            position: absolute;
-            left: 25%;
-            transform: translateX(-50%);
-        }
 
-        .search-input {
-            width: 100%;
-            padding: 0.5rem 1rem 0.5rem 2.5rem;
-            border-radius: 9999px;
-            border: 1px solid var(--border-color);
-            background-color: var(--hover-bg);
-            color: var(--text-color);
-            font-size: 0.875rem;
-            transition: var(--transition);
-        }
-
-        .search-input:focus {
-            outline: none;
-            box-shadow: 0 0 0 2px var(--primary-color);
-            background-color: var(--card-bg);
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 1rem;
-            top: 46%;
-            transform: translateY(-40%);
-            color: var(--text-light);
-            font-size: 1rem;
-        }
 
         .navbar-right {
             display: flex;
@@ -536,6 +506,25 @@
 
         .btn-warning:hover {
             background-color: var(--warning);
+        }
+
+        .btn-info {
+            background-color: #3b82f6;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background-color: #2563eb;
+        }
+
+        .btn-outline-secondary {
+            border: 1px solid var(--border-color);
+            color: var(--text-light);
+            background-color: transparent;
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: var(--hover-bg);
         }
 
         /* ==== Quick Stats ==== */
@@ -1240,6 +1229,58 @@
             color: white;
         }
 
+        /* ==== Status Dropdown ==== */
+        .status-dropdown {
+            min-width: 170px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,.12);
+            padding: .35rem;
+            z-index: 9999;
+            animation: sdFadeIn .15s ease;
+        }
+        @keyframes sdFadeIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+
+        .status-option {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .55rem .85rem;
+            border-radius: 8px;
+            font-size: .82rem;
+            font-weight: 500;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: background .15s, color .15s;
+        }
+        .status-option:hover {
+            background: var(--hover-bg);
+        }
+        .status-option.active {
+            background: rgba(99,102,241,.1);
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+        .status-option.active::after {
+            content: '\2713';
+            margin-left: auto;
+            font-weight: 700;
+        }
+        .status-option::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .status-option[data-status="Applied"]::before    { background: #9ca3af; }
+        .status-option[data-status="Shortlisted"]::before { background: #3b82f6; }
+        .status-option[data-status="Interview"]::before   { background: #f59e0b; }
+        .status-option[data-status="Offered"]::before     { background: #22c55e; }
+        .status-option[data-status="Hired"]::before       { background: #10b981; }
+        .status-option[data-status="Rejected"]::before    { background: #ef4444; }
+
         /* ==== Pagination ==== */
         .pagination {
             display: flex;
@@ -1371,13 +1412,7 @@
                 display: block;
             }
 
-            .navbar-search {
-                position: relative;
-                left: 0;
-                transform: none;
-                margin-left: 1rem;
-                display: none;
-            }
+
             .navbar {
                 padding: 0 1rem;
             }
@@ -1538,10 +1573,7 @@
             <button class="mobile-menu-toggle">
                 <i class="bx bx-menu"></i>
             </button>
-            <div class="navbar-search">
-                <i class="bx bx-search search-icon"></i>
-                <input type="text" class="search-input" placeholder="Search jobs, skills, candidates...">
-            </div>
+
         </div>
         <div class="navbar-right">
             <div class="navbar-actions">
@@ -2272,9 +2304,9 @@ function renderCandidates(candidates, jobId = null) {
                     `<a href="${candidate.resume_url}" class="candidate-action-btn btn-outline-primary" target="_blank">
                         <i class='bx bx-file'></i>Resume
                     </a>` : 
-                    `<button class="candidate-action-btn btn-outline-secondary" disabled>
-                        <i class='bx bx-file'></i>No Resume
-                    </button>`
+                    `<a href="mailto:${candidate.email || ''}" class="candidate-action-btn btn-outline-secondary" title="No resume uploaded – email candidate">
+                        <i class='bx bx-envelope'></i>No Resume
+                    </a>`
                 }
                 <button class="status-btn candidate-action-btn ${getStatusButtonClass(candidate.status)}" 
                         data-application-id="${candidate.id}" data-current-status="${candidate.status}">

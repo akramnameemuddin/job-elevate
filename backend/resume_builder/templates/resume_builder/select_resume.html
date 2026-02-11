@@ -1,146 +1,330 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
 
-{% block title %}Tailor Resume for {{ job.title }}{% endblock %}
+{% block title %}AI Resume Tailor – {{ job.title }}{% endblock %}
 
 {% block content %}
 <style>
-/* ── Select Resume Page ── */
-.sr-page { max-width: 960px; margin: 0 auto; }
-.sr-header { margin-bottom: 2rem; }
-.sr-header h1 { font-size: 1.6rem; font-weight: 700; color: var(--heading-color); margin-bottom: .25rem; }
-.sr-header p  { color: var(--text-muted); font-size: .95rem; }
+/* ══════════════════════════════════════════════════
+   AI Resume Tailor – Select Resume  (st- namespace)
+   ══════════════════════════════════════════════════ */
 
-.sr-job-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 1.25rem 1.5rem;
-    margin-bottom: 2rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-.sr-job-icon {
-    width: 48px; height: 48px;
-    background: linear-gradient(135deg, var(--primary-color), #6f42c1);
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    color: #fff; font-size: 1.4rem; flex-shrink: 0;
-}
-.sr-job-info h3 { font-size: 1.1rem; font-weight: 600; color: var(--heading-color); margin: 0; }
-.sr-job-info span { color: var(--text-muted); font-size: .85rem; }
+/* ── Breadcrumb ── */
+.st-breadcrumb{display:flex;align-items:center;gap:.25rem;font-size:.85rem;color:var(--text-light);margin-bottom:.75rem}
+.st-breadcrumb a{color:var(--primary-color);text-decoration:none}
+.st-breadcrumb a:hover{text-decoration:underline}
 
-/* Resume cards */
-.sr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-.sr-card {
-    background: var(--card-bg);
-    border: 2px solid var(--border-color);
-    border-radius: 12px;
-    padding: 1.25rem;
-    cursor: pointer;
-    transition: all .2s;
-    position: relative;
-}
-.sr-card:hover { border-color: var(--primary-color); transform: translateY(-2px); }
-.sr-card.selected { border-color: var(--primary-color); background: rgba(79,70,229,.06); }
-.sr-card .check-badge {
-    position: absolute; top: 10px; right: 10px;
-    width: 24px; height: 24px; border-radius: 50%;
-    background: var(--primary-color); color: #fff;
-    display: none; align-items: center; justify-content: center;
-    font-size: .8rem;
-}
-.sr-card.selected .check-badge { display: flex; }
-.sr-card h4 { font-size: 1rem; font-weight: 600; color: var(--heading-color); margin-bottom: .35rem; }
-.sr-card .meta { font-size: .8rem; color: var(--text-muted); }
+/* ── Header ── */
+.st-header{margin-bottom:1.5rem}
+.st-header h1{font-size:1.4rem;font-weight:700;color:var(--heading-color);margin:0 0 .2rem;display:flex;align-items:center;gap:.5rem}
+.st-header h1 i{color:var(--primary-color);font-size:1.5rem}
+.st-header p{color:var(--text-light);font-size:.9rem;margin:0;line-height:1.5}
 
-.sr-skip {
-    text-align: center;
-    margin-bottom: 1.5rem;
-    color: var(--text-muted);
-    font-size: .88rem;
+/* ── Steps indicator ── */
+.st-steps{
+    display:flex;align-items:center;gap:0;margin-bottom:1.75rem;
+    background:var(--card-bg);border:1px solid var(--border-color);
+    border-radius:14px;padding:.85rem 1.25rem;overflow:hidden;
 }
-.sr-skip a { color: var(--primary-color); text-decoration: underline; cursor: pointer; }
+.st-step{
+    display:flex;align-items:center;gap:.6rem;flex:1;position:relative;
+    padding-right:1.5rem;
+}
+.st-step:not(:last-child)::after{
+    content:'';position:absolute;right:0;top:50%;
+    width:24px;height:24px;border-right:2px solid var(--border-color);
+    border-top:2px solid var(--border-color);transform:translateY(-50%) rotate(45deg) scale(.5);
+    opacity:.4;
+}
+.st-step-num{
+    width:32px;height:32px;border-radius:50%;display:flex;align-items:center;
+    justify-content:center;font-weight:700;font-size:.82rem;flex-shrink:0;
+    transition:all .3s;
+}
+.st-step.active .st-step-num{
+    background:linear-gradient(135deg,var(--primary-color),#6366f1);color:#fff;
+    box-shadow:0 3px 12px rgba(99,102,241,.3);
+}
+.st-step.upcoming .st-step-num{
+    background:var(--hover-bg);color:var(--text-light);
+}
+.st-step-text{font-size:.82rem;color:var(--text-light);font-weight:500;line-height:1.3}
+.st-step.active .st-step-text{color:var(--heading-color);font-weight:600}
+.st-step-text small{display:block;font-size:.72rem;font-weight:400;opacity:.7}
 
-.sr-actions { display: flex; justify-content: flex-end; gap: .75rem; }
+/* ── Job card ── */
+.st-job{
+    background:linear-gradient(135deg,#6366f1 0%,var(--primary-color) 100%);
+    color:#fff;border-radius:14px;padding:1.35rem 1.5rem;margin-bottom:1.75rem;
+    display:flex;align-items:center;gap:1.15rem;
+}
+.st-job-icon{
+    width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,.15);
+    display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;
+    backdrop-filter:blur(6px);
+}
+.st-job h3{font-size:1.1rem;font-weight:700;margin:0 0 .25rem;color:#fff}
+.st-job-meta{display:flex;flex-wrap:wrap;gap:.5rem;font-size:.82rem;opacity:.85}
+.st-job-meta span{display:inline-flex;align-items:center;gap:.2rem}
+.st-job-meta i{font-size:.9rem}
+.st-job-skills{margin-top:.65rem;display:flex;flex-wrap:wrap;gap:.3rem}
+.st-job-skill{
+    background:rgba(255,255,255,.18);padding:.2rem .6rem;border-radius:20px;
+    font-size:.72rem;font-weight:500;backdrop-filter:blur(4px);
+}
+
+/* ── Section label ── */
+.st-label{
+    font-size:1.05rem;font-weight:600;color:var(--heading-color);margin-bottom:.85rem;
+    display:flex;align-items:center;gap:.5rem;
+}
+.st-label i{font-size:1.15rem;color:var(--primary-color)}
+.st-label small{font-weight:400;color:var(--text-light);font-size:.82rem}
+
+/* ── Resume grid ── */
+.st-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;margin-bottom:1.25rem}
+
+.st-card{
+    background:var(--card-bg);border:2px solid var(--border-color);border-radius:14px;
+    padding:1.35rem;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;
+}
+.st-card:hover{border-color:var(--primary-color);transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,.06)}
+.st-card.selected{
+    border-color:var(--primary-color);
+    background:linear-gradient(135deg,rgba(79,70,229,.04),rgba(99,102,241,.08));
+}
+
+/* Check badge */
+.st-check{
+    position:absolute;top:12px;right:12px;width:26px;height:26px;border-radius:50%;
+    background:var(--primary-color);color:#fff;display:none;align-items:center;
+    justify-content:center;font-size:.85rem;box-shadow:0 2px 8px rgba(99,102,241,.35);
+}
+.st-card.selected .st-check{display:flex}
+
+/* Card icon */
+.st-card-icon{
+    width:42px;height:42px;border-radius:12px;display:flex;align-items:center;
+    justify-content:center;font-size:1.25rem;margin-bottom:.85rem;
+}
+.st-card-icon.tpl{background:rgba(79,70,229,.1);color:var(--primary-color)}
+
+.st-card h4{font-size:1rem;font-weight:600;color:var(--heading-color);margin:0 0 .55rem}
+.st-card-meta{display:flex;flex-direction:column;gap:.3rem}
+.st-card-meta span{font-size:.8rem;color:var(--text-light);display:flex;align-items:center;gap:.35rem}
+.st-card-meta i{font-size:.9rem;color:var(--text-light)}
+
+/* Shimmer effect on selected card */
+.st-card.selected::before{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(135deg,transparent 40%,rgba(99,102,241,.08) 50%,transparent 60%);
+    animation:stShimmer 2.5s ease infinite;
+}
+@keyframes stShimmer{
+    0%{transform:translateX(-100%)}
+    100%{transform:translateX(100%)}
+}
+
+/* ── Divider ── */
+.st-divider{
+    display:flex;align-items:center;gap:1rem;margin:1.25rem 0;color:var(--text-light);
+    font-size:.82rem;font-weight:500;
+}
+.st-divider::before,.st-divider::after{
+    content:'';flex:1;height:1px;background:var(--border-color);
+}
+
+/* ── Profile card ── */
+.st-profile-card{
+    background:var(--card-bg);border:2px solid var(--border-color);border-radius:14px;
+    padding:1.35rem;display:flex;align-items:center;gap:1rem;cursor:pointer;
+    transition:all .25s;
+}
+.st-profile-card:hover{border-color:var(--primary-color);transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.05)}
+.st-profile-card.selected{border-color:var(--primary-color);background:rgba(79,70,229,.04)}
+.st-profile-icon{
+    width:48px;height:48px;border-radius:14px;display:flex;align-items:center;
+    justify-content:center;font-size:1.4rem;flex-shrink:0;
+    background:rgba(34,197,94,.1);color:#22c55e;
+}
+.st-profile-info h4{font-size:.95rem;font-weight:600;color:var(--heading-color);margin:0 0 .2rem}
+.st-profile-info p{font-size:.82rem;color:var(--text-light);margin:0;line-height:1.4}
+
+/* ── Empty state ── */
+.st-empty{
+    background:var(--card-bg);border:1px solid var(--border-color);border-radius:14px;
+    padding:2.5rem;text-align:center;margin-bottom:1.5rem;
+}
+.st-empty i{font-size:2.5rem;color:var(--text-light);margin-bottom:.75rem;display:block}
+.st-empty h4{font-size:1rem;font-weight:600;color:var(--heading-color);margin:0 0 .35rem}
+.st-empty p{font-size:.88rem;color:var(--text-light);margin:0 0 1rem;line-height:1.5}
+
+/* ── Actions ── */
+.st-actions{
+    display:flex;justify-content:flex-end;align-items:center;gap:.75rem;
+    padding-top:1rem;border-top:1px solid var(--border-color);margin-top:.5rem;
+}
+
+/* ── Loading overlay ── */
+.st-loading{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center}
+.st-loading.active{display:flex}
+.st-loading-box{
+    background:var(--card-bg);padding:2.5rem 3.5rem;border-radius:20px;
+    text-align:center;box-shadow:0 25px 50px rgba(0,0,0,.15);max-width:380px;
+}
+.st-spinner{
+    width:52px;height:52px;border:4px solid var(--border-color);
+    border-top-color:var(--primary-color);border-radius:50%;
+    animation:stSpin .7s linear infinite;margin:0 auto 1.25rem;
+}
+@keyframes stSpin{to{transform:rotate(360deg)}}
+.st-loading-box h4{font-weight:700;font-size:1.05rem;color:var(--heading-color);margin:0 0 .35rem}
+.st-loading-box p{color:var(--text-light);font-size:.85rem;margin:0;line-height:1.5}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+    .st-steps{flex-direction:column;gap:.5rem;padding:.75rem}
+    .st-step::after{display:none}
+    .st-job{flex-direction:column;text-align:center}
+    .st-grid{grid-template-columns:1fr}
+}
 </style>
 
-<div class="sr-page">
-    <!-- Breadcrumb -->
-    <div class="breadcrumb" style="margin-bottom:1rem;">
-        <div class="breadcrumb-item">
-            <a href="{% url 'dashboard:home' %}" class="breadcrumb-link">Home</a>
-            <i class='bx bx-chevron-right'></i>
-        </div>
-        <div class="breadcrumb-item">
-            <a href="{% url 'jobs:job_detail' job.id %}" class="breadcrumb-link">{{ job.title }}</a>
-            <i class='bx bx-chevron-right'></i>
-        </div>
-        <div class="breadcrumb-item"><span>AI Tailor</span></div>
+<!-- Loading Overlay -->
+<div class="st-loading" id="st-loading">
+    <div class="st-loading-box">
+        <div class="st-spinner"></div>
+        <h4>Running AI Analysis…</h4>
+        <p>Our AI agent is comparing your resume to the job requirements. This usually takes 5–15 seconds.</p>
     </div>
+</div>
 
-    <div class="sr-header">
-        <h1><i class='bx bx-bot' style="color:var(--primary-color)"></i> AI Resume Tailor</h1>
-        <p>Our AI agent will analyse your resume against this job and suggest what to change for the best fit.</p>
+<!-- Breadcrumb -->
+<div class="st-breadcrumb">
+    <a href="{% url 'dashboard:home' %}">Home</a>
+    <i class='bx bx-chevron-right'></i>
+    <a href="{% url 'jobs:job_detail' job.id %}">{{ job.title }}</a>
+    <i class='bx bx-chevron-right'></i>
+    <span>AI Resume Tailor</span>
+</div>
+
+<!-- Header -->
+<div class="st-header">
+    <h1><i class='bx bx-bot'></i> AI Resume Tailor</h1>
+    <p>Our AI agent analyses your resume against the job requirements and generates tailored suggestions to maximise your match score.</p>
+</div>
+
+<!-- Steps Indicator -->
+<div class="st-steps">
+    <div class="st-step active">
+        <div class="st-step-num">1</div>
+        <div class="st-step-text">Select Resume<small>Choose your base</small></div>
     </div>
+    <div class="st-step upcoming">
+        <div class="st-step-num">2</div>
+        <div class="st-step-text">AI Analysis<small>Generate suggestions</small></div>
+    </div>
+    <div class="st-step upcoming">
+        <div class="st-step-num">3</div>
+        <div class="st-step-text">Review &amp; Apply<small>Accept or reject</small></div>
+    </div>
+</div>
 
-    <!-- Target job card -->
-    <div class="sr-job-card">
-        <div class="sr-job-icon"><i class='bx bx-briefcase'></i></div>
-        <div class="sr-job-info">
-            <h3>{{ job.title }}</h3>
-            <span>{{ job.company }} &middot; {{ job.location }} &middot; {{ job.job_type }}</span>
+<!-- Target Job Card -->
+<div class="st-job">
+    <div class="st-job-icon"><i class='bx bx-briefcase'></i></div>
+    <div>
+        <h3>{{ job.title }}</h3>
+        <div class="st-job-meta">
+            <span><i class='bx bx-building'></i> {{ job.company }}</span>
+            <span><i class='bx bx-map'></i> {{ job.location }}</span>
+            <span><i class='bx bx-time-five'></i> {{ job.job_type }}</span>
         </div>
-    </div>
-
-    <form method="post" id="tailorForm">
-        {% csrf_token %}
-        <input type="hidden" name="resume_id" id="selectedResumeId" value="">
-
-        {% if user_resumes %}
-        <h2 style="font-size:1.1rem; font-weight:600; color:var(--heading-color); margin-bottom:.75rem;">
-            Select a base resume <span style="font-weight:400; color:var(--text-muted); font-size:.85rem;">(optional)</span>
-        </h2>
-        <div class="sr-grid">
-            {% for r in user_resumes %}
-            <div class="sr-card" data-id="{{ r.id }}" onclick="selectResume(this, {{ r.id }})">
-                <div class="check-badge"><i class='bx bx-check'></i></div>
-                <h4>{{ r.title }}</h4>
-                <div class="meta">
-                    Template: {{ r.template.name }}<br>
-                    Updated: {{ r.updated_at|date:"M d, Y" }}
-                </div>
-            </div>
+        {% if job.required_skills %}
+        <div class="st-job-skills">
+            {% for sk in job.required_skills %}
+            <span class="st-job-skill">{{ sk.skill_name|default:sk.name|default:sk }}</span>
             {% endfor %}
         </div>
-
-        <div class="sr-skip">
-            Or <a onclick="document.getElementById('selectedResumeId').value=''; document.getElementById('tailorForm').submit();">
-                skip &amp; use your profile data directly
-            </a>
-        </div>
-        {% else %}
-        <div style="background:var(--card-bg); border:1px solid var(--border-color); border-radius:12px; padding:1.5rem; text-align:center; margin-bottom:1.5rem;">
-            <i class='bx bx-file' style="font-size:2rem; color:var(--text-muted);"></i>
-            <p style="color:var(--text-muted); margin:.5rem 0;">You don't have any resumes yet. No worries — the AI will use your profile data.</p>
-        </div>
         {% endif %}
-
-        <div class="sr-actions">
-            <a href="{% url 'jobs:job_detail' job.id %}" class="btn btn-outline-secondary">Cancel</a>
-            <button type="submit" class="btn btn-primary">
-                <i class='bx bx-analyse' style="margin-right:.3rem;"></i> Start AI Analysis
-            </button>
-        </div>
-    </form>
+    </div>
 </div>
+
+<!-- Form -->
+<form method="post" id="tailorForm">
+    {% csrf_token %}
+    <input type="hidden" name="resume_id" id="selectedResumeId" value="">
+
+    {% if user_resumes %}
+    <div class="st-label">
+        <i class='bx bx-file'></i> Select a base resume
+        <small>(optional — you can also use your profile directly)</small>
+    </div>
+    <div class="st-grid">
+        {% for r in user_resumes %}
+        <div class="st-card" data-id="{{ r.id }}" onclick="selectResume(this, {{ r.id }})">
+            <div class="st-check"><i class='bx bx-check'></i></div>
+            <div class="st-card-icon tpl"><i class='bx bx-file-blank'></i></div>
+            <h4>{{ r.title }}</h4>
+            <div class="st-card-meta">
+                <span><i class='bx bx-palette'></i> {{ r.template.name }}</span>
+                <span><i class='bx bx-calendar'></i> Updated {{ r.updated_at|date:"M d, Y" }}</span>
+                <span><i class='bx bx-download'></i> {{ r.download_count }} download{{ r.download_count|pluralize }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="st-divider">or</div>
+
+    <div class="st-profile-card" id="profileCard" onclick="selectProfile()">
+        <div class="st-profile-icon"><i class='bx bx-user'></i></div>
+        <div class="st-profile-info">
+            <h4>Use your profile data directly</h4>
+            <p>The AI will pull skills, experience, and projects from your profile instead of a saved resume.</p>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="st-empty">
+        <i class='bx bx-file'></i>
+        <h4>No saved resumes</h4>
+        <p>No worries — the AI will use your profile data (skills, experience, projects) to generate tailored suggestions.</p>
+        <a href="{% url 'resume_builder:resume_builder' %}" class="btn btn-outline-primary btn-sm">
+            <i class='bx bx-plus'></i> Create a resume first
+        </a>
+    </div>
+    {% endif %}
+
+    <div class="st-actions">
+        <a href="{% url 'jobs:job_detail' job.id %}" class="btn btn-outline-secondary">
+            <i class='bx bx-arrow-back'></i> Cancel
+        </a>
+        <button type="submit" class="btn btn-primary" id="submitBtn">
+            <i class='bx bx-analyse'></i> Start AI Analysis
+        </button>
+    </div>
+</form>
 
 <script>
 function selectResume(el, id) {
-    document.querySelectorAll('.sr-card').forEach(c => c.classList.remove('selected'));
+    document.querySelectorAll('.st-card').forEach(c => c.classList.remove('selected'));
+    const profileCard = document.getElementById('profileCard');
+    if (profileCard) profileCard.classList.remove('selected');
     el.classList.add('selected');
     document.getElementById('selectedResumeId').value = id;
 }
+
+function selectProfile() {
+    document.querySelectorAll('.st-card').forEach(c => c.classList.remove('selected'));
+    const profileCard = document.getElementById('profileCard');
+    if (profileCard) profileCard.classList.add('selected');
+    document.getElementById('selectedResumeId').value = '';
+}
+
+document.getElementById('tailorForm').addEventListener('submit', function() {
+    document.getElementById('st-loading').classList.add('active');
+    document.getElementById('submitBtn').disabled = true;
+});
 </script>
 {% endblock %}
