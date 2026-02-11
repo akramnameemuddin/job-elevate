@@ -1,0 +1,10 @@
+# Auto detect text files and normalise line endings
+* text=auto
+
+# Force LF for shell scripts (Docker needs Linux line endings)
+*.sh text eol=lf
+docker/entrypoint.sh text eol=lf
+
+# Force CRLF for Windows-only files
+*.bat text eol=crlf
+*.cmd text eol=crlf

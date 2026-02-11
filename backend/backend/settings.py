@@ -10,14 +10,28 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY
 SECRET_KEY = env("SECRET_KEY")
-DEBUG = True
-ALLOWED_HOSTS = [
-    'job-elevate-m96p.onrender.com',  
+DEBUG = env.bool("DEBUG", default=False)
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[
+    'job-elevate-m96p.onrender.com',
     'job-elevate.akramnaeemuddin.me',
     'jobelevates.akramnaeemuddin.me',
     'localhost',
     '127.0.0.1',
-]
+])
+
+# CSRF trusted origins (required when behind nginx/proxy)
+CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[
+    'https://job-elevate.akramnaeemuddin.me',
+    'https://jobelevates.akramnaeemuddin.me',
+])
+
+# Security headers for production
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    X_FRAME_OPTIONS = 'DENY'
 # EMAIL
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
