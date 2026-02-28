@@ -35,6 +35,9 @@ media/
 # Collected static files (generated)
 staticfiles/
 
+# AI response logs
+backend/logs/*.json
+
 # ==================================================
 # Python Packaging / Build
 # ==================================================
@@ -104,3 +107,5 @@ runtime.txt
 .cache/
 .mypy_cache/
 .pyre/
+nul
+MPS_Final.pdf
