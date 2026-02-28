@@ -26,8 +26,8 @@ pandas==2.2.3
 scikit-learn==1.5.2
 nltk==3.9.1
 
-# AI and GPT Integration
-google-genai>=0.2.0
+# AI and GPT Integration (Google ADK includes google-genai)
+google-adk>=1.0.0
 
 # HTTP Requests
 requests==2.32.3

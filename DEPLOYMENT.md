@@ -128,22 +128,28 @@ docker compose logs nginx  # Check nginx logs
 
 ## Step 3: Initialize Data
 
-### Create superuser
+The entrypoint script now **automatically seeds all data** on every container start:
+- Migrations
+- Static files collection
+- Assessment skills + questions (`populate_assessment_data`)
+- Course catalog (`populate_courses`)
+- Community tags + events (`seed_community`)
+- Resume templates (`create_resume_templates`)
+- Admin user (`create_admin` — default: admin / JobElevate2025!)
+- Demo users + jobs + applications (`seed_demo_data`)
+- ML model training (`train_fit_model`)
+
+All commands are idempotent — safe to run on every restart.
+
+### Verify data was seeded
 ```bash
-docker compose exec web python backend/manage.py createsuperuser
+docker compose logs web | grep "==>"
 ```
 
-### Seed assessment questions
-```bash
-docker compose exec web python backend/manage.py add_questions
-```
-
-### Seed demo data & train ML model
-```bash
-docker compose exec web python backend/manage.py seed_demo_data
-docker compose exec web python backend/manage.py train_fit_model --synthetic 2000
-docker compose exec web python backend/manage.py evaluate_model
-```
+### Access admin panel
+Visit `http://your-ec2-ip/admin/` and login with:
+- Username: `admin`
+- Password: `JobElevate2025!`
 
 ---
 

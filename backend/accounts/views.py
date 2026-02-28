@@ -410,10 +410,10 @@ def logout_user(request):
     return redirect('accounts:login')
 
 
-# Profile view
+# Profile view — delegates to the full dashboard profile
 @login_required
 def profile(request):
-    return render(request, 'accounts/profile.html', {'user': request.user})
+    return redirect('dashboard:profile')
 
 
 # Delete account view
