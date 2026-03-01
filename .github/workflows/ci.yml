@@ -19,6 +19,7 @@ jobs:
       GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
       EMAIL_HOST_USER: test@example.com
       EMAIL_HOST_PASSWORD: testpassword
+      EMAIL_BACKEND: django.core.mail.backends.locmem.EmailBackend
       USE_S3: "False"
       DJANGO_SETTINGS_MODULE: backend.settings
 
