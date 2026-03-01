@@ -19,8 +19,11 @@ logger = logging.getLogger(__name__)
 try:
     from google import genai
     from google.genai import types
+    _api_key = getattr(settings, 'GOOGLE_API_KEY', None) or os.getenv('GOOGLE_API_KEY')
+    if not _api_key:
+        raise ValueError("GOOGLE_API_KEY is not set — AI unavailable")
     # Initialize with new SDK
-    GEMINI_CLIENT = genai.Client(api_key=settings.GOOGLE_API_KEY)
+    GEMINI_CLIENT = genai.Client(api_key=_api_key)
     # Use gemini-2.5-flash-lite (confirmed free-tier quota available)
     GEMINI_MODEL = 'models/gemini-2.5-flash-lite'
     GEMINI_AVAILABLE = True

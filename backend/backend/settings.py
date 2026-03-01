@@ -157,8 +157,14 @@ if USE_S3:
     STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/static/"
     MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/media/"
 else:
+    # Use manifest storage in production only — avoids missing manifest errors in tests/CI
+    _static_backend = (
+        "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        if not DEBUG
+        else "django.contrib.staticfiles.storage.StaticFilesStorage"
+    )
     STORAGES = {
-        "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+        "staticfiles": {"BACKEND": _static_backend},
         "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     }
     MEDIA_URL = '/media/'
