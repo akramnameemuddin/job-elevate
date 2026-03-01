@@ -180,7 +180,60 @@
                     {% if template.preview_image %}
                     <img src="{{ template.preview_image.url }}" alt="{{ template.name }}">
                     {% else %}
+                    {% with tname=template.name|lower %}
+                    {% if "modern" in tname %}
+                    <div class="rb-template-svg modern-preview">
+                        <div class="tp-header tp-modern-header"></div>
+                        <div class="tp-body">
+                            <div class="tp-line tp-line-title"></div>
+                            <div class="tp-line tp-line-short"></div>
+                            <div class="tp-divider"></div>
+                            <div class="tp-line"></div>
+                            <div class="tp-line tp-line-med"></div>
+                            <div class="tp-line tp-line-short"></div>
+                            <div class="tp-divider"></div>
+                            <div class="tp-line tp-line-med"></div>
+                            <div class="tp-line"></div>
+                            <div class="tp-line tp-line-short"></div>
+                        </div>
+                    </div>
+                    {% elif "professional" in tname %}
+                    <div class="rb-template-svg professional-preview">
+                        <div class="tp-header tp-pro-header">
+                            <div class="tp-pro-name"></div>
+                            <div class="tp-pro-role"></div>
+                        </div>
+                        <div class="tp-body">
+                            <div class="tp-line tp-line-title"></div>
+                            <div class="tp-line"></div>
+                            <div class="tp-line tp-line-med"></div>
+                            <div class="tp-divider tp-divider-dark"></div>
+                            <div class="tp-line tp-line-title"></div>
+                            <div class="tp-line"></div>
+                            <div class="tp-line tp-line-short"></div>
+                        </div>
+                    </div>
+                    {% elif "creative" in tname %}
+                    <div class="rb-template-svg creative-preview">
+                        <div class="tp-sidebar">
+                            <div class="tp-avatar"></div>
+                            <div class="tp-sidebar-line"></div>
+                            <div class="tp-sidebar-line tp-sidebar-short"></div>
+                            <div class="tp-sidebar-line"></div>
+                            <div class="tp-sidebar-line tp-sidebar-short"></div>
+                        </div>
+                        <div class="tp-body" style="margin-left:38%">
+                            <div class="tp-line tp-line-title"></div>
+                            <div class="tp-line"></div>
+                            <div class="tp-line tp-line-med"></div>
+                            <div class="tp-line tp-line-short"></div>
+                            <div class="tp-line"></div>
+                        </div>
+                    </div>
+                    {% else %}
                     <div class="rb-template-placeholder"><i class='bx bx-file-blank'></i></div>
+                    {% endif %}
+                    {% endwith %}
                     {% endif %}
                 </div>
                 <div class="rb-template-bottom">
@@ -306,6 +359,28 @@
 .rb-template-preview img{width:100%;height:100%;object-fit:cover;transition:var(--transition)}
 .rb-template-tile:hover .rb-template-preview img{transform:scale(1.05)}
 .rb-template-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:3rem}
+/* ── Template preview mockups ── */
+.rb-template-svg{width:100%;height:100%;padding:10px;box-sizing:border-box;position:relative}
+.tp-line{height:5px;border-radius:3px;background:#c8d0e0;margin:5px 0}
+.tp-line-title{height:7px;background:#8a99b8;width:55%}
+.tp-line-med{width:75%}
+.tp-line-short{width:45%}
+.tp-divider{height:1px;background:#cbd3e0;margin:8px 0}
+.tp-divider-dark{background:#8a99b8}
+/* Modern */
+.modern-preview{background:#f4f6fc}
+.tp-modern-header{height:32px;background:linear-gradient(90deg,#4f46e5,#7c3aed);border-radius:4px;margin-bottom:10px}
+/* Professional */
+.professional-preview{background:#fafafa}
+.tp-pro-header{background:#1e293b;border-radius:4px;padding:8px;margin-bottom:10px;display:flex;flex-direction:column;gap:4px}
+.tp-pro-name{height:8px;background:#fff;border-radius:2px;width:60%}
+.tp-pro-role{height:5px;background:rgba(255,255,255,.5);border-radius:2px;width:40%}
+/* Creative */
+.creative-preview{background:#fff8f0;display:flex;position:relative;overflow:hidden}
+.tp-sidebar{position:absolute;top:0;left:0;width:35%;height:100%;background:linear-gradient(160deg,#f97316,#ef4444);padding:10px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:6px}
+.tp-avatar{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.7);margin-bottom:4px;flex-shrink:0}
+.tp-sidebar-line{height:4px;border-radius:2px;background:rgba(255,255,255,.6);width:80%}
+.tp-sidebar-short{width:55%}
 .rb-template-bottom{padding:1rem}
 .rb-template-info{margin-bottom:.75rem}
 .rb-template-info strong{display:block;font-size:.92rem;color:var(--heading-color);margin-bottom:.25rem}
