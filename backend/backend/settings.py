@@ -135,7 +135,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# S3 storage toggle — set USE_S3=True in .env to serve media from S3
+# S3 storage toggle — set USE_S3=True in .env to serve static + media from S3
 USE_S3 = env.bool("USE_S3", default=False)
 
 if USE_S3:
@@ -149,8 +149,9 @@ if USE_S3:
     AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
     AWS_QUERYSTRING_AUTH = False
 
-    # Static files — still served by WhiteNoise/Nginx for speed
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    # Static files — uploaded to S3 via collectstatic
+    STATICFILES_STORAGE = 'backend.storages.StaticStorage'
+    STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/static/"
 
     # Media files — served from S3
     DEFAULT_FILE_STORAGE = 'backend.storages.MediaStorage'
