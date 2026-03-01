@@ -42,12 +42,11 @@ def start_assessment_from_job(request, job_id, skill_id):
     job = get_object_or_404(Job, id=job_id, status='Open')
     skill = get_object_or_404(Skill, id=skill_id, is_active=True)
     
-    # Verify this skill is required for the job
+    # Check if this skill is formally required for the job (optional — proceed either way)
     try:
         job_requirement = JobSkillRequirement.objects.get(job=job, skill=skill)
     except JobSkillRequirement.DoesNotExist:
-        messages.error(request, f"Skill {skill.name} is not required for this job.")
-        return redirect('jobs:job_detail', job_id=job.id)
+        job_requirement = None  # Skill listed in job JSON but no formal requirement; allow assessment
     
     # Check for existing in-progress attempt
     existing_attempt = AssessmentAttempt.objects.filter(
