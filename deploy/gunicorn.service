@@ -1,0 +1,20 @@
+[Unit]
+Description=JobElevate Gunicorn Daemon
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/job-elevate/backend
+EnvironmentFile=/home/ubuntu/job-elevate/backend/backend/.env
+ExecStart=/home/ubuntu/job-elevate/venv/bin/gunicorn \
+          backend.wsgi:application \
+          --bind 127.0.0.1:8000 \
+          --workers 3 \
+          --timeout 120 \
+          --access-logfile /home/ubuntu/job-elevate/logs/gunicorn-access.log \
+          --error-logfile /home/ubuntu/job-elevate/logs/gunicorn-error.log
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
