@@ -33,9 +33,8 @@ JobElevate is an end-to-end AI-powered career platform that takes a student or p
 | 10 | [Testing](#10-testing) | Evaluators / Developers |
 | 11 | [Security](#11-security) | Evaluators |
 | 12 | [Performance](#12-performance) | Evaluators |
-| 13 | [Evaluation Criteria Compliance](#13-evaluation-criteria-compliance) | Evaluators |
-| 14 | [Roadmap](#14-roadmap) | Everyone |
-| 15 | [Team & Acknowledgements](#15-team--acknowledgements) | Everyone |
+| 13 | [Roadmap](#13-roadmap) | Everyone |
+| 14 | [Team & Acknowledgements](#14-team--acknowledgements) | Everyone |
 
 ---
 
@@ -888,78 +887,7 @@ user_skill_profiles = {
 
 ---
 
-## 13. Evaluation Criteria Compliance
-
-### Criterion 1 — Problem Definition (10 marks)
-
-| Sub-criterion | Evidence |
-|---|---|
-| Precise problem statement | "Fresh graduates cannot identify, verify, or close skill gaps for specific job listings in one integrated platform." |
-| Target users | Students (0–2 YOE), professionals (0–5 YOE), SME tech recruiters |
-| Current workaround | Random applications on Naukri/LinkedIn, zero feedback loop |
-| Scope boundary | In: assessment, matching, learning. Out: video interviews, LMS integration |
-| Real-world evidence | LinkedIn India 2023 (67%); VVIT survey n=20 (18/20 apply randomly) |
-| Concrete scenario | 3rd-year student applying for Python backend role — silent rejection without JobElevate, instant gap diagnosis with it |
-| Competitive analysis | Section 1 comparison table — only JobElevate covers all 4 capabilities |
-| Differentiator | Only platform tying job → gap → AI assessment → personalised path in one workflow |
-| Measurable success | Gap < 2 min; assessment < 15 min; 80% first-time task completion |
-
-### Criterion 2 — Architecture (15 marks)
-
-See Section 4 for full diagrams, data flows, and decision table.
-
-Key evidence: 10 apps with single responsibility each; business logic in pure Python service files (`recommendation_engine.py`, `learning_path_generator.py`, `ai_service.py`) — zero HTML; SQLite → PostgreSQL swap required only `DATABASE_URL` change.
-
-### Criterion 3 — Code Quality (15 marks)
-
-- PEP 8 throughout all 10 apps; self-documenting function names
-- DRY utilities table in Section 13 above
-- Graceful AI fallback with logging (Section 8)
-- Technical debt explicitly documented (CSV field, long submit view)
-
-### Criterion 4 — Functionality (15 marks)
-
-All 8 core flows live and tested on both deployments. Edge cases: duplicate email, double submission, Gemini down, unauthenticated access, skills not in `JobSkillRequirement` — all handled. See Section 3 for full feature list.
-
-### Criterion 5 — Testing (10 marks)
-
-107 tests, 0 failures. Types: unit, integration, negative, boundary, role-based, anti-cheat. See Section 10.
-
-### Criterion 6 — Security (10 marks)
-
-OWASP Top 10 mapping in Section 11. IDOR prevention, HSTS, CSRF, PBKDF2-SHA256, Django ORM-only.
-
-### Criterion 7 — UI/UX (5 marks)
-
-Consistent base template; messages framework on every action; role-based UI; "Question X of 20" progress; responsive CSS breakpoints; dark mode toggle; empty states.
-
-### Criterion 8 — Performance (5 marks)
-
-`select_related`/`prefetch_related` throughout; Gemini results permanently cached; WhiteNoise gzip; bottlenecks identified with concrete fixes (Section 12).
-
-### Criterion 9 — Documentation (5 marks)
-
-This README + inline docstrings throughout + `backend/ASSESSMENT_STATUS.md`, `ASSESSMENT_WORKFLOW.md`, `WORKFLOW_FIXED.md`, `MODELS_AUDIT.md`, `deploy/` configuration files.
-
-### Criterion 10 — Presentation & Defence (10 marks)
-
-**2-minute pitch:**
-
-*"JobElevate is a Django monolith across 10 apps. A student registers — OTP verified by Gmail SMTP. They browse jobs and see an ML match score from our hybrid Jaccard + coverage engine. Clicking their skill gap reveals exactly which skills are missing or below threshold. One click creates an `AssessmentAttempt`: 20 questions from `QuestionBank` (8/6/6 easy/medium/hard), shuffled per user with a per-attempt seed so no two users see the same option order. Submit scores it — correct answer matched by text, not index. `UserSkillScore` updates from 'claimed' to 'verified'. Gemini receives the verified gaps and returns an ordered learning path. Recruiter side: post job with skill requirements, applicants auto-ranked by the same ML engine."*
-
-**Prepared answers:**
-
-| Question | Answer |
-|---|---|
-| "How do you prevent cheating?" | Shuffle seed per attempt; correct answer as text not index; `selected_question_ids` prevents resubmission |
-| "What if Gemini is down?" | Circuit breaker + fallback to 50 pre-seeded template questions — assessment always works |
-| "Why not microservices?" | Shared ORM avoids serialisation overhead; single deployment for college project. Recommendation engine is the natural v2 candidate |
-| "Can this scale?" | Not as-is beyond ~5,000 jobs in-process. Fix: Celery async task. AI scaling already solved by caching |
-| "Why Gemini over GPT-4?" | Free tier adequate for MCQ; lower latency; no cost at student project scale |
-
----
-
-## 14. Roadmap
+## 13. Roadmap
 
 ### Version 2.0
 
@@ -984,7 +912,7 @@ This README + inline docstrings throughout + `backend/ASSESSMENT_STATUS.md`, `AS
 
 ---
 
-## 15. Team & Acknowledgements
+## 14. Team & Acknowledgements
 
 **Project:** JobElevate — AI-Powered Job Matching & Upskilling Platform
 **Institution:** Vasireddy Venkatadri Institute of Technology (VVIT), Guntur, Andhra Pradesh
