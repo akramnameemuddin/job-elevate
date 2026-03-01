@@ -7,6 +7,9 @@
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-ML-F7931E?style=flat&logo=scikitlearn&logoColor=white)
 ![Tests](https://img.shields.io/badge/Tests-107%20passing-brightgreen?style=flat)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=flat)
+[![CI — Test Suite](https://github.com/akramnameemuddin/job-elevate/actions/workflows/ci.yml/badge.svg)](https://github.com/akramnameemuddin/job-elevate/actions/workflows/ci.yml)
+[![CD — Deploy to EC2](https://github.com/akramnameemuddin/job-elevate/actions/workflows/cd.yml/badge.svg)](https://github.com/akramnameemuddin/job-elevate/actions/workflows/cd.yml)
+[![Code Quality — Lint](https://github.com/akramnameemuddin/job-elevate/actions/workflows/lint.yml/badge.svg)](https://github.com/akramnameemuddin/job-elevate/actions/workflows/lint.yml)
 
 > **Live (AWS EC2):** [https://jobelevates.akramnaeemuddin.me](https://jobelevates.akramnaeemuddin.me)
 > **Live (Render):** [https://job-elevate-m96p.onrender.com](https://job-elevate-m96p.onrender.com)

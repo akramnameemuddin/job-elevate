@@ -1,0 +1,50 @@
+name: CD — Deploy to EC2
+
+on:
+  push:
+    branches: ["master"]
+  workflow_dispatch:          # allow manual trigger from GitHub UI
+
+jobs:
+  deploy:
+    name: Deploy to AWS EC2
+    runs-on: ubuntu-latest
+    needs: []                 # runs independently; add "test" here to require CI to pass first
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          script: |
+            set -e
+
+            echo "--- Pulling latest code ---"
+            cd ~/job-elevate
+            git fetch origin
+            git reset --hard origin/master
+
+            echo "--- Installing / updating Python dependencies ---"
+            source ~/job-elevate/venv/bin/activate
+            pip install -r requirements.txt --quiet
+
+            echo "--- Running migrations ---"
+            cd ~/job-elevate/backend
+            python manage.py migrate --no-input
+
+            echo "--- Collecting static files ---"
+            python manage.py collectstatic --no-input
+
+            echo "--- Restarting Gunicorn ---"
+            sudo systemctl restart gunicorn
+
+            echo "--- Reloading Nginx ---"
+            sudo systemctl reload nginx
+
+            echo "--- Deployment complete ---"
+            python manage.py check --deploy 2>&1 | grep -v "WARNINGS" || true

@@ -1,0 +1,55 @@
+name: CI — Test Suite
+
+on:
+  push:
+    branches: ["master", "main", "develop"]
+  pull_request:
+    branches: ["master", "main"]
+
+jobs:
+  test:
+    name: Run Django Tests (107)
+    runs-on: ubuntu-latest
+
+    env:
+      SECRET_KEY: ci-test-secret-key-not-for-production
+      DEBUG: "True"
+      ALLOWED_HOSTS: "localhost,127.0.0.1"
+      DATABASE_URL: "sqlite:///db.sqlite3"
+      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+      EMAIL_HOST_USER: test@example.com
+      EMAIL_HOST_PASSWORD: testpassword
+      USE_S3: "False"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run migrations
+        working-directory: backend
+        run: python manage.py migrate --no-input
+
+      - name: Seed QuestionBank
+        working-directory: backend
+        run: python manage.py add_questions
+
+      - name: Populate assessment data
+        working-directory: backend
+        run: python manage.py populate_assessment_data
+
+      - name: Run full test suite
+        working-directory: backend
+        run: python manage.py test --verbosity=2
+
+      - name: Check for system errors
+        working-directory: backend
+        run: python manage.py check
