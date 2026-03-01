@@ -149,15 +149,18 @@ if USE_S3:
     AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
     AWS_QUERYSTRING_AUTH = False
 
-    # Static files — uploaded to S3 via collectstatic
-    STATICFILES_STORAGE = 'backend.storages.StaticStorage'
+    # Static + media files served from S3 (Django 5.x STORAGES format)
+    STORAGES = {
+        "staticfiles": {"BACKEND": "backend.storages.StaticStorage"},
+        "default": {"BACKEND": "backend.storages.MediaStorage"},
+    }
     STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/static/"
-
-    # Media files — served from S3
-    DEFAULT_FILE_STORAGE = 'backend.storages.MediaStorage'
     MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/media/"
 else:
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    STORAGES = {
+        "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    }
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media'
 
