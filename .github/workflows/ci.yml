@@ -40,6 +40,10 @@ jobs:
         working-directory: backend
         run: python manage.py migrate --no-input
 
+      - name: Collect static files (needed for manifest storage)
+        working-directory: backend
+        run: python manage.py collectstatic --no-input
+
       - name: Seed QuestionBank
         working-directory: backend
         continue-on-error: true
