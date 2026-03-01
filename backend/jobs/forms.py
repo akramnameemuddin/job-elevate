@@ -127,6 +127,16 @@ class UserJobPreferenceForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        # Make salary currency/period non-required (they have model defaults)
+        self.fields['salary_currency'].required = False
+        self.fields['salary_currency'].choices = [('', '--- Select ---')] + list(
+            self.fields['salary_currency'].choices
+        )
+        self.fields['salary_period'].required = False
+        self.fields['salary_period'].choices = [('', '--- Select ---')] + list(
+            self.fields['salary_period'].choices
+        )
+
         # Set initial values for JSON fields
         if self.instance and self.instance.pk:
             if self.instance.preferred_job_types:
@@ -158,7 +168,15 @@ class UserJobPreferenceForm(forms.ModelForm):
         """Ensure job types is a list"""
         job_types = self.cleaned_data.get('preferred_job_types', [])
         return list(job_types) if job_types else []
-    
+
+    def clean_salary_currency(self):
+        """Default to INR if not provided"""
+        return self.cleaned_data.get('salary_currency') or 'INR'
+
+    def clean_salary_period(self):
+        """Default to yearly if not provided"""
+        return self.cleaned_data.get('salary_period') or 'yearly'
+
     def clean(self):
         cleaned_data = super().clean()
         min_sal = cleaned_data.get('min_salary_expectation')

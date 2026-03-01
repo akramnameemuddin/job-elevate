@@ -75,7 +75,7 @@
                         <a href="{% url 'resume_builder:edit_resume' resume.id %}" class="rb-action-btn" title="Edit"><i class='bx bx-edit'></i></a>
                         <a href="{% url 'resume_builder:preview_resume' resume.id %}" class="rb-action-btn" title="Preview"><i class='bx bx-show'></i></a>
                         <a href="{% url 'resume_builder:download_resume' resume.id %}" class="rb-action-btn green" title="Download"><i class='bx bx-download'></i></a>
-                        <button class="rb-action-btn danger" onclick="openDeleteModal({{ resume.id }})" title="Delete"><i class='bx bx-trash'></i></button>
+                        <button class="rb-action-btn danger btn-outline-danger" data-resume-id="{{ resume.id }}" onclick="openDeleteModal({{ resume.id }})" title="Delete"><i class='bx bx-trash'></i> Delete</button>
                     </div>
                 </div>
                 {% endfor %}
@@ -255,7 +255,7 @@
 </div>
 
 <!-- ═══ Delete Modal ═══ -->
-<div class="rb-overlay" id="rb-delete-overlay" style="display:none">
+<div class="rb-overlay" id="delete-resume-modal" style="display:none">
     <div class="rb-modal">
         <div class="rb-modal-head">
             <h3>Delete Resume</h3>
@@ -266,7 +266,7 @@
         </div>
         <div class="rb-modal-foot">
             <button class="rb-btn-cancel" onclick="closeDeleteModal()">Cancel</button>
-            <form id="rb-delete-form" method="post">
+            <form id="delete-resume-form" method="post">
                 {% csrf_token %}
                 <button type="submit" class="rb-btn-danger">Delete</button>
             </form>
@@ -423,16 +423,16 @@
 
 <script>
 function openDeleteModal(resumeId){
-    document.getElementById('rb-delete-form').action='{% url "resume_builder:delete_resume" 0 %}'.replace('0', resumeId);
-    document.getElementById('rb-delete-overlay').style.display='flex';
+    document.getElementById('delete-resume-form').action='{% url "resume_builder:delete_resume" 0 %}'.replace('0', resumeId);
+    document.getElementById('delete-resume-modal').style.display='flex';
 }
 function closeDeleteModal(){
-    document.getElementById('rb-delete-overlay').style.display='none';
+    document.getElementById('delete-resume-modal').style.display='none';
 }
 document.addEventListener('keydown',function(e){
     if(e.key==='Escape')closeDeleteModal();
 });
-document.getElementById('rb-delete-overlay').addEventListener('click',function(e){
+document.getElementById('delete-resume-modal').addEventListener('click',function(e){
     if(e.target===this)closeDeleteModal();
 });
 // Auto-close notifications handled by base.html

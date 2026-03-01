@@ -140,7 +140,7 @@ class ResumeDeleteTestCase(TestCase):
 
         # Should redirect to login
         self.assertEqual(response.status_code, 302)
-        self.assertIn('/accounts/login/', response.url)
+        self.assertIn('/login/', response.url)
 
         # Verify resume still exists
         self.assertTrue(Resume.objects.filter(id=self.resume1.id).exists())

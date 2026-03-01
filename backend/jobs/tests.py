@@ -112,7 +112,7 @@ class JobPreferencesTestCase(TestCase):
 
         # Should redirect to login
         self.assertEqual(response.status_code, 302)
-        self.assertIn('/accounts/login/', response.url)
+        self.assertIn('/login/', response.url)
 
     def test_job_preferences_display_existing_data(self):
         """Test that existing preferences are displayed in the form"""
@@ -900,13 +900,9 @@ class JobPostingAndDetailsTestCase(TestCase):
 
     def test_job_detail_view_shows_company_description(self):
         """Test that job detail view displays company description"""
-        # Create recruiter profile with company description
-        from accounts.models import RecruiterProfile
-        RecruiterProfile.objects.create(
-            user=self.recruiter,
-            company_name='Test Company',
-            company_description='We are a leading technology company.'
-        )
+        # Set company description directly on the recruiter user
+        self.recruiter.company_description = 'We are a leading technology company.'
+        self.recruiter.save()
 
         job = Job.objects.create(
             title='Test Developer',
@@ -1045,7 +1041,7 @@ class JobPostingAndDetailsTestCase(TestCase):
         response = self.client.get(reverse('jobs:job_detail', args=[job.id]))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Match Analysis')
+        self.assertContains(response, 'Your Match')
 
         # Check that match score is calculated (user has Python, Django, JavaScript skills)
         match_score = response.context['match_score']
@@ -1074,15 +1070,10 @@ class CompanyDescriptionIntegrationTestCase(TestCase):
         self.client = Client()
 
     def test_company_description_from_recruiter_profile(self):
-        """Test company description from RecruiterProfile"""
-        from accounts.models import RecruiterProfile
-
-        # Create recruiter profile
-        profile = RecruiterProfile.objects.create(
-            user=self.recruiter,
-            company_name='Profile Company',
-            company_description='Description from recruiter profile'
-        )
+        """Test company description from recruiter user field"""
+        # Set company description directly on the recruiter user
+        self.recruiter.company_description = 'Description from recruiter profile'
+        self.recruiter.save()
 
         job = Job.objects.create(
             title='Profile Test Job',
