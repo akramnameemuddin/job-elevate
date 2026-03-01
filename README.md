@@ -11,8 +11,7 @@
 [![CD — Deploy to EC2](https://github.com/akramnameemuddin/job-elevate/actions/workflows/cd.yml/badge.svg)](https://github.com/akramnameemuddin/job-elevate/actions/workflows/cd.yml)
 [![Code Quality — Lint](https://github.com/akramnameemuddin/job-elevate/actions/workflows/lint.yml/badge.svg)](https://github.com/akramnameemuddin/job-elevate/actions/workflows/lint.yml)
 
-> **Live (AWS EC2):** [https://jobelevates.akramnaeemuddin.me](https://jobelevates.akramnaeemuddin.me)
-> **Live (Render):** [https://job-elevate-m96p.onrender.com](https://job-elevate-m96p.onrender.com)
+> **Live:** [https://jobelevates.akramnaeemuddin.me](https://jobelevates.akramnaeemuddin.me)
 
 JobElevate is an end-to-end AI-powered career platform that takes a student or professional from "I don't know what skills I'm missing" to "I have a verified skill profile, a personalised learning path, and an ATS-ready resume" — all in a single integrated workflow. Recruiters get the mirror image: post a job with required skills, and the ML engine ranks every applicant automatically.
 
@@ -87,7 +86,6 @@ Fresh graduates and early-career professionals in India face a silent rejection 
 | Deployment | URL | Infrastructure |
 |---|---|---|
 | AWS EC2 | [https://jobelevates.akramnaeemuddin.me](https://jobelevates.akramnaeemuddin.me) | Ubuntu 24.04 · Gunicorn · Nginx · RDS PostgreSQL · S3 |
-| Render.com | [https://job-elevate-m96p.onrender.com](https://job-elevate-m96p.onrender.com) | Render managed PostgreSQL · WhiteNoise |
 
 ### Test Accounts (both deployments)
 
@@ -421,43 +419,11 @@ AWS_STORAGE_BUCKET_NAME=jobelevate-static
 AWS_S3_REGION_NAME=us-east-1
 ```
 
-**Render.com Production:**
-```env
-SECRET_KEY=your-50-char-production-secret-key
-DEBUG=False
-ALLOWED_HOSTS=your-app.onrender.com
-DATABASE_URL=postgres://...  (injected automatically by Render)
-GOOGLE_API_KEY=your-gemini-api-key
-EMAIL_HOST_USER=your-gmail@gmail.com
-EMAIL_HOST_PASSWORD=your-app-password
-USE_S3=False
-```
-
 ---
 
 ## 7. Deployment
 
-### Option A — Render.com (Easiest, Free Tier)
-
-1. Fork this repository to your GitHub account
-2. Go to [render.com](https://render.com) → **New Web Service** → connect your fork
-3. Set:
-   - **Build command:** `pip install -r requirements.txt`
-   - **Start command:** `cd backend && python manage.py migrate && python manage.py collectstatic --noinput && gunicorn backend.wsgi:application`
-4. Add all environment variables from the Render template above
-5. Add a **PostgreSQL** add-on — Render injects `DATABASE_URL` automatically
-6. After first deploy, run seed commands via Render Shell:
-   ```bash
-   cd backend
-   python manage.py add_questions
-   python manage.py populate_assessment_data
-   python manage.py create_resume_templates
-   python manage.py createsuperuser
-   ```
-
----
-
-### Option B — AWS EC2 (Production, Recommended)
+### Option A — AWS EC2 (Production)
 
 #### Prerequisites
 - EC2: Ubuntu 24.04, t2.micro or larger, Elastic IP assigned
@@ -1035,11 +1001,10 @@ This README + inline docstrings throughout + `backend/ASSESSMENT_STATUS.md`, `AS
 | [scikit-learn](https://scikit-learn.org/) | ML recommendation engine |
 | [ReportLab](https://www.reportlab.com/) | PDF resume generation |
 | [django-storages + boto3](https://django-storages.readthedocs.io/) | AWS S3 static/media storage |
-| [WhiteNoise](https://whitenoise.readthedocs.io/) | Static files in dev and Render |
+| [WhiteNoise](https://whitenoise.readthedocs.io/) | Static files serving in development |
 | [Gunicorn](https://gunicorn.org/) | WSGI application server |
 | [Nginx](https://nginx.org/) | Reverse proxy + SSL termination |
 | [Google ADK](https://google.github.io/adk-docs/) | Multi-agent AI framework |
-| [Render.com](https://render.com/) | Free-tier cloud deployment |
 | [AWS EC2 + RDS + S3](https://aws.amazon.com/) | Production cloud infrastructure |
 
 ### Acknowledgements
