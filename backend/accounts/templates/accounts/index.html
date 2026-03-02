@@ -1002,6 +1002,18 @@
                 grid-template-columns: 1fr;
                 gap: var(--spacing-lg);
             }
+
+            /* CTA 2-col grid → 1 col on mobile */
+            #about > .container > div[style*="grid-template-columns: 1fr 1fr"] {
+                grid-template-columns: 1fr !important;
+                gap: 2rem !important;
+            }
+
+            /* Footer 4-col grid → 2 col on mobile */
+            footer > .container > div[style*="grid-template-columns: 2fr 1fr 1fr 1fr"] {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 2rem !important;
+            }
             .nav-menu {
                 position: fixed;
                 top: 80px;
@@ -1432,40 +1444,40 @@
     <section class="stats">
         <div class="container">
             <div class="section-header" data-aos="fade-up" style="margin-bottom: var(--spacing-3xl);">
-                <h2 class="section-title">Trusted by Professionals Worldwide</h2>
+                <h2 class="section-title">Built with Real Technology</h2>
                 <p class="section-subtitle">
-                    Join thousands of professionals who have transformed their careers with JobElevate
+                    A production-grade platform deployed on AWS EC2 with a full CI/CD pipeline
                 </p>
             </div>
 
             <div class="stats-grid">
                 <div class="stat-item" data-aos="fade-up" data-aos-delay="100">
                     <div class="stat-icon">
-                        <i class='bx bx-user-check'></i>
+                        <i class='bx bx-code-block'></i>
                     </div>
-                    <span class="stat-number">50K+</span>
-                    <span class="stat-label">Active Users</span>
+                    <span class="stat-number">9</span>
+                    <span class="stat-label">Django Apps</span>
                 </div>
                 <div class="stat-item" data-aos="fade-up" data-aos-delay="200">
                     <div class="stat-icon">
-                        <i class='bx bx-briefcase-alt'></i>
+                        <i class='bx bx-check-shield'></i>
                     </div>
-                    <span class="stat-number">10K+</span>
-                    <span class="stat-label">Job Placements</span>
+                    <span class="stat-number">154</span>
+                    <span class="stat-label">Tests Passing</span>
                 </div>
                 <div class="stat-item" data-aos="fade-up" data-aos-delay="300">
                     <div class="stat-icon">
-                        <i class='bx bx-buildings'></i>
+                        <i class='bx bx-brain'></i>
                     </div>
-                    <span class="stat-number">500+</span>
-                    <span class="stat-label">Partner Companies</span>
+                    <span class="stat-number">20</span>
+                    <span class="stat-label">Questions per Skill</span>
                 </div>
                 <div class="stat-item" data-aos="fade-up" data-aos-delay="400">
                     <div class="stat-icon">
-                        <i class='bx bx-trophy'></i>
+                        <i class='bx bx-server'></i>
                     </div>
-                    <span class="stat-number">95%</span>
-                    <span class="stat-label">Success Rate</span>
+                    <span class="stat-number">3</span>
+                    <span class="stat-label">CI/CD Workflows</span>
                 </div>
             </div>
         </div>
@@ -1536,92 +1548,151 @@
         </div>
     </section>
 
-    <!-- Testimonials Section -->
-    <section class="testimonials">
+    <!-- Why JobElevate Section (replaces static testimonials) -->
+    <section class="testimonials" style="background: linear-gradient(135deg, #f8faff 0%, #f0f4ff 100%);">
         <div class="container">
             <div class="section-header" data-aos="fade-up">
-                <div class="section-badge">Success Stories</div>
-                <h2 class="section-title">What Our Users Say</h2>
+                <div class="section-badge">Why JobElevate</div>
+                <h2 class="section-title">Everything You Need to Succeed</h2>
                 <p class="section-subtitle">
-                    Hear from professionals who have transformed their careers with JobElevate
+                    A complete career platform built for students and professionals who are serious about growth
                 </p>
             </div>
 
-            <div class="testimonials-grid">
-                <div class="testimonial-card" data-aos="fade-up" data-aos-delay="100">
-                    <p class="testimonial-content">
-                        JobElevate completely transformed my career search. The AI matching feature connected me with opportunities I never would have found on my own. Within 3 months, I landed my dream job!
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 3rem;">
+
+                <!-- Card 1 -->
+                <div data-aos="fade-up" data-aos-delay="100" style="background: white; border-radius: 1.5rem; padding: 2rem; box-shadow: 0 8px 32px rgba(59,130,246,0.08); border: 1px solid #e5e7eb; display: flex; flex-direction: column; gap: 1rem; transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='translateY(-8px)';this.style.boxShadow='0 20px 50px rgba(59,130,246,0.15)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 8px 32px rgba(59,130,246,0.08)'">
+                    <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 1rem; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.75rem;">
+                        <i class='bx bx-brain'></i>
+                    </div>
+                    <h3 style="font-size: 1.2rem; font-weight: 700; color: #111827; margin: 0;">AI-Powered Matching</h3>
+                    <p style="color: #6b7280; line-height: 1.7; margin: 0; font-size: 0.95rem;">
+                        Our hybrid ML engine (Jaccard + coverage scoring) analyzes your verified skills and ranks every job by real fit — not just keywords.
                     </p>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">SM</div>
-                        <div class="author-info">
-                            <h4>Sarah Martinez</h4>
-                            <p>Software Engineer at TechCorp</p>
-                        </div>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                        <span style="background: #dbeafe; color: #1d4ed8; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">ML Scoring</span>
+                        <span style="background: #dbeafe; color: #1d4ed8; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">Skill Gap View</span>
                     </div>
                 </div>
 
-                <div class="testimonial-card" data-aos="fade-up" data-aos-delay="200">
-                    <p class="testimonial-content">
-                        The skill assessments and personalized learning paths helped me identify gaps in my knowledge and upskill effectively. I got promoted within 6 months of using JobElevate!
+                <!-- Card 2 -->
+                <div data-aos="fade-up" data-aos-delay="200" style="background: white; border-radius: 1.5rem; padding: 2rem; box-shadow: 0 8px 32px rgba(139,92,246,0.08); border: 1px solid #e5e7eb; display: flex; flex-direction: column; gap: 1rem; transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='translateY(-8px)';this.style.boxShadow='0 20px 50px rgba(139,92,246,0.15)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 8px 32px rgba(139,92,246,0.08)'">
+                    <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #8b5cf6, #6d28d9); border-radius: 1rem; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.75rem;">
+                        <i class='bx bx-shield-check'></i>
+                    </div>
+                    <h3 style="font-size: 1.2rem; font-weight: 700; color: #111827; margin: 0;">Verified Skill Assessments</h3>
+                    <p style="color: #6b7280; line-height: 1.7; margin: 0; font-size: 0.95rem;">
+                        20-question AI-generated MCQs per skill (8 easy / 6 medium / 6 hard) with anti-cheat shuffling. Prove your skills — not just claim them.
                     </p>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">MJ</div>
-                        <div class="author-info">
-                            <h4>Michael Johnson</h4>
-                            <p>Marketing Director at GrowthCo</p>
-                        </div>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                        <span style="background: #ede9fe; color: #6d28d9; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">Gemini AI</span>
+                        <span style="background: #ede9fe; color: #6d28d9; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">Anti-Cheat</span>
                     </div>
                 </div>
 
-                <div class="testimonial-card" data-aos="fade-up" data-aos-delay="300">
-                    <p class="testimonial-content">
-                        The resume builder and career network features are game-changers. I connected with industry mentors and built a professional resume that got me interviews at top companies.
+                <!-- Card 3 -->
+                <div data-aos="fade-up" data-aos-delay="300" style="background: white; border-radius: 1.5rem; padding: 2rem; box-shadow: 0 8px 32px rgba(6,182,212,0.08); border: 1px solid #e5e7eb; display: flex; flex-direction: column; gap: 1rem; transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='translateY(-8px)';this.style.boxShadow='0 20px 50px rgba(6,182,212,0.15)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 8px 32px rgba(6,182,212,0.08)'">
+                    <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #06b6d4, #0891b2); border-radius: 1rem; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.75rem;">
+                        <i class='bx bx-book-open'></i>
+                    </div>
+                    <h3 style="font-size: 1.2rem; font-weight: 700; color: #111827; margin: 0;">Personalised Learning Paths</h3>
+                    <p style="color: #6b7280; line-height: 1.7; margin: 0; font-size: 0.95rem;">
+                        Google Gemini builds an ordered course list based on your exact skill gaps. Not generic playlists — a plan tailored specifically to you.
                     </p>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">EP</div>
-                        <div class="author-info">
-                            <h4>Emily Parker</h4>
-                            <p>Product Manager at InnovateLab</p>
-                        </div>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                        <span style="background: #cffafe; color: #0891b2; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">Gap-Based</span>
+                        <span style="background: #cffafe; color: #0891b2; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">AI Curated</span>
                     </div>
                 </div>
+
+                <!-- Card 4 -->
+                <div data-aos="fade-up" data-aos-delay="400" style="background: white; border-radius: 1.5rem; padding: 2rem; box-shadow: 0 8px 32px rgba(16,185,129,0.08); border: 1px solid #e5e7eb; display: flex; flex-direction: column; gap: 1rem; transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='translateY(-8px)';this.style.boxShadow='0 20px 50px rgba(16,185,129,0.15)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 8px 32px rgba(16,185,129,0.08)'">
+                    <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 1rem; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.75rem;">
+                        <i class='bx bx-file-blank'></i>
+                    </div>
+                    <h3 style="font-size: 1.2rem; font-weight: 700; color: #111827; margin: 0;">ATS-Ready Resume Builder</h3>
+                    <p style="color: #6b7280; line-height: 1.7; margin: 0; font-size: 0.95rem;">
+                        Three professional templates, auto-filled from your verified profile. AI Resume Tailor customises your resume for any job description.
+                    </p>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                        <span style="background: #d1fae5; color: #059669; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">PDF Export</span>
+                        <span style="background: #d1fae5; color: #059669; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">ATS Optimised</span>
+                    </div>
+                </div>
+
+                <!-- Card 5 -->
+                <div data-aos="fade-up" data-aos-delay="500" style="background: white; border-radius: 1.5rem; padding: 2rem; box-shadow: 0 8px 32px rgba(245,158,11,0.08); border: 1px solid #e5e7eb; display: flex; flex-direction: column; gap: 1rem; transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='translateY(-8px)';this.style.boxShadow='0 20px 50px rgba(245,158,11,0.15)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 8px 32px rgba(245,158,11,0.08)'">
+                    <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 1rem; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.75rem;">
+                        <i class='bx bx-group'></i>
+                    </div>
+                    <h3 style="font-size: 1.2rem; font-weight: 700; color: #111827; margin: 0;">Community Forum</h3>
+                    <p style="color: #6b7280; line-height: 1.7; margin: 0; font-size: 0.95rem;">
+                        Ask questions, share referrals, and get career advice from peers. A supportive space for students and professionals at every stage.
+                    </p>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                        <span style="background: #fef3c7; color: #d97706; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">Peer Support</span>
+                        <span style="background: #fef3c7; color: #d97706; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">Referrals</span>
+                    </div>
+                </div>
+
+                <!-- Card 6 -->
+                <div data-aos="fade-up" data-aos-delay="600" style="background: linear-gradient(135deg, #1e40af, #7c3aed); border-radius: 1.5rem; padding: 2rem; box-shadow: 0 8px 32px rgba(59,130,246,0.2); display: flex; flex-direction: column; gap: 1rem; justify-content: center; align-items: flex-start; transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='translateY(-8px)';this.style.boxShadow='0 20px 50px rgba(59,130,246,0.3)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 8px 32px rgba(59,130,246,0.2)'">
+                    <div style="width: 56px; height: 56px; background: rgba(255,255,255,0.15); border-radius: 1rem; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.75rem;">
+                        <i class='bx bx-rocket'></i>
+                    </div>
+                    <h3 style="font-size: 1.2rem; font-weight: 700; color: white; margin: 0;">Ready to Start?</h3>
+                    <p style="color: rgba(255,255,255,0.8); line-height: 1.7; margin: 0; font-size: 0.95rem;">
+                        Create your free account and go from "I don't know what skills I'm missing" to a verified skill profile in under 15 minutes.
+                    </p>
+                    <a href="{% url 'accounts:signup' %}" style="display: inline-flex; align-items: center; gap: 0.5rem; background: white; color: #1d4ed8; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 700; font-size: 0.9rem; text-decoration: none; margin-top: 0.5rem; transition: transform 0.2s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        Get Started Free <i class='bx bx-right-arrow-alt'></i>
+                    </a>
+                </div>
+
             </div>
         </div>
     </section>
 
     <!-- CTA Section -->
-    <section class="cta" id="about">
+    <section id="about" style="background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #4f46e5 100%); padding: 5rem 0;">
         <div class="container">
-            <div class="cta-content" data-aos="fade-up">
-                <div class="section-badge">Get Started Today</div>
-                <h2 class="cta-title">Ready to Elevate Your Career?</h2>
-                <p class="cta-subtitle">
-                    Join thousands of professionals who have transformed their careers with JobElevate. Start your journey today and unlock unlimited opportunities.
-                </p>
-                <div class="hero-actions">
-                    <a href="{% url 'accounts:signup' %}" class="btn btn-primary btn-lg">
-                        <i class='bx bx-rocket'></i>
-                        Get Started Free
-                    </a>
-                    <a href="{% url 'accounts:login' %}" class="btn btn-secondary btn-lg">
-                        <i class='bx bx-log-in'></i>
-                        Sign In
-                    </a>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;" data-aos="fade-up">
+                <div>
+                    <span style="display: inline-block; background: rgba(255,255,255,0.15); color: white; padding: 0.4rem 1rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 1.5rem;">Open Platform</span>
+                    <h2 style="font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; color: white; line-height: 1.15; margin-bottom: 1.25rem;">
+                        From Skill Gap to<br>Job Offer — in One Platform
+                    </h2>
+                    <p style="color: rgba(255,255,255,0.8); font-size: 1.1rem; line-height: 1.7; margin-bottom: 2rem;">
+                        JobElevate closes the loop that every student faces: apply → get rejected → not know why.
+                        See your exact gaps, verify your skills with AI assessments, get a personalised learning path,
+                        and apply with a verified skill profile.
+                    </p>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <a href="{% url 'accounts:signup' %}" style="display: inline-flex; align-items: center; gap: 0.5rem; background: white; color: #1e40af; padding: 0.9rem 2rem; border-radius: 0.75rem; font-weight: 700; font-size: 1rem; text-decoration: none; transition: transform 0.2s ease, box-shadow 0.2s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 25px rgba(0,0,0,0.3)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 15px rgba(0,0,0,0.2)'">
+                            <i class='bx bx-user-plus'></i> Create Account
+                        </a>
+                        <a href="{% url 'accounts:login' %}" style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.12); color: white; padding: 0.9rem 2rem; border-radius: 0.75rem; font-weight: 700; font-size: 1rem; text-decoration: none; border: 1.5px solid rgba(255,255,255,0.3); transition: background 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'">
+                            <i class='bx bx-log-in'></i> Sign In
+                        </a>
+                    </div>
                 </div>
-
-                <div class="trust-indicators" style="justify-content: center; margin-top: var(--spacing-xl);">
-                    <div class="trust-item" style="color: var(--gray-600);">
-                        <i class='bx bxs-lock-alt'></i>
-                        <span>100% Secure</span>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 1.25rem; padding: 1.5rem; text-align: center;">
+                        <div style="font-size: 2.5rem; font-weight: 900; color: white; margin-bottom: 0.25rem;">9</div>
+                        <div style="color: rgba(255,255,255,0.75); font-size: 0.9rem;">Django Apps</div>
                     </div>
-                    <div class="trust-item" style="color: var(--gray-600);">
-                        <i class='bx bxs-credit-card'></i>
-                        <span>No Credit Card Required</span>
+                    <div style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 1.25rem; padding: 1.5rem; text-align: center;">
+                        <div style="font-size: 2.5rem; font-weight: 900; color: white; margin-bottom: 0.25rem;">154</div>
+                        <div style="color: rgba(255,255,255,0.75); font-size: 0.9rem;">Tests Passing</div>
                     </div>
-                    <div class="trust-item" style="color: var(--gray-600);">
-                        <i class='bx bxs-time'></i>
-                        <span>Setup in 2 Minutes</span>
+                    <div style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 1.25rem; padding: 1.5rem; text-align: center;">
+                        <div style="font-size: 2.5rem; font-weight: 900; color: white; margin-bottom: 0.25rem;">20</div>
+                        <div style="color: rgba(255,255,255,0.75); font-size: 0.9rem;">Questions / Skill</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 1.25rem; padding: 1.5rem; text-align: center;">
+                        <div style="font-size: 2.5rem; font-weight: 900; color: white; margin-bottom: 0.25rem;">AI</div>
+                        <div style="color: rgba(255,255,255,0.75); font-size: 0.9rem;">Gemini Powered</div>
                     </div>
                 </div>
             </div>
@@ -1629,41 +1700,79 @@
     </section>
 
     <!-- Footer -->
-    <footer class="footer" id="contact">
+    <footer id="contact" style="background: #0f172a; color: #94a3b8; padding: 4rem 0 0;">
         <div class="container">
-            <div class="footer-content">
-                <div class="footer-logo">
-                    <i class='bx bxs-briefcase-alt'></i>
-                    JobElevate
-                    <p style="font-size: var(--font-size-sm); font-weight: 400; margin-top: var(--spacing-sm); opacity: 0.8;">
-                        Elevating careers worldwide with AI-powered solutions
+            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; padding-bottom: 3rem; border-bottom: 1px solid #1e293b;">
+
+                <!-- Brand -->
+                <div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 1.5rem; font-weight: 800; color: white; margin-bottom: 1rem;">
+                        <i class='bx bxs-briefcase-alt' style="color: #3b82f6;"></i> JobElevate
+                    </div>
+                    <p style="color: #64748b; font-size: 0.9rem; line-height: 1.7; margin-bottom: 1.25rem;">
+                        An AI-powered career platform built at VVIT, Guntur.<br>
+                        From skill gap analysis to verified assessments, personalised learning paths, and ATS-ready resumes — all in one place.
                     </p>
+                    <div style="display: flex; gap: 0.75rem;">
+                        <a href="https://github.com/akramnameemuddin/job-elevate" target="_blank" style="width: 38px; height: 38px; background: #1e293b; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 1.2rem; text-decoration: none; transition: background 0.2s, color 0.2s;" onmouseover="this.style.background='#3b82f6';this.style.color='white'" onmouseout="this.style.background='#1e293b';this.style.color='#94a3b8'">
+                            <i class='bx bxl-github'></i>
+                        </a>
+                        <a href="https://jobelevates.akramnaeemuddin.me" target="_blank" style="width: 38px; height: 38px; background: #1e293b; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 1.2rem; text-decoration: none; transition: background 0.2s, color 0.2s;" onmouseover="this.style.background='#3b82f6';this.style.color='white'" onmouseout="this.style.background='#1e293b';this.style.color='#94a3b8'">
+                            <i class='bx bx-globe'></i>
+                        </a>
+                    </div>
                 </div>
-                <div class="footer-links">
-                    <a href="#features" class="footer-link">Features</a>
-                    <a href="#about" class="footer-link">About</a>
-                    <a href="#" class="footer-link">Privacy Policy</a>
-                    <a href="#" class="footer-link">Terms of Service</a>
-                    <a href="#" class="footer-link">Support</a>
-                    <a href="#" class="footer-link">Contact</a>
+
+                <!-- Platform -->
+                <div>
+                    <h4 style="color: white; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1.25rem;">Platform</h4>
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <a href="#features" style="color: #64748b; font-size: 0.9rem; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#64748b'">Features</a>
+                        <a href="{% url 'accounts:signup' %}" style="color: #64748b; font-size: 0.9rem; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#64748b'">Get Started</a>
+                        <a href="{% url 'accounts:login' %}" style="color: #64748b; font-size: 0.9rem; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#64748b'">Sign In</a>
+                        <a href="https://jobelevates.akramnaeemuddin.me" target="_blank" style="color: #64748b; font-size: 0.9rem; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#64748b'">Live Demo</a>
+                    </div>
                 </div>
-                <div style="display: flex; gap: var(--spacing); align-items: center;">
-                    <a href="#" style="color: var(--gray-400); font-size: var(--font-size-xl); transition: var(--transition-fast);" onmouseover="this.style.color='var(--primary-color)'" onmouseout="this.style.color='var(--gray-400)'">
-                        <i class='bx bxl-twitter'></i>
-                    </a>
-                    <a href="#" style="color: var(--gray-400); font-size: var(--font-size-xl); transition: var(--transition-fast);" onmouseover="this.style.color='var(--primary-color)'" onmouseout="this.style.color='var(--gray-400)'">
-                        <i class='bx bxl-linkedin'></i>
-                    </a>
-                    <a href="#" style="color: var(--gray-400); font-size: var(--font-size-xl); transition: var(--transition-fast);" onmouseover="this.style.color='var(--primary-color)'" onmouseout="this.style.color='var(--gray-400)'">
-                        <i class='bx bxl-facebook'></i>
-                    </a>
-                    <a href="#" style="color: var(--gray-400); font-size: var(--font-size-xl); transition: var(--transition-fast);" onmouseover="this.style.color='var(--primary-color)'" onmouseout="this.style.color='var(--gray-400)'">
-                        <i class='bx bxl-instagram'></i>
-                    </a>
+
+                <!-- Tech Stack -->
+                <div>
+                    <h4 style="color: white; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1.25rem;">Built With</h4>
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <span style="color: #64748b; font-size: 0.9rem;">Django 5.1</span>
+                        <span style="color: #64748b; font-size: 0.9rem;">Google Gemini AI</span>
+                        <span style="color: #64748b; font-size: 0.9rem;">scikit-learn ML</span>
+                        <span style="color: #64748b; font-size: 0.9rem;">PostgreSQL</span>
+                        <span style="color: #64748b; font-size: 0.9rem;">AWS EC2 + S3</span>
+                    </div>
                 </div>
+
+                <!-- Project -->
+                <div>
+                    <h4 style="color: white; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1.25rem;">Project</h4>
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <span style="color: #64748b; font-size: 0.9rem;">VVIT, Guntur</span>
+                        <span style="color: #64748b; font-size: 0.9rem;">CSE — AI & ML</span>
+                        <span style="color: #64748b; font-size: 0.9rem;">Academic Year 2024–25</span>
+                        <a href="https://github.com/akramnameemuddin/job-elevate" target="_blank" style="color: #3b82f6; font-size: 0.9rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='#3b82f6'">
+                            <i class='bx bxl-github'></i> View on GitHub
+                        </a>
+                    </div>
+                </div>
+
             </div>
-            <div style="text-align: center; margin-top: var(--spacing-xl); padding-top: var(--spacing); border-top: 1px solid var(--gray-700);">
-                <p>&copy; 2024 JobElevate. All rights reserved. Elevating careers worldwide with innovation and excellence.</p>
+
+            <!-- Bottom bar -->
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 0; flex-wrap: wrap; gap: 1rem;">
+                <p style="color: #475569; font-size: 0.85rem; margin: 0;">
+                    &copy; 2025 JobElevate · Built at VVIT, Guntur · CSE-AIML
+                </p>
+                <div style="display: flex; align-items: center; gap: 1.5rem;">
+                    <span style="display: inline-flex; align-items: center; gap: 0.4rem; color: #22c55e; font-size: 0.85rem; font-weight: 600;">
+                        <span style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%; display: inline-block; animation: pulse 2s infinite;"></span>
+                        Live on AWS EC2
+                    </span>
+                    <a href="https://jobelevates.akramnaeemuddin.me" target="_blank" style="color: #3b82f6; font-size: 0.85rem; text-decoration: none;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='#3b82f6'">jobelevates.akramnaeemuddin.me</a>
+                </div>
             </div>
         </div>
     </footer>
