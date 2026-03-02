@@ -308,7 +308,7 @@ const CSRF = '{{ csrf_token }}';
 // Bookmark toggle
 async function toggleBookmark(jobId, btn) {
     try {
-        const res = await fetch(`/jobs/bookmark/${jobId}/`, {
+        const res = await fetch(`/jobs/job/${jobId}/bookmark/`, {
             method: 'POST',
             headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/json' }
         });

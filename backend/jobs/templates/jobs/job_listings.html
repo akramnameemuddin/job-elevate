@@ -681,7 +681,7 @@
         btn.disabled = true;
 
         try {
-            const res = await fetch(`/jobs/toggle-bookmark/${jobId}/`, {
+            const res = await fetch(`/jobs/job/${jobId}/bookmark/`, {
                 method: 'POST',
                 headers: { 'X-CSRFToken': csrfToken, 'Content-Type': 'application/json' },
                 credentials: 'same-origin'
