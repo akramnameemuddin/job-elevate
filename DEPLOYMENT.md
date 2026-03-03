@@ -1,275 +1,282 @@
-# Job Elevate — Docker Deployment Guide (AWS EC2)
+# JobElevate — Deployment Guide (AWS EC2)
 
-This guide covers deploying Job Elevate on an AWS EC2 instance using Docker.
+Deploys Django + Gunicorn + Nginx directly on an EC2 instance.
+No Docker required.
 
 ---
 
 ## Architecture
 
 ```
-Internet → Nginx (port 80/443) → Gunicorn (port 8000) → Django App
-                                                            ↓
-                                                     PostgreSQL (port 5432)
+Internet → Nginx (port 80/443, SSL) → Gunicorn (127.0.0.1:8000) → Django
+                                                                       ↓
+                                                              AWS RDS PostgreSQL
+                                                              AWS S3 (static/media)
 ```
-
-**Containers:**
-| Container | Purpose |
-|-----------|---------|
-| `jobelevate-web` | Django + Gunicorn (app server) |
-| `jobelevate-db` | PostgreSQL 16 (database) |
-| `jobelevate-nginx` | Nginx (reverse proxy, SSL, static files) |
-| `jobelevate-certbot` | Let's Encrypt auto-renewal |
 
 ---
 
-## Step 1: Prepare Your AWS EC2 Instance
+## Prerequisites
 
-### Launch EC2
-- **AMI:** Ubuntu 22.04 LTS
-- **Instance type:** t2.small (minimum) or t2.medium (recommended)
-- **Storage:** 20 GB minimum
-- **Security Group inbound rules:**
+| Resource | Spec |
+|---|---|
+| EC2 | Ubuntu 24.04 LTS, t2.small or larger |
+| Storage | 20 GB EBS minimum |
+| RDS | PostgreSQL 16 in same VPC as EC2 |
+| S3 | Bucket for static + media files |
+| Domain | A record pointing to EC2 Elastic IP |
 
-| Port | Protocol | Source | Purpose |
-|------|----------|--------|---------|
-| 22 | TCP | Your IP | SSH |
-| 80 | TCP | 0.0.0.0/0 | HTTP |
-| 443 | TCP | 0.0.0.0/0 | HTTPS |
+### Security Group inbound rules
 
-### SSH into your instance
+| Port | Source | Purpose |
+|---|---|---|
+| 22 | Your IP | SSH |
+| 80 | 0.0.0.0/0 | HTTP |
+| 443 | 0.0.0.0/0 | HTTPS |
+
+---
+
+## Step 1 — Server Setup
+
 ```bash
-ssh -i your-key.pem ubuntu@your-ec2-public-ip
-```
+# Connect
+ssh -i your-key.pem ubuntu@YOUR-EC2-IP
 
-### Install Docker & Docker Compose
-```bash
-# Update system
+# System packages
 sudo apt update && sudo apt upgrade -y
+sudo apt install -y python3.12 python3.12-venv python3-pip nginx certbot python3-certbot-nginx git
 
-# Install Docker
-curl -fsSL https://get.docker.com | sudo sh
-sudo usermod -aG docker $USER
+# Add swap — prevents OOM on t2.micro/t2.small during startup
+sudo fallocate -l 1.2G /swapfile
+sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 
-# Log out and back in for group change to take effect
-exit
-ssh -i your-key.pem ubuntu@your-ec2-public-ip
+# Clone the repo
+git clone https://github.com/akramnameemuddin/job-elevate.git
+cd job-elevate
 
-# Verify
-docker --version
-docker compose version
+# Create venv at project root (NOT inside backend/)
+python3.12 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 ```
 
 ---
 
-## Step 2: Deploy the Application
+## Step 2 — Environment Variables
 
-### Clone your repository
 ```bash
-git clone https://github.com/your-username/job-elevate.git
-cd job-elevate
+cp deploy/env.production.example backend/backend/.env
+nano backend/backend/.env
 ```
 
-### Create the environment file
-```bash
-cp .env.docker.example .env.docker
-nano .env.docker
-```
+Fill in every value:
 
-**Fill in ALL values:**
 ```env
-SECRET_KEY=generate-a-50-char-random-string-here
+SECRET_KEY=your-50-char-random-secret-key
 DEBUG=False
-ALLOWED_HOSTS=your-domain.com,www.your-domain.com,your-ec2-public-ip
+ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com,YOUR-EC2-IP
 
-DATABASE_URL=postgres://jobelevate:YOUR_STRONG_DB_PASSWORD@db:5432/jobelevate
-DB_PASSWORD=YOUR_STRONG_DB_PASSWORD
+# AWS RDS PostgreSQL
+DATABASE_URL=postgres://jobelevate:StrongPass@your-rds-endpoint.rds.amazonaws.com:5432/jobelevate
 
-EMAIL_HOST_USER=your-email@gmail.com
+# Email (Gmail App Password)
+EMAIL_HOST_USER=your-gmail@gmail.com
 EMAIL_HOST_PASSWORD=your-gmail-app-password
 
+# Google Gemini
 GOOGLE_API_KEY=your-gemini-api-key
 
-CSRF_TRUSTED_ORIGINS=https://your-domain.com,https://www.your-domain.com
+# AWS S3
+USE_S3=True
+AWS_ACCESS_KEY_ID=your-access-key
+AWS_SECRET_ACCESS_KEY=your-secret-key
+AWS_STORAGE_BUCKET_NAME=your-bucket-name
+AWS_S3_REGION_NAME=us-east-1
+
+# Security
+CSRF_TRUSTED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
 ```
 
-> **Generate a secret key:**
-> ```bash
-> python3 -c "import secrets; print(secrets.token_urlsafe(50))"
-> ```
-
-### Update Nginx config with your domain
+Generate a secret key:
 ```bash
-nano docker/nginx.conf
-# Replace "your-domain.com" with your actual domain everywhere
-```
-
-### Build and start all containers
-```bash
-docker compose up -d --build
-```
-
-This will:
-1. Build the Django app image
-2. Start PostgreSQL and wait for it to be healthy
-3. Run migrations automatically
-4. Collect static files
-5. Start Gunicorn (3 workers)
-6. Start Nginx on ports 80/443
-
-### Verify everything is running
-```bash
-docker compose ps
-docker compose logs web    # Check app logs
-docker compose logs db     # Check database logs
-docker compose logs nginx  # Check nginx logs
+python3 -c "import secrets; print(secrets.token_hex(50))"
 ```
 
 ---
 
-## Step 3: Initialize Data
+## Step 3 — Database & Static Files
 
-The entrypoint script now **automatically seeds all data** on every container start:
-- Migrations
-- Static files collection
-- Assessment skills + questions (`populate_assessment_data`)
-- Course catalog (`populate_courses`)
-- Community tags + events (`seed_community`)
-- Resume templates (`create_resume_templates`)
-- Admin user (`create_admin` — default: admin / JobElevate2025!)
-- Demo users + jobs + applications (`seed_demo_data`)
-- ML model training (`train_fit_model`)
-
-All commands are idempotent — safe to run on every restart.
-
-### Verify data was seeded
 ```bash
-docker compose logs web | grep "==>"
-```
+cd ~/job-elevate/backend
 
-### Access admin panel
-Visit `http://your-ec2-ip/admin/` and login with:
-- Username: `admin`
-- Password: `JobElevate2025!`
-
----
-
-## Step 4: Set Up Your Domain (DNS)
-
-In your domain registrar (e.g., GoDaddy, Namecheap, Route53):
-
-| Type | Name | Value |
-|------|------|-------|
-| A | @ | your-ec2-public-ip |
-| A | www | your-ec2-public-ip |
-
-Wait 5-10 minutes for DNS propagation. Test:
-```bash
-ping your-domain.com
+python manage.py migrate
+python manage.py collectstatic --noinput    # uploads to S3
 ```
 
 ---
 
-## Step 5: Enable HTTPS (SSL)
+## Step 4 — Seed Data (run once)
 
-### Get SSL certificate from Let's Encrypt
 ```bash
-docker compose run --rm certbot certonly \
-    --webroot \
-    --webroot-path=/var/www/certbot \
-    -d your-domain.com \
-    -d www.your-domain.com \
-    --email your-email@gmail.com \
-    --agree-tos \
-    --no-eff-email
+python manage.py populate_assessment_data   # skill categories + skills
+python manage.py create_resume_templates    # 3 resume templates
+python manage.py populate_courses           # learning course catalog
+python manage.py seed_community             # community tags + sample posts
+python manage.py seed_demo_data             # demo users, jobs, applications
+python manage.py createsuperuser            # or: python manage.py create_admin
 ```
 
-### Enable HTTPS in Nginx
-```bash
-nano docker/nginx.conf
-```
-
-1. **Uncomment** the `return 301 https://...` line in the HTTP server block
-2. **Comment out** the HTTP proxy/static location blocks (lines 26-45)
-3. **Uncomment** the entire HTTPS server block at the bottom
-4. Replace `your-domain.com` with your actual domain
-
-### Restart Nginx
-```bash
-docker compose restart nginx
-```
-
-Your site is now live at `https://your-domain.com`
+All commands are idempotent — safe to re-run.
 
 ---
 
-## Common Commands
+## Step 5 — Gunicorn Systemd Service
 
 ```bash
-# View logs (live)
-docker compose logs -f web
+sudo cp ~/job-elevate/deploy/gunicorn.service /etc/systemd/system/gunicorn.service
+```
 
-# Restart a specific container
-docker compose restart web
+> **t2.micro tip:** Edit the service file and change `--workers 3` to `--workers 1`.
+> Each worker uses ~180 MB RAM. 3 workers can OOM-kill on a 1 GB instance.
 
-# Stop everything
-docker compose down
-
-# Stop and remove all data (DESTRUCTIVE)
-docker compose down -v
-
-# Rebuild after code changes
-git pull
-docker compose up -d --build
-
-# Access Django shell
-docker compose exec web python backend/manage.py shell
-
-# Database backup
-docker compose exec db pg_dump -U jobelevate jobelevate > backup_$(date +%Y%m%d).sql
-
-# Database restore
-docker compose exec -T db psql -U jobelevate jobelevate < backup_20260211.sql
-
-# Retrain ML model
-docker compose exec web python backend/manage.py train_fit_model --synthetic 2000
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable gunicorn
+sudo systemctl start gunicorn
+sudo systemctl status gunicorn    # should show "active (running)"
 ```
 
 ---
 
-## Updating the Application
+## Step 6 — Nginx
 
-When you push new code:
 ```bash
-ssh -i your-key.pem ubuntu@your-ec2-public-ip
-cd job-elevate
-git pull origin main
-docker compose up -d --build
+sudo cp ~/job-elevate/deploy/nginx-jobelevate.conf /etc/nginx/sites-available/jobelevate
 ```
 
-The entrypoint script automatically runs migrations and collects static files on every restart.
+Edit the file and replace `jobelevates.akramnaeemuddin.me` with your domain:
+```bash
+sudo nano /etc/nginx/sites-available/jobelevate
+```
+
+Enable the site:
+```bash
+sudo ln -s /etc/nginx/sites-available/jobelevate /etc/nginx/sites-enabled/
+sudo nginx -t          # must print "syntax is ok"
+sudo systemctl reload nginx
+```
+
+---
+
+## Step 7 — SSL Certificate (Let's Encrypt)
+
+```bash
+sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com \
+    --email your-email@gmail.com --agree-tos --no-eff-email
+sudo systemctl reload nginx
+```
+
+Certbot auto-renews every 90 days via a systemd timer. Verify:
+```bash
+sudo certbot renew --dry-run
+```
+
+Your site is now live at `https://yourdomain.com`
+
+---
+
+## Updating After a Code Push
+
+```bash
+ssh -i your-key.pem ubuntu@YOUR-EC2-IP
+cd ~/job-elevate
+git fetch origin && git reset --hard origin/master
+source venv/bin/activate
+pip install -r requirements.txt
+cd backend
+python manage.py migrate
+python manage.py collectstatic --noinput
+sudo systemctl restart gunicorn
+```
+
+---
+
+## Operations Reference
+
+```bash
+# Service status
+sudo systemctl status gunicorn
+sudo systemctl status nginx
+
+# Live logs
+sudo journalctl -u gunicorn -f
+sudo tail -f /var/log/nginx/error.log
+tail -f ~/job-elevate/logs/django.log
+
+# Restart services
+sudo systemctl restart gunicorn
+sudo systemctl reload nginx
+
+# Django shell
+cd ~/job-elevate/backend && source ../venv/bin/activate
+python manage.py shell
+
+# Run tests
+python manage.py test --verbosity=2
+
+# Resources (t2.micro: keep RAM < 900 MB)
+free -h
+df -h
+```
+
+---
+
+## AWS S3 Bucket Policy (Public Read for Static Files)
+
+In AWS Console → S3 → your bucket → **Permissions** → **Bucket policy**:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Sid": "PublicReadGetObject",
+    "Effect": "Allow",
+    "Principal": "*",
+    "Action": "s3:GetObject",
+    "Resource": "arn:aws:s3:::YOUR-BUCKET-NAME/*"
+  }]
+}
+```
+
+Also ensure:
+- **Block Public Access** → Off
+- **Object Ownership** → "Bucket owner enforced" (ACLs disabled)
 
 ---
 
 ## Troubleshooting
 
 | Problem | Fix |
-|---------|-----|
-| `502 Bad Gateway` | `docker compose logs web` — check if Gunicorn started |
-| `Static files 404` | `docker compose exec web python backend/manage.py collectstatic --noinput` |
-| Database connection refused | `docker compose ps db` — ensure DB is healthy |
-| Permission denied on media/ | `docker compose exec web chmod -R 755 backend/media/` |
-| SSL cert expired | `docker compose run --rm certbot renew && docker compose restart nginx` |
-| Out of disk space | `docker system prune -a` to clean old images |
+|---|---|
+| `502 Bad Gateway` | `sudo journalctl -u gunicorn -n 50` — check for import errors |
+| Static files 404 | `python manage.py collectstatic --noinput` + check `USE_S3=True` |
+| DB connection refused | Check RDS security group allows port 5432 from EC2 security group |
+| OOM / gunicorn killed | Reduce to `--workers 1` in gunicorn.service + ensure 1.2 GB swap exists |
+| SSH timeout in CI/CD | EC2 Security Group → add SSH inbound rule `0.0.0.0/0 port 22` |
+| SSL cert expired | `sudo certbot renew && sudo systemctl reload nginx` |
+| Gemini questions not generating | Check `GOOGLE_API_KEY` in `.env`; run `python manage.py check_api_status` |
 
 ---
 
-## Cost Estimate (AWS)
+## Cost Estimate (AWS us-east-1)
 
 | Resource | Monthly Cost |
-|----------|-------------|
+|---|---|
+| t2.micro EC2 (Free tier 12 months) | $0 → ~$8 |
 | t2.small EC2 | ~$17 |
-| 20 GB EBS | ~$2 |
-| Elastic IP | Free (if attached) |
-| **Total** | **~$19/month** |
-
-Free tier: t2.micro is free for 12 months but may be tight on RAM for this stack.
+| 20 GB EBS gp3 | ~$1.60 |
+| RDS db.t3.micro PostgreSQL | ~$15 |
+| S3 + data transfer (light usage) | ~$1 |
+| Elastic IP (attached) | Free |
+| **Total (t2.micro + RDS)** | **~$18/month** |
