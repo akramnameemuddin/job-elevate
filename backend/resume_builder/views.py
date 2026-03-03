@@ -104,7 +104,19 @@ def edit_resume(request, resume_id):
         resume.show_certifications = 'show_certifications' in request.POST
         resume.show_achievements = 'show_achievements' in request.POST
         resume.show_extracurricular = 'show_extracurricular' in request.POST
-        
+
+        # Per-item selections for projects / experience / internships / certifications
+        _user = request.user
+        def _parse_sel(key, total):
+            raw = request.POST.getlist(key)
+            indices = sorted({int(i) for i in raw if i.isdigit() and int(i) < total})
+            return None if len(indices) == total else indices
+
+        resume.selected_projects       = _parse_sel('sel_projects',      len(_user.get_projects()))
+        resume.selected_internships    = _parse_sel('sel_internships',   len(_user.get_internships()))
+        resume.selected_experience     = _parse_sel('sel_experience',    len(_user.get_work_experience()))
+        resume.selected_certifications = _parse_sel('sel_certifications',len(_user.get_certifications()))
+
         resume.save()
         messages.success(request, "Resume updated successfully!")
         
@@ -118,8 +130,16 @@ def edit_resume(request, resume_id):
     
     # User's profile data
     user = request.user
-    
-    # Additional template data
+
+    # Helper: apply per-item selection (None = all)
+    def _sel(items, stored):
+        return list(range(len(items))) if stored is None else stored
+
+    all_projects       = list(enumerate(user.get_projects()))
+    all_internships    = list(enumerate(user.get_internships()))
+    all_experience     = list(enumerate(user.get_work_experience()))
+    all_certifications = list(enumerate(user.get_certifications()))
+
     context = {
         'resume': resume,
         'user_profile': user,
@@ -128,8 +148,17 @@ def edit_resume(request, resume_id):
         'work_experience': user.get_work_experience(),
         'certifications': user.get_certifications(),
         'technical_skills': user.get_skills_list(),
+        # For per-item selection UI
+        'all_projects':       all_projects,
+        'all_internships':    all_internships,
+        'all_experience':     all_experience,
+        'all_certifications': all_certifications,
+        'sel_projects':       _sel(user.get_projects(),       resume.selected_projects),
+        'sel_internships':    _sel(user.get_internships(),    resume.selected_internships),
+        'sel_experience':     _sel(user.get_work_experience(),resume.selected_experience),
+        'sel_certifications': _sel(user.get_certifications(), resume.selected_certifications),
     }
-    
+
     return render(request, 'resume_builder/edit.html', context)
 
 @login_required
@@ -146,15 +175,26 @@ def preview_resume(request, resume_id):
     else:
         achievements_list = []
 
+    # Apply per-item selections
+    def _apply_sel(items, stored):
+        if stored is None:
+            return items
+        return [items[i] for i in stored if i < len(items)]
+
+    all_proj  = user.get_projects()
+    all_exp   = user.get_work_experience()
+    all_inter = user.get_internships()
+    all_cert  = user.get_certifications()
+
     context = {
         'resume': resume,
         'user_profile': user,
-        'projects': user.get_projects(),
-        'internships': user.get_internships(),
-        'work_experience': user.get_work_experience(),
-        'certifications': user.get_certifications(),
+        'projects':         _apply_sel(all_proj,  resume.selected_projects),
+        'internships':      _apply_sel(all_inter, resume.selected_internships),
+        'work_experience':  _apply_sel(all_exp,   resume.selected_experience),
+        'certifications':   _apply_sel(all_cert,  resume.selected_certifications),
         'technical_skills': user.get_skills_list(),
-        'achievements_list': achievements_list,  # include this
+        'achievements_list': achievements_list,
         'is_preview': True
     }
 
@@ -181,16 +221,21 @@ def download_resume(request, resume_id):
     user = request.user
 
     try:
-        # Prepare context data for the PDF generator
-        projects = user.get_projects()
+        # Prepare context data for the PDF generator (apply per-item selections)
+        def _apply_sel(items, stored):
+            if stored is None:
+                return items
+            return [items[i] for i in stored if i < len(items)]
+
+        projects = _apply_sel(user.get_projects(), resume.selected_projects)
         for project in projects:
             if project.get('technologies'):
                 project['tech_list'] = [tech.strip() for tech in project['technologies'].split(',')]
             else:
                 project['tech_list'] = []
 
-        internships = user.get_internships()
-        work_experience = user.get_work_experience()
+        internships    = _apply_sel(user.get_internships(),    resume.selected_internships)
+        work_experience = _apply_sel(user.get_work_experience(), resume.selected_experience)
 
         achievements_list = []
         if hasattr(user, 'achievements') and user.achievements:
@@ -203,7 +248,7 @@ def download_resume(request, resume_id):
             'projects': projects,
             'internships': internships,
             'work_experience': work_experience,
-            'certifications': user.get_certifications(),
+            'certifications': _apply_sel(user.get_certifications(), resume.selected_certifications),
             'technical_skills': user.get_skills_list(),
             'achievements_list': achievements_list,
             'extracurricular_html': extracurricular,

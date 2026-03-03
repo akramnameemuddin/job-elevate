@@ -48,6 +48,20 @@ class Resume(models.Model):
     show_achievements = models.BooleanField(default=True)
     show_extracurricular = models.BooleanField(default=True)
     
+    # Per-item selection (None = all included; list of indices = selected subset)
+    selected_projects = models.JSONField(
+        default=None, null=True, blank=True,
+        help_text='Indices of projects to include (null = all)')
+    selected_internships = models.JSONField(
+        default=None, null=True, blank=True,
+        help_text='Indices of internships to include (null = all)')
+    selected_experience = models.JSONField(
+        default=None, null=True, blank=True,
+        help_text='Indices of work-experience entries to include (null = all)')
+    selected_certifications = models.JSONField(
+        default=None, null=True, blank=True,
+        help_text='Indices of certifications to include (null = all)')
+
     # Additional resume metadata
     pdf_file = models.FileField(upload_to='resume_pdfs/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
