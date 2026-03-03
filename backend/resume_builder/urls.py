@@ -20,6 +20,7 @@ urlpatterns = [
     # Tailored resume preview & download
     path('tailored/preview/<int:tailored_id>/', views.preview_tailored_resume, name='preview_tailored'),
     path('tailored/download/<int:tailored_id>/', views.download_tailored_resume, name='download_tailored'),
+    path('tailored/customize/<int:tailored_id>/', views.customize_tailored_sections, name='customize_sections'),
 
     # AI resume tailoring flow
     path('ai/tailor/<int:job_id>/', ai_views.tailor_for_job, name='tailor_for_job'),

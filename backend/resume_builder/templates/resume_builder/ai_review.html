@@ -202,6 +202,9 @@
         <p class="ar-header-sub">Tailoring your resume for <strong>{{ job.title }}</strong> at <strong>{{ job.company }}</strong></p>
     </div>
     <div class="ar-header-actions">
+        <a href="{% url 'resume_builder:customize_sections' tailored_id=tailored.id %}" class="btn btn-outline-secondary btn-sm">
+            <i class='bx bx-list-check'></i> Customize Sections
+        </a>
         <a href="{% url 'resume_builder:regenerate' tailored_id=tailored.id %}" class="btn btn-outline-secondary btn-sm"
            onclick="return confirm('Re-run AI analysis? Current selections will be lost.')">
             <i class='bx bx-refresh'></i> Re-analyse

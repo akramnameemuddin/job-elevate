@@ -338,14 +338,32 @@ def _build_tailored_context(tailored, user):
     Uses tailored fields when available, falls back to user profile data.
     """
     # Skills: use tailored if available, else user profile
-    skills = tailored.tailored_skills or user.get_skills_list()
+    all_skills = tailored.tailored_skills or user.get_skills_list()
+    if tailored.selected_skills is not None:
+        sel_set = set(tailored.selected_skills)
+        skills = [s for s in all_skills if s in sel_set]
+    else:
+        skills = all_skills
 
     # Objective: use tailored if available
     objective = tailored.tailored_objective or (user.objective or '')
 
     # Experience & projects: use tailored snapshots (which come from user profile + AI edits)
-    experience = tailored.tailored_experience or (user.get_work_experience() if hasattr(user, 'get_work_experience') else [])
-    projects = tailored.tailored_projects or (user.get_projects() if hasattr(user, 'get_projects') else [])
+    all_experience = tailored.tailored_experience or (user.get_work_experience() if hasattr(user, 'get_work_experience') else [])
+    all_projects   = tailored.tailored_projects   or (user.get_projects()        if hasattr(user, 'get_projects')        else [])
+    all_internships = user.get_internships() if hasattr(user, 'get_internships') else []
+    all_certifications = user.get_certifications() if hasattr(user, 'get_certifications') else []
+
+    # Apply per-item selections (None = all, list-of-indices = filtered)
+    def _select(items, indices):
+        if indices is None:
+            return list(items)
+        return [items[i] for i in indices if i < len(items)]
+
+    projects       = _select(all_projects,       tailored.selected_projects)
+    experience     = _select(all_experience,     tailored.selected_experience)
+    internships_f  = _select(all_internships,    tailored.selected_internships)
+    certifications = _select(all_certifications, tailored.selected_certifications)
 
     # Process data for rendering
     for project in projects:
@@ -356,7 +374,7 @@ def _build_tailored_context(tailored, user):
         if project.get('description'):
             project['description'] = project['description'].replace('\n', '<br>')
 
-    internships = user.get_internships() if hasattr(user, 'get_internships') else []
+    internships = internships_f
     for internship in internships:
         if internship.get('description'):
             internship['description'] = internship['description'].replace('\n', '<br>')
@@ -430,7 +448,7 @@ def _build_tailored_context(tailored, user):
         'projects': projects,
         'internships': internships,
         'work_experience': experience,
-        'certifications': user.get_certifications() if hasattr(user, 'get_certifications') else [],
+        'certifications': certifications,
         'technical_skills': skills,
         'skill_rows': skill_rows,
         'linkedin_link': linkedin_link,
@@ -558,3 +576,74 @@ def _render_basic_tailored_html(ctx, user):
     </div>"""
 
 
+# ---------------------------------------------------------------------------
+# Customize which items appear in a tailored resume
+# ---------------------------------------------------------------------------
+
+@login_required
+def customize_tailored_sections(request, tailored_id):
+    """
+    Let the user choose which projects / internships / experience entries /
+    certifications / skills to include in a specific tailored resume.
+    """
+    tailored = get_object_or_404(TailoredResume, id=tailored_id, user=request.user)
+    user = request.user
+
+    # Raw lists from profile (+ any AI-tailored overrides)
+    all_projects       = tailored.tailored_projects   or user.get_projects()
+    all_experience     = tailored.tailored_experience or user.get_work_experience()
+    all_internships    = user.get_internships()
+    all_certifications = user.get_certifications()
+    all_skills         = tailored.tailored_skills or user.get_skills_list()
+
+    if request.method == 'POST':
+        def parse_indices(key, total):
+            """Return sorted list of valid checked indices, or None if all checked."""
+            raw = request.POST.getlist(key)
+            indices = sorted({int(i) for i in raw if i.isdigit() and int(i) < total})
+            return None if len(indices) == total else indices
+
+        tailored.selected_projects       = parse_indices('projects',       len(all_projects))
+        tailored.selected_internships    = parse_indices('internships',    len(all_internships))
+        tailored.selected_experience     = parse_indices('experience',     len(all_experience))
+        tailored.selected_certifications = parse_indices('certifications', len(all_certifications))
+
+        # Skills: posted as names, not indices
+        posted_skills = request.POST.getlist('skills')
+        if set(posted_skills) == set(all_skills):
+            tailored.selected_skills = None
+        else:
+            tailored.selected_skills = posted_skills
+
+        tailored.save(update_fields=[
+            'selected_projects', 'selected_internships',
+            'selected_experience', 'selected_certifications', 'selected_skills',
+        ])
+        messages.success(request, 'Section selections saved!')
+        return redirect('resume_builder:ai_review', tailored_id=tailored.id)
+
+    # Determine currently-selected indices (None = all selected)
+    def active_indices(total, stored):
+        return list(range(total)) if stored is None else stored
+
+    ctx_projects       = active_indices(len(all_projects),       tailored.selected_projects)
+    ctx_internships    = active_indices(len(all_internships),    tailored.selected_internships)
+    ctx_experience     = active_indices(len(all_experience),     tailored.selected_experience)
+    ctx_certifications = active_indices(len(all_certifications), tailored.selected_certifications)
+    ctx_skills         = set(tailored.selected_skills) if tailored.selected_skills is not None else set(all_skills)
+
+    context = {
+        'tailored': tailored,
+        'job': tailored.job,
+        'all_projects':       list(enumerate(all_projects)),
+        'all_experience':     list(enumerate(all_experience)),
+        'all_internships':    list(enumerate(all_internships)),
+        'all_certifications': list(enumerate(all_certifications)),
+        'all_skills':         all_skills,
+        'sel_projects':       ctx_projects,
+        'sel_internships':    ctx_internships,
+        'sel_experience':     ctx_experience,
+        'sel_certifications': ctx_certifications,
+        'sel_skills':         ctx_skills,
+    }
+    return render(request, 'resume_builder/customize_sections.html', context)

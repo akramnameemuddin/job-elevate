@@ -1,0 +1,357 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Customize Resume Sections – {{ job.title }}{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav style="margin-bottom:.75rem;font-size:.85rem;color:var(--text-muted)">
+    <a href="{% url 'dashboard:home' %}" style="color:var(--primary-color);text-decoration:none">Home</a>
+    <span style="margin:0 .35rem">›</span>
+    <a href="{% url 'jobs:job_detail' job.id %}" style="color:var(--primary-color);text-decoration:none">{{ job.title }}</a>
+    <span style="margin:0 .35rem">›</span>
+    <a href="{% url 'resume_builder:ai_review' tailored_id=tailored.id %}" style="color:var(--primary-color);text-decoration:none">AI Review</a>
+    <span style="margin:0 .35rem">›</span>
+    <span>Customize Sections</span>
+</nav>
+
+<!-- Header -->
+<div class="page-content-header" style="margin-bottom:1.5rem;">
+    <div>
+        <h1 class="page-title" style="display:flex;align-items:center;gap:.5rem;">
+            <i class='bx bx-list-check' style="color:var(--primary-color)"></i>
+            Customize Resume Content
+        </h1>
+        <p style="color:var(--text-muted);margin-top:.25rem;">
+            Select exactly which items to include for
+            <strong>{{ job.title }}</strong>{% if job.company_name %} at <strong>{{ job.company_name }}</strong>{% endif %}.
+            Unchecked items will be hidden from the tailored resume.
+        </p>
+    </div>
+</div>
+
+<form method="post">
+{% csrf_token %}
+
+<div class="cs-grid">
+
+    <!-- ── Projects ───────────────────────────────── -->
+    {% if all_projects %}
+    <div class="cs-card">
+        <div class="cs-card-head">
+            <i class='bx bx-code-block cs-icon'></i>
+            <h3>Projects</h3>
+            <span class="cs-count">{{ all_projects|length }}</span>
+            <button type="button" class="cs-toggle-all" data-group="projects">Select all</button>
+        </div>
+        <div class="cs-items" id="grp-projects">
+            {% for idx, proj in all_projects %}
+            <label class="cs-item {% if idx in sel_projects %}cs-item-checked{% endif %}">
+                <input type="checkbox" name="projects" value="{{ idx }}"
+                    {% if idx in sel_projects %}checked{% endif %}
+                    onchange="syncCard(this)">
+                <div class="cs-item-body">
+                    <span class="cs-item-title">{{ proj.title|default:"Untitled Project" }}</span>
+                    {% if proj.technologies %}
+                    <span class="cs-item-meta">{{ proj.technologies|truncatechars:60 }}</span>
+                    {% endif %}
+                    {% if proj.description %}
+                    <span class="cs-item-desc">{{ proj.description|truncatechars:100 }}</span>
+                    {% endif %}
+                </div>
+                <i class='bx bx-check cs-check-icon'></i>
+            </label>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Work Experience ────────────────────────── -->
+    {% if all_experience %}
+    <div class="cs-card">
+        <div class="cs-card-head">
+            <i class='bx bx-briefcase cs-icon'></i>
+            <h3>Work Experience</h3>
+            <span class="cs-count">{{ all_experience|length }}</span>
+            <button type="button" class="cs-toggle-all" data-group="experience">Select all</button>
+        </div>
+        <div class="cs-items" id="grp-experience">
+            {% for idx, exp in all_experience %}
+            <label class="cs-item {% if idx in sel_experience %}cs-item-checked{% endif %}">
+                <input type="checkbox" name="experience" value="{{ idx }}"
+                    {% if idx in sel_experience %}checked{% endif %}
+                    onchange="syncCard(this)">
+                <div class="cs-item-body">
+                    <span class="cs-item-title">{{ exp.title|default:"Position" }}</span>
+                    <span class="cs-item-meta">
+                        {{ exp.company|default:"" }}
+                        {% if exp.start_date %}· {{ exp.start_date }}{% endif %}
+                        {% if exp.end_date %} – {{ exp.end_date }}{% else %} – Present{% endif %}
+                    </span>
+                    {% if exp.description %}
+                    <span class="cs-item-desc">{{ exp.description|truncatechars:100 }}</span>
+                    {% endif %}
+                </div>
+                <i class='bx bx-check cs-check-icon'></i>
+            </label>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Internships ────────────────────────────── -->
+    {% if all_internships %}
+    <div class="cs-card">
+        <div class="cs-card-head">
+            <i class='bx bx-buildings cs-icon'></i>
+            <h3>Internships</h3>
+            <span class="cs-count">{{ all_internships|length }}</span>
+            <button type="button" class="cs-toggle-all" data-group="internships">Select all</button>
+        </div>
+        <div class="cs-items" id="grp-internships">
+            {% for idx, intern in all_internships %}
+            <label class="cs-item {% if idx in sel_internships %}cs-item-checked{% endif %}">
+                <input type="checkbox" name="internships" value="{{ idx }}"
+                    {% if idx in sel_internships %}checked{% endif %}
+                    onchange="syncCard(this)">
+                <div class="cs-item-body">
+                    <span class="cs-item-title">{{ intern.title|default:"Internship" }}</span>
+                    <span class="cs-item-meta">
+                        {{ intern.company|default:"" }}
+                        {% if intern.start_date %}· {{ intern.start_date }}{% endif %}
+                        {% if intern.end_date %} – {{ intern.end_date }}{% endif %}
+                    </span>
+                    {% if intern.description %}
+                    <span class="cs-item-desc">{{ intern.description|truncatechars:100 }}</span>
+                    {% endif %}
+                </div>
+                <i class='bx bx-check cs-check-icon'></i>
+            </label>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Certifications ────────────────────────── -->
+    {% if all_certifications %}
+    <div class="cs-card">
+        <div class="cs-card-head">
+            <i class='bx bx-award cs-icon'></i>
+            <h3>Certifications</h3>
+            <span class="cs-count">{{ all_certifications|length }}</span>
+            <button type="button" class="cs-toggle-all" data-group="certifications">Select all</button>
+        </div>
+        <div class="cs-items" id="grp-certifications">
+            {% for idx, cert in all_certifications %}
+            <label class="cs-item {% if idx in sel_certifications %}cs-item-checked{% endif %}">
+                <input type="checkbox" name="certifications" value="{{ idx }}"
+                    {% if idx in sel_certifications %}checked{% endif %}
+                    onchange="syncCard(this)">
+                <div class="cs-item-body">
+                    <span class="cs-item-title">{{ cert.name|default:"Certification" }}</span>
+                    <span class="cs-item-meta">
+                        {{ cert.issuing_organization|default:"" }}
+                        {% if cert.date %}· {{ cert.date }}{% endif %}
+                    </span>
+                </div>
+                <i class='bx bx-check cs-check-icon'></i>
+            </label>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Skills ─────────────────────────────────── -->
+    {% if all_skills %}
+    <div class="cs-card cs-card-full">
+        <div class="cs-card-head">
+            <i class='bx bx-chip cs-icon'></i>
+            <h3>Technical Skills</h3>
+            <span class="cs-count">{{ all_skills|length }}</span>
+            <button type="button" class="cs-toggle-all" data-group="skills">Select all</button>
+        </div>
+        <div class="cs-skills-grid" id="grp-skills">
+            {% for skill in all_skills %}
+            <label class="cs-skill-chip {% if skill in sel_skills %}cs-item-checked{% endif %}">
+                <input type="checkbox" name="skills" value="{{ skill }}"
+                    {% if skill in sel_skills %}checked{% endif %}
+                    onchange="syncCard(this)">
+                <span>{{ skill }}</span>
+                <i class='bx bx-check'></i>
+            </label>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+</div><!-- /.cs-grid -->
+
+<!-- ── Action bar ─────────────────────────────────── -->
+<div class="cs-actions">
+    <a href="{% url 'resume_builder:ai_review' tailored_id=tailored.id %}" class="btn btn-outline-secondary">
+        <i class='bx bx-arrow-back'></i> Back to Review
+    </a>
+    <button type="submit" class="btn btn-primary">
+        <i class='bx bx-save'></i> Save &amp; Apply Selections
+    </button>
+</div>
+
+</form>
+
+<style>
+.cs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+.cs-card-full { grid-column: 1 / -1; }
+
+.cs-card {
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: var(--radius-lg, 12px);
+    overflow: hidden;
+}
+.cs-card-head {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .9rem 1.1rem;
+    border-bottom: 1px solid var(--border-color, #e5e7eb);
+    background: var(--bg-subtle, #f9fafb);
+}
+.cs-card-head h3 { margin: 0; font-size: .95rem; font-weight: 700; flex: 1; color: var(--text-color); }
+.cs-icon { font-size: 1.15rem; color: var(--primary-color); }
+.cs-count {
+    background: var(--primary-light, #dbeafe);
+    color: var(--primary-color, #2563eb);
+    font-size: .7rem; font-weight: 700;
+    padding: .1rem .45rem; border-radius: 999px;
+}
+.cs-toggle-all {
+    font-size: .72rem; font-weight: 600;
+    background: transparent; border: 1.5px solid var(--border-color, #e5e7eb);
+    color: var(--text-muted); border-radius: .35rem;
+    padding: .15rem .55rem; cursor: pointer; transition: all .15s;
+    white-space: nowrap;
+}
+.cs-toggle-all:hover { border-color: var(--primary-color); color: var(--primary-color); }
+
+.cs-items { display: flex; flex-direction: column; }
+
+.cs-item {
+    display: flex;
+    align-items: flex-start;
+    gap: .75rem;
+    padding: .75rem 1.1rem;
+    cursor: pointer;
+    transition: background .12s;
+    border-bottom: 1px solid var(--border-color, #f3f4f6);
+    position: relative;
+}
+.cs-item:last-child { border-bottom: none; }
+.cs-item:hover { background: var(--bg-hover, #f9fafb); }
+.cs-item input[type=checkbox] { position: absolute; opacity: 0; width: 0; height: 0; }
+
+.cs-item-body { display: flex; flex-direction: column; gap: .15rem; flex: 1; min-width: 0; }
+.cs-item-title { font-weight: 600; font-size: .88rem; color: var(--text-color); }
+.cs-item-meta  { font-size: .76rem; color: var(--text-muted); }
+.cs-item-desc  { font-size: .76rem; color: var(--text-muted); line-height: 1.4; }
+
+.cs-check-icon {
+    font-size: 1.1rem;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--border-color, #d1d5db);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; color: transparent;
+    transition: all .15s;
+    margin-top: .1rem;
+}
+.cs-item-checked .cs-check-icon {
+    background: var(--primary-color, #2563eb);
+    border-color: var(--primary-color, #2563eb);
+    color: #fff;
+}
+.cs-item-checked { background: var(--primary-xlight, #eff6ff); }
+
+/* Skills grid */
+.cs-skills-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    padding: 1rem 1.1rem;
+}
+.cs-skill-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    padding: .3rem .75rem;
+    border-radius: 999px;
+    border: 1.5px solid var(--border-color, #d1d5db);
+    font-size: .8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+    color: var(--text-muted);
+    background: var(--card-bg, #fff);
+}
+.cs-skill-chip input { position: absolute; opacity: 0; width: 0; height: 0; }
+.cs-skill-chip i { font-size: .85rem; color: transparent; transition: color .15s; }
+.cs-skill-chip:hover { border-color: var(--primary-color); color: var(--primary-color); }
+.cs-skill-chip.cs-item-checked {
+    background: var(--primary-color, #2563eb);
+    border-color: var(--primary-color, #2563eb);
+    color: #fff;
+}
+.cs-skill-chip.cs-item-checked i { color: #fff; }
+
+/* Action bar */
+.cs-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: .75rem;
+    padding: 1.25rem 0 2rem;
+}
+
+@media (max-width: 640px) {
+    .cs-grid { grid-template-columns: 1fr; }
+    .cs-actions { flex-direction: column; }
+}
+</style>
+
+<script>
+// Toggle checked state visually when label clicked
+function syncCard(checkbox) {
+    const label = checkbox.closest('label');
+    if (label) {
+        label.classList.toggle('cs-item-checked', checkbox.checked);
+    }
+}
+
+// "Select all / Deselect all" toggle per group
+document.querySelectorAll('.cs-toggle-all').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        const grp = document.getElementById('grp-' + this.dataset.group);
+        if (!grp) return;
+        const boxes = grp.querySelectorAll('input[type=checkbox]');
+        const allChecked = Array.from(boxes).every(b => b.checked);
+        boxes.forEach(function(b) {
+            b.checked = !allChecked;
+            syncCard(b);
+        });
+        btn.textContent = allChecked ? 'Select all' : 'Deselect all';
+    });
+});
+
+// Initialize button text based on current state
+document.querySelectorAll('.cs-toggle-all').forEach(function(btn) {
+    const grp = document.getElementById('grp-' + btn.dataset.group);
+    if (!grp) return;
+    const boxes = grp.querySelectorAll('input[type=checkbox]');
+    const allChecked = Array.from(boxes).every(b => b.checked);
+    btn.textContent = allChecked ? 'Deselect all' : 'Select all';
+});
+</script>
+{% endblock %}

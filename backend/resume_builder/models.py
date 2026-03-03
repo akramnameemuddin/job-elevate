@@ -96,6 +96,23 @@ class TailoredResume(models.Model):
     tailored_projects = models.JSONField(default=list, blank=True,
                                          help_text='Projects list after tailoring')
 
+    # ── Section-item selection (None = all included; list of indices = selected)
+    selected_projects = models.JSONField(
+        default=None, null=True, blank=True,
+        help_text='Indices of projects to include in this tailored resume (null = all)')
+    selected_internships = models.JSONField(
+        default=None, null=True, blank=True,
+        help_text='Indices of internships to include (null = all)')
+    selected_experience = models.JSONField(
+        default=None, null=True, blank=True,
+        help_text='Indices of work-experience entries to include (null = all)')
+    selected_certifications = models.JSONField(
+        default=None, null=True, blank=True,
+        help_text='Indices of certifications to include (null = all)')
+    selected_skills = models.JSONField(
+        default=None, null=True, blank=True,
+        help_text='Skill names to include (null = all)')
+
     # Matching analytics
     match_score_before = models.IntegerField(default=0, help_text='Match % before tailoring')
     match_score_after = models.IntegerField(default=0, help_text='Match % after applying suggestions')
