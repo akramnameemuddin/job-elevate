@@ -342,13 +342,16 @@
                         {{ score.verified_level|floatformat:1 }}
                     </div>
                 </div>
-                <div>
+                <div style="flex:1;min-width:0;">
                     <div class="lh-skill-name">{{ score.skill.name }}</div>
                     <div class="lh-skill-meta {% if score.status == 'verified' %}lh-skill-verified{% else %}lh-skill-claimed{% endif %}">
                         <i class='bx {% if score.status == "verified" %}bx-check-circle{% else %}bx-time{% endif %}'></i>
                         {{ score.status|title }}
                         · {{ score.verified_level|floatformat:1 }}/10
                     </div>
+                    <button class="lh-gen-path-btn" data-skill-id="{{ score.skill.id }}" data-skill-name="{{ score.skill.name }}">
+                        <i class='bx bx-git-branch'></i> Generate Path
+                    </button>
                 </div>
             </div>
             {% endfor %}
@@ -386,6 +389,9 @@
                 <div class="lh-gap-bar">
                     <div class="lh-gap-fill" style="width: {% widthratio gap.current_level gap.required_level 100 %}%; background: {% if gap.priority == 'critical' %}#ef4444{% elif gap.priority == 'high' %}#f59e0b{% else %}#3b82f6{% endif %};"></div>
                 </div>
+                <button class="lh-gen-path-btn" style="margin-left:.5rem;flex-shrink:0;" data-gap-id="{{ gap.id }}" data-skill-name="{{ gap.skill.name }}">
+                    <i class='bx bx-git-branch'></i>
+                </button>
             </div>
             {% endfor %}
         </div>
@@ -472,4 +478,64 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<style>
+.lh-gen-path-btn{
+    display:inline-flex;align-items:center;gap:.3rem;
+    margin-top:.35rem;padding:.18rem .55rem;
+    font-size:.7rem;font-weight:600;
+    border:1.5px solid #7c3aed;color:#7c3aed;
+    background:transparent;border-radius:.375rem;
+    cursor:pointer;transition:all .15s;
+    white-space:nowrap;
+}
+.lh-gen-path-btn:hover{background:#7c3aed;color:#fff;}
+.lh-gen-path-btn:disabled{opacity:.6;cursor:not-allowed;}
+</style>
+<script>
+(function(){
+    var GENERATE_URL = '{% url "learning:generate_learning_path" %}';
+    var CSRF = '{{ csrf_token }}';
+
+    function handleGenPath(btn) {
+        var skillId = btn.dataset.skillId || null;
+        var gapId   = btn.dataset.gapId   || null;
+        var orig    = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i>';
+        var payload = gapId ? {gap_id: parseInt(gapId)} : {skill_id: parseInt(skillId)};
+        fetch(GENERATE_URL, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json','X-CSRFToken': CSRF},
+            body: JSON.stringify(payload)
+        })
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+            if (data.success && data.paths_created > 0) {
+                btn.innerHTML = '<i class="bx bx-check"></i> Created!';
+                btn.style.borderColor = '#16a34a';
+                btn.style.color = '#16a34a';
+                setTimeout(function(){ window.location.reload(); }, 900);
+            } else if (data.success) {
+                btn.innerHTML = '<i class="bx bx-info-circle"></i> Already exists';
+                btn.style.borderColor = '#6b7280';
+                btn.style.color = '#6b7280';
+                setTimeout(function(){ btn.innerHTML=orig; btn.disabled=false; btn.style.cssText=''; }, 2500);
+            } else {
+                btn.innerHTML = '<i class="bx bx-error"></i> ' + (data.error||'Error');
+                btn.style.borderColor = '#ef4444';
+                btn.style.color = '#ef4444';
+                setTimeout(function(){ btn.innerHTML=orig; btn.disabled=false; btn.style.cssText=''; }, 2500);
+            }
+        })
+        .catch(function(){ btn.innerHTML=orig; btn.disabled=false; });
+    }
+
+    document.querySelectorAll('.lh-gen-path-btn').forEach(function(b){
+        b.addEventListener('click', function(){ handleGenPath(this); });
+    });
+}());
+</script>
 {% endblock %}

@@ -311,9 +311,43 @@ def generate_learning_path(request):
     try:
         data = json.loads(request.body) if request.body else {}
         gap_id = data.get('gap_id')
-        
+        skill_id = data.get('skill_id')
+
+        # skill_id provided from skill card or skill-gap page — find or create gap
+        if skill_id and not gap_id:
+            skill = get_object_or_404(Skill, id=skill_id)
+            score = UserSkillScore.objects.filter(user=request.user, skill=skill).first()
+            current = float(score.verified_level) if score else 0.0
+            required = 7.0
+            gap_val = max(0.0, required - current)
+            severity = round(gap_val / required, 4) if required else 0
+            if gap_val >= 5:
+                priority = 'critical'
+            elif gap_val >= 3:
+                priority = 'high'
+            elif gap_val >= 1:
+                priority = 'moderate'
+            else:
+                priority = 'low'
+            gap, _ = SkillGap.objects.get_or_create(
+                user=request.user,
+                skill=skill,
+                defaults={
+                    'current_level': current,
+                    'required_level': required,
+                    'gap_value': gap_val,
+                    'gap_severity': severity,
+                    'priority': priority,
+                    'priority_score': round(severity * 0.4 + 0.7 * 0.6, 4),
+                    'job_criticality': 0.7,
+                    'estimated_learning_hours': int(gap_val * 8),
+                    'target_job_title': f'{skill.name} role',
+                },
+            )
+            gaps_to_process = [gap]
+
         # If specific gap provided, create path for it
-        if gap_id:
+        elif gap_id:
             gap = get_object_or_404(SkillGap, id=gap_id, user=request.user)
             gaps_to_process = [gap]
         else:

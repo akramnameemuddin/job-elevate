@@ -209,6 +209,13 @@
                 </div>
                 {% endif %}
 
+                <!-- Actions -->
+                <div style="display:flex;justify-content:flex-end;margin-top:.6rem;">
+                    <button class="sg-gen-path-btn" data-gap-id="{{ gap.id }}" data-skill-name="{{ gap.skill.name }}">
+                        <i class='bx bx-git-branch'></i> Generate Learning Path
+                    </button>
+                </div>
+
                 <!-- Recommended courses -->
                 {% if gap.courses %}
                 <div class="sg-gap-courses">
@@ -329,6 +336,46 @@ document.addEventListener('DOMContentLoaded', function(){
     }
 });
 
+/* ── Generate Learning Path ── */
+(function(){
+    var GENERATE_URL = '{% url "learning:generate_learning_path" %}';
+    var CSRF = '{{ csrf_token }}';
+    document.querySelectorAll('.sg-gen-path-btn').forEach(function(btn){
+        btn.addEventListener('click', function(){
+            var gapId = this.dataset.gapId;
+            var skillName = this.dataset.skillName;
+            var orig = this.innerHTML;
+            this.disabled = true;
+            this.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Generating…';
+            var self = this;
+            fetch(GENERATE_URL,{
+                method:'POST',
+                headers:{'Content-Type':'application/json','X-CSRFToken':CSRF},
+                body: JSON.stringify({gap_id: parseInt(gapId)})
+            })
+            .then(function(r){ return r.json(); })
+            .then(function(data){
+                if(data.success && data.paths_created > 0){
+                    self.innerHTML='<i class="bx bx-check"></i> Path Created!';
+                    self.style.background='var(--success-color)';
+                    self.style.borderColor='var(--success-color)';
+                    self.style.color='#fff';
+                    setTimeout(function(){ window.location.href='{% url "learning:learning_dashboard" %}'; }, 1000);
+                } else if(data.success){
+                    self.innerHTML='<i class="bx bx-info-circle"></i> Path already exists';
+                    setTimeout(function(){ self.innerHTML=orig; self.disabled=false; self.style.cssText=''; }, 2500);
+                } else {
+                    self.innerHTML='<i class="bx bx-error"></i> '+(data.error||'Error');
+                    self.style.borderColor='var(--danger-color)';
+                    self.style.color='var(--danger-color)';
+                    setTimeout(function(){ self.innerHTML=orig; self.disabled=false; self.style.cssText=''; }, 2500);
+                }
+            })
+            .catch(function(){ self.innerHTML=orig; self.disabled=false; });
+        });
+    });
+}());
+
 /* ── Toggle compare section ── */
 function sgToggleSection(id){
     const el = document.getElementById('sg-'+id);
@@ -386,6 +433,9 @@ document.getElementById('sg-compare-form').addEventListener('submit', function(e
 .sg-btn-primary:hover{opacity:.88}
 .sg-btn-outline{background:transparent;border:1.5px solid var(--border-color);color:var(--text-color)}
 .sg-btn-outline:hover{border-color:var(--primary-color);color:var(--primary-color)}
+.sg-gen-path-btn{display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .8rem;font-size:.78rem;font-weight:600;border:1.5px solid #7c3aed;color:#7c3aed;background:transparent;border-radius:.375rem;cursor:pointer;transition:all .15s;}
+.sg-gen-path-btn:hover{background:#7c3aed;color:#fff;}
+.sg-gen-path-btn:disabled{opacity:.6;cursor:not-allowed;}
 
 /* ── KPI Cards ── */
 .sg-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
