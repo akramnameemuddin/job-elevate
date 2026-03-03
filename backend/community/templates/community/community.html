@@ -168,7 +168,7 @@
                                         <div class="dropdown">
                                             <button class="dropdown-toggle">
                                                 <i class='bx bx-dots-horizontal-rounded'></i>
-                                            </button>'{{ post.id }}'
+                                            </button>
                                             <div class="dropdown-menu">
                                                 <a href="#" onclick="editPost('{{ post.slug }}')">Edit</a>
                                                 <a href="#" onclick="deletePost('{{ post.id }}')" class="danger">Delete</a>
@@ -195,7 +195,7 @@
                                     {% endif %}
                                 </div>
 
-                                <div class="post-footer">'{{ post.id }}'
+                                <div class="post-footer">
                                     <div class="post-stats">
                                         <button class="stat-btn like-btn {% if post.id in user_liked_posts %}active{% endif %}" 
                                                 onclick="toggleLike('post', '{{ post.id }}', this)">
@@ -208,7 +208,7 @@
                                         </button>
                                         <button class="stat-btn view-btn">
                                             <i class='bx bx-show'></i>
-                                            <span>{{ post.views }}</span>'{{ post.id }}'
+                                            <span>{{ post.views }}</span>
                                         </button>
                                         <button class="stat-btn follow-btn {% if post.id in user_followed_posts %}active{% endif %}" 
                                                 onclick="toggleFollow('post', '{{ post.id }}', this)">
