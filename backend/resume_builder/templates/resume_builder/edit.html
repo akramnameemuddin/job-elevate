@@ -187,27 +187,28 @@
                     </label>
                 </div>
             </div>
-            {% if all_experience %}
-            <div class="re-sel-list" id="grp-experience">
-                {% for idx, job in all_experience %}
-                <label class="re-sel-item {% if idx in sel_experience %}re-sel-on{% endif %}">
-                    <input type="checkbox" name="sel_experience" value="{{ idx }}"
-                        {% if idx in sel_experience %}checked{% endif %}
-                        onchange="syncSel(this,'experience')">
-                    <div class="re-sel-body">
-                        <span class="re-sel-title">{{ job.title|default:"Position" }}</span>
-                        <span class="re-sel-meta">{{ job.company|default:"" }}{% if job.start_date %} · {{ job.start_date }}{% endif %}{% if job.end_date %} – {{ job.end_date }}{% else %} – Present{% endif %}</span>
-                        {% if job.description %}<span class="re-sel-desc">{{ job.description|truncatechars:100 }}</span>{% endif %}
-                    </div>
-                    <i class='bx bx-check re-sel-icon'></i>
-                </label>
-                {% endfor %}
-            </div>
-            {% else %}
             <div class="re-card-body">
+                {% if all_experience %}
+                <div class="re-exp-list" id="grp-experience">
+                    {% for idx, job in all_experience %}
+                    <label class="re-exp-item re-selectable {% if idx in sel_experience %}re-sel-on{% endif %}">
+                        <input type="checkbox" name="sel_experience" value="{{ idx }}"
+                            {% if idx in sel_experience %}checked{% endif %}
+                            onchange="syncSel(this,'experience')">
+                        <div class="re-exp-dot"></div>
+                        <div class="re-exp-info">
+                            <strong>{{ job.title|default:"Position" }} <span class="re-company">at {{ job.company|default:"" }}</span></strong>
+                            <small>{{ job.start_date }} – {{ job.end_date|default:"Present" }}</small>
+                            {% if job.description %}<p>{{ job.description|truncatechars:200 }}</p>{% endif %}
+                        </div>
+                        <i class='bx bx-check-circle re-item-check'></i>
+                    </label>
+                    {% endfor %}
+                </div>
+                {% else %}
                 <div class="re-empty-hint"><i class='bx bx-info-circle'></i> No work experience. <a href="{% url 'dashboard:profile' %}">Add it →</a></div>
+                {% endif %}
             </div>
-            {% endif %}
         </div>
 
         <!-- Internships (students only) -->
@@ -222,27 +223,28 @@
                 </div>
                 {% endif %}
             </div>
-            {% if all_internships %}
-            <div class="re-sel-list" id="grp-internships">
-                {% for idx, intern in all_internships %}
-                <label class="re-sel-item {% if idx in sel_internships %}re-sel-on{% endif %}">
-                    <input type="checkbox" name="sel_internships" value="{{ idx }}"
-                        {% if idx in sel_internships %}checked{% endif %}
-                        onchange="syncSel(this,'internships')">
-                    <div class="re-sel-body">
-                        <span class="re-sel-title">{{ intern.title|default:"Internship" }}</span>
-                        <span class="re-sel-meta">{{ intern.company|default:"" }}{% if intern.start_date %} · {{ intern.start_date }}{% endif %}{% if intern.end_date %} – {{ intern.end_date }}{% endif %}</span>
-                        {% if intern.description %}<span class="re-sel-desc">{{ intern.description|truncatechars:100 }}</span>{% endif %}
-                    </div>
-                    <i class='bx bx-check re-sel-icon'></i>
-                </label>
-                {% endfor %}
-            </div>
-            {% else %}
             <div class="re-card-body">
+                {% if all_internships %}
+                <div class="re-exp-list" id="grp-internships">
+                    {% for idx, intern in all_internships %}
+                    <label class="re-exp-item re-selectable {% if idx in sel_internships %}re-sel-on{% endif %}">
+                        <input type="checkbox" name="sel_internships" value="{{ idx }}"
+                            {% if idx in sel_internships %}checked{% endif %}
+                            onchange="syncSel(this,'internships')">
+                        <div class="re-exp-dot"></div>
+                        <div class="re-exp-info">
+                            <strong>{{ intern.title|default:"Internship" }} <span class="re-company">at {{ intern.company|default:"" }}</span></strong>
+                            <small>{{ intern.start_date }} – {{ intern.end_date|default:"Present" }}</small>
+                            {% if intern.description %}<p>{{ intern.description|truncatechars:200 }}</p>{% endif %}
+                        </div>
+                        <i class='bx bx-check-circle re-item-check'></i>
+                    </label>
+                    {% endfor %}
+                </div>
+                {% else %}
                 <div class="re-empty-hint"><i class='bx bx-info-circle'></i> No internships found.</div>
+                {% endif %}
             </div>
-            {% endif %}
         </div>
         {% endif %}
 
@@ -261,27 +263,31 @@
                     </label>
                 </div>
             </div>
-            {% if all_projects %}
-            <div class="re-sel-list" id="grp-projects">
-                {% for idx, project in all_projects %}
-                <label class="re-sel-item {% if idx in sel_projects %}re-sel-on{% endif %}">
-                    <input type="checkbox" name="sel_projects" value="{{ idx }}"
-                        {% if idx in sel_projects %}checked{% endif %}
-                        onchange="syncSel(this,'projects')">
-                    <div class="re-sel-body">
-                        <span class="re-sel-title">{{ project.title|default:"Untitled Project" }}</span>
-                        {% if project.technologies %}<span class="re-sel-meta">{{ project.technologies|truncatechars:60 }}</span>{% endif %}
-                        {% if project.description %}<span class="re-sel-desc">{{ project.description|truncatechars:100 }}</span>{% endif %}
-                    </div>
-                    <i class='bx bx-check re-sel-icon'></i>
-                </label>
-                {% endfor %}
-            </div>
-            {% else %}
             <div class="re-card-body">
+                {% if all_projects %}
+                <div class="re-project-grid" id="grp-projects">
+                    {% for idx, project in all_projects %}
+                    <label class="re-project-item re-selectable {% if idx in sel_projects %}re-sel-on{% endif %}">
+                        <input type="checkbox" name="sel_projects" value="{{ idx }}"
+                            {% if idx in sel_projects %}checked{% endif %}
+                            onchange="syncSel(this,'projects')">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem">
+                            <strong>{{ project.title|default:"Untitled Project" }}</strong>
+                            <i class='bx bx-check-circle re-item-check' style="flex-shrink:0"></i>
+                        </div>
+                        {% if project.description %}<p>{{ project.description|truncatechars:150 }}</p>{% endif %}
+                        {% if project.technologies %}
+                        <div class="re-tech-pills">
+                            <span class="re-tech-pill">{{ project.technologies }}</span>
+                        </div>
+                        {% endif %}
+                    </label>
+                    {% endfor %}
+                </div>
+                {% else %}
                 <div class="re-empty-hint"><i class='bx bx-info-circle'></i> No projects. <a href="{% url 'dashboard:profile' %}">Add projects →</a></div>
+                {% endif %}
             </div>
-            {% endif %}
         </div>
 
         <!-- Certifications -->
@@ -299,26 +305,27 @@
                     </label>
                 </div>
             </div>
-            {% if all_certifications %}
-            <div class="re-sel-list" id="grp-certifications">
-                {% for idx, cert in all_certifications %}
-                <label class="re-sel-item {% if idx in sel_certifications %}re-sel-on{% endif %}">
-                    <input type="checkbox" name="sel_certifications" value="{{ idx }}"
-                        {% if idx in sel_certifications %}checked{% endif %}
-                        onchange="syncSel(this,'certifications')">
-                    <div class="re-sel-body">
-                        <span class="re-sel-title">{{ cert.name|default:"Certification" }}</span>
-                        <span class="re-sel-meta">{{ cert.issuing_organization|default:"" }}{% if cert.date %} · {{ cert.date }}{% endif %}</span>
-                    </div>
-                    <i class='bx bx-check re-sel-icon'></i>
-                </label>
-                {% endfor %}
-            </div>
-            {% else %}
             <div class="re-card-body">
+                {% if all_certifications %}
+                <div class="re-cert-list" id="grp-certifications">
+                    {% for idx, cert in all_certifications %}
+                    <label class="re-cert-item re-selectable {% if idx in sel_certifications %}re-sel-on{% endif %}">
+                        <input type="checkbox" name="sel_certifications" value="{{ idx }}"
+                            {% if idx in sel_certifications %}checked{% endif %}
+                            onchange="syncSel(this,'certifications')">
+                        <i class='bx bx-award' style="margin-top:.15rem"></i>
+                        <div style="flex:1">
+                            <strong>{{ cert.name|default:"Certification" }}</strong>
+                            {% if cert.issuing_organization %}<small>{{ cert.issuing_organization }}{% if cert.date %} &middot; {{ cert.date }}{% endif %}</small>{% endif %}
+                        </div>
+                        <i class='bx bx-check-circle re-item-check'></i>
+                    </label>
+                    {% endfor %}
+                </div>
+                {% else %}
                 <div class="re-empty-hint"><i class='bx bx-info-circle'></i> No certifications. <a href="{% url 'dashboard:profile' %}">Add some →</a></div>
+                {% endif %}
             </div>
-            {% endif %}
         </div>
 
         <!-- Achievements -->
@@ -543,46 +550,22 @@
 .re-btn.ghost{background:var(--hover-bg);color:var(--heading-color)}
 .re-btn.ghost:hover{background:var(--border-color)}
 
-/* ── Per-item selection list ────────────── */
-.re-sel-list{display:flex;flex-direction:column}
-.re-sel-item{
-    display:flex;align-items:flex-start;gap:.75rem;
-    padding:.7rem 1.25rem;cursor:pointer;
-    transition:background .12s;
-    border-bottom:1px solid var(--border-color,#f3f4f6);
-    position:relative;
-}
-.re-sel-item:last-child{border-bottom:none}
-.re-sel-item:hover{background:var(--hover-bg,#f9fafb)}
-.re-sel-item input[type=checkbox]{position:absolute;opacity:0;width:0;height:0}
-.re-sel-body{display:flex;flex-direction:column;gap:.15rem;flex:1;min-width:0}
-.re-sel-title{font-weight:600;font-size:.88rem;color:var(--heading-color)}
-.re-sel-meta{font-size:.76rem;color:var(--text-muted)}
-.re-sel-desc{font-size:.76rem;color:var(--text-muted);line-height:1.4}
-.re-sel-icon{
-    font-size:1.1rem;width:22px;height:22px;border-radius:50%;
-    border:2px solid var(--border-color,#d1d5db);
-    display:flex;align-items:center;justify-content:center;
-    flex-shrink:0;color:transparent;transition:all .15s;margin-top:.1rem;
-}
-.re-sel-on .re-sel-icon{background:var(--primary-color);border-color:var(--primary-color);color:#fff}
-.re-sel-on{background:var(--primary-xlight,#eff6ff)}
-.re-sel-badge{
-    font-size:.7rem;font-weight:700;
-    background:var(--primary-light,#dbeafe);color:var(--primary-color);
-    padding:.15rem .5rem;border-radius:999px;white-space:nowrap;
-}
-.re-sel-all{
-    font-size:.72rem;font-weight:600;background:transparent;
-    border:1.5px solid var(--border-color,#e5e7eb);color:var(--text-muted);
-    border-radius:.35rem;padding:.15rem .55rem;cursor:pointer;transition:all .15s;
-    white-space:nowrap;
-}
-.re-sel-all:hover{border-color:var(--primary-color);color:var(--primary-color)}
+/* ── Per-item selection (overlaid on original styles) ── */
+.re-selectable { cursor: pointer; position: relative; }
+.re-selectable input[type=checkbox] { position: absolute; opacity: 0; width: 0; height: 0; }
+.re-item-check { font-size: 1.2rem; color: var(--border-color,#d1d5db); flex-shrink:0; transition: color .15s; align-self:flex-start; margin-top:.1rem; }
+.re-sel-on .re-item-check { color: var(--success-color,#16a34a); }
+.re-selectable:hover .re-item-check { color: var(--text-muted); }
+.re-exp-item.re-sel-on { background:var(--primary-xlight,#eff6ff); border-radius:var(--radius,6px); }
+.re-exp-item.re-sel-on .re-exp-dot { background:var(--success-color,#16a34a); }
+.re-project-item.re-sel-on { border-color:var(--primary-color); background:var(--primary-xlight,#eff6ff); }
+.re-cert-item.re-sel-on { background:var(--primary-xlight,#eff6ff); border-radius:var(--radius,6px); }
+.re-sel-badge { font-size:.7rem; font-weight:700; background:var(--primary-light,#dbeafe); color:var(--primary-color); padding:.15rem .5rem; border-radius:999px; white-space:nowrap; }
+.re-sel-all { font-size:.72rem; font-weight:600; background:transparent; border:1.5px solid var(--border-color,#e5e7eb); color:var(--text-muted); border-radius:.35rem; padding:.15rem .55rem; cursor:pointer; transition:all .15s; white-space:nowrap; }
+.re-sel-all:hover { border-color:var(--primary-color); color:var(--primary-color); }
 
-@media(max-width:600px){
-    .re-sel-item{padding:.6rem 1rem}
-}
+/* ── Responsive ── */
+@media(max-width:1024px){
     .re-two-col{grid-template-columns:1fr}
     .re-sidebar{position:static;max-height:none}
 }
