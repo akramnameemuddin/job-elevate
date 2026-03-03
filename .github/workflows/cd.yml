@@ -40,6 +40,10 @@ jobs:
             echo "--- Resetting resume templates ---"
             python manage.py reset_templates --force
 
+            echo "--- Seeding community data ---"
+            python manage.py seed_community
+            python manage.py seed_community_posts
+
             echo "--- Collecting static files ---"
             python manage.py collectstatic --no-input
 
