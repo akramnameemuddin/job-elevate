@@ -348,10 +348,13 @@
             {% endif %}
             <div class="jl-card-footer">
                 <a href="{% url 'jobs:job_detail' job_id=rec.job.id %}" class="jl-view-btn">View Details <i class='bx bx-right-arrow-alt'></i></a>
-                <button class="jl-icon-btn bookmark-btn {% if rec.job.id in bookmarked_job_ids %}bookmarked{% endif %}"
-                        data-job-id="{{ rec.job.id }}">
-                    <i class='bx {% if rec.job.id in bookmarked_job_ids %}bxs-bookmark{% else %}bx-bookmark{% endif %}'></i>
-                </button>
+                <div class="jl-card-actions">
+                    {% if rec.job.id in applied_job_ids %}<span class="jl-applied-badge"><i class='bx bx-check'></i> Applied</span>{% endif %}
+                    <button class="jl-icon-btn bookmark-btn {% if rec.job.id in bookmarked_job_ids %}bookmarked{% endif %}"
+                            data-job-id="{{ rec.job.id }}">
+                        <i class='bx {% if rec.job.id in bookmarked_job_ids %}bxs-bookmark{% else %}bx-bookmark{% endif %}'></i>
+                    </button>
+                </div>
             </div>
         </div>
         {% endfor %}
@@ -485,6 +488,7 @@
                 <div class="jl-card-footer">
                     <a href="{% url 'jobs:job_detail' job_id=job.id %}" class="jl-view-btn">View Details <i class='bx bx-right-arrow-alt'></i></a>
                     <div class="jl-card-actions">
+                        {% if job.id in applied_job_ids %}<span class="jl-applied-badge"><i class='bx bx-check'></i> Applied</span>{% endif %}
                         <button class="jl-icon-btn bookmark-btn {% if job.id in bookmarked_job_ids %}bookmarked{% endif %}"
                                 data-job-id="{{ job.id }}">
                             <i class='bx {% if job.id in bookmarked_job_ids %}bxs-bookmark{% else %}bx-bookmark{% endif %}'></i>

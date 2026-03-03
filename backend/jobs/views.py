@@ -164,6 +164,9 @@ def job_listings(request):
         applicant=request.user
     ).select_related('job').order_by('-applied_at')
     
+    # Get applied job IDs for quick lookup
+    applied_job_ids = list(applied_jobs.values_list('job_id', flat=True))
+    
     # Pagination for main job listings
     paginator = Paginator(jobs_list, 20)  # Show 20 jobs per page
     page_number = request.GET.get('page')
@@ -195,6 +198,7 @@ def job_listings(request):
         'bookmarked_jobs': bookmarked_jobs,
         'applied_jobs': applied_jobs,
         'bookmarked_job_ids': bookmarked_job_ids,
+        'applied_job_ids': applied_job_ids,
         'all_locations': [loc for loc in all_locations if loc],  # Filter out empty locations
         'search_query': search_query,
         'location_filter': location_filter,
