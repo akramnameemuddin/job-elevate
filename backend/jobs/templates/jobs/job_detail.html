@@ -50,11 +50,18 @@
     transition: all .2s; background: var(--card-bg); color: var(--heading-color);
 }
 .jd-btn:hover { border-color: var(--primary-color); background: var(--hover-bg); }
-.jd-btn-primary { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
-.jd-btn-primary:hover { opacity: .9; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(79,70,229,.3); }
-.jd-btn-success { background: #22c55e; color: #fff; border-color: #22c55e; cursor: default; }
+.jd-btn-primary { background: var(--primary-color) !important; color: #fff !important; border-color: var(--primary-color) !important; }
+.jd-btn-primary:hover { opacity: .9; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59,130,246,.35); }
+.jd-btn-success { background: #22c55e !important; color: #fff !important; border-color: #22c55e !important; cursor: default; }
 .jd-btn i { font-size: 1.05rem; }
 .jd-btn-sm { padding: .4rem .75rem; font-size: .78rem; }
+/* Fix browser button appearance reset */
+button.jd-btn { -webkit-appearance: none; appearance: none; }
+/* Apply Now / Applied — full-width prominent row */
+.jd-apply-row { margin-bottom: .65rem; }
+.jd-apply-row .jd-btn { width: 100%; justify-content: center; font-size: .95rem; padding: .75rem 1.5rem; border-radius: 12px; }
+/* Secondary actions row */
+.jd-secondary-actions { display: flex; flex-wrap: wrap; gap: .6rem; }
 
 /* Match Ring */
 .jd-match-ring { display: flex; align-items: center; gap: 1rem; padding: 1rem 0; }
@@ -289,6 +296,8 @@
     .jd-hero-title { font-size: 1.15rem; }
     .jd-actions { flex-direction: column; }
     .jd-actions .jd-btn { width: 100%; justify-content: center; }
+    .jd-secondary-actions { flex-direction: column; }
+    .jd-secondary-actions .jd-btn { width: 100%; justify-content: center; }
     .jd-modal-box { margin-top: 1rem; }
 }
 @media(min-width:768px){
@@ -341,24 +350,33 @@
     </div>
 
     <div class="jd-actions">
-        {% if not already_applied %}
-        <button id="jdApplyBtn" class="jd-btn jd-btn-primary"><i class='bx bx-send'></i> Apply Now</button>
-        {% else %}
-        <span class="jd-btn jd-btn-success"><i class='bx bx-check'></i> Applied</span>
-        {% endif %}
+        <!-- Primary CTA — full-width prominent row -->
+        <div class="jd-apply-row" style="width:100%;">
+            {% if not already_applied %}
+            <button id="jdApplyBtn" class="jd-btn jd-btn-primary">
+                <i class='bx bx-send'></i> Apply Now
+            </button>
+            {% else %}
+            <span class="jd-btn jd-btn-success" style="cursor:default;">
+                <i class='bx bx-check-circle'></i> Applied Successfully
+            </span>
+            {% endif %}
+        </div>
 
-        <a href="{% url 'resume_builder:resume_analyzer' job.id %}" class="jd-btn">
-            <i class='bx bx-analyse'></i> Analyze Resume
-        </a>
-        <a href="{% url 'resume_builder:tailor_for_job' job.id %}" class="jd-btn">
-            <i class='bx bx-bot'></i> AI Tailor Resume
-        </a>
-
-        <button id="jdBookmarkBtn" class="jd-btn {% if is_bookmarked %}jd-btn-primary{% endif %}" data-job-id="{{ job.id }}">
-            <i class='bx {% if is_bookmarked %}bxs-bookmark{% else %}bx-bookmark{% endif %}'></i>
-            {% if is_bookmarked %}Saved{% else %}Save{% endif %}
-        </button>
-        <button class="jd-btn" id="jdShareBtn"><i class='bx bx-share-alt'></i> Share</button>
+        <!-- Secondary actions -->
+        <div class="jd-secondary-actions">
+            <a href="{% url 'resume_builder:resume_analyzer' job.id %}" class="jd-btn">
+                <i class='bx bx-analyse'></i> Analyze Resume
+            </a>
+            <a href="{% url 'resume_builder:tailor_for_job' job.id %}" class="jd-btn">
+                <i class='bx bx-bot'></i> AI Tailor Resume
+            </a>
+            <button id="jdBookmarkBtn" class="jd-btn {% if is_bookmarked %}jd-btn-primary{% endif %}" data-job-id="{{ job.id }}">
+                <i class='bx {% if is_bookmarked %}bxs-bookmark{% else %}bx-bookmark{% endif %}'></i>
+                {% if is_bookmarked %}Saved{% else %}Save{% endif %}
+            </button>
+            <button class="jd-btn" id="jdShareBtn"><i class='bx bx-share-alt'></i> Share</button>
+        </div>
     </div>
 </div>
 
