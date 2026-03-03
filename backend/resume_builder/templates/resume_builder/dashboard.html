@@ -75,7 +75,7 @@
                         <a href="{% url 'resume_builder:edit_resume' resume.id %}" class="rb-action-btn" title="Edit"><i class='bx bx-edit'></i></a>
                         <a href="{% url 'resume_builder:preview_resume' resume.id %}" class="rb-action-btn" title="Preview"><i class='bx bx-show'></i></a>
                         <a href="{% url 'resume_builder:download_resume' resume.id %}" class="rb-action-btn green" title="Download"><i class='bx bx-download'></i></a>
-                        <button class="rb-action-btn danger btn-outline-danger" data-resume-id="{{ resume.id }}" onclick="openDeleteModal({{ resume.id }})" title="Delete"><i class='bx bx-trash'></i> Delete</button>
+                        <button class="rb-action-btn danger btn-outline-danger" data-resume-id="{{ resume.id }}" onclick="openDeleteModal({{ resume.id }})" title="Delete"><i class='bx bx-trash'></i></button>
                     </div>
                 </div>
                 {% endfor %}
