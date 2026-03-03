@@ -1062,7 +1062,9 @@
                             </div>
                             <div class="input-box full-width">
                                 <label for="graduation_year">Expected Graduation Year</label>
-                                <input type="number" id="graduation_year" name="graduation_year" min="1960" max="2040" value="{{ form_data.graduation_year|default:'' }}" placeholder="2024">
+                                <select id="graduation_year" name="graduation_year">
+                                    <option value="">Select year</option>
+                                </select>
                             </div>
                         </div>
 
@@ -1448,18 +1450,19 @@
         e.target.value = value;
       });
 
-      // Graduation year validation
-      document.getElementById('graduation_year').addEventListener('input', function(e) {
+      // Graduation year dropdown — populate 2000 → current year, pre-select saved value
+      (function() {
+        const sel = document.getElementById('graduation_year');
+        const saved = "{{ form_data.graduation_year|default:'' }}";
         const currentYear = new Date().getFullYear();
-        const maxYear = currentYear + 10;
-        const minYear = 1960;
-        
-        if (parseInt(e.target.value) > maxYear) {
-          e.target.value = maxYear;
-        } else if (parseInt(e.target.value) < minYear) {
-          e.target.value = minYear;
+        for (let y = currentYear; y >= 2000; y--) {
+          const opt = document.createElement('option');
+          opt.value = y;
+          opt.textContent = y;
+          if (String(y) === saved) opt.selected = true;
+          sel.appendChild(opt);
         }
-      });
+      })();
 
       // Experience validation
       document.getElementById('experience').addEventListener('input', function(e) {
