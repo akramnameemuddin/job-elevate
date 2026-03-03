@@ -230,6 +230,22 @@ def _clean(text):
     return text
 
 
+def _flatten_keep_together(flowables):
+    """
+    Replace any KeepTogether wrappers with their inner flowables.
+    KeepTogether has no .draw() method so it cannot be placed inside a
+    KeepInFrame; flattening it preserves all content without the wrapper.
+    """
+    result = []
+    for f in flowables:
+        if isinstance(f, KeepTogether):
+            inner = getattr(f, '_flowables', None) or getattr(f, 'flowables', [])
+            result.extend(inner)
+        else:
+            result.append(f)
+    return result
+
+
 def _add_section_header(story, title, pc, template_style='modern'):
     """Append a section header flowable."""
     story.append(SectionHeader(title, color=pc, template_style=template_style))
@@ -736,8 +752,8 @@ def _generate_creative_resume_pdf(user, resume=None, context=None):
     sb_inner_w = sidebar_w - cell_pad_h_sb
     main_inner_w = main_w - cell_pad_h_main
 
-    sidebar_frame = KeepInFrame(sb_inner_w, content_h, sidebar, mode='shrink')
-    main_frame = KeepInFrame(main_inner_w, content_h, main, mode='shrink')
+    sidebar_frame = KeepInFrame(sb_inner_w, content_h, _flatten_keep_together(sidebar), mode='shrink')
+    main_frame = KeepInFrame(main_inner_w, content_h, _flatten_keep_together(main), mode='shrink')
 
     layout_data = [[sidebar_frame, main_frame]]
     # No fixed rowHeights — let the table auto-size to KeepInFrame's output
