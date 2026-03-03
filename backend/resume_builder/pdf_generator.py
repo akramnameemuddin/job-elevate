@@ -726,12 +726,13 @@ def _generate_creative_resume_pdf(user, resume=None, context=None):
         _build_extracurricular(main, extracurricular, styles, pc, 'creative')
 
     # ── Assemble two-column Table ──
-    # Wrap each column in KeepInFrame(mode='shrink') so the single-row table
-    # never exceeds page height (avoids ReportLab "too large" flowable error).
-    cell_pad_v = 32   # 16pt top + 16pt bottom padding applied below
+    # Wrap each column in KeepInFrame(mode='shrink') so content never overflows.
+    # SimpleDocTemplate with 0 margins still has an internal frame ~12 pts
+    # shorter than page_h; use a 14-pt safety buffer to stay within that frame.
+    cell_pad_v = 32   # 16pt top + 16pt bottom applied by TableStyle below
     cell_pad_h_sb = 24  # 12pt left + 12pt right for sidebar
     cell_pad_h_main = 30  # 16pt left + 14pt right for main
-    content_h = page_h - cell_pad_v
+    content_h = page_h - cell_pad_v - 14   # fits inside the ~829 pt internal frame
     sb_inner_w = sidebar_w - cell_pad_h_sb
     main_inner_w = main_w - cell_pad_h_main
 
@@ -739,8 +740,8 @@ def _generate_creative_resume_pdf(user, resume=None, context=None):
     main_frame = KeepInFrame(main_inner_w, content_h, main, mode='shrink')
 
     layout_data = [[sidebar_frame, main_frame]]
-    layout_table = Table(layout_data, colWidths=[sidebar_w, main_w],
-                         rowHeights=[page_h])
+    # No fixed rowHeights — let the table auto-size to KeepInFrame's output
+    layout_table = Table(layout_data, colWidths=[sidebar_w, main_w])
     layout_table.setStyle(TableStyle([
         # Sidebar — coloured background
         ('BACKGROUND', (0, 0), (0, -1), pc),
