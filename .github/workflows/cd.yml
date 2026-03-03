@@ -37,6 +37,9 @@ jobs:
             cd ~/job-elevate/backend
             python manage.py migrate --no-input
 
+            echo "--- Resetting resume templates ---"
+            python manage.py reset_templates --force
+
             echo "--- Collecting static files ---"
             python manage.py collectstatic --no-input
 
