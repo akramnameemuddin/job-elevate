@@ -413,7 +413,7 @@ body.professional-resume{
 
   <aside class="sidebar">
     <div class="sidebar-header">
-      <div class="avatar">{{ user_profile.full_name|truncatechars:1 }}</div>
+      <div class="avatar">{{ user_profile.full_name|first|upper }}</div>
       <h1 class="sidebar-name">{{ user_profile.full_name }}</h1>
       {% if user_profile.job_title %}<p class="sidebar-title">{{ user_profile.job_title }}</p>{% endif %}
     </div>

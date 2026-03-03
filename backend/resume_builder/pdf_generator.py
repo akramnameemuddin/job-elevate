@@ -11,10 +11,11 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.colors import HexColor, black, white, Color
 from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT, TA_JUSTIFY
 from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
+    SimpleDocTemplate, BaseDocTemplate, Frame, PageTemplate, FrameBreak,
+    Paragraph, Spacer, Table, TableStyle,
     HRFlowable, KeepTogether, ListFlowable, ListItem, PageBreak,
 )
-from reportlab.platypus.flowables import Flowable, KeepInFrame
+from reportlab.platypus.flowables import Flowable
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 import html
@@ -667,8 +668,12 @@ def _build_creative_sidebar(user_profile, skills, certifications, resume, pc, in
 
 def _generate_creative_resume_pdf(user, resume=None, context=None):
     """
-    Generate Creative-style PDF with a two-column sidebar layout
-    that visually matches the HTML preview.
+    Generate Creative-style PDF with a genuine two-column sidebar layout.
+
+    Uses BaseDocTemplate with two Frames (sidebar + main) and an onPage
+    callback that paints the full-height sidebar background colour.
+    KeepTogether flowables work correctly because content flows through
+    the story as normal — no KeepInFrame hacks needed.
     """
     primary = getattr(resume, 'primary_color', '#4f46e5') or '#4f46e5'
     if primary == '#4f46e5':
@@ -682,106 +687,106 @@ def _generate_creative_resume_pdf(user, resume=None, context=None):
 
     # ── Resolve data ──
     if context:
-        skills = context.get('technical_skills', [])
+        skills          = context.get('technical_skills', [])
         work_experience = context.get('work_experience', [])
-        internships = context.get('internships', [])
-        projects = context.get('projects', [])
-        certifications = context.get('certifications', [])
+        internships     = context.get('internships', [])
+        projects        = context.get('projects', [])
+        certifications  = context.get('certifications', [])
         achievements_list = context.get('achievements_list', [])
         extracurricular = context.get('extracurricular_html', '')
-        user_profile = context.get('user_profile', user)
+        user_profile    = context.get('user_profile', user)
     else:
-        skills = user.get_skills_list() if hasattr(user, 'get_skills_list') else []
+        skills          = user.get_skills_list() if hasattr(user, 'get_skills_list') else []
         work_experience = user.get_work_experience() if hasattr(user, 'get_work_experience') else []
-        internships = user.get_internships() if hasattr(user, 'get_internships') else []
-        projects = user.get_projects() if hasattr(user, 'get_projects') else []
-        certifications = user.get_certifications() if hasattr(user, 'get_certifications') else []
+        internships     = user.get_internships() if hasattr(user, 'get_internships') else []
+        projects        = user.get_projects() if hasattr(user, 'get_projects') else []
+        certifications  = user.get_certifications() if hasattr(user, 'get_certifications') else []
         achievements_list = []
         if hasattr(user, 'achievements') and user.achievements:
             achievements_list = [a.strip() for a in user.achievements.split('\n') if a.strip()]
         extracurricular = getattr(user, 'extracurricular_activities', '') or ''
-        user_profile = user
+        user_profile    = user
 
     def _show(field, default=True):
-        if resume is None:
-            return default
-        return getattr(resume, field, default)
+        return getattr(resume, field, default) if resume is not None else default
 
     # ── Page geometry ──
     page_w, page_h = A4
-    sidebar_frac = 0.34
-    sidebar_w = page_w * sidebar_frac
-    main_w = page_w * (1 - sidebar_frac)
-    sidebar_inner = sidebar_w - 24  # 12px padding each side
+    sidebar_frac   = 0.34
+    sidebar_w      = page_w * sidebar_frac
+    main_w         = page_w - sidebar_w
+    sb_pad_lr, sb_pad_tb   = 12, 16   # sidebar inner padding
+    main_pad_l, main_pad_r = 16, 14
+    main_pad_tb            = 16
 
-    # ── Sidebar content ──
-    sidebar = _build_creative_sidebar(
-        user_profile, skills if _show('show_skills') else [],
+    # ── Build sidebar flowables (contact, skills, education, certs) ──
+    sidebar_inner_w = sidebar_w - sb_pad_lr * 2
+    sidebar_story = _build_creative_sidebar(
+        user_profile,
+        skills         if _show('show_skills')         else [],
         certifications if _show('show_certifications') else [],
-        resume, pc, sidebar_inner,
+        resume, pc, sidebar_inner_w,
     )
 
-    # ── Main content (reuse existing section builders) ──
-    main = []
-    main.append(Spacer(1, 4))
+    # ── Build main-column flowables ──
+    # NOTE: education & certifications live in the sidebar only.
+    main_story = [Spacer(1, 4)]
     if _show('show_objective'):
-        _build_objective(main, user_profile, styles, pc, 'creative')
-    if _show('show_experience'):
-        _build_experience(main, work_experience, styles, pc,
+        _build_objective(main_story, user_profile, styles, pc, 'creative')
+    if _show('show_experience') and work_experience:
+        _build_experience(main_story, work_experience, styles, pc,
                           label='Experience', template_style='creative')
-        if internships:
-            _build_experience(main, internships, styles, pc,
-                              label='Internships', template_style='creative')
+    if _show('show_experience') and internships:
+        _build_experience(main_story, internships, styles, pc,
+                          label='Internships', template_style='creative')
     if _show('show_projects'):
-        _build_projects(main, projects, styles, pc, 'creative')
-    if _show('show_education'):
-        _build_education(main, user_profile, styles, pc, 'creative')
+        _build_projects(main_story, projects, styles, pc, 'creative')
     if _show('show_achievements'):
-        _build_achievements(main, achievements_list, styles, pc, 'creative')
+        _build_achievements(main_story, achievements_list, styles, pc, 'creative')
     if _show('show_extracurricular'):
-        _build_extracurricular(main, extracurricular, styles, pc, 'creative')
+        _build_extracurricular(main_story, extracurricular, styles, pc, 'creative')
 
-    # ── Assemble two-column Table ──
-    # Wrap each column in KeepInFrame(mode='shrink') so content never overflows.
-    # SimpleDocTemplate with 0 margins still has an internal frame ~12 pts
-    # shorter than page_h; use a 14-pt safety buffer to stay within that frame.
-    cell_pad_v = 32   # 16pt top + 16pt bottom applied by TableStyle below
-    cell_pad_h_sb = 24  # 12pt left + 12pt right for sidebar
-    cell_pad_h_main = 30  # 16pt left + 14pt right for main
-    content_h = page_h - cell_pad_v - 14   # fits inside the ~829 pt internal frame
-    sb_inner_w = sidebar_w - cell_pad_h_sb
-    main_inner_w = main_w - cell_pad_h_main
+    # ── Page template: sidebar Frame then main Frame ──
+    f_sidebar = Frame(
+        x1=0, y1=0,
+        width=sidebar_w, height=page_h,
+        leftPadding=sb_pad_lr, rightPadding=sb_pad_lr,
+        topPadding=sb_pad_tb,  bottomPadding=sb_pad_tb,
+        id='sidebar',
+    )
+    f_main = Frame(
+        x1=sidebar_w, y1=0,
+        width=main_w,    height=page_h,
+        leftPadding=main_pad_l, rightPadding=main_pad_r,
+        topPadding=main_pad_tb, bottomPadding=main_pad_tb,
+        id='main',
+    )
 
-    sidebar_frame = KeepInFrame(sb_inner_w, content_h, _flatten_keep_together(sidebar), mode='shrink')
-    main_frame = KeepInFrame(main_inner_w, content_h, _flatten_keep_together(main), mode='shrink')
+    # Paint the sidebar background on every page before content is drawn
+    def _on_page(canvas, doc):
+        canvas.saveState()
+        canvas.setFillColor(pc)
+        canvas.rect(0, 0, sidebar_w, page_h, fill=1, stroke=0)
+        canvas.restoreState()
 
-    layout_data = [[sidebar_frame, main_frame]]
-    # No fixed rowHeights — let the table auto-size to KeepInFrame's output
-    layout_table = Table(layout_data, colWidths=[sidebar_w, main_w])
-    layout_table.setStyle(TableStyle([
-        # Sidebar — coloured background
-        ('BACKGROUND', (0, 0), (0, -1), pc),
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        # Sidebar padding
-        ('LEFTPADDING', (0, 0), (0, -1), 12),
-        ('RIGHTPADDING', (0, 0), (0, -1), 12),
-        ('TOPPADDING', (0, 0), (0, -1), 16),
-        ('BOTTOMPADDING', (0, 0), (0, -1), 16),
-        # Main column padding
-        ('LEFTPADDING', (1, 0), (1, -1), 16),
-        ('RIGHTPADDING', (1, 0), (1, -1), 14),
-        ('TOPPADDING', (1, 0), (1, -1), 16),
-        ('BOTTOMPADDING', (1, 0), (1, -1), 16),
-    ]))
+    page_tpl = PageTemplate(
+        id='CreativePage',
+        frames=[f_sidebar, f_main],
+        onPage=_on_page,
+    )
+
+    # Story: sidebar content → FrameBreak (jump to main frame) → main content
+    story = list(sidebar_story) + [FrameBreak()] + list(main_story)
 
     buf = BytesIO()
-    doc = SimpleDocTemplate(
+    doc = BaseDocTemplate(
         buf, pagesize=A4,
         topMargin=0, bottomMargin=0, leftMargin=0, rightMargin=0,
         title=f"{user_profile.full_name} – Resume",
         author=user_profile.full_name,
     )
-    doc.build([layout_table])
+    doc.addPageTemplates([page_tpl])
+    doc.build(story)
     pdf_bytes = buf.getvalue()
     buf.close()
     return pdf_bytes
