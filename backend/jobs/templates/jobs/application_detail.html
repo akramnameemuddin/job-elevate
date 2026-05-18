@@ -251,32 +251,93 @@
         <!-- Messages -->
         <div class="ad-card">
             <h3 class="ad-card-title"><i class='bx bx-chat'></i> Messages</h3>
-            {% if messages %}
-            <div class="ad-msg-list">
-                {% for msg in messages %}
-                <div class="ad-msg {% if msg.sender == request.user %}self{% endif %}">
-                    <div class="ad-msg-avatar">
-                        {% if msg.sender == request.user %}ME{% else %}HR{% endif %}
+            <div id="ad-msg-list" class="ad-msg-list">
+                {% if application_messages %}
+                    {% for msg in application_messages %}
+                    <div class="ad-msg {% if msg.sender == request.user %}self{% endif %}">
+                        <div class="ad-msg-avatar">
+                            {% if msg.sender == request.user %}ME{% else %}HR{% endif %}
+                        </div>
+                        <div>
+                            <div class="ad-msg-bubble">{{ msg.content }}</div>
+                            <div class="ad-msg-time">{{ msg.sent_at|date:"M d, g:i A" }}</div>
+                        </div>
                     </div>
-                    <div>
-                        <div class="ad-msg-bubble">{{ msg.content }}</div>
-                        <div class="ad-msg-time">{{ msg.sent_at|date:"M d, g:i A" }}</div>
-                    </div>
-                </div>
-                {% endfor %}
+                    {% endfor %}
+                {% else %}
+                <p style="font-size:.85rem; color:var(--text-muted); text-align:center; padding:1rem 0;">
+                    No messages yet. Send a message to the recruiter below.
+                </p>
+                {% endif %}
             </div>
-            {% else %}
-            <p style="font-size:.85rem; color:var(--text-muted); text-align:center; padding:1rem 0;">
-                No messages yet. Send a message to the recruiter below.
-            </p>
-            {% endif %}
 
-            <form class="ad-msg-form" method="post" action="{% url 'jobs:send_application_message' application.id %}">
+            <form class="ad-msg-form" id="msg-form" onsubmit="sendMessage(event, {{ application.id }})">
                 {% csrf_token %}
-                <textarea name="message" placeholder="Type your message..." rows="1" required></textarea>
+                <textarea id="msg-content" name="message" placeholder="Type your message..." rows="1" required></textarea>
                 <button type="submit"><i class='bx bx-send'></i></button>
             </form>
         </div>
+
+        <script>
+        function sendMessage(event, applicationId) {
+            event.preventDefault();
+            const content = document.getElementById('msg-content').value.trim();
+            if (!content) return;
+
+            const form = document.getElementById('msg-form');
+            const formData = new FormData(form);
+
+            fetch('{% url "jobs:send_application_message" application.id %}', {
+                method: 'POST',
+                body: formData,
+                headers: {'X-Requested-With': 'XMLHttpRequest'}
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('msg-content').value = '';
+                    fetchMessages(applicationId);
+                }
+            })
+            .catch(err => {
+                console.error('Error sending message:', err);
+                alert('Error sending message. Please try again.');
+            });
+        }
+
+        function fetchMessages(applicationId) {
+            fetch(`/jobs/api/application/${applicationId}/messages/`)
+                .then(response => response.json())
+                .then(data => {
+                    const msgList = document.getElementById('ad-msg-list');
+                    if (!data.messages || data.messages.length === 0) {
+                        msgList.innerHTML = '<p style="font-size:.85rem; color:var(--text-muted); text-align:center; padding:1rem 0;">No messages yet. Send a message to the recruiter below.</p>';
+                        return;
+                    }
+                    msgList.innerHTML = data.messages.map(msg => {
+                        const isMe = msg.sender_id === {{ request.user.id }};
+                        return `<div class="ad-msg ${isMe ? 'self' : ''}">
+                            <div class="ad-msg-avatar">${isMe ? 'ME' : 'HR'}</div>
+                            <div>
+                                <div class="ad-msg-bubble">${escapeHtml(msg.content)}</div>
+                                <div class="ad-msg-time">${new Date(msg.sent_at).toLocaleString()}</div>
+                            </div>
+                        </div>`;
+                    }).join('');
+                    msgList.scrollTop = msgList.scrollHeight;
+                })
+                .catch(err => console.error('Error fetching messages:', err));
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Auto-refresh messages every 3 seconds
+        setInterval(() => fetchMessages({{ application.id }}), 3000);
+        </script>
     </div>
 
     <!-- Right sidebar -->

@@ -688,7 +688,7 @@ def application_detail(request, application_id):
     
     context = {
         'application': application,
-        'messages': messages_thread,
+        'application_messages': messages_thread,
     }
     
     return render(request, 'jobs/application_detail.html', context)
@@ -922,13 +922,19 @@ def send_application_message(request, application_id):
     
     # Ensure user is authorized (either the applicant or the recruiter)
     if request.user != application.applicant and request.user != application.job.posted_by:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Not authorized'}, status=403)
         messages.error(request, "You are not authorized to send messages for this application.")
         return redirect('jobs:my_applications')
     
     try:
-        content = request.POST.get('message_content', '').strip()
+        # Try both possible field names for backward compatibility
+        content = request.POST.get('message_content', '') or request.POST.get('message', '')
+        content = content.strip()
         
         if not content:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'error': 'Message cannot be empty'})
             messages.error(request, "Message content cannot be empty.")
             return redirect('jobs:application_detail', application_id=application_id)
         
@@ -950,10 +956,16 @@ def send_application_message(request, application_id):
             content=content
         )
         
+        # Return different responses based on request type
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': True, 'message_id': message.id})
+        
         messages.success(request, "Your message has been sent successfully!")
         
     except Exception as e:
         logger.error(f"Error sending application message: {str(e)}")
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
         messages.error(request, "There was an error sending your message. Please try again.")
     
     return redirect('jobs:application_detail', application_id=application_id)
@@ -1052,3 +1064,37 @@ def api_recommended_jobs(request):
         })
     
     return JsonResponse({'recommended_jobs': jobs_data})
+
+
+@login_required
+def api_get_application_messages(request, application_id):
+    """API endpoint to fetch messages for an application (AJAX)"""
+    application = get_object_or_404(Application, id=application_id)
+    
+    # Only applicant or recruiter can view messages
+    if request.user != application.applicant and request.user != application.job.posted_by:
+        return JsonResponse({'error': 'Access denied'}, status=403)
+    
+    # Mark unread messages as read
+    from recruiter.models import Message
+    unread = Message.objects.filter(application=application, recipient=request.user, is_read=False)
+    if unread.exists():
+        unread.update(is_read=True)
+    
+    # Fetch all messages for this application
+    msgs = Message.objects.filter(application=application).order_by('sent_at')
+    
+    messages_list = []
+    for m in msgs:
+        messages_list.append({
+            'id': m.id,
+            'sender_id': m.sender.id,
+            'sender_name': getattr(m.sender, 'full_name', m.sender.username),
+            'recipient_id': m.recipient.id,
+            'recipient_name': getattr(m.recipient, 'full_name', m.recipient.username),
+            'content': m.content,
+            'sent_at': m.sent_at.isoformat(),
+            'is_read': m.is_read,
+        })
+    
+    return JsonResponse({'messages': messages_list})

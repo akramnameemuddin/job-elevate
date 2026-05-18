@@ -36,4 +36,5 @@ urlpatterns = [
     
     # API endpoints
     path('api/recommended/', views.api_recommended_jobs, name='api_recommended_jobs'),
+    path('api/application/<int:application_id>/messages/', views.api_get_application_messages, name='api_get_application_messages'),
 ]
