@@ -606,3 +606,69 @@ def send_message(request, application_id):
             'success': False,
             'message': f'Error sending message: {str(e)}'
         }, status=400)
+
+
+@login_required
+def get_messages(request, application_id):
+    """Return message thread for an application. Accessible to applicant or the job's recruiter."""
+    application = get_object_or_404(Application, id=application_id)
+
+    # Only allow applicant or the job poster
+    if not (request.user == application.applicant or request.user == application.job.posted_by):
+        return JsonResponse({'error': 'Access denied'}, status=403)
+
+    # Fetch messages related to this application (ordered oldest -> newest)
+    msgs_qs = Message.objects.filter(application=application).order_by('sent_at')
+
+    # Mark unread messages where recipient is the current user as read
+    unread = msgs_qs.filter(recipient=request.user, is_read=False)
+    if unread.exists():
+        unread.update(is_read=True)
+
+    messages_list = []
+    for m in msgs_qs:
+        messages_list.append({
+            'id': m.id,
+            'sender_id': m.sender.id,
+            'sender_name': getattr(m.sender, 'full_name', m.sender.username),
+            'recipient_id': m.recipient.id,
+            'recipient_name': getattr(m.recipient, 'full_name', m.recipient.username),
+            'subject': m.subject,
+            'content': m.content,
+            'sent_at': m.sent_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'is_read': m.is_read,
+        })
+
+    return JsonResponse({'messages': messages_list})
+
+
+@login_required
+@require_POST
+def applicant_send_message(request, application_id):
+    """Allow the applicant to send a message to the job poster (recruiter)."""
+    # Only applicants (student/professional) should call this
+    if request.user.user_type not in ['student', 'professional']:
+        return JsonResponse({'error': 'Access denied'}, status=403)
+
+    application = get_object_or_404(Application, id=application_id, applicant=request.user)
+
+    try:
+        data = json.loads(request.body)
+
+        message = Message.objects.create(
+            sender=request.user,
+            recipient=application.job.posted_by,
+            application=application,
+            subject=data.get('subject', f"Question about your job posting: {application.job.title}"),
+            content=data.get('content')
+        )
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Message sent successfully',
+            'message_id': message.id
+        })
+
+    except Exception as e:
+        logger.error(f"Error applicant sending message: {e}", exc_info=True)
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)

@@ -25,4 +25,6 @@ urlpatterns = [
     
     # Messaging routes
     path('api/applications/<int:application_id>/message/', views.send_message, name='send_message'),
+    path('api/applications/<int:application_id>/messages/', views.get_messages, name='get_messages'),
+    path('api/applications/<int:application_id>/message/applicant/', views.applicant_send_message, name='applicant_send_message'),
 ]

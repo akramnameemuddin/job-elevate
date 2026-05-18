@@ -13,6 +13,10 @@
             document.documentElement.setAttribute('data-theme', storedTheme);
         })();
     </script>
+    <script>
+        // Expose current user id for frontend logic
+        window.CURRENT_USER_ID = {{ user.id|default:'null' }};
+    </script>
 
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
@@ -1983,6 +1987,7 @@ const API = {
     CANDIDATES: (jobId = null) => jobId ? `/recruiter/api/candidates/${jobId}/` : '/recruiter/api/candidates/',
     UPDATE_APPLICATION: (id) => `/recruiter/api/applications/${id}/status/`,
     SEND_MESSAGE: (id) => `/recruiter/api/applications/${id}/message/`,
+    GET_MESSAGES: (id) => `/recruiter/api/applications/${id}/messages/`,
     UPDATE_PROFILE: '/recruiter/api/profile/update/'
 };
 
@@ -2474,34 +2479,35 @@ function showMessageModal(applicationId, candidateName) {
         messageModal.className = 'modal-overlay';
         messageModal.id = 'message-modal';
         messageModal.innerHTML = `
-            <div class="modal">
-                <div class="modal-header">
-                    <span class="modal-title">Send Message</span>
-                    <button class="modal-close" id="close-message-modal">&times;</button>
+                <div class="modal">
+                    <div class="modal-header">
+                        <span class="modal-title">Conversation</span>
+                        <button class="modal-close" id="close-message-modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="message-thread" style="max-height:300px;overflow:auto;padding:0.5rem;border:1px solid var(--muted);margin-bottom:1rem;background:#fff;"></div>
+                        <form id="message-form">
+                            <input type="hidden" id="message-application-id">
+                            <div class="form-group">
+                                <label class="form-label">Recipient</label>
+                                <input type="text" class="form-control" id="message-recipient" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Subject</label>
+                                <input type="text" class="form-control" id="message-subject" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Message</label>
+                                <textarea class="form-control" id="message-content" rows="3" required></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" id="cancel-message-btn">Cancel</button>
+                        <button class="btn btn-primary" id="send-message-btn">Send Message</button>
+                    </div>
                 </div>
-                <div class="modal-body">
-                    <form id="message-form">
-                        <input type="hidden" id="message-application-id">
-                        <div class="form-group">
-                            <label class="form-label">Recipient</label>
-                            <input type="text" class="form-control" id="message-recipient" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Subject</label>
-                            <input type="text" class="form-control" id="message-subject" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Message</label>
-                            <textarea class="form-control" id="message-content" rows="5" required></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" id="cancel-message-btn">Cancel</button>
-                    <button class="btn btn-primary" id="send-message-btn">Send Message</button>
-                </div>
-            </div>
-        `;
+            `;
         document.body.appendChild(messageModal);
         
         // Set up event listeners
@@ -2528,6 +2534,59 @@ function showMessageModal(applicationId, candidateName) {
     document.getElementById('message-subject').value = `Regarding your job application`;
     document.getElementById('message-content').value = '';
     messageModal.classList.add('active');
+
+    // Fetch and render existing messages for this application
+    fetchMessages(applicationId);
+}
+
+// Fetch messages for an application and render the thread
+function fetchMessages(applicationId) {
+    const thread = document.getElementById('message-thread');
+    thread.innerHTML = '<div style="padding:1rem;color:var(--text-muted)">Loading messages...</div>';
+
+    fetch(API.GET_MESSAGES(applicationId))
+        .then(resp => {
+            if (!resp.ok) throw new Error('Failed to fetch messages');
+            return resp.json();
+        })
+        .then(data => {
+            renderMessageThread(data.messages || []);
+        })
+        .catch(err => {
+            console.error(err);
+            thread.innerHTML = '<div style="padding:1rem;color:var(--danger)">Could not load messages.</div>';
+        });
+}
+
+function renderMessageThread(messages) {
+    const thread = document.getElementById('message-thread');
+    if (!messages || messages.length === 0) {
+        thread.innerHTML = '<div style="padding:1rem;color:var(--text-muted)">No messages yet.</div>';
+        return;
+    }
+
+    thread.innerHTML = messages.map(m => {
+        const isMe = m.sender_id === window.CURRENT_USER_ID;
+        return `
+            <div style="margin-bottom:0.5rem; display:flex; justify-content:${isMe ? 'flex-end' : 'flex-start'};">
+                <div style="max-width:75%; background:${isMe ? '#e6ffed' : '#f1f5f9'}; padding:0.5rem; border-radius:8px;">
+                    <div style="font-size:0.85rem; color:var(--text-muted);">${m.sender_name} • ${m.sent_at}</div>
+                    <div style="margin-top:0.25rem; white-space:pre-wrap;">${escapeHtml(m.content)}</div>
+                </div>
+            </div>`;
+    }).join('');
+
+    // Scroll to bottom
+    thread.scrollTop = thread.scrollHeight;
+}
+
+// Simple HTML escape
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>"']/g, function(tag) {
+        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+        return map[tag] || tag;
+    });
 }
 
 // Send message to applicant
@@ -2556,7 +2615,10 @@ function sendMessage() {
     .then(data => {
         if (data.success) {
             alert('Message sent successfully!');
-            document.getElementById('message-modal').classList.remove('active');
+            // refresh thread
+            fetchMessages(applicationId);
+            // clear content
+            document.getElementById('message-content').value = '';
         } else {
             alert(`Error: ${data.message}`);
         }

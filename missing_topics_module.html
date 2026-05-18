@@ -1,0 +1,1402 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);font-size:14px;color:var(--color-text-primary)}
+.w{padding:.75rem 0}
+.top-tabs{display:flex;gap:6px;margin-bottom:1.25rem;flex-wrap:wrap}
+.ttab{padding:7px 16px;font-size:13px;border:0.5px solid var(--color-border-secondary);border-radius:20px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-secondary);transition:all .15s}
+.ttab.on{background:var(--color-text-primary);color:var(--color-background-primary);border-color:var(--color-text-primary)}
+.view{display:none}.view.on{display:block}
+.filter-tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:1rem}
+.ftab{padding:4px 11px;font-size:11px;border:0.5px solid var(--color-border-secondary);border-radius:20px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-secondary)}
+.ftab.on{background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-primary);font-weight:500}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.1rem 1.2rem;margin-bottom:.9rem}
+.card-head{font-size:15px;font-weight:500;margin-bottom:3px}
+.card-sub{font-size:12px;color:var(--color-text-secondary);margin-bottom:11px;line-height:1.5}
+.lbl{font-size:10px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.concept{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:11px 13px;font-size:13px;line-height:1.75;margin-bottom:9px}
+.code{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:11px 13px;font-size:11.5px;font-family:var(--font-mono);line-height:1.65;white-space:pre-wrap;word-break:break-word;margin-bottom:9px}
+.note{background:#E1F5EE;border-radius:var(--border-radius-md);padding:9px 12px;font-size:12px;color:#085041;line-height:1.6;margin-bottom:8px}
+.warn{background:#FAEEDA;border-radius:var(--border-radius-md);padding:9px 12px;font-size:12px;color:#633806;line-height:1.6;margin-bottom:8px}
+.badge{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500}
+.sql-b{background:#EEEDFE;color:#3C3489}
+.py-b{background:#E1F5EE;color:#085041}
+.pd-b{background:#FAECE7;color:#712B13}
+.miss-b{background:#FBEAF0;color:#72243E}
+.qcard{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.1rem;margin-bottom:.8rem}
+.qmeta{display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.qn{font-size:11px;color:var(--color-text-secondary)}
+.diff{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500}
+.easy{background:#EAF3DE;color:#27500A}.med{background:#FAEEDA;color:#633806}.hard{background:#FCEBEB;color:#791F1F}
+.qt{font-size:14px;font-weight:500;line-height:1.5;margin-bottom:10px}
+.sbtn{padding:5px 12px;font-size:12px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);cursor:pointer;background:var(--color-background-secondary);color:var(--color-text-primary)}
+.ans{display:none;margin-top:10px;border-top:0.5px solid var(--color-border-tertiary);padding-top:10px}
+.ans.open{display:block}
+.say{background:var(--color-background-secondary);padding:10px 12px;font-size:13px;line-height:1.7;border-left:3px solid #1D9E75;margin-bottom:8px}
+.tip{background:#E1F5EE;border-radius:var(--border-radius-md);padding:8px 11px;font-size:12px;color:#085041;line-height:1.6}
+.srow{display:flex;gap:8px;margin-bottom:.9rem;flex-wrap:wrap}
+.stat{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:7px 12px;font-size:12px;color:var(--color-text-secondary)}
+.stat b{color:var(--color-text-primary);font-weight:500}
+.pbar{height:3px;background:var(--color-border-tertiary);border-radius:2px;margin-bottom:1rem;overflow:hidden}
+.pfill{height:100%;background:#1D9E75;border-radius:2px;transition:width .4s}
+</style>
+
+<div class="w">
+<div class="top-tabs">
+  <button class="ttab on" onclick="setV('learn')">Missing lessons</button>
+  <button class="ttab" onclick="setV('quiz')">Mock interview</button>
+</div>
+
+<div id="learn" class="view on">
+  <div style="background:#FBEAF0;border-radius:var(--border-radius-md);padding:10px 13px;font-size:12px;color:#72243E;margin-bottom:1rem;line-height:1.7">
+    These are topics from your syllabus that were NOT covered in the earlier Python, SQL, and pandas learning modules. Nothing repeated — gaps only.
+  </div>
+  <div class="filter-tabs" id="lftabs"></div>
+  <div id="lview"></div>
+</div>
+
+<div id="quiz" class="view">
+  <div class="srow">
+    <div class="stat">Questions: <b id="qtot">0</b></div>
+    <div class="stat">Reviewed: <b id="qseen">0</b></div>
+    <div class="stat">Progress: <b id="qpct">0%</b></div>
+  </div>
+  <div class="pbar"><div class="pfill" id="qpf" style="width:0%"></div></div>
+  <div class="filter-tabs" id="qftabs"></div>
+  <div id="qview"></div>
+</div>
+</div>
+
+<script>
+const lessons = [
+
+// ── SQL MISSING ──────────────────────────────────────────────────────────────
+{id:'sql-ddl-constraints',skill:'sql',title:'DDL constraints — PRIMARY KEY, FOREIGN KEY, UNIQUE, NOT NULL, DEFAULT, CHECK',
+sub:'Covered CREATE/INSERT/UPDATE/DELETE before — constraints inside CREATE TABLE were skipped.',
+concept:'Constraints enforce data integrity at the database level — not in application code. PRIMARY KEY uniquely identifies each row and cannot be NULL. FOREIGN KEY links to another table. UNIQUE allows NULLs but no duplicate non-null values. NOT NULL prevents missing values. DEFAULT sets a fallback. CHECK enforces a condition.',
+code:`CREATE TABLE web_analytics (
+    id            SERIAL PRIMARY KEY,        -- auto-increment, unique, not null
+    year          SMALLINT NOT NULL,
+    month         SMALLINT NOT NULL CHECK (month BETWEEN 1 AND 12),
+    source_medium VARCHAR(150) NOT NULL,
+    sessions      INTEGER DEFAULT 0,
+    bounce_rate   DECIMAL(6,4) CHECK (bounce_rate BETWEEN 0 AND 1),
+    created_at    TIMESTAMP DEFAULT NOW(),
+
+    -- UNIQUE constraint: no duplicate (year,month,source) combinations
+    UNIQUE (year, month, source_medium)
+);
+
+CREATE TABLE orders (
+    order_id    SERIAL PRIMARY KEY,
+    customer_id INTEGER NOT NULL
+        REFERENCES customers(customer_id)  -- FOREIGN KEY
+        ON DELETE CASCADE,                 -- delete orders if customer deleted
+    amount      DECIMAL(10,2) CHECK (amount > 0)
+);
+
+-- Add constraints to existing table
+ALTER TABLE employees ADD CONSTRAINT chk_salary CHECK (salary > 0);
+ALTER TABLE employees ADD CONSTRAINT uq_email UNIQUE (email);`,
+note:'CHECK constraints at the database level are the last line of defence — they catch bad data even if application code has a bug. Always add CHECK for bounded values like percentages and dates.',
+warn:null},
+
+{id:'sql-indexes',skill:'sql',title:'Indexes — CREATE INDEX, composite indexes, when NOT to index',
+sub:'Indexes were mentioned conceptually in the SQL module but never shown with syntax or trade-offs.',
+concept:'An index is a sorted lookup structure that lets the database find rows without scanning every row. Think of it like a book\'s index vs reading every page. Indexes speed up SELECT but slow down INSERT/UPDATE/DELETE because the index must also be updated. Column order in composite indexes matters — the leftmost column is used first.',
+code:`-- Single column index (most common)
+CREATE INDEX idx_source ON web_analytics(source_medium);
+CREATE INDEX idx_year_month ON web_analytics(year, month);
+
+-- Composite index: useful when querying both columns together
+-- Query: WHERE year=2024 AND month=3 → uses the index efficiently
+-- Query: WHERE month=3 only → may NOT use the index (leftmost rule)
+CREATE INDEX idx_year_month_source ON web_analytics(year, month, source_medium);
+
+-- Unique index (also enforces uniqueness)
+CREATE UNIQUE INDEX uq_session ON web_analytics(year, month, source_medium);
+
+-- Check if a query uses an index
+EXPLAIN SELECT * FROM web_analytics WHERE source_medium = 'google / organic';
+-- Look for "Index Scan" vs "Seq Scan" in output
+
+-- Drop an index
+DROP INDEX idx_source;
+
+-- When NOT to index:
+-- Small tables (full scan is faster)
+-- Columns with low cardinality (e.g. boolean: only 2 values)
+-- Columns you never filter or join on
+-- Tables with frequent bulk inserts (index maintenance cost is high)`,
+note:'Rule of thumb: index columns you frequently use in WHERE, JOIN ON, and ORDER BY. EXPLAIN is your friend — always check if your query actually uses the index you created.',
+warn:'LIKE "%pattern" (leading wildcard) cannot use a standard B-tree index. Only LIKE "pattern%" (trailing wildcard) benefits from an index.'},
+
+{id:'sql-views',skill:'sql',title:'Views and materialized views',
+sub:'Not covered anywhere in previous SQL modules.',
+concept:'A view is a saved SELECT query — it looks like a table but contains no data itself. Every time you query a view, the underlying query runs. A materialized view stores the result physically and must be refreshed. Views are useful for hiding complexity, enforcing security (grant access to view not base table), and creating reusable query logic.',
+code:`-- Create a view: saved query, no stored data
+CREATE VIEW v_google_analytics AS
+SELECT year, month,
+    SUM(sessions) AS total_sessions,
+    SUM(bounce_rate * sessions) / NULLIF(SUM(sessions),0) AS weighted_bounce
+FROM web_analytics
+WHERE source_medium LIKE 'google%'
+GROUP BY year, month;
+
+-- Query it like a table
+SELECT * FROM v_google_analytics WHERE year = 2024;
+
+-- Update a view
+CREATE OR REPLACE VIEW v_google_analytics AS
+SELECT year, month, SUM(sessions) AS sessions
+FROM web_analytics WHERE source_medium LIKE 'google%'
+GROUP BY year, month;
+
+-- Drop a view
+DROP VIEW v_google_analytics;
+
+-- Materialized view: stores result physically (faster reads, needs refresh)
+CREATE MATERIALIZED VIEW mv_monthly_summary AS
+SELECT year, month, SUM(sessions) AS total_sessions
+FROM web_analytics GROUP BY year, month;
+
+-- Refresh when underlying data changes
+REFRESH MATERIALIZED VIEW mv_monthly_summary;`,
+note:'In data engineering: views are used for the semantic/reporting layer — analysts query views, not raw tables. This means schema changes in raw tables don\'t break analyst queries immediately.',
+warn:null},
+
+{id:'sql-transactions',skill:'sql',title:'Transactions — COMMIT, ROLLBACK, SAVEPOINT',
+sub:'Not covered in any previous SQL module.',
+concept:'A transaction groups SQL statements so they all succeed or all fail together — this is atomicity. If your ETL pipeline inserts into 3 tables and the third one fails, ROLLBACK undoes the first two. Without transactions, you get partial data which is worse than no data.',
+code:`-- Basic transaction
+BEGIN;                                        -- start transaction
+
+UPDATE accounts SET balance = balance - 1000 WHERE id = 1;  -- debit
+UPDATE accounts SET balance = balance + 1000 WHERE id = 2;  -- credit
+
+COMMIT;                                       -- make permanent
+
+-- If something goes wrong
+BEGIN;
+UPDATE accounts SET balance = balance - 1000 WHERE id = 1;
+-- Oops — wrong account
+ROLLBACK;                                     -- undo everything
+
+-- SAVEPOINT: partial rollback within a transaction
+BEGIN;
+INSERT INTO staging VALUES (1, 'row1');
+SAVEPOINT sp1;                                -- checkpoint
+INSERT INTO staging VALUES (2, 'bad_row');
+ROLLBACK TO SAVEPOINT sp1;                    -- undo only from sp1
+INSERT INTO staging VALUES (3, 'good_row');
+COMMIT;                                       -- commits rows 1 and 3 only
+
+-- In data pipelines: wrap load step in a transaction
+BEGIN;
+TRUNCATE staging_table;
+INSERT INTO staging_table SELECT * FROM source;
+-- Only commits if INSERT succeeds
+COMMIT;`,
+note:'ACID properties: Atomicity (all or nothing), Consistency (valid state after), Isolation (concurrent transactions don\'t interfere), Durability (committed = permanent). Transactions give you A and D.',
+warn:'PostgreSQL auto-wraps each statement in a transaction. If you want multi-statement atomicity, you must explicitly BEGIN ... COMMIT.'},
+
+{id:'sql-string-date',skill:'sql',title:'String functions + date functions (full coverage)',
+sub:'TRIM/LENGTH/SUBSTRING/REPLACE were shown but CONCAT, POSITION, SPLIT_PART, date arithmetic, DATE_TRUNC, EXTRACT were missing.',
+concept:'String functions manipulate text data — critical for cleaning source_medium values, fixing formats, and extracting parts. Date functions are essential for time-based analytics — filtering by month, computing differences, truncating to period.',
+code:`-- String functions
+SELECT CONCAT('google', ' / ', 'organic');         -- 'google / organic'
+SELECT CONCAT_WS(' / ', 'google', 'organic');      -- same, separator first
+SELECT POSITION('/' IN 'google/organic');           -- 7
+SELECT SPLIT_PART('google / organic', ' / ', 1);   -- 'google'
+SELECT SPLIT_PART('google / organic', ' / ', 2);   -- 'organic'
+SELECT LPAD('5', 3, '0');                          -- '005'
+SELECT REPEAT('ab', 3);                            -- 'ababab'
+SELECT REVERSE('hello');                           -- 'olleh'
+
+-- Practical: clean source_medium
+SELECT TRIM(LOWER(SPLIT_PART(source_medium,' / ',1))) AS source,
+       TRIM(LOWER(SPLIT_PART(source_medium,' / ',2))) AS medium
+FROM web_analytics;
+
+-- Date functions
+SELECT CURRENT_DATE;                               -- today
+SELECT CURRENT_TIMESTAMP;                         -- now with time
+SELECT NOW() - INTERVAL '30 days';               -- 30 days ago
+SELECT DATE_TRUNC('month', NOW());                -- first of current month
+SELECT DATE_TRUNC('year',  NOW());                -- Jan 1 of current year
+SELECT EXTRACT(YEAR FROM NOW());                  -- 2024
+SELECT EXTRACT(DOW  FROM NOW());                  -- day of week 0=Sun
+SELECT AGE(NOW(), '2002-01-01');                  -- interval since date
+
+-- Filter last 90 days
+WHERE created_at >= NOW() - INTERVAL '90 days'
+
+-- Group by week
+SELECT DATE_TRUNC('week', order_date) AS week_start,
+       SUM(amount) AS weekly_revenue
+FROM orders GROUP BY 1 ORDER BY 1;`,
+note:'DATE_TRUNC is your best friend for period-based grouping. DATE_TRUNC("month", date) always gives the first day of that month — perfect for consistent monthly comparisons.',
+warn:null},
+
+{id:'sql-explain',skill:'sql',title:'EXPLAIN / EXPLAIN ANALYZE — reading query plans',
+sub:'Not covered anywhere in previous modules — important for data engineering interviews.',
+concept:'EXPLAIN shows HOW the database will execute your query without running it. EXPLAIN ANALYZE runs it and shows actual stats. The goal is to spot Seq Scan (bad on large tables) and replace with Index Scan. Also look at cost estimates and actual row counts to find where time is spent.',
+code:`-- EXPLAIN: shows plan without executing
+EXPLAIN
+SELECT * FROM web_analytics
+WHERE source_medium = 'google / organic'
+  AND year = 2024;
+
+-- Output example:
+-- Index Scan using idx_source on web_analytics  (cost=0.29..8.31 rows=12)
+--   Index Cond: (source_medium = 'google / organic')
+--   Filter: (year = 2024)
+
+-- EXPLAIN ANALYZE: executes and shows real times
+EXPLAIN ANALYZE
+SELECT source_medium, SUM(sessions)
+FROM web_analytics
+GROUP BY source_medium;
+
+-- What to look for:
+-- Seq Scan   → reading every row, no index used (bad on large tables)
+-- Index Scan → using an index to find rows (good)
+-- Hash Join  → joining with a hash table (common for large joins)
+-- Nested Loop → joining row by row (good for small tables)
+-- cost=X..Y  → estimated cost: X=startup, Y=total
+-- rows=N     → estimated rows (compare to actual to find bad estimates)
+-- actual time=X..Y → real execution time per node
+
+-- Common optimization: after seeing Seq Scan
+CREATE INDEX idx_source_year ON web_analytics(source_medium, year);
+-- Run EXPLAIN again to confirm Index Scan is now used`,
+note:'In your Saras internship you said you reduced reporting latency by 35%. EXPLAIN is how you would find WHERE the slowness was. Mentioning EXPLAIN in an interview shows production-level thinking.',
+warn:null},
+
+// ── PYTHON MISSING ────────────────────────────────────────────────────────────
+{id:'py-comprehensions-all',skill:'python',title:'Dict + set comprehensions, nested comprehensions',
+sub:'List comprehensions were fully covered. Dict comprehensions, set comprehensions, and nested comprehensions were not.',
+concept:'Comprehensions extend beyond lists. Dict comprehension builds a dictionary in one line. Set comprehension builds a set. Nested list comprehension flattens a 2D structure or builds a matrix. All follow the same pattern: [expression for item in iterable if condition].',
+code:`# Dict comprehension
+words = ['hello', 'world', 'python']
+lengths = {w: len(w) for w in words}
+# {'hello': 5, 'world': 5, 'python': 6}
+
+# Filter + transform with dict comprehension
+scores = {'Ali': 85, 'Raj': 45, 'Sara': 92, 'John': 38}
+passed = {name: score for name, score in scores.items() if score >= 60}
+# {'Ali': 85, 'Sara': 92}
+
+# Invert a dictionary (swap keys and values)
+inverted = {v: k for k, v in scores.items()}
+# {85:'Ali', 45:'Raj', 92:'Sara', 38:'John'}
+
+# Set comprehension
+unique_lengths = {len(w) for w in words}   # {5, 6} — unique lengths only
+
+# Nested list comprehension
+# Flatten 2D list
+matrix = [[1,2,3],[4,5,6],[7,8,9]]
+flat = [x for row in matrix for x in row]  # [1,2,3,4,5,6,7,8,9]
+
+# Build multiplication table
+table = [[r*c for c in range(1,6)] for r in range(1,6)]
+
+# Generator expression (like list comp but memory-efficient)
+total = sum(x**2 for x in range(1000000))   # no list created in memory`,
+note:'Generator expressions (round brackets instead of square) are memory-efficient — they compute values lazily. Use them when you only need to iterate once, not store.',
+warn:null},
+
+{id:'py-oop-deep',skill:'python',title:'OOP — @property, @staticmethod, @classmethod, dunder methods',
+sub:'__init__ and basic inheritance were covered. These decorator-based OOP features were not.',
+concept:'@property makes a method accessible like an attribute — useful for computed values or validation. @staticmethod belongs to the class but gets no automatic arguments — utility functions. @classmethod receives the class itself (cls) — alternative constructors. Dunder methods (__str__, __repr__, __len__, __eq__) make objects behave like built-in types.',
+code:`class DataPipeline:
+    _registry = []   # class variable
+
+    def __init__(self, name, source):
+        self.name = name
+        self._source = source   # convention: _ means private
+
+    # @property: access like attribute, computed on demand
+    @property
+    def is_valid(self):
+        return bool(self._source and self.name)
+
+    # Setter: validate before assigning
+    @property
+    def source(self): return self._source
+
+    @source.setter
+    def source(self, value):
+        if not isinstance(value, str):
+            raise ValueError("Source must be a string")
+        self._source = value.strip().lower()
+
+    # @staticmethod: no self or cls — pure utility
+    @staticmethod
+    def validate_csv_path(path):
+        return path.endswith('.csv')
+
+    # @classmethod: alternative constructor, receives class
+    @classmethod
+    def from_config(cls, config: dict):
+        return cls(config['name'], config['source'])
+
+    # Dunder methods
+    def __str__(self):
+        return f"Pipeline({self.name})"
+
+    def __repr__(self):
+        return f"DataPipeline(name={self.name!r}, source={self._source!r})"
+
+    def __len__(self):
+        return len(DataPipeline._registry)
+
+    def __eq__(self, other):
+        return isinstance(other, DataPipeline) and self.name == other.name
+
+p = DataPipeline("etl", "web_analytics.csv")
+print(p.is_valid)                         # True (property call)
+p2 = DataPipeline.from_config({'name':'daily','source':'orders.csv'})
+print(DataPipeline.validate_csv_path("data.txt"))  # False`,
+note:'@property is the Pythonic way to add validation to attribute access. Use it when an attribute should be computed or validated — not raw assignment.',
+warn:null},
+
+{id:'py-itertools',skill:'python',title:'itertools + collections deep dive',
+sub:'Counter and defaultdict were shown. chain, zip_longest, groupby, OrderedDict, namedtuple, deque were not.',
+concept:'itertools and collections are the two most useful standard library modules for data work. itertools provides memory-efficient iteration tools. collections provides specialised container types that solve common patterns without writing boilerplate.',
+code:`from itertools import chain, groupby, islice, product, combinations
+from collections import defaultdict, OrderedDict, namedtuple, deque
+
+# chain: merge multiple iterables without creating a list
+all_data = list(chain([1,2,3], [4,5,6], [7,8,9]))  # [1..9]
+
+# islice: take first N from any iterable (memory efficient)
+def large_generator():
+    n = 0
+    while True: yield n; n+=1
+first_10 = list(islice(large_generator(), 10))  # [0..9]
+
+# groupby: group consecutive equal elements (must sort first)
+data = sorted([('IT','Ali'),('HR','Raj'),('IT','Sara')], key=lambda x:x[0])
+for dept, members in groupby(data, key=lambda x:x[0]):
+    print(dept, list(members))
+
+# combinations: all unique pairs
+cols = ['sessions','bounce_rate','conversions']
+for pair in combinations(cols, 2): print(pair)
+
+# defaultdict: no KeyError on missing keys
+word_positions = defaultdict(list)
+for i, word in enumerate("the cat sat on the mat".split()):
+    word_positions[word].append(i)
+# word_positions['the'] → [0, 4]  (no KeyError)
+
+# namedtuple: lightweight class for structured data
+Metric = namedtuple('Metric', ['name','value','unit'])
+bounce = Metric('bounce_rate', 0.42, 'percentage')
+print(bounce.name, bounce.value)   # tuple with named access
+
+# deque: fast appends/pops from both ends
+from collections import deque
+window = deque(maxlen=3)   # rolling window of size 3
+for val in [10,20,30,40,50]:
+    window.append(val)     # auto-removes oldest when full
+print(list(window))        # [30, 40, 50]`,
+note:'deque with maxlen is perfect for sliding window problems. defaultdict(list) is the most common pattern — it removes the "if key not in dict: dict[key] = []" boilerplate.',
+warn:null},
+
+{id:'py-decorators-practical',skill:'python',title:'Practical decorators — timing, retry, logging',
+sub:'Decorators were defined conceptually in an earlier module. Practical real-world decorators were not shown.',
+concept:'Beyond the definition, decorators are used daily in real projects: timing how long a function runs, automatically retrying on failure, logging every function call, caching results. These patterns appear in data pipelines constantly.',
+code:`import time, functools, logging
+
+# 1. Timing decorator — how long did this run?
+def timer(func):
+    @functools.wraps(func)  # preserves function name/docstring
+    def wrapper(*args, **kwargs):
+        start = time.perf_counter()
+        result = func(*args, **kwargs)
+        elapsed = time.perf_counter() - start
+        print(f"{func.__name__} took {elapsed:.3f}s")
+        return result
+    return wrapper
+
+@timer
+def load_data(path):
+    time.sleep(0.5)   # simulate work
+    return "data"
+
+# 2. Retry decorator — automatic retry on failure
+def retry(times=3, delay=1):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            for attempt in range(1, times+1):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    print(f"Attempt {attempt} failed: {e}")
+                    if attempt < times: time.sleep(delay)
+            raise RuntimeError(f"{func.__name__} failed after {times} attempts")
+        return wrapper
+    return decorator
+
+@retry(times=3, delay=2)
+def fetch_api_data(url):
+    import urllib.request
+    return urllib.request.urlopen(url).read()
+
+# 3. Logger decorator — log every function call
+def log_call(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        logging.info(f"Calling {func.__name__} with args={args}")
+        result = func(*args, **kwargs)
+        logging.info(f"{func.__name__} returned successfully")
+        return result
+    return wrapper`,
+note:'@functools.wraps(func) is essential in decorators — without it, func.__name__ and func.__doc__ show the wrapper\'s info, not the original function\'s. Always include it.',
+warn:null},
+
+{id:'py-generators-deep',skill:'python',title:'Generators — yield, send(), generator pipelines',
+sub:'Generators were defined conceptually. yield from, send(), and chaining generators as pipelines were not covered.',
+concept:'yield pauses and returns a value. yield from delegates to another generator. send() resumes a generator and passes a value in — makes generators two-way. Generator pipelines chain multiple generators for memory-efficient data processing — each stage only processes one item at a time.',
+code:`# Basic generator
+def count_up(n):
+    for i in range(n):
+        yield i
+
+gen = count_up(5)
+print(next(gen))  # 0
+print(next(gen))  # 1
+list(gen)         # [2, 3, 4]  (consumes remaining)
+
+# yield from: delegate to another generator
+def flatten(nested):
+    for item in nested:
+        if isinstance(item, list):
+            yield from flatten(item)  # recurse into sublists
+        else:
+            yield item
+
+list(flatten([1,[2,[3,4]],5]))  # [1,2,3,4,5]
+
+# Generator pipeline: memory-efficient data processing
+def read_lines(filepath):
+    with open(filepath) as f:
+        yield from f                        # one line at a time
+
+def filter_lines(lines, keyword):
+    for line in lines:
+        if keyword in line.lower():
+            yield line                      # only matching lines
+
+def parse_csv_line(lines):
+    import csv
+    reader = csv.reader(lines)
+    for row in reader:
+        yield row                           # one row at a time
+
+# Chain into a pipeline — only ONE line in memory at any time
+lines     = read_lines('web_analytics.csv')
+filtered  = filter_lines(lines, 'google')
+parsed    = parse_csv_line(filtered)
+for row in parsed:
+    process(row)   # process one google row at a time`,
+note:'Generator pipelines are how you process files larger than RAM. Each stage is lazy — nothing runs until you consume the final generator. This is the foundation of streaming ETL.',
+warn:null},
+
+{id:'py-regex',skill:'python',title:'Regular expressions — re module',
+sub:'String methods were covered. Pattern matching with regex (re module) was not.',
+concept:'Regular expressions match patterns in strings — more powerful than str.contains() or str.replace(). Key functions: re.match() matches at start, re.search() finds anywhere, re.findall() finds all matches, re.sub() replaces. Use raw strings r"pattern" to avoid backslash issues.',
+code:`import re
+
+# re.search: find pattern anywhere in string
+text = "Sessions: 1532, Bounce: 45.3%, Conv: 2.1%"
+match = re.search(r'\d+\.\d+', text)
+if match:
+    print(match.group())   # '45.3'
+
+# re.findall: all matches as list
+numbers = re.findall(r'\d+\.?\d*', text)
+# ['1532', '45.3', '2.1']
+
+# re.sub: replace pattern
+clean = re.sub(r'\s+', ' ', "hello   world\t\tpython")
+# 'hello world python'
+
+# re.split: split on pattern
+parts = re.split(r'[,\s]+', "google,   organic,   cpc")
+# ['google', 'organic', 'cpc']
+
+# Capture groups: extract specific parts
+log = "2024-03-15 14:32:01 ERROR: Connection failed"
+pattern = r'(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}) (\w+): (.+)'
+m = re.match(pattern, log)
+if m:
+    date, time_, level, msg = m.groups()
+
+# Practical: clean source_medium variations
+sources = ['Google / Organic', 'GOOGLE/CPC', 'google / organic']
+clean_source = lambda s: re.sub(r'\s*/\s*', ' / ', s.lower().strip())
+[clean_source(s) for s in sources]
+# all → 'google / organic', 'google / cpc'
+
+# Compile for performance when reusing pattern
+phone_pattern = re.compile(r'^\+?[\d\s\-]{10,15}$')
+phone_pattern.match("+91 9951916519")   # match object`,
+note:'Compiled patterns (re.compile) are faster when you use the same pattern many times in a loop. For one-off use, re.search(pattern, text) is fine.',
+warn:'re.match() only matches at the START of the string. re.search() matches anywhere. This trips up many people — use re.search() unless you specifically need start-of-string matching.'},
+
+// ── PANDAS MISSING ────────────────────────────────────────────────────────────
+{id:'pd-performance',skill:'pandas',title:'Performance — memory optimization, vectorization, chunking',
+sub:'Memory usage was mentioned briefly. Systematic vectorization vs apply comparison, dtype optimization workflow, and chunked processing were not fully shown.',
+concept:'Three layers of pandas performance. First: reduce memory at load time with dtype and usecols. Second: replace apply() with vectorized NumPy operations — 10-100x faster. Third: process large files in chunks when they don\'t fit in RAM at all.',
+code:`import pandas as pd, numpy as np
+
+# LAYER 1: Memory at load time
+df = pd.read_csv('analytics.csv',
+    usecols=['year','month','source_medium','sessions','bounce_rate'],
+    dtype={'year':'int16','month':'int8','sessions':'int32','bounce_rate':'float32'})
+
+# Check memory before/after
+print(df.memory_usage(deep=True).sum() / 1024**2, "MB")
+
+# Category type for low-cardinality strings
+df['source_medium'] = df['source_medium'].astype('category')
+# 20 unique values × 1M rows: object=~60MB, category=~2MB
+
+# LAYER 2: Vectorization vs apply
+# SLOW: apply loops in Python
+df['tax'] = df['sessions'].apply(lambda x: x * 0.18)
+
+# FAST: vectorized (same result, C speed)
+df['tax'] = df['sessions'] * 0.18
+
+# SLOW: apply with if-else
+df['label'] = df.apply(lambda r: 'High' if r['sessions']>5000 else 'Low', axis=1)
+
+# FAST: np.where
+df['label'] = np.where(df['sessions'] > 5000, 'High', 'Low')
+
+# Timing comparison
+import time
+s = time.perf_counter()
+df['t1'] = df['sessions'].apply(lambda x: x * 2)
+print("apply:", time.perf_counter()-s)
+s = time.perf_counter()
+df['t2'] = df['sessions'] * 2
+print("vectorized:", time.perf_counter()-s)   # ~30x faster
+
+# LAYER 3: Chunked processing for large files
+results = []
+for chunk in pd.read_csv('huge_file.csv', chunksize=100_000):
+    chunk['source'] = chunk['source_medium'].str.split(' / ').str[0]
+    agg = chunk.groupby('source')['sessions'].sum()
+    results.append(agg)
+final = pd.concat(results).groupby(level=0).sum()`,
+note:'The performance hierarchy: vectorized pandas/numpy > chunked processing > apply(). Never reach for apply() first. Try to express logic as column math, np.where, or str methods.',
+warn:'apply(axis=1) is the worst performance pattern in pandas — it is a Python for-loop. On 1M rows it can take minutes. np.select(conditions, choices) replaces it almost always.'},
+
+{id:'pd-multiindex',skill:'pandas',title:'MultiIndex — hierarchical indexing, stack/unstack, xs()',
+sub:'Not covered in previous pandas modules.',
+concept:'MultiIndex gives rows or columns a hierarchical structure — two or more levels of labels. This naturally arises after groupby on multiple columns. stack() pivots columns into rows. unstack() pivots index levels into columns. xs() (cross-section) selects a specific level slice.',
+code:`import pandas as pd
+
+# MultiIndex arises naturally from multi-column groupby
+df = pd.read_csv('web_analytics.csv')
+grouped = df.groupby(['year','month'])['sessions'].sum()
+print(grouped.index)  # MultiIndex: [(2024,1),(2024,2)...]
+
+# Access specific levels
+grouped[2024]          # all months for 2024
+grouped[2024][3]       # March 2024
+
+# xs: cross-section — select one value from any level
+grouped.xs(3, level='month')   # all March entries across years
+
+# unstack: pivot innermost index level to columns
+unstacked = grouped.unstack(level='month')
+# rows = year, columns = month — like a pivot table
+
+# stack: inverse of unstack (columns → rows)
+long = unstacked.stack()   # back to long format
+
+# Create MultiIndex from scratch
+arrays = [['google','google','facebook'],['organic','cpc','cpc']]
+idx = pd.MultiIndex.from_arrays(arrays, names=['source','medium'])
+s = pd.Series([1000,800,600], index=idx)
+
+# MultiIndex DataFrame columns (from pivot_table)
+pivot = df.pivot_table(
+    values=['sessions','bounce_rate'],
+    index='month', columns='source_medium',
+    aggfunc='mean'
+)
+# Access: pivot['sessions']['google / organic']`,
+note:'MultiIndex is common output from groupby on multiple columns and pivot_table. Knowing stack/unstack lets you reshape data between wide and long format without losing information.',
+warn:null},
+
+{id:'pd-string-methods',skill:'pandas',title:'String methods — full .str accessor coverage',
+sub:'str.contains(), str.split(), str.strip(), str.lower() were shown. str.extract(), str.replace() with regex, str.cat(), str.pad(), str.slice() were not.',
+concept:'The .str accessor exposes string methods on entire Series without apply(). It is vectorized — much faster than apply(lambda x: x.upper()). The most powerful methods: str.extract() for regex capture groups, str.split(expand=True) for splitting into multiple columns.',
+code:`import pandas as pd
+df = pd.read_csv('web_analytics.csv')
+
+# str.extract: regex capture groups into new columns
+df[['source','medium']] = df['source_medium'].str.extract(
+    r'^([^/]+)\s*/\s*(.+)$'
+)
+
+# str.split with expand=True: split into multiple columns
+df[['source','medium']] = df['source_medium'].str.split(' / ', expand=True)
+
+# str.replace with regex
+df['source_medium'] = df['source_medium'].str.replace(
+    r'\s+', ' ', regex=True    # collapse multiple spaces
+).str.strip()
+
+# str.cat: concatenate across columns
+df['label'] = df['source'].str.cat(df['medium'], sep='_')
+# 'google_organic', 'google_cpc'
+
+# str.slice: substring by position
+df['year_str'] = df['date_str'].str.slice(0, 4)    # first 4 chars
+
+# str.pad: pad to fixed width
+df['month_str'] = df['month'].astype(str).str.pad(2, side='left', fillchar='0')
+# 1 → '01', 12 → '12'
+
+# str.count: count pattern occurrences
+df['slash_count'] = df['source_medium'].str.count('/')
+
+# str.findall: find all regex matches as list
+df['numbers'] = df['description'].str.findall(r'\d+')
+
+# Check if string is numeric
+df['sessions'].astype(str).str.isnumeric()`,
+note:'str.extract() is the most powerful str method — it applies a regex with capture groups and returns each group as a separate column. Use it instead of apply(lambda x: re.search(...))',
+warn:null},
+
+{id:'pd-style-output',skill:'pandas',title:'DataFrame styling, pipe(), method chaining best practices',
+sub:'Method chaining was shown briefly. pipe() and DataFrame.style for formatted output were not.',
+concept:'pipe() applies a function to a DataFrame and returns the result — designed for clean method chaining. DataFrame.style renders colored, formatted DataFrames useful for reports. Method chaining with parentheses keeps long pipelines readable.',
+code:`import pandas as pd
+
+df = pd.read_csv('web_analytics.csv')
+
+# pipe(): apply a custom function in a chain
+def add_bounce_pct(df):
+    df = df.copy()
+    df['bounce_pct'] = (df['bounce_rate'] * 100).round(2)
+    return df
+
+def flag_high_sessions(df, threshold=5000):
+    df = df.copy()
+    df['is_high'] = df['sessions'] > threshold
+    return df
+
+# Clean method chain with pipe
+result = (df
+    .dropna(subset=['source_medium'])
+    .assign(source=df['source_medium'].str.split(' / ').str[0])
+    .pipe(add_bounce_pct)
+    .pipe(flag_high_sessions, threshold=3000)
+    .groupby('source').agg(total_sessions=('sessions','sum'))
+    .sort_values('total_sessions', ascending=False)
+    .reset_index()
+)
+
+# DataFrame.style: colored output for reports
+styled = (result.style
+    .background_gradient(subset=['total_sessions'], cmap='Greens')
+    .format({'total_sessions': '{:,.0f}'})
+    .highlight_max(subset=['total_sessions'], color='lightgreen')
+    .set_caption("Sessions by Source")
+)
+# styled.to_excel('report.xlsx', engine='openpyxl')  # export styled
+# styled  # display in Jupyter
+
+# Useful formatting
+df.style.format({
+    'bounce_rate': '{:.1%}',      # 0.423 → 42.3%
+    'sessions': '{:,.0f}',        # 15000 → 15,000
+    'revenue': '${:,.2f}'         # 1234.5 → $1,234.50
+})`,
+note:'pipe() makes custom transformation functions work inside method chains. Always write transformation functions that take a DataFrame and return a DataFrame so they are pipe()-compatible.',
+warn:null},
+
+{id:'pd-window',skill:'pandas',title:'Rolling, expanding, ewm — time series operations in pandas',
+sub:'rolling() was mentioned briefly in the pandas cheatsheet widget but never fully taught with examples.',
+concept:'rolling() computes on a sliding window of N rows. expanding() computes on all rows up to current. ewm() (exponential weighted moving) gives recent rows more weight. These are essential for time-series analytics — the kind of weekly/monthly analysis done at Saras.',
+code:`import pandas as pd
+
+df = pd.DataFrame({
+    'month': range(1,13),
+    'sessions': [1000,1200,950,1400,1600,1300,1800,2000,1700,2200,2500,2300]
+})
+
+# rolling: N-period window
+df['rolling_3m'] = df['sessions'].rolling(window=3).mean()
+# First 2 rows are NaN (not enough history)
+
+df['rolling_3m_sum'] = df['sessions'].rolling(window=3).sum()
+df['rolling_3m_max'] = df['sessions'].rolling(window=3).max()
+df['rolling_3m_std'] = df['sessions'].rolling(window=3).std()  # volatility
+
+# min_periods: compute even when window not full yet
+df['rolling_3m_safe'] = df['sessions'].rolling(window=3, min_periods=1).mean()
+
+# expanding: all rows up to current
+df['cumulative_avg'] = df['sessions'].expanding().mean()
+df['running_max']    = df['sessions'].expanding().max()
+df['running_total']  = df['sessions'].expanding().sum()
+
+# ewm: exponential weighted — recent rows count more
+df['ewm_sessions'] = df['sessions'].ewm(span=3).mean()
+
+# Rolling per group (PARTITION BY equivalent)
+df['source'] = ['google','google','facebook','google','facebook','google',
+                'google','facebook','google','facebook','google','google']
+df['rolling_by_source'] = (
+    df.groupby('source')['sessions']
+      .transform(lambda x: x.rolling(3, min_periods=1).mean())
+)`,
+note:'rolling() with min_periods=1 avoids NaN for the first N-1 rows — useful when you need output for every row even at the start of a time series.',
+warn:'rolling() expects data to be sorted by time before applying. Always sort_values("date") before rolling — wrong order gives meaningless results.'},
+
+{id:'pd-io-advanced',skill:'pandas',title:'Advanced I/O — read_sql, read_json, chunk reading, parquet',
+sub:'read_csv and to_csv were covered. read_sql, read_json, parquet, and chunk-based reading were not.',
+concept:'Real data engineering rarely reads only CSV files. read_sql() pulls query results directly from a database. read_json() parses JSON (APIs, nested data). Parquet is the standard columnar format in data warehouses — much faster than CSV for analytics. Chunked reading handles files larger than RAM.',
+code:`import pandas as pd, sqlalchemy
+
+# read_sql: query database directly into DataFrame
+engine = sqlalchemy.create_engine('postgresql://user:pass@localhost/db')
+
+df = pd.read_sql("SELECT * FROM web_analytics WHERE year=2024", engine)
+df = pd.read_sql_query("SELECT * FROM web_analytics WHERE year=%s", engine, params=(2024,))
+df = pd.read_sql_table("web_analytics", engine)   # entire table
+
+# read_json: parse JSON
+df = pd.read_json('data.json')
+df = pd.read_json('data.json', orient='records')  # list of dicts
+df = pd.read_json('data.json', lines=True)         # one JSON per line (JSONL)
+
+# From API response (requests)
+import requests, json
+r = requests.get('https://api.example.com/analytics')
+df = pd.DataFrame(r.json()['data'])
+
+# Parquet: fast columnar format (standard in data warehouses)
+df.to_parquet('analytics.parquet', index=False)
+df = pd.read_parquet('analytics.parquet')
+df = pd.read_parquet('analytics.parquet', columns=['year','sessions'])  # column pruning
+
+# Parquet vs CSV:
+# CSV:    text, human-readable, slow queries, large file size
+# Parquet: binary, columnar, fast queries, compressed (5-10x smaller)
+
+# Chunked reading for large files
+results = []
+for chunk in pd.read_csv('huge_file.csv', chunksize=50_000):
+    # Process each chunk
+    agg = chunk.groupby('source_medium')['sessions'].sum()
+    results.append(agg)
+combined = pd.concat(results).groupby(level=0).sum()`,
+note:'In modern data engineering stacks (Snowflake, BigQuery, Redshift), data is stored as Parquet. Knowing how to read/write Parquet is expected even at intern level.',
+warn:null}
+];
+
+const qs = [
+// SQL
+{cat:'sql',badge:'sql-b',d:'easy',
+q:'What is the difference between a PRIMARY KEY and a UNIQUE constraint?',
+say:`"Both PRIMARY KEY and UNIQUE prevent duplicate values, but PRIMARY KEY also enforces NOT NULL. A table can have only one PRIMARY KEY but multiple UNIQUE constraints. I think of PRIMARY KEY as the main identifier that the whole table is organised around, while UNIQUE constraints enforce uniqueness on other columns like email or username."`,
+code:`CREATE TABLE users (
+    user_id  SERIAL PRIMARY KEY,       -- unique + NOT NULL
+    email    VARCHAR(200) UNIQUE,      -- unique, but NULLs allowed
+    username VARCHAR(50) UNIQUE NOT NULL
+);
+
+-- Primary key: one per table, no NULLs
+-- Unique: multiple allowed, NULLs permitted (two NULLs are NOT considered duplicates)`,
+tip:"Follow-up: 'can a UNIQUE column have NULL values?' → Yes. In most databases two NULL values in a UNIQUE column are NOT treated as duplicates — NULLs are 'unknown' and unknown != unknown."},
+
+{cat:'sql',badge:'sql-b',d:'easy',
+q:'What is a view in SQL? How is it different from a materialized view?',
+say:`"A view is a saved SELECT query — it's like a named window into your data. When I query a view, the underlying query runs fresh every time. A materialized view actually stores the result physically like a table, so reads are faster. The trade-off: materialized views need to be refreshed when the underlying data changes. I use views for the reporting layer so analysts don't need to know the raw table schema."`,
+code:`-- View: no stored data, fresh every query
+CREATE VIEW v_google_metrics AS
+SELECT year, month, SUM(sessions) AS sessions
+FROM web_analytics WHERE source_medium LIKE 'google%'
+GROUP BY year, month;
+
+SELECT * FROM v_google_metrics WHERE year = 2024;
+
+-- Materialized view: stores result, needs refresh
+CREATE MATERIALIZED VIEW mv_monthly AS
+SELECT year, month, SUM(sessions) AS sessions
+FROM web_analytics GROUP BY year, month;
+
+REFRESH MATERIALIZED VIEW mv_monthly;  -- refresh when data changes`,
+tip:"'When would you use a materialized view?' → When the underlying query is complex and slow, and you can tolerate slightly stale data. Common in reporting layers where data is refreshed nightly."},
+
+{cat:'sql',badge:'sql-b',d:'medium',
+q:'What is a transaction? Why do we need it in data pipelines?',
+say:`"A transaction groups multiple SQL statements so they all succeed or all fail together — it's all-or-nothing. In a data pipeline if I'm inserting into three tables and the third insert fails, without a transaction the first two inserts stay — now my data is inconsistent. With a transaction I can ROLLBACK and undo everything, then fix the issue and retry. This is called atomicity."`,
+code:`-- Without transaction: partial failure leaves bad state
+INSERT INTO staging (...) VALUES (...);   -- succeeds
+INSERT INTO summary (...) VALUES (...);   -- fails → now staging has orphan data
+
+-- With transaction: all or nothing
+BEGIN;
+INSERT INTO staging (...) VALUES (...);
+INSERT INTO summary (...) VALUES (...);
+COMMIT;    -- only reaches here if both succeed
+-- If either fails, ROLLBACK undoes everything`,
+tip:"'What does ROLLBACK do?' → Undoes all changes made since the last BEGIN. This is why data pipelines should always wrap their load step in a transaction — if loading fails halfway, you rollback to a clean state."},
+
+{cat:'sql',badge:'sql-b',d:'medium',
+q:'Why is LIKE "%pattern" slow? What is the solution?',
+say:`"LIKE with a leading wildcard — %pattern — can't use a standard B-tree index because the database doesn't know how the string starts, so it has to scan every row. LIKE 'pattern%' can use an index because it knows the prefix. The solution depends on the use case: for full-text search, use a full-text index. For exact lookups I restructure the data so I don't need a leading wildcard."`,
+code:`-- SLOW: can't use index — full table scan
+WHERE source_medium LIKE '%organic%';
+
+-- FAST: can use index on source_medium — known prefix
+WHERE source_medium LIKE 'google%';
+
+-- Workaround: store the reversed string for suffix search
+-- Or use PostgreSQL full-text search
+WHERE source_medium ILIKE '%organic%';  -- still slow, but case-insensitive
+
+-- Check: EXPLAIN tells you if index is used
+EXPLAIN SELECT * FROM web_analytics WHERE source_medium LIKE '%organic%';
+-- Seq Scan = full table scan (bad on large tables)
+EXPLAIN SELECT * FROM web_analytics WHERE source_medium LIKE 'google%';
+-- Index Scan = uses index (good)`,
+tip:"In interviews: 'I always run EXPLAIN before and after adding an index to verify it's actually being used. A common mistake is adding an index that the query optimizer ignores.'"},
+
+{cat:'sql',badge:'sql-b',d:'hard',
+q:'What is EXPLAIN ANALYZE and what do you look for in its output?',
+say:`"EXPLAIN shows the query plan — how the database intends to execute the query. EXPLAIN ANALYZE actually runs it and shows real timings. I look for three things: Seq Scan on large tables means no index is being used. A big difference between estimated rows and actual rows means the query planner has bad statistics. And nodes with high actual time are the bottleneck."`,
+code:`EXPLAIN ANALYZE
+SELECT source_medium, SUM(sessions)
+FROM web_analytics WHERE year = 2024
+GROUP BY source_medium;
+
+-- Key things to read:
+-- "Seq Scan" → reading every row, no index (add one if table is large)
+-- "Index Scan" → using an index (good)
+-- "rows=1000" vs "actual rows=50000" → planner underestimated (run ANALYZE)
+-- "actual time=150.3..155.2" → time in ms (high = bottleneck)
+-- "Buffers: shared hit=5000" → cache hits (higher = better)
+
+-- After seeing Seq Scan on year column:
+CREATE INDEX idx_year ON web_analytics(year);
+-- Run EXPLAIN ANALYZE again to confirm Index Scan`,
+tip:"In your Saras internship you reduced reporting latency 35% — in a real answer you'd say 'I used EXPLAIN to find that the year and month columns weren't indexed, added a composite index, and verified with EXPLAIN ANALYZE that the query switched from Seq Scan to Index Scan.'"},
+
+{cat:'sql',badge:'sql-b',d:'medium',
+q:'Write a query using DATE_TRUNC to show weekly session totals.',
+say:`"DATE_TRUNC truncates a date to the start of the specified period — week, month, year. It always returns a consistent anchor point, so all days in the same week map to Monday. This makes GROUP BY on DATE_TRUNC give clean period-level aggregations."`,
+code:`-- Weekly totals: all days in same week group to Monday
+SELECT
+    DATE_TRUNC('week', order_date) AS week_start,
+    COUNT(*) AS num_orders,
+    SUM(amount) AS weekly_revenue
+FROM orders
+GROUP BY DATE_TRUNC('week', order_date)
+ORDER BY week_start;
+
+-- Monthly totals
+SELECT
+    DATE_TRUNC('month', created_at) AS month_start,
+    COUNT(*) AS signups
+FROM users
+GROUP BY 1 ORDER BY 1;
+
+-- Last 12 complete months
+WHERE created_at >= DATE_TRUNC('month', NOW() - INTERVAL '12 months')
+  AND created_at <  DATE_TRUNC('month', NOW())`,
+tip:"GROUP BY 1 is shorthand for GROUP BY the first SELECT column. Some teams use it, others prefer explicit column names. Know both styles."},
+
+{cat:'sql',badge:'sql-b',d:'medium',
+q:'What is SPLIT_PART? Write a query to extract source and medium from source_medium.',
+say:`"SPLIT_PART splits a string by a delimiter and returns a specific part by position. Position 1 is the first part. I use it to normalise source_medium — splitting 'google / organic' into 'google' as source and 'organic' as medium."`,
+code:`-- SPLIT_PART(string, delimiter, position)
+SELECT
+    TRIM(LOWER(SPLIT_PART(source_medium, ' / ', 1))) AS source,
+    TRIM(LOWER(SPLIT_PART(source_medium, ' / ', 2))) AS medium,
+    SUM(sessions) AS total_sessions
+FROM web_analytics
+WHERE year = 2024
+GROUP BY 1, 2
+ORDER BY total_sessions DESC;
+
+-- Result:
+-- source     medium    total_sessions
+-- google     organic   125000
+-- google     cpc       89000
+-- facebook   cpc       45000`,
+tip:"This directly relates to your Saras work with Google Analytics data. 'I used SPLIT_PART to decompose source_medium into source and medium columns for cleaner reporting' is a great concrete answer."},
+
+// PYTHON
+{cat:'python',badge:'py-b',d:'easy',
+q:'What is a dict comprehension? Give a real example.',
+say:`"Dict comprehension is the same idea as list comprehension but it produces a dictionary. The pattern is curly braces with key: value expression. I use it when I need to transform or filter a dictionary, or build a lookup table from a list."`,
+code:`# Build lookup from list
+words = ['apple', 'banana', 'fig']
+lengths = {w: len(w) for w in words}
+# {'apple': 5, 'banana': 6, 'fig': 3}
+
+# Filter existing dict
+scores = {'Ali': 85, 'Raj': 45, 'Sara': 92}
+passed = {k: v for k, v in scores.items() if v >= 60}
+# {'Ali': 85, 'Sara': 92}
+
+# Invert a dict
+inverted = {v: k for k, v in scores.items()}
+# {85: 'Ali', 45: 'Raj', 92: 'Sara'}
+
+# Real DE use: build metric→formula registry
+metrics = ['sessions', 'bounce_rate', 'conversions']
+formulas = {m: f'SUM({m})' for m in metrics}`,
+tip:"Follow-up: 'what's a set comprehension?' → {len(w) for w in words} — same idea, curly braces, produces a set of unique values."},
+
+{cat:'python',badge:'py-b',d:'medium',
+q:'What are @staticmethod and @classmethod? When do you use each?',
+say:`"@staticmethod is a function that belongs to a class but doesn't need access to the class or instance — it's just a utility function grouped logically with the class. @classmethod receives the class itself as the first argument (cls) and is typically used as an alternative constructor — a different way to create an instance. I use @staticmethod for helpers and @classmethod when I want to create objects from different input formats."`,
+code:`class MetricRegistry:
+    _metrics = {}
+
+    def __init__(self, name, formula):
+        self.name = name
+        self.formula = formula
+
+    # @classmethod: alternative constructor, receives cls
+    @classmethod
+    def from_dict(cls, d):
+        return cls(d['name'], d['formula'])
+
+    # @staticmethod: utility, no self or cls needed
+    @staticmethod
+    def is_valid_name(name):
+        return isinstance(name, str) and len(name) > 0
+
+# Usage
+m1 = MetricRegistry('sessions', 'SUM(sessions)')
+m2 = MetricRegistry.from_dict({'name':'bounce_rate','formula':'AVG(bounce_rate)'})
+print(MetricRegistry.is_valid_name('sessions'))  # True`,
+tip:"One-liner to remember: @staticmethod = utility function that happens to live in the class. @classmethod = alternative constructor or factory method."},
+
+{cat:'python',badge:'py-b',d:'medium',
+q:'What is a generator pipeline? Give a data engineering example.',
+say:`"A generator pipeline chains multiple generators together — each stage processes one item at a time and passes it to the next. Nothing is loaded into memory upfront. For data engineering, this means you can process a 10GB CSV file with constant memory — one row at a time flows through extract, filter, transform, and load stages."`,
+code:`def read_csv_rows(filepath):
+    import csv
+    with open(filepath, encoding='utf-8') as f:
+        yield from csv.DictReader(f)   # one row at a time
+
+def filter_rows(rows, column, value):
+    for row in rows:
+        if row.get(column, '').lower() == value.lower():
+            yield row
+
+def clean_row(rows):
+    for row in rows:
+        row['sessions'] = int(row.get('sessions', 0) or 0)
+        row['source_medium'] = row['source_medium'].strip().lower()
+        yield row
+
+def batch_rows(rows, size=1000):
+    batch = []
+    for row in rows:
+        batch.append(row)
+        if len(batch) >= size:
+            yield batch
+            batch = []
+    if batch:
+        yield batch
+
+# Pipeline: only ONE row in memory at a time
+all_rows    = read_csv_rows('web_analytics.csv')
+google_rows = filter_rows(all_rows, 'source_medium', 'google / organic')
+clean_rows  = clean_row(google_rows)
+batches     = batch_rows(clean_rows, 1000)
+
+for batch in batches:
+    db.insert_many(batch)   # insert 1000 rows at a time`,
+tip:"This pattern is used in production ETL pipelines everywhere. The key insight: each generator is lazy — nothing runs until you consume the final output. Memory stays constant regardless of file size."},
+
+{cat:'python',badge:'py-b',d:'medium',
+q:'Write a retry decorator with configurable attempts and delay.',
+say:`"A retry decorator wraps a function and re-calls it if it raises an exception — up to a maximum number of times with a delay between attempts. This is essential for data pipelines that call APIs or databases which can have transient failures."`,
+code:`import time, functools
+
+def retry(times=3, delay=1, exceptions=(Exception,)):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            for attempt in range(1, times + 1):
+                try:
+                    return func(*args, **kwargs)
+                except exceptions as e:
+                    print(f"Attempt {attempt}/{times} failed: {e}")
+                    if attempt < times:
+                        time.sleep(delay)
+                    else:
+                        raise
+        return wrapper
+    return decorator
+
+@retry(times=3, delay=2)
+def fetch_api(url):
+    import urllib.request
+    return urllib.request.urlopen(url).read()
+
+@retry(times=5, delay=0.5, exceptions=(ConnectionError, TimeoutError))
+def connect_db():
+    # database connection that might fail transiently
+    pass`,
+tip:"@functools.wraps(func) is mandatory — without it, the wrapped function loses its __name__ and __doc__, which breaks logging and debugging. Always include it in every decorator you write."},
+
+{cat:'python',badge:'py-b',d:'medium',
+q:'How do you use regex (re module) to clean a messy source_medium column?',
+say:`"The re module gives you pattern-based find, replace, and extract. I use re.sub() to normalise spacing and slashes in source_medium strings, re.findall() to extract all numbers from a string, and compiled patterns for performance when cleaning thousands of rows."`,
+code:`import re
+
+sources = ['Google / Organic', 'GOOGLE/CPC', 'google  /  organic', 'facebook/cpc']
+
+def clean_source_medium(s):
+    # Lowercase and strip
+    s = s.strip().lower()
+    # Normalize spaces around slash: ' / ' or '/' or '  /  ' → ' / '
+    s = re.sub(r'\s*/\s*', ' / ', s)
+    # Collapse multiple spaces
+    s = re.sub(r'\s+', ' ', s)
+    return s
+
+cleaned = [clean_source_medium(s) for s in sources]
+# ['google / organic', 'google / cpc', 'google / organic', 'facebook / cpc']
+
+# Extract numbers from log string
+log = "Processed 1532 rows in 3.45 seconds with 12 errors"
+numbers = re.findall(r'\d+\.?\d*', log)   # ['1532', '3.45', '12']
+
+# Extract named groups
+pattern = re.compile(r'(?P<source>\w+)\s*/\s*(?P<medium>\w+)')
+m = pattern.search('google / organic')
+if m:
+    print(m.group('source'), m.group('medium'))  # google  organic`,
+tip:"Named groups (?P<name>...) make regex extraction self-documenting — m.group('source') is clearer than m.group(1). Use them when extracting multiple parts from a pattern."},
+
+{cat:'python',badge:'py-b',d:'hard',
+q:'What is the difference between a regular list and a deque? When would you use deque?',
+say:`"A deque (double-ended queue) supports O(1) append and pop from BOTH ends, while a list is O(1) at the end but O(n) at the beginning — it has to shift every element. I use deque when I need a sliding window or a queue — appending new items and removing old ones from the other end. For simple accumulation, list is fine."`,
+code:`from collections import deque
+import time
+
+# list: O(n) insert/delete at front
+lst = list(range(100000))
+start = time.perf_counter()
+for _ in range(10000): lst.insert(0, 0)   # shift all elements
+print("list front insert:", time.perf_counter()-start)  # ~slow
+
+# deque: O(1) insert/delete at either end
+dq = deque(range(100000))
+start = time.perf_counter()
+for _ in range(10000): dq.appendleft(0)  # no shifting
+print("deque front insert:", time.perf_counter()-start)  # ~fast
+
+# Sliding window: deque with maxlen
+def rolling_avg(data, window=3):
+    dq = deque(maxlen=window)
+    result = []
+    for val in data:
+        dq.append(val)
+        result.append(sum(dq) / len(dq))
+    return result
+
+rolling_avg([100,200,150,300,250], window=3)
+# [100.0, 150.0, 150.0, 216.7, 233.3]
+
+# Queue (FIFO) pattern
+queue = deque()
+queue.append('task1')   # enqueue
+queue.append('task2')
+queue.popleft()          # dequeue → 'task1'`,
+tip:"deque with maxlen is the cleanest sliding window implementation in Python. It automatically discards the oldest element when the window is full — no manual index management."},
+
+// PANDAS
+{cat:'pandas',badge:'pd-b',d:'easy',
+q:'What is the category dtype in pandas? When do you use it?',
+say:`"Category dtype stores string values as integer codes with a lookup table — like SQL enum. Instead of storing 'google / organic' as a full string for every row, it stores the string once and uses small integers to reference it. For a column with 20 unique values and 1 million rows, category uses about 30x less memory than object dtype."`,
+code:`import pandas as pd
+df = pd.read_csv('web_analytics.csv')
+
+# Check how many unique values
+print(df['source_medium'].nunique())    # e.g. 20 unique sources
+
+# Object dtype: stores full string per row
+print(df['source_medium'].memory_usage(deep=True))  # e.g. 60 MB
+
+# Convert to category
+df['source_medium'] = df['source_medium'].astype('category')
+print(df['source_medium'].memory_usage(deep=True))  # e.g. 2 MB — 30x less!
+
+# Can set at read time
+df = pd.read_csv('web_analytics.csv',
+    dtype={'source_medium': 'category', 'year':'int16', 'month':'int8'})
+
+# Access categories
+print(df['source_medium'].cat.categories)   # Index of unique values
+print(df['source_medium'].cat.codes)        # Integer codes per row
+
+# Add new category
+df['source_medium'] = df['source_medium'].cat.add_categories(['tiktok / paid'])`,
+tip:"Rule: use category when cardinality (unique values) is low relative to row count. source_medium with 20 values and 1M rows → perfect for category. customer_id with 1M unique values → keep as int."},
+
+{cat:'pandas',badge:'pd-b',d:'medium',
+q:'Explain rolling() and how you would compute a 3-month moving average.',
+say:`"rolling() creates a sliding window of N rows and computes a function over that window. For time series data like monthly sessions, a 3-month rolling average smooths out noise and shows the underlying trend. The first N-1 rows get NaN because there aren't enough previous rows to fill the window — I handle this with min_periods=1."`,
+code:`import pandas as pd
+
+df = pd.DataFrame({
+    'month': range(1,13),
+    'sessions': [1000,1200,950,1400,1600,1300,1800,2000,1700,2200,2500,2300]
+})
+
+# 3-month rolling average
+df['rolling_3m'] = df['sessions'].rolling(window=3).mean()
+# Jan: NaN, Feb: NaN, Mar: (1000+1200+950)/3=1050, Apr: (1200+950+1400)/3=...
+
+# min_periods=1: compute even at start (no NaN)
+df['rolling_3m_safe'] = df['sessions'].rolling(window=3, min_periods=1).mean()
+
+# Rolling per group (like PARTITION BY in SQL)
+df['rolling_by_src'] = (df.groupby('source_medium')['sessions']
+    .transform(lambda x: x.rolling(3, min_periods=1).mean()))
+
+# Cumulative sum (expanding window)
+df['cumulative'] = df['sessions'].expanding().sum()`,
+tip:"Connecting to Saras internship: 'This is the automated version of the weekly/monthly trend analysis I was doing manually in Excel. Rolling average on monthly data shows the trend without the noise of individual spikes.'"},
+
+{cat:'pandas',badge:'pd-b',d:'medium',
+q:'How do you read from a database directly into pandas? What is read_sql used for?',
+say:`"pd.read_sql() runs a SQL query against a database and returns the result as a DataFrame. It's the bridge between SQL and pandas in data pipelines — I run aggregation in SQL (where the database is optimised for it) and bring only the summarised result into pandas for further manipulation or export. I pass a SQLAlchemy engine as the connection."`,
+code:`import pandas as pd, sqlalchemy
+
+# Create engine
+engine = sqlalchemy.create_engine('postgresql://user:password@localhost:5432/db')
+
+# Run SQL query → DataFrame
+df = pd.read_sql("""
+    SELECT year, month, source_medium,
+           SUM(sessions) AS total_sessions,
+           AVG(bounce_rate) AS avg_bounce
+    FROM web_analytics
+    WHERE year = 2024
+    GROUP BY year, month, source_medium
+""", engine)
+
+# Parameterized query (safe, no SQL injection)
+df = pd.read_sql(
+    "SELECT * FROM web_analytics WHERE year = %s AND month = %s",
+    engine, params=(2024, 3)
+)
+
+# Write back to DB
+df_clean.to_sql('web_analytics_clean', engine,
+    if_exists='append', index=False, method='multi')  # faster bulk insert`,
+tip:"Always aggregate in SQL before pulling into pandas — never do SELECT * and then groupby in pandas if you can do it in SQL first. The database handles millions of rows orders of magnitude faster."},
+
+{cat:'pandas',badge:'pd-b',d:'medium',
+q:'What is parquet? Why is it preferred over CSV in data engineering?',
+say:`"Parquet is a columnar binary file format. CSV stores data row by row — to read one column you must scan every row. Parquet stores data column by column — reading sessions column reads only the sessions bytes. This makes Parquet 5-10x faster for analytics queries. It's also compressed by default (3-5x smaller than CSV) and preserves data types. In modern data stacks like Snowflake, BigQuery, and Redshift, Parquet is the standard."`,
+code:`import pandas as pd
+
+df = pd.read_csv('web_analytics.csv')
+
+# Write parquet
+df.to_parquet('analytics.parquet', index=False)
+# Automatically compressed, types preserved
+
+# Read parquet
+df = pd.read_parquet('analytics.parquet')
+
+# Column pruning: only read specific columns (much faster than CSV)
+df = pd.read_parquet('analytics.parquet',
+    columns=['year','month','sessions'])
+
+# Comparison:
+# CSV 100MB → Parquet ~20-30MB (compressed)
+# CSV read all cols: 2s → Parquet 2 cols: 0.1s
+
+# Parquet + partitioning (advanced, common in data lakes)
+df.to_parquet('data/', partition_cols=['year','month'])
+# Creates: data/year=2024/month=1/part0.parquet etc.`,
+tip:"'Why not always use Parquet?' → Parquet is binary so you can't open it in Excel or a text editor. For human-readable data sharing, CSV. For everything analytical and pipeline-based, Parquet."},
+
+{cat:'pandas',badge:'pd-b',d:'hard',
+q:'What is pipe() in pandas and why is it useful in method chains?',
+say:`"pipe() lets me apply a custom function inside a method chain. Without pipe() I'd have to break the chain to call a function. With pipe() the function receives the DataFrame, does something, and returns a DataFrame — so the chain continues. It makes data transformation pipelines read like a clear sequence of steps."`,
+code:`import pandas as pd
+
+df = pd.read_csv('web_analytics.csv')
+
+# Without pipe: breaks the chain
+df = df.dropna()
+df = add_derived_columns(df)    # custom function — breaks chain
+df = df.sort_values('sessions')
+
+# With pipe: clean chain
+def add_derived_columns(df):
+    df = df.copy()
+    df['source'] = df['source_medium'].str.split(' / ').str[0]
+    df['bounce_pct'] = df['bounce_rate'] * 100
+    return df
+
+def filter_low_traffic(df, threshold=100):
+    return df[df['sessions'] >= threshold]
+
+result = (df
+    .dropna(subset=['source_medium','sessions'])
+    .pipe(add_derived_columns)
+    .pipe(filter_low_traffic, threshold=500)
+    .groupby('source').agg(total=('sessions','sum'))
+    .sort_values('total', ascending=False)
+    .reset_index()
+)
+
+print(result)`,
+tip:"Write every transformation function to take a DataFrame and return a DataFrame — then it's automatically pipe()-compatible. This makes your custom functions reusable across different pipelines."},
+
+{cat:'pandas',badge:'pd-b',d:'hard',
+q:'How do you handle files larger than RAM in pandas? Show the chunking pattern.',
+say:`"Three strategies in order. First, reduce memory at load time with usecols and dtype. Second, convert string columns to category. Third, if the file still doesn't fit, use chunksize in read_csv — it returns an iterator where each chunk is a DataFrame. I process and aggregate each chunk, collect results in a list, then concat at the end."`,
+code:`import pandas as pd
+
+# Strategy 1: Reduce memory at load
+df = pd.read_csv('huge.csv',
+    usecols=['year','month','source_medium','sessions'],
+    dtype={'year':'int16','month':'int8','sessions':'int32'})
+df['source_medium'] = df['source_medium'].astype('category')
+
+# Strategy 2: Chunked processing
+results = []
+for chunk in pd.read_csv('huge.csv', chunksize=100_000):
+    # Apply transformations per chunk
+    chunk = chunk.dropna(subset=['source_medium'])
+    chunk['sessions'] = pd.to_numeric(chunk['sessions'], errors='coerce').fillna(0)
+    # Aggregate within chunk
+    agg = chunk.groupby('source_medium')['sessions'].sum()
+    results.append(agg)
+
+# Combine chunk results
+final = pd.concat(results).groupby(level=0).sum().sort_values(ascending=False)
+print(final)
+
+# Strategy 3: Use Parquet instead of CSV
+# Read parquet with column pruning (fastest)
+df = pd.read_parquet('huge.parquet', columns=['source_medium','sessions'])`,
+tip:"'What's the trade-off of chunking?' → You can only do operations that are associative — things like SUM and COUNT work because you can combine partial results. MEDIAN and PERCENTILE are harder because you need all data at once."}
+];
+
+let lFilter='all', qFilter='all', qSeen=new Set();
+
+function setV(v){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('on'));
+  document.getElementById(v).classList.add('on');
+  document.querySelectorAll('.ttab').forEach(t=>t.classList.toggle('on',
+    t.textContent===(v==='learn'?'Missing lessons':'Mock interview')));
+  if(v==='learn') renderLessons();
+  if(v==='quiz') renderQuiz();
+}
+
+function buildLessonFilters(){
+  const cats=['all','sql','python','pandas'];
+  const el=document.getElementById('lftabs');
+  el.innerHTML=cats.map(c=>`
+    <button class="ftab ${c===lFilter?'on':''}" onclick="setLF('${c}')">
+      ${c==='all'?'All ('+lessons.length+')':c.toUpperCase()+' ('+lessons.filter(l=>l.skill===c).length+')'}
+    </button>`).join('');
+}
+
+function setLF(f){lFilter=f;buildLessonFilters();renderLessons();}
+
+function renderLessons(){
+  buildLessonFilters();
+  const fl=lFilter==='all'?lessons:lessons.filter(l=>l.skill===lFilter);
+  document.getElementById('lview').innerHTML=fl.map(l=>{
+    const bc=l.skill==='sql'?'sql-b':l.skill==='python'?'py-b':'pd-b';
+    return`<div class="card">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:5px">
+        <span class="badge ${bc}">${l.skill.toUpperCase()}</span>
+        <span class="badge miss-b">Missing topic</span>
+      </div>
+      <div class="card-head">${l.title}</div>
+      <div class="card-sub">${l.sub}</div>
+      <div class="lbl">Concept</div>
+      <div class="concept">${l.concept}</div>
+      <div class="lbl">Code</div>
+      <div class="code">${l.code}</div>
+      ${l.note?`<div class="note">${l.note}</div>`:''}
+      ${l.warn?`<div class="warn">${l.warn}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function buildQFilters(){
+  const cats=['all','sql','python','pandas'];
+  const el=document.getElementById('qftabs');
+  el.innerHTML=cats.map(c=>`
+    <button class="ftab ${c===qFilter?'on':''}" onclick="setQF('${c}')">
+      ${c==='all'?'All':c.toUpperCase()}
+    </button>`).join('');
+}
+
+function setQF(f){qFilter=f;buildQFilters();renderQuiz();}
+
+function renderQuiz(){
+  buildQFilters();
+  const fl=qFilter==='all'?qs:qs.filter(q=>q.cat===qFilter);
+  document.getElementById('qtot').textContent=qs.length;
+  document.getElementById('qseen').textContent=qSeen.size;
+  document.getElementById('qpct').textContent=Math.round(qSeen.size/qs.length*100)+'%';
+  document.getElementById('qpf').style.width=Math.round(qSeen.size/qs.length*100)+'%';
+  document.getElementById('qview').innerHTML=fl.map(q=>{
+    const gi=qs.indexOf(q);const isO=qSeen.has(gi);
+    const bc=q.cat==='sql'?'sql-b':q.cat==='python'?'py-b':'pd-b';
+    return`<div class="qcard" id="qc${gi}">
+      <div class="qmeta">
+        <span class="qn">Q${gi+1}</span>
+        <span class="badge ${bc}">${q.cat.toUpperCase()}</span>
+        <span class="diff ${q.d==='easy'?'easy':q.d==='medium'?'med':'hard'}">${q.d}</span>
+      </div>
+      <div class="qt">${q.q}</div>
+      <button class="sbtn" onclick="tog(${gi})">${isO?'Hide answer':'Show answer'}</button>
+      <div class="ans ${isO?'open':''}" id="qa${gi}">
+        <div class="lbl">What to say</div>
+        <div class="say">${q.say}</div>
+        <div class="lbl">Code</div>
+        <div class="code">${q.code}</div>
+        <div class="tip"><b style="font-weight:500">Interview tip:</b> ${q.tip}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function tog(i){
+  qSeen.add(i);
+  const b=document.getElementById('qa'+i),btn=document.querySelector(`#qc${i} .sbtn`);
+  const o=b.classList.contains('open');
+  b.classList.toggle('open',!o);
+  btn.textContent=!o?'Hide answer':'Show answer';
+  document.getElementById('qseen').textContent=qSeen.size;
+  document.getElementById('qpct').textContent=Math.round(qSeen.size/qs.length*100)+'%';
+  document.getElementById('qpf').style.width=Math.round(qSeen.size/qs.length*100)+'%';
+}
+
+renderLessons();
+</script>
