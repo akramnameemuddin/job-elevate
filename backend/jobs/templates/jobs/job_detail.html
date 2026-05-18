@@ -600,6 +600,38 @@ button.jd-btn { -webkit-appearance: none; appearance: none; }
                         &middot; <a href="{% url 'resume_builder:tailor_for_job' job.id %}" target="_blank">AI Tailor for this job</a>
                         {% endif %}
                     </div>
+                    <div style="margin-top:.65rem; padding-top:.65rem; border-top:1px solid var(--border-color);">
+                        <div style="display:flex; gap:.5rem; align-items:center;">
+                            <input type="radio" name="resume_type" value="standard" id="useStandard" style="width:18px;height:18px;cursor:pointer;" onchange="document.getElementById('tailorSection').style.display='none'">
+                            <label for="useStandard" style="cursor:pointer;flex:1;font-size:.9rem;margin:0;">Use standard resume</label>
+                        </div>
+                        <div style="display:flex; gap:.5rem; align-items:center; margin-top:.4rem;">
+                            <input type="radio" name="resume_type" value="tailored" id="useTailored" style="width:18px;height:18px;cursor:pointer;" onchange="document.getElementById('tailorSection').style.display='block'">
+                            <label for="useTailored" style="cursor:pointer;flex:1;font-size:.9rem;margin:0;">AI Tailor new resume for this job</label>
+                        </div>
+                    </div>
+
+                    <!-- Inline AI Tailoring Section -->
+                    <div id="tailorSection" style="display:none;margin-top:1rem;padding:1rem;background:rgba(79,70,229,.05);border:1px solid rgba(79,70,229,.2);border-radius:10px;">
+                        <h4 style="margin:0 0 .5rem;font-size:.95rem;color:var(--heading-color);">
+                            <i class='bx bx-bot'></i> AI Tailoring
+                        </h4>
+                        <p style="font-size:.85rem;color:var(--text-muted);margin:0 0 .75rem;">Select a base resume to tailor for this job:</p>
+
+                        <select id="baseResumeSelect" style="width:100%;padding:.5rem .75rem;border:1px solid var(--border-color);border-radius:8px;background:var(--card-bg);color:var(--heading-color);font-size:.9rem;margin-bottom:.75rem;">
+                            <option value="">-- Select resume --</option>
+                            {% for resume in user_resumes %}
+                            <option value="{{ resume.id }}">{{ resume.title }}</option>
+                            {% endfor %}
+                        </select>
+
+                        <button type="button" id="startTailorBtn" class="jd-btn jd-btn-primary" onclick="startAITailoring(event)" style="width:100%;justify-content:center;">
+                            <i class='bx bx-brain'></i> Start Tailoring (30-60 sec)
+                        </button>
+                        <div id="tailorStatus" style="margin-top:.5rem;font-size:.85rem;color:var(--text-muted);text-align:center;display:none;">
+                            <i class='bx bx-loader-alt' style="animation:spin .7s linear infinite;"></i> AI analyzing...
+                        </div>
+                    </div>
                     {% else %}
                     <div class="jd-no-resume">
                         <i class='bx bx-info-circle'></i>
@@ -607,9 +639,6 @@ button.jd-btn { -webkit-appearance: none; appearance: none; }
                             <p style="margin:0 0 .4rem;">No resumes yet.</p>
                             <a href="{% url 'resume_builder:resume_builder' %}" class="jd-btn jd-btn-sm" target="_blank">
                                 <i class='bx bx-plus'></i> Create Resume
-                            </a>
-                            <a href="{% url 'resume_builder:tailor_for_job' job.id %}" class="jd-btn jd-btn-sm" target="_blank" style="margin-left:.5rem;">
-                                <i class='bx bx-bot'></i> AI Tailor
                             </a>
                         </div>
                     </div>
@@ -721,6 +750,103 @@ document.addEventListener('DOMContentLoaded', function() {
             if (c.startsWith(name + '=')) return decodeURIComponent(c.substring(name.length + 1));
         }
         return null;
+
+        // AI Tailoring Functions
+        window.startAITailoring = async function(event) {
+            event.preventDefault();
+            const baseResumeSelect = document.getElementById('baseResumeSelect');
+            const resumeId = baseResumeSelect.value;
+            const btn = document.getElementById('startTailorBtn');
+            const status = document.getElementById('tailorStatus');
+            const jobId = {{ job.id }};
+
+            if (!resumeId) {
+                alert('Please select a resume to tailor');
+                return;
+            }
+
+            btn.disabled = true;
+            status.style.display = 'block';
+
+            try {
+                const formData = new FormData();
+                formData.append('resume_id', resumeId);
+                formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+
+                const response = await fetch(`/resume_builder/api/ai/tailor/${jobId}/`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    status.innerHTML = '<i class="bx bx-check-circle" style="color:#22c55e;"></i> Tailoring complete! ' + 
+                        'Before: ' + data.match_score_before + '% → After: ' + data.match_score_after + '%';
+                    status.style.color = '#22c55e';
+
+                    // Auto-finalize after 2 seconds
+                    setTimeout(() => finalizeTailoringAndApply(data.tailored_id), 2000);
+                } else {
+                    status.innerHTML = '<i class="bx bx-x-circle" style="color:#ef4444;"></i> ' + (data.error || 'Tailoring failed');
+                    status.style.color = '#ef4444';
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                console.error('Tailoring error:', error);
+                status.innerHTML = '<i class="bx bx-x-circle" style="color:#ef4444;"></i> Network error';
+                status.style.color = '#ef4444';
+                btn.disabled = false;
+            }
+        };
+
+        window.finalizeTailoringAndApply = async function(tailoredId) {
+            try {
+                const response = await fetch(`/resume_builder/api/ai/finalize/${tailoredId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Create a hidden radio input for the tailored_resume_id and check it
+                    let tailoredInput = document.querySelector(`input[name="tailored_resume_id"][value="${tailoredId}"]`);
+                    if (!tailoredInput) {
+                        tailoredInput = document.createElement('input');
+                        tailoredInput.type = 'hidden';
+                        tailoredInput.name = 'tailored_resume_id';
+                        tailoredInput.value = tailoredId;
+                        document.getElementById('jdApplyForm').appendChild(tailoredInput);
+                    }
+                    tailoredInput.checked = true;
+
+                    // Hide tailor section and show success
+                    document.getElementById('tailorSection').style.display = 'none';
+                    const resumeList = document.querySelector('.jd-resume-list');
+                    if (resumeList) {
+                        resumeList.innerHTML += `
+                            <label class="jd-resume-opt" style="border-color:var(--primary-color);background:rgba(79,70,229,.03);">
+                                <input type="radio" name="tailored_resume_id" value="${tailoredId}" checked>
+                                <i class='bx bx-bot jd-resume-icon' style="color:#7c3aed;"></i>
+                                <div class="jd-resume-meta">
+                                    <strong>AI Tailored (Just Created)</strong>
+                                    <small>${data.match_score_after}% match</small>
+                                </div>
+                                <i class='bx bx-check-circle jd-resume-check'></i>
+                            </label>
+                        `;
+                    }
+
+                    alert('Resume tailored successfully! (' + data.match_score_after + '% match). You can now apply.');
+                }
+            } catch (error) {
+                console.error('Finalization error:', error);
+            }
+        };
     }
 });
 

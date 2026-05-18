@@ -29,4 +29,8 @@ urlpatterns = [
     path('ai/accept-all/<int:tailored_id>/', ai_views.accept_all_suggestions, name='accept_all'),
     path('ai/finalize/<int:tailored_id>/', ai_views.apply_and_finalize, name='apply_finalize'),
     path('ai/regenerate/<int:tailored_id>/', ai_views.regenerate_suggestions, name='regenerate'),
+    
+    # AJAX endpoints for inline tailoring (without page redirects)
+    path('api/ai/tailor/<int:job_id>/', ai_views.api_tailor_for_job, name='api_tailor'),
+    path('api/ai/finalize/<int:tailored_id>/', ai_views.api_apply_and_finalize, name='api_finalize'),
 ]

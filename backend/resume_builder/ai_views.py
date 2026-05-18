@@ -206,3 +206,81 @@ def regenerate_suggestions(request, tailored_id):
 
     messages.info(request, 'AI agent generated fresh suggestions.')
     return redirect('resume_builder:ai_review', tailored_id=tailored.id)
+
+
+@login_required
+@require_POST
+def api_tailor_for_job(request, job_id):
+    """AJAX: Start AI analysis for inline tailoring without page redirect"""
+    job = get_object_or_404(Job, id=job_id, status='Open')
+    user = request.user
+
+    try:
+        resume_id = request.POST.get('resume_id')
+        base_resume = None
+        if resume_id:
+            base_resume = Resume.objects.filter(id=resume_id, user=user).first()
+            if not base_resume:
+                return JsonResponse({'success': False, 'error': 'Resume not found'}, status=404)
+
+        # Compute before-score
+        kw = compute_keyword_match(user, job)
+
+        # Generate AI suggestions
+        suggestions = generate_ai_suggestions(user, job, base_resume)
+
+        # Create TailoredResume
+        tailored = TailoredResume.objects.create(
+            user=user,
+            base_resume=base_resume,
+            job=job,
+            status='reviewed',
+            suggestions=suggestions,
+            match_score_before=kw['score'],
+            keywords_matched=kw['matched'],
+            keywords_missing=kw['missing'],
+        )
+
+        return JsonResponse({
+            'success': True,
+            'tailored_id': tailored.id,
+            'match_score_before': tailored.match_score_before,
+            'match_score_after': tailored.match_score_after,
+            'total_suggestions': len(tailored.suggestions or []),
+            'high_priority': len([s for s in (tailored.suggestions or []) if s.get('priority') == 'high']),
+        })
+    except Exception as e:
+        logger.error(f"Error in API tailor: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+
+@login_required
+@require_POST
+def api_apply_and_finalize(request, tailored_id):
+    """AJAX: Apply all suggestions and finalize tailored resume (return JSON)"""
+    tailored = get_object_or_404(TailoredResume, id=tailored_id, user=request.user)
+    user = request.user
+
+    try:
+        result = apply_suggestions_to_resume(user, tailored)
+
+        tailored.tailored_skills = result['tailored_skills']
+        tailored.tailored_objective = result['tailored_objective']
+        tailored.tailored_experience = result['tailored_experience']
+        tailored.tailored_projects = result['tailored_projects']
+        tailored.match_score_after = result['match_score_after']
+        tailored.keywords_matched = result['keywords_matched']
+        tailored.keywords_missing = result['keywords_missing']
+        tailored.status = 'applied'
+        tailored.save()
+
+        return JsonResponse({
+            'success': True,
+            'tailored_id': tailored.id,
+            'match_score_before': tailored.match_score_before,
+            'match_score_after': tailored.match_score_after,
+            'message': 'Tailored resume ready to use!'
+        })
+    except Exception as e:
+        logger.error(f"Error applying suggestions: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
